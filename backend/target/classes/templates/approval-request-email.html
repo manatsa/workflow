@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Approval Required</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #ff9800; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .info-box { background: white; padding: 15px; border-left: 4px solid #1976d2; margin: 15px 0; }
+        .button { display: inline-block; padding: 12px 24px; background: #1976d2; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Approval Required</h1>
+        </div>
+        <div class="content">
+            <p>Hello <span th:text="${approverName}">Approver</span>,</p>
+            <p>A new workflow request requires your approval:</p>
+            <div class="info-box">
+                <p><strong>Workflow:</strong> <span th:text="${workflowName}">Workflow Name</span></p>
+                <p><strong>Reference:</strong> <span th:text="${referenceNumber}">REF-123</span></p>
+                <p><strong>Submitted by:</strong> <span th:text="${initiatorName}">John Doe</span></p>
+            </div>
+            <p>Please review and take action on this request:</p>
+            <p style="text-align: center;">
+                <a th:href="${approvalLink}" class="button">Review Request</a>
+            </p>
+            <p>Best regards,<br>Sonarworks Workflow System</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

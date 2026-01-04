@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Workflow Status Update</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header-approved { background: #4caf50; color: white; padding: 20px; text-align: center; }
+        .header-rejected { background: #f44336; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .info-box { background: white; padding: 15px; border-left: 4px solid #1976d2; margin: 15px 0; }
+        .comments { background: #fff3e0; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div th:class="${action == 'APPROVED'} ? 'header-approved' : 'header-rejected'">
+            <h1>Workflow <span th:text="${action}">Status</span></h1>
+        </div>
+        <div class="content">
+            <p>Hello <span th:text="${recipientName}">User</span>,</p>
+            <p>Your workflow request has been <span th:text="${action}">processed</span>:</p>
+            <div class="info-box">
+                <p><strong>Workflow:</strong> <span th:text="${workflowName}">Workflow Name</span></p>
+                <p><strong>Reference:</strong> <span th:text="${referenceNumber}">REF-123</span></p>
+                <p><strong>Action by:</strong> <span th:text="${approverName}">Approver Name</span></p>
+            </div>
+            <div th:if="${comments}" class="comments">
+                <p><strong>Comments:</strong></p>
+                <p th:text="${comments}">No comments provided</p>
+            </div>
+            <p>Best regards,<br>Sonarworks Workflow System</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

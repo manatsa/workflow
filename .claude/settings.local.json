@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npm install)",
+      "Bash(npx ng build)",
+      "Bash(mvn spring-boot:run:*)",
+      "Bash(npm start)",
+      "Bash(java:*)",
+      "Bash(timeout:*)",
+      "Bash(powershell:*)",
+      "Bash(curl:*)",
+      "Bash(mvn package:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(if not exist \"C:\\\\Users\\\\codemaster\\\\Videos\\\\Claude Workspace\\\\Sonarworks\\\\backend\\\\src\\\\main\\\\resources\\\\static\" mkdir \"C:\\\\Users\\\\codemaster\\\\Videos\\\\Claude Workspace\\\\Sonarworks\\\\backend\\\\src\\\\main\\\\resources\\\\static\")",
+      "Bash(xcopy:*)",
+      "Bash(dir \"C:\\\\Users\\\\codemaster\\\\Videos\\\\Claude Workspace\\\\Sonarworks\\\\backend\\\\src\\\\main\\\\resources\\\\static\")",
+      "Bash(mvn clean compile:*)",
+      "Bash(mvn compile:*)",
+      "Bash(psql:*)",
+      "Bash(mvn clean package:*)",
+      "Bash(if exist \"C:\\\\Users\\\\codemaster\\\\Videos\\\\Claude Workspace\\\\Sonarworks\\\\backend\\\\src\\\\main\\\\resources\\\\static\" rd /s /q \"C:\\\\Users\\\\codemaster\\\\Videos\\\\Claude Workspace\\\\Sonarworks\\\\backend\\\\src\\\\main\\\\resources\\\\static\")",
+      "Bash(mvn dependency:purge-local-repository:*)",
+      "Bash(where:*)",
+      "Bash(dir \"C:\\\\Program Files\\\\Java\")",
+      "Bash(dir \"C:\\\\Program Files\\\\Eclipse Adoptium\")",
+      "Bash(set \"JAVA_HOME=C:\\\\Program Files\\\\Java\\\\jdk-25.0.1\")",
+      "Bash(set \"PATH=C:\\\\Program Files\\\\Java\\\\jdk-25.0.1\\\\bin;%PATH%\")",
+      "Bash(dir \"C:\\\\Users\\\\codemaster\\\\Videos\\\\Claude Workspace\\\\Sonarworks\\\\backend\\\\target\\\\*.jar\")",
+      "Bash(ping:*)",
+      "Bash(printf:*)",
+      "Bash(cat:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc2NzUzNTkzMiwiZXhwIjoxNzY3NjIyMzMyfQ.bdCr7n_RAOCmmYYHS0_9m9jELF1aN8V1sdR3qZb6TvmaEemzKyrs2oHt_ZKIEI3ZmjH-ukH1rxD77AwOZcCh4w\")",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

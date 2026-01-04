@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: sonarworks-workflow
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/workflow
+    username: sonar
+    password: P@88345!
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+server:
+  port: 8080
+
+# Application specific configurations
+app:
+  jwt:
+    secret: ${JWT_SECRET:SonarworksWorkflowSystemSecretKeyForJWTTokenGenerationMustBeAtLeast256Bits}
+    expiration: 86400000  # 24 hours
+    refresh-expiration: 604800000  # 7 days
+
+  encryption:
+    key: ${AES_KEY:SonarAESKey12345}  # 16 bytes for AES-128
+
+  storage:
+    base-path: C:/Sonar Docs/
+    attachments-path: ${app.storage.base-path}attachments/
+    templates-path: ${app.storage.base-path}templates/
+    imports-path: ${app.storage.base-path}imports/
+    exports-path: ${app.storage.base-path}exports/
+    backups-path: ${app.storage.base-path}backups/
+
+  backup:
+    filename-prefix: workflow_backup
+
+logging:
+  level:
+    root: INFO
+    com.sonarworks: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
