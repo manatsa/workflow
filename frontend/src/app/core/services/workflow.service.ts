@@ -117,6 +117,18 @@ export class WorkflowService {
     return this.api.getPage<WorkflowInstance>('/workflow-instances/pending-approvals', page, size);
   }
 
+  getPendingApprovalsCount(): Observable<ApiResponse<number>> {
+    return this.api.get<number>('/workflow-instances/pending-approvals/count');
+  }
+
+  getMySubmissionsCount(): Observable<ApiResponse<number>> {
+    return this.api.get<number>('/workflow-instances/my-submissions/count');
+  }
+
+  getMyPendingSubmissionsCount(): Observable<ApiResponse<number>> {
+    return this.api.get<number>('/workflow-instances/my-submissions/pending-count');
+  }
+
   getInstanceById(id: string): Observable<ApiResponse<WorkflowInstance>> {
     return this.api.get<WorkflowInstance>(`/workflow-instances/${id}`);
   }
@@ -126,8 +138,8 @@ export class WorkflowService {
     return this.api.post<WorkflowInstance>(`/workflow-instances/workflow/${workflowId}${params}`, fieldValues);
   }
 
-  updateInstance(id: string, fieldValues: Record<string, any>): Observable<ApiResponse<WorkflowInstance>> {
-    return this.api.put<WorkflowInstance>(`/workflow-instances/${id}`, fieldValues);
+  updateInstance(id: string, data: FormData): Observable<ApiResponse<WorkflowInstance>> {
+    return this.api.upload<WorkflowInstance>(`/workflow-instances/${id}/update`, data);
   }
 
   submitDraftInstance(id: string): Observable<ApiResponse<WorkflowInstance>> {
@@ -205,6 +217,12 @@ export class WorkflowService {
 
   exportWorkflow(id: string): Observable<Blob> {
     return this.api.download(`/workflows/${id}/export`);
+  }
+
+  importWorkflow(file: File): Observable<ApiResponse<Workflow>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.api.upload<Workflow>('/workflows/import', formData);
   }
 
   submitInstance(data: FormData): Observable<ApiResponse<WorkflowInstance>> {

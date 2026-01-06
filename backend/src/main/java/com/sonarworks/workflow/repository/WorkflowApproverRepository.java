@@ -17,8 +17,11 @@ public interface WorkflowApproverRepository extends JpaRepository<WorkflowApprov
     @Query("SELECT a FROM WorkflowApprover a WHERE a.workflow.id = :workflowId ORDER BY a.level, a.displayOrder")
     List<WorkflowApprover> findByWorkflowId(@Param("workflowId") UUID workflowId);
 
-    @Query("SELECT a FROM WorkflowApprover a WHERE a.workflow.id = :workflowId AND a.level = :level")
+    @Query("SELECT a FROM WorkflowApprover a WHERE a.workflow.id = :workflowId AND a.level = :level ORDER BY a.displayOrder")
     List<WorkflowApprover> findByWorkflowIdAndLevel(@Param("workflowId") UUID workflowId, @Param("level") Integer level);
+
+    @Query("SELECT COUNT(a) FROM WorkflowApprover a WHERE a.workflow.id = :workflowId AND a.level = :level")
+    Integer countByWorkflowIdAndLevel(@Param("workflowId") UUID workflowId, @Param("level") Integer level);
 
     @Query("SELECT a FROM WorkflowApprover a WHERE a.user.id = :userId AND a.workflow.id = :workflowId")
     Optional<WorkflowApprover> findByUserIdAndWorkflowId(@Param("userId") UUID userId, @Param("workflowId") UUID workflowId);

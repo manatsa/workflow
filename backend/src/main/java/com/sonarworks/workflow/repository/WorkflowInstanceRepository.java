@@ -27,8 +27,25 @@ public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstan
     @Query("SELECT i FROM WorkflowInstance i WHERE i.status = :status ORDER BY i.createdAt DESC")
     Page<WorkflowInstance> findByStatus(@Param("status") WorkflowInstance.Status status, Pageable pageable);
 
-    @Query("SELECT i FROM WorkflowInstance i WHERE i.currentApprover.user.id = :userId AND i.status = 'PENDING' ORDER BY i.submittedAt ASC")
-    Page<WorkflowInstance> findPendingApprovalsByUserId(@Param("userId") UUID userId, Pageable pageable);
+    @Query("SELECT i FROM WorkflowInstance i LEFT JOIN i.currentApprover ca LEFT JOIN ca.user u WHERE " +
+            "i.status = 'PENDING' AND (u.id = :userId OR ca.approverEmail = :email) " +
+            "ORDER BY i.submittedAt ASC")
+    Page<WorkflowInstance> findPendingApprovalsByUserIdOrEmail(
+            @Param("userId") UUID userId,
+            @Param("email") String email,
+            Pageable pageable);
+
+    @Query("SELECT COUNT(i) FROM WorkflowInstance i LEFT JOIN i.currentApprover ca LEFT JOIN ca.user u WHERE " +
+            "i.status = 'PENDING' AND (u.id = :userId OR ca.approverEmail = :email)")
+    long countPendingApprovalsByUserIdOrEmail(
+            @Param("userId") UUID userId,
+            @Param("email") String email);
+
+    @Query("SELECT COUNT(i) FROM WorkflowInstance i WHERE i.initiator.id = :userId")
+    long countByInitiatorId(@Param("userId") UUID userId);
+
+    @Query("SELECT COUNT(i) FROM WorkflowInstance i WHERE i.initiator.id = :userId AND i.status = 'PENDING'")
+    long countPendingByInitiatorId(@Param("userId") UUID userId);
 
     @Query("SELECT i FROM WorkflowInstance i WHERE i.currentApprover.approverEmail = :email AND i.status = 'PENDING' ORDER BY i.submittedAt ASC")
     List<WorkflowInstance> findPendingApprovalsByEmail(@Param("email") String email);

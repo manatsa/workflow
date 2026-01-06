@@ -24,6 +24,9 @@ public class SBUDTO {
     private String name;
 
     private String description;
+    private UUID corporateId;
+    private String corporateName;
+    private String corporateCode;
     private UUID parentId;
     private String parentName;
     private Boolean isRoot;
@@ -32,4 +35,5 @@ public class SBUDTO {
     private String contactEmail;
     private String contactPhone;
     private List<SBUDTO> children;
+    private List<BranchDTO> branches;
 }

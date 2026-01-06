@@ -8,9 +8,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AuthService } from '@core/services/auth.service';
 import { WorkflowService } from '@core/services/workflow.service';
+import { ThemeService } from '@core/services/theme.service';
 import { Workflow } from '@core/models/workflow.model';
+import { ProfileDialogComponent } from '@shared/components/profile-dialog/profile-dialog.component';
+import { ChangePasswordDialogComponent } from '@shared/components/change-password-dialog/change-password-dialog.component';
 
 @Component({
   selector: 'app-main-layout',
@@ -24,11 +30,14 @@ import { Workflow } from '@core/models/workflow.model';
     MatIconModule,
     MatButtonModule,
     MatMenuModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatBadgeModule,
+    MatDividerModule,
+    MatDialogModule
   ],
   template: `
     <div class="layout-container">
-      <aside class="sidebar">
+      <aside class="sidebar" [class.collapsed]="!sidebarOpen">
         <div class="sidebar-header">
           <mat-icon>workflow</mat-icon>
           <span class="brand-text">Sonarworks</span>
@@ -64,9 +73,25 @@ import { Workflow } from '@core/models/workflow.model';
                   <mat-icon>security</mat-icon>
                   <span>Roles</span>
                 </a>
+                <a class="menu-item" routerLink="/categories" routerLinkActive="active">
+                  <mat-icon>category</mat-icon>
+                  <span>Categories</span>
+                </a>
+                <a class="menu-item" routerLink="/corporates" routerLinkActive="active">
+                  <mat-icon>corporate_fare</mat-icon>
+                  <span>Corporates</span>
+                </a>
                 <a class="menu-item" routerLink="/sbus" routerLinkActive="active">
                   <mat-icon>business</mat-icon>
                   <span>SBU Management</span>
+                </a>
+                <a class="menu-item" routerLink="/branches" routerLinkActive="active">
+                  <mat-icon>store</mat-icon>
+                  <span>Branches</span>
+                </a>
+                <a class="menu-item" routerLink="/departments" routerLinkActive="active">
+                  <mat-icon>account_tree</mat-icon>
+                  <span>Departments</span>
                 </a>
                 <a class="menu-item" routerLink="/settings" routerLinkActive="active">
                   <mat-icon>settings</mat-icon>
@@ -119,22 +144,36 @@ import { Workflow } from '@core/models/workflow.model';
           </mat-expansion-panel>
 
           <a class="menu-item" routerLink="/approvals" routerLinkActive="active">
-            <mat-icon>thumb_up</mat-icon>
+            <mat-icon [matBadge]="pendingApprovalsCount > 0 ? pendingApprovalsCount : null"
+                      matBadgeColor="warn"
+                      matBadgeSize="small"
+                      [matBadgeHidden]="pendingApprovalsCount === 0">thumb_up</mat-icon>
             <span>Pending Approvals</span>
+            @if (pendingApprovalsCount > 0) {
+              <span class="badge-count">{{ pendingApprovalsCount }}</span>
+            }
           </a>
 
           <a class="menu-item" routerLink="/my-submissions" routerLinkActive="active">
-            <mat-icon>send</mat-icon>
+            <mat-icon [matBadge]="mySubmissionsCount > 0 ? mySubmissionsCount : null"
+                      matBadgeColor="primary"
+                      matBadgeSize="small"
+                      [matBadgeHidden]="mySubmissionsCount === 0">send</mat-icon>
             <span>My Submissions</span>
+            @if (mySubmissionsCount > 0) {
+              <span class="badge-count primary">{{ mySubmissionsCount }}</span>
+            }
           </a>
         </nav>
 
         <div class="sidebar-footer">
-          <small>v1.0.0</small>
+          <div class="version">v1.0.0</div>
+          <div class="developer">Developed By: Sonar Microsystems</div>
+          <div class="copyright">&copy; {{ currentYear }} All Rights Reserved</div>
         </div>
       </aside>
 
-      <main class="main-content">
+      <main class="main-content" [class.expanded]="!sidebarOpen">
         <header class="main-header">
           <div class="header-left">
             <button mat-icon-button (click)="toggleSidebar()">
@@ -147,11 +186,11 @@ import { Workflow } from '@core/models/workflow.model';
               <mat-icon>account_circle</mat-icon>
             </button>
             <mat-menu #userMenu="matMenu">
-              <button mat-menu-item routerLink="/profile">
+              <button mat-menu-item (click)="openProfileDialog()">
                 <mat-icon>person</mat-icon>
                 <span>Profile</span>
               </button>
-              <button mat-menu-item routerLink="/change-password">
+              <button mat-menu-item (click)="openChangePasswordDialog()">
                 <mat-icon>lock</mat-icon>
                 <span>Change Password</span>
               </button>
@@ -175,18 +214,20 @@ import { Workflow } from '@core/models/workflow.model';
 
     .sidebar {
       width: 260px;
-      background: #263238;
-      color: white;
+      background: var(--sidebar-bg, #263238);
+      color: var(--sidebar-text, white);
       display: flex;
       flex-direction: column;
       position: fixed;
+      left: 0;
+      top: 0;
       height: 100vh;
       z-index: 1000;
     }
 
     .sidebar-header {
       padding: 1rem;
-      background: #1e272c;
+      background: var(--sidebar-header-bg, #1e272c);
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -199,15 +240,16 @@ import { Workflow } from '@core/models/workflow.model';
       align-items: center;
       gap: 0.75rem;
       padding: 1rem;
-      background: #1e272c;
-      border-bottom: 1px solid #37474f;
+      background: var(--user-profile-bg, #1e272c);
+      color: var(--user-profile-text, white);
+      border-bottom: 1px solid var(--menu-hover-bg, #37474f);
     }
 
     .avatar {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: #1976d2;
+      background: var(--primary-color, #1976d2);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -228,24 +270,24 @@ import { Workflow } from '@core/models/workflow.model';
       align-items: center;
       gap: 0.75rem;
       padding: 0.75rem 1rem;
-      color: white;
+      color: var(--sidebar-text, white);
       text-decoration: none;
       cursor: pointer;
       transition: background 0.2s;
     }
 
-    .menu-item:hover { background: #37474f; }
-    .menu-item.active { background: #1976d2; }
+    .menu-item:hover { background: var(--menu-hover-bg, #37474f); }
+    .menu-item.active { background: var(--menu-active-bg, #1976d2); }
 
     .nav-panel {
       background: transparent !important;
       box-shadow: none !important;
-      color: white;
+      color: var(--sidebar-text, white);
     }
 
     .nav-panel ::ng-deep .mat-expansion-panel-header {
       padding: 0 1rem;
-      color: white;
+      color: var(--sidebar-text, white);
     }
 
     .nav-panel ::ng-deep .mat-expansion-panel-body {
@@ -257,10 +299,41 @@ import { Workflow } from '@core/models/workflow.model';
       font-size: 0.875rem;
     }
 
+    .badge-count {
+      margin-left: auto;
+      background: #f44336;
+      color: white;
+      border-radius: 10px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .badge-count.primary {
+      background: #1976d2;
+    }
+
     .sidebar-footer {
       padding: 1rem;
       text-align: center;
-      border-top: 1px solid #37474f;
+      border-top: 1px solid var(--menu-hover-bg, #37474f);
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    .sidebar-footer .version {
+      margin-bottom: 0.25rem;
+    }
+
+    .sidebar-footer .developer {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .sidebar-footer .copyright {
+      opacity: 0.7;
     }
 
     .main-content {
@@ -269,15 +342,17 @@ import { Workflow } from '@core/models/workflow.model';
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      transition: margin-left 0.3s ease;
     }
 
     .main-header {
-      background: white;
+      background: var(--header-bg, white);
+      color: var(--header-text, #333);
       padding: 0.5rem 1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--border-color, #e0e0e0);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -286,22 +361,70 @@ import { Workflow } from '@core/models/workflow.model';
     .page-content {
       flex: 1;
       padding: 1.5rem;
-      background: #f5f5f5;
+      background: var(--body-bg, #f5f5f5);
+    }
+
+    /* Sidebar collapsed state */
+    .sidebar {
+      transition: transform 0.3s ease, width 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+      transform: translateX(-260px);
+    }
+
+    .main-content.expanded {
+      margin-left: 0;
     }
   `]
 })
 export class MainLayoutComponent implements OnInit {
   workflows: Workflow[] = [];
   activeWorkflows: Workflow[] = [];
+  sidebarOpen = true;
+  pendingApprovalsCount = 0;
+  mySubmissionsCount = 0;
+  currentYear = new Date().getFullYear();
 
   constructor(
     private authService: AuthService,
     private workflowService: WorkflowService,
-    private router: Router
+    private themeService: ThemeService,
+    private router: Router,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
+    this.themeService.loadTheme();
     this.loadWorkflows();
+    this.loadPendingApprovalsCount();
+    this.loadMySubmissionsCount();
+  }
+
+  loadPendingApprovalsCount() {
+    this.workflowService.getPendingApprovalsCount().subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.pendingApprovalsCount = res.data || 0;
+        }
+      },
+      error: () => {
+        this.pendingApprovalsCount = 0;
+      }
+    });
+  }
+
+  loadMySubmissionsCount() {
+    this.workflowService.getMySubmissionsCount().subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.mySubmissionsCount = res.data || 0;
+        }
+      },
+      error: () => {
+        this.mySubmissionsCount = 0;
+      }
+    });
   }
 
   get fullName(): string {
@@ -340,10 +463,43 @@ export class MainLayoutComponent implements OnInit {
   }
 
   toggleSidebar() {
-    // Toggle sidebar for mobile
+    this.sidebarOpen = !this.sidebarOpen;
   }
 
   logout() {
     this.authService.logout();
+  }
+
+  openProfileDialog() {
+    const user = this.authService.currentUser;
+    if (user) {
+      this.dialog.open(ProfileDialogComponent, {
+        width: '600px',
+        data: {
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          fullName: user.fullName,
+          phoneNumber: user.phoneNumber,
+          staffId: user.staffId,
+          department: user.department,
+          userType: user.userType,
+          roles: user.roles || [],
+          sbus: [],
+          lastLogin: user.lastLogin,
+          createdAt: user.createdAt,
+          isActive: true,
+          isLocked: false
+        }
+      });
+    }
+  }
+
+  openChangePasswordDialog() {
+    this.dialog.open(ChangePasswordDialogComponent, {
+      width: '500px',
+      disableClose: true
+    });
   }
 }

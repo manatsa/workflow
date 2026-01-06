@@ -21,8 +21,22 @@ public class EmailService {
     private final TemplateEngine templateEngine;
     private final SettingService settingService;
 
-    @Value("${spring.mail.username:noreply@sonarworks.com}")
-    private String fromEmail;
+    @Value("${spring.mail.username:}")
+    private String springMailUsername;
+
+    private String getFromEmail() {
+        // First try to get from settings
+        String fromAddress = settingService.getValue("mail.from.address", null);
+        if (fromAddress != null && !fromAddress.isBlank()) {
+            return fromAddress;
+        }
+        // Fall back to spring.mail.username
+        if (springMailUsername != null && !springMailUsername.isBlank()) {
+            return springMailUsername;
+        }
+        // Default fallback
+        return "noreply@sonarworks.com";
+    }
 
     @Async
     public void sendPasswordResetEmail(String toEmail, String firstName, String token) {
@@ -80,6 +94,15 @@ public class EmailService {
     }
 
     public void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
+        if (to == null || to.isBlank() || !to.contains("@")) {
+            throw new MessagingException("Invalid recipient email address: " + to);
+        }
+
+        String fromEmail = getFromEmail();
+        if (fromEmail == null || fromEmail.isBlank() || !fromEmail.contains("@")) {
+            throw new MessagingException("Invalid sender email address. Please configure mail.from.address in settings.");
+        }
+
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -90,5 +113,53 @@ public class EmailService {
 
         mailSender.send(message);
         log.info("Email sent successfully to {}", to);
+    }
+
+    public void sendTestEmail(String toEmail) throws MessagingException {
+        String appName = settingService.getValue("app.name", "Sonarworks Workflow");
+        String fromEmail = getFromEmail();
+
+        String htmlContent = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background: #1976d2; color: white; padding: 20px; text-align: center; }
+                    .content { padding: 20px; background: #f5f5f5; }
+                    .footer { padding: 10px; text-align: center; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>%s</h1>
+                    </div>
+                    <div class="content">
+                        <h2>Test Email</h2>
+                        <p>This is a test email from your workflow management system.</p>
+                        <p>If you received this email, your email settings are configured correctly.</p>
+                        <p><strong>Configuration Details:</strong></p>
+                        <ul>
+                            <li>SMTP Host: %s</li>
+                            <li>SMTP Port: %s</li>
+                            <li>From Address: %s</li>
+                        </ul>
+                    </div>
+                    <div class="footer">
+                        <p>This is an automated test email. Please do not reply.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(
+                appName,
+                settingService.getValue("mail.host", "Not configured"),
+                settingService.getValue("mail.port", "Not configured"),
+                fromEmail
+            );
+
+        sendHtmlEmail(toEmail, "Test Email from " + appName, htmlContent);
     }
 }

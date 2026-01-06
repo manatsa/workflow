@@ -45,6 +45,9 @@ public class WorkflowInstance extends BaseEntity {
     @Column(name = "current_level")
     private Integer currentLevel = 0;
 
+    @Column(name = "current_approver_order")
+    private Integer currentApproverOrder = 0;
+
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
 

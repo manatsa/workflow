@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { User, Role, Privilege, SBU } from '../models/user.model';
+import { User, Role, Privilege, SBU, Corporate, Branch } from '../models/user.model';
 import { ApiResponse, PageResponse } from '../models/setting.model';
+import { Category } from '../models/category.model';
 
 @Injectable({
   providedIn: 'root'
@@ -159,5 +160,130 @@ export class UserService {
 
   deleteSbu(id: string): Observable<ApiResponse<void>> {
     return this.api.delete<void>(`/sbus/${id}`);
+  }
+
+  getSBUsByCorporate(corporateId: string): Observable<ApiResponse<SBU[]>> {
+    return this.api.get<SBU[]>(`/sbus/by-corporate/${corporateId}`);
+  }
+
+  getSBUsByCorporates(corporateIds: string[]): Observable<ApiResponse<SBU[]>> {
+    const params = corporateIds.map(id => `corporateIds=${id}`).join('&');
+    return this.api.get<SBU[]>(`/sbus/by-corporates?${params}`);
+  }
+
+  // Categories
+  getCategories(): Observable<ApiResponse<Category[]>> {
+    return this.api.get<Category[]>('/categories');
+  }
+
+  getActiveCategories(): Observable<ApiResponse<Category[]>> {
+    return this.api.get<Category[]>('/categories/active');
+  }
+
+  getCategoryById(id: string): Observable<ApiResponse<Category>> {
+    return this.api.get<Category>(`/categories/${id}`);
+  }
+
+  createCategory(category: Partial<Category>): Observable<ApiResponse<Category>> {
+    return this.api.post<Category>('/categories', category);
+  }
+
+  updateCategory(id: string, category: Partial<Category>): Observable<ApiResponse<Category>> {
+    return this.api.put<Category>(`/categories/${id}`, category);
+  }
+
+  activateCategory(id: string): Observable<ApiResponse<void>> {
+    return this.api.post<void>(`/categories/${id}/activate`, {});
+  }
+
+  deactivateCategory(id: string): Observable<ApiResponse<void>> {
+    return this.api.post<void>(`/categories/${id}/deactivate`, {});
+  }
+
+  deleteCategory(id: string): Observable<ApiResponse<void>> {
+    return this.api.delete<void>(`/categories/${id}`);
+  }
+
+  // Corporates
+  getCorporates(): Observable<ApiResponse<Corporate[]>> {
+    return this.api.get<Corporate[]>('/corporates');
+  }
+
+  getActiveCorporates(): Observable<ApiResponse<Corporate[]>> {
+    return this.api.get<Corporate[]>('/corporates/active');
+  }
+
+  getCorporateTypes(): Observable<ApiResponse<{value: string, label: string}[]>> {
+    return this.api.get<{value: string, label: string}[]>('/corporates/types');
+  }
+
+  getCorporateById(id: string): Observable<ApiResponse<Corporate>> {
+    return this.api.get<Corporate>(`/corporates/${id}`);
+  }
+
+  createCorporate(corporate: any): Observable<ApiResponse<Corporate>> {
+    return this.api.post<Corporate>('/corporates', corporate);
+  }
+
+  updateCorporate(id: string, corporate: any): Observable<ApiResponse<Corporate>> {
+    return this.api.put<Corporate>(`/corporates/${id}`, corporate);
+  }
+
+  activateCorporate(id: string): Observable<ApiResponse<void>> {
+    return this.api.post<void>(`/corporates/${id}/activate`, {});
+  }
+
+  deactivateCorporate(id: string): Observable<ApiResponse<void>> {
+    return this.api.post<void>(`/corporates/${id}/deactivate`, {});
+  }
+
+  deleteCorporate(id: string): Observable<ApiResponse<void>> {
+    return this.api.delete<void>(`/corporates/${id}`);
+  }
+
+  // Branches
+  getBranches(): Observable<ApiResponse<Branch[]>> {
+    return this.api.get<Branch[]>('/branches');
+  }
+
+  getActiveBranches(): Observable<ApiResponse<Branch[]>> {
+    return this.api.get<Branch[]>('/branches/active');
+  }
+
+  getBranchById(id: string): Observable<ApiResponse<Branch>> {
+    return this.api.get<Branch>(`/branches/${id}`);
+  }
+
+  getBranchesBySbu(sbuId: string): Observable<ApiResponse<Branch[]>> {
+    return this.api.get<Branch[]>(`/branches/by-sbu/${sbuId}`);
+  }
+
+  getBranchesBySbus(sbuIds: string[]): Observable<ApiResponse<Branch[]>> {
+    const params = sbuIds.map(id => `sbuIds=${id}`).join('&');
+    return this.api.get<Branch[]>(`/branches/by-sbus?${params}`);
+  }
+
+  getBranchesByCorporate(corporateId: string): Observable<ApiResponse<Branch[]>> {
+    return this.api.get<Branch[]>(`/branches/by-corporate/${corporateId}`);
+  }
+
+  createBranch(branch: any): Observable<ApiResponse<Branch>> {
+    return this.api.post<Branch>('/branches', branch);
+  }
+
+  updateBranch(id: string, branch: any): Observable<ApiResponse<Branch>> {
+    return this.api.put<Branch>(`/branches/${id}`, branch);
+  }
+
+  activateBranch(id: string): Observable<ApiResponse<void>> {
+    return this.api.post<void>(`/branches/${id}/activate`, {});
+  }
+
+  deactivateBranch(id: string): Observable<ApiResponse<void>> {
+    return this.api.post<void>(`/branches/${id}/deactivate`, {});
+  }
+
+  deleteBranch(id: string): Observable<ApiResponse<void>> {
+    return this.api.delete<void>(`/branches/${id}`);
   }
 }

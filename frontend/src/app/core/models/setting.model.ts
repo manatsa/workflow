@@ -12,6 +12,7 @@ export interface Setting {
   displayOrder: number;
   validationRegex?: string;
   defaultValue?: string;
+  options?: string; // Comma-separated values for SELECT type
 }
 
 export enum SettingType {
@@ -23,7 +24,8 @@ export enum SettingType {
   URL = 'URL',
   PASSWORD = 'PASSWORD',
   JSON = 'JSON',
-  LIST = 'LIST'
+  LIST = 'LIST',
+  SELECT = 'SELECT'
 }
 
 export interface AuditLog {

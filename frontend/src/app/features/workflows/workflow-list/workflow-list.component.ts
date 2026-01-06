@@ -43,10 +43,17 @@ import { Workflow } from '@core/models/workflow.model';
     <div class="workflow-list-container">
       <div class="header">
         <h1>Workflow Management</h1>
-        <button mat-raised-button color="primary" routerLink="/workflows/builder/new">
-          <mat-icon>add</mat-icon>
-          Create Workflow
-        </button>
+        <div class="header-actions">
+          <input type="file" #fileInput accept=".json" (change)="onFileSelected($event)" style="display: none">
+          <button mat-stroked-button color="primary" (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon>
+            Import Workflow
+          </button>
+          <button mat-raised-button color="primary" routerLink="/workflows/builder/new">
+            <mat-icon>add</mat-icon>
+            Create Workflow
+          </button>
+        </div>
       </div>
 
       <mat-card>
@@ -177,6 +184,11 @@ import { Workflow } from '@core/models/workflow.model';
       margin-bottom: 1rem;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
     .table-toolbar {
       margin-bottom: 1rem;
     }
@@ -290,6 +302,28 @@ export class WorkflowListComponent implements OnInit {
       a.click();
       window.URL.revokeObjectURL(url);
     });
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.workflowService.importWorkflow(file).subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.snackBar.open('Workflow imported successfully', 'Close', { duration: 3000 });
+            this.loadWorkflows();
+          } else {
+            this.snackBar.open(res.message || 'Failed to import workflow', 'Close', { duration: 5000 });
+          }
+        },
+        error: (err) => {
+          const message = err.error?.message || 'Failed to import workflow';
+          this.snackBar.open(message, 'Close', { duration: 5000 });
+        }
+      });
+      input.value = '';
+    }
   }
 
   deleteWorkflow(workflow: Workflow) {

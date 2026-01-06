@@ -49,7 +49,10 @@ public class Setting extends BaseEntity {
     @Column(name = "default_value")
     private String defaultValue;
 
+    @Column(name = "setting_options")
+    private String options; // Comma-separated values for SELECT type
+
     public enum SettingType {
-        STRING, NUMBER, BOOLEAN, COLOR, EMAIL, URL, PASSWORD, JSON, LIST
+        STRING, NUMBER, BOOLEAN, COLOR, EMAIL, URL, PASSWORD, JSON, LIST, SELECT
     }
 }

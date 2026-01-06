@@ -18,6 +18,8 @@ public interface SBURepository extends JpaRepository<SBU, UUID> {
 
     boolean existsByCode(String code);
 
+    boolean existsByCodeAndIdNot(String code, UUID id);
+
     @Query("SELECT s FROM SBU s WHERE s.isRoot = true")
     List<SBU> findRootSBUs();
 
@@ -25,4 +27,16 @@ public interface SBURepository extends JpaRepository<SBU, UUID> {
     List<SBU> findByParentId(UUID parentId);
 
     List<SBU> findByIsActiveTrue();
+
+    List<SBU> findByIsActiveTrueOrderByNameAsc();
+
+    List<SBU> findByCorporateId(UUID corporateId);
+
+    List<SBU> findByCorporateIdAndIsActiveTrue(UUID corporateId);
+
+    @Query("SELECT s FROM SBU s WHERE s.corporate.id IN :corporateIds AND s.isActive = true ORDER BY s.name ASC")
+    List<SBU> findByCorporateIdsAndIsActiveTrue(List<UUID> corporateIds);
+
+    @Query("SELECT s FROM SBU s WHERE s.isActive = true ORDER BY s.name ASC")
+    List<SBU> findAllActiveOrderByName();
 }

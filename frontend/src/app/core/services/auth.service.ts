@@ -78,10 +78,11 @@ export class AuthService {
     return privileges.some(p => this.hasPrivilege(p));
   }
 
-  changePassword(currentPassword: string, newPassword: string): Observable<ApiResponse<void>> {
-    return this.http.post<ApiResponse<void>>(`${environment.apiUrl}/auth/change-password`, {
+  changePassword(currentPassword: string, newPassword: string, confirmPassword?: string): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${environment.apiUrl}/password/change`, {
       currentPassword,
-      newPassword
+      newPassword,
+      confirmPassword: confirmPassword || newPassword
     });
   }
 

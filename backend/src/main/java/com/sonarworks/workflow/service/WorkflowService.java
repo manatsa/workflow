@@ -1,5 +1,8 @@
 package com.sonarworks.workflow.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sonarworks.workflow.dto.*;
 import com.sonarworks.workflow.entity.*;
 import com.sonarworks.workflow.exception.BusinessException;
@@ -10,8 +13,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,6 +57,23 @@ public class WorkflowService {
         return baseCode + "_" + System.currentTimeMillis() % 10000;
     }
 
+    /**
+     * Validates that at least one approver is configured if the setting requires it.
+     */
+    private void validateApproversIfRequired(List<WorkflowApproverDTO> approvers) {
+        boolean requireApprovers = settingService.getBooleanValue("workflow.require.approvers", true);
+        if (requireApprovers) {
+            if (approvers == null || approvers.isEmpty()) {
+                throw new BusinessException("At least one approver is required. This can be changed in Settings > Workflows.");
+            }
+            // Also check if any approver has a valid configuration
+            boolean hasValidApprover = approvers.stream().anyMatch(a -> a.getLevel() != null && a.getLevel() > 0);
+            if (!hasValidApprover) {
+                throw new BusinessException("At least one approver with a valid level is required. This can be changed in Settings > Workflows.");
+            }
+        }
+    }
+
     private final WorkflowRepository workflowRepository;
     private final WorkflowTypeRepository workflowTypeRepository;
     private final WorkflowFormRepository workflowFormRepository;
@@ -59,10 +82,13 @@ public class WorkflowService {
     private final FieldOptionRepository fieldOptionRepository;
     private final WorkflowApproverRepository workflowApproverRepository;
     private final SBURepository sbuRepository;
+    private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final AuditService auditService;
+    private final SettingService settingService;
 
+    @Transactional(readOnly = true)
     public List<WorkflowDTO> getAllWorkflows() {
         return workflowRepository.findAll().stream()
                 .map(this::toFullDTO)
@@ -122,6 +148,9 @@ public class WorkflowService {
             throw new BusinessException("Workflow code already exists");
         }
 
+        // Validate approvers if required by settings
+        validateApproversIfRequired(dto.getApprovers());
+
         Workflow workflow = Workflow.builder()
                 .name(name)
                 .code(code)
@@ -148,6 +177,11 @@ public class WorkflowService {
         if (dto.getSbuIds() != null && !dto.getSbuIds().isEmpty()) {
             Set<SBU> sbus = new HashSet<>(sbuRepository.findAllById(dto.getSbuIds()));
             workflow.setSbus(sbus);
+        }
+
+        if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
+            Set<Department> departments = new HashSet<>(departmentRepository.findAllById(dto.getDepartmentIds()));
+            workflow.setDepartments(departments);
         }
 
         Workflow saved = workflowRepository.save(workflow);
@@ -182,6 +216,9 @@ public class WorkflowService {
         Workflow workflow = workflowRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow not found"));
 
+        // Validate approvers if required by settings
+        validateApproversIfRequired(dto.getApprovers());
+
         WorkflowDTO oldValues = toDTO(workflow);
 
         workflow.setName(dto.getName());
@@ -202,6 +239,11 @@ public class WorkflowService {
         if (dto.getSbuIds() != null) {
             Set<SBU> sbus = new HashSet<>(sbuRepository.findAllById(dto.getSbuIds()));
             workflow.setSbus(sbus);
+        }
+
+        if (dto.getDepartmentIds() != null) {
+            Set<Department> departments = new HashSet<>(departmentRepository.findAllById(dto.getDepartmentIds()));
+            workflow.setDepartments(departments);
         }
 
         Workflow saved = workflowRepository.save(workflow);
@@ -333,6 +375,7 @@ public class WorkflowService {
         field.setIsSearchable(dto.getIsSearchable() != null ? dto.getIsSearchable() : false);
         field.setIsReadonly(dto.getIsReadonly() != null ? dto.getIsReadonly() : false);
         field.setIsHidden(dto.getIsHidden() != null ? dto.getIsHidden() : false);
+        field.setIsUnique(dto.getIsUnique() != null ? dto.getIsUnique() : false);
         field.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0);
         field.setDefaultValue(dto.getDefaultValue());
         field.setMinValue(dto.getMinValue());
@@ -590,6 +633,7 @@ public class WorkflowService {
                     field.setIsSearchable(fieldDto.getIsSearchable() != null ? fieldDto.getIsSearchable() : false);
                     field.setIsReadonly(fieldDto.getIsReadonly() != null ? fieldDto.getIsReadonly() : false);
                     field.setIsHidden(fieldDto.getIsHidden() != null ? fieldDto.getIsHidden() : false);
+                    field.setIsUnique(fieldDto.getIsUnique() != null ? fieldDto.getIsUnique() : false);
                     field.setDisplayOrder(fieldDto.getDisplayOrder() != null ? fieldDto.getDisplayOrder() : 0);
                     field.setDefaultValue(fieldDto.getDefaultValue());
                     field.setMinValue(fieldDto.getMinValue());
@@ -796,6 +840,7 @@ public class WorkflowService {
                 .commentsMandatoryOnReject(workflow.getCommentsMandatoryOnReject())
                 .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
                 .sbuIds(workflow.getSbus().stream().map(SBU::getId).collect(Collectors.toSet()))
+                .departmentIds(workflow.getDepartments().stream().map(Department::getId).collect(Collectors.toSet()))
                 .build();
     }
 
@@ -850,6 +895,7 @@ public class WorkflowService {
                 .isSearchable(field.getIsSearchable())
                 .isReadonly(field.getIsReadonly())
                 .isHidden(field.getIsHidden())
+                .isUnique(field.getIsUnique())
                 .displayOrder(field.getDisplayOrder())
                 .defaultValue(field.getDefaultValue())
                 .minValue(field.getMinValue())
@@ -907,5 +953,187 @@ public class WorkflowService {
                 .sbuName(approver.getSbu() != null ? approver.getSbu().getName() : null)
                 .displayOrder(approver.getDisplayOrder())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exportWorkflow(UUID id) {
+        WorkflowDTO workflow = getWorkflowById(id);
+
+        // Clear IDs for export (they will be regenerated on import)
+        WorkflowDTO exportDto = clearIdsForExport(workflow);
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            return mapper.writeValueAsBytes(exportDto);
+        } catch (IOException e) {
+            log.error("Failed to export workflow", e);
+            throw new BusinessException("Failed to export workflow: " + e.getMessage());
+        }
+    }
+
+    private WorkflowDTO clearIdsForExport(WorkflowDTO workflow) {
+        // Create a copy without IDs so they're regenerated on import
+        WorkflowDTO exportDto = WorkflowDTO.builder()
+                .name(workflow.getName() + " (Imported)")
+                .code(null) // Will be auto-generated
+                .description(workflow.getDescription())
+                .icon(workflow.getIcon())
+                .displayOrder(workflow.getDisplayOrder())
+                .isActive(false) // Start as inactive
+                .isPublished(false) // Start as unpublished
+                .requiresApproval(workflow.getRequiresApproval())
+                .commentsMandatory(workflow.getCommentsMandatory())
+                .commentsMandatoryOnReject(workflow.getCommentsMandatoryOnReject())
+                .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
+                .build();
+
+        // Export forms without IDs
+        if (workflow.getForms() != null) {
+            List<WorkflowFormDTO> exportForms = workflow.getForms().stream()
+                    .map(form -> {
+                        WorkflowFormDTO exportForm = WorkflowFormDTO.builder()
+                                .name(form.getName())
+                                .description(form.getDescription())
+                                .displayOrder(form.getDisplayOrder())
+                                .build();
+
+                        // Export fields without IDs
+                        if (form.getFields() != null) {
+                            List<WorkflowFieldDTO> exportFields = form.getFields().stream()
+                                    .map(field -> WorkflowFieldDTO.builder()
+                                            .name(field.getName())
+                                            .label(field.getLabel())
+                                            .fieldType(field.getFieldType())
+                                            .placeholder(field.getPlaceholder())
+                                            .tooltip(field.getTooltip())
+                                            .defaultValue(field.getDefaultValue())
+                                            .displayOrder(field.getDisplayOrder())
+                                            .isMandatory(field.getIsMandatory())
+                                            .isReadonly(field.getIsReadonly())
+                                            .isHidden(field.getIsHidden())
+                                            .isUnique(field.getIsUnique())
+                                            .minLength(field.getMinLength())
+                                            .maxLength(field.getMaxLength())
+                                            .minValue(field.getMinValue())
+                                            .maxValue(field.getMaxValue())
+                                            .validationRegex(field.getValidationRegex())
+                                            .width(field.getWidth())
+                                            .options(field.getOptions())
+                                            .build())
+                                    .collect(Collectors.toList());
+                            exportForm.setFields(exportFields);
+                        }
+
+                        // Export field groups without IDs
+                        if (form.getFieldGroups() != null) {
+                            List<FieldGroupDTO> exportGroups = form.getFieldGroups().stream()
+                                    .map(group -> FieldGroupDTO.builder()
+                                            .title(group.getTitle())
+                                            .description(group.getDescription())
+                                            .displayOrder(group.getDisplayOrder())
+                                            .isCollapsible(group.getIsCollapsible())
+                                            .isCollapsedByDefault(group.getIsCollapsedByDefault())
+                                            .build())
+                                    .collect(Collectors.toList());
+                            exportForm.setFieldGroups(exportGroups);
+                        }
+
+                        return exportForm;
+                    })
+                    .collect(Collectors.toList());
+            exportDto.setForms(exportForms);
+        }
+
+        // Export approvers without IDs (but keep approver type info)
+        if (workflow.getApprovers() != null) {
+            List<WorkflowApproverDTO> exportApprovers = workflow.getApprovers().stream()
+                    .map(approver -> WorkflowApproverDTO.builder()
+                            .level(approver.getLevel())
+                            .label(approver.getLabel())
+                            .approverType(approver.getApproverType())
+                            .approverName(approver.getApproverName())
+                            .email(approver.getEmail())
+                            .approvalLimit(approver.getApprovalLimit())
+                            .isUnlimited(approver.getIsUnlimited())
+                            .canEscalate(approver.getCanEscalate())
+                            .escalationTimeoutHours(approver.getEscalationTimeoutHours())
+                            .notifyOnPending(approver.getNotifyOnPending())
+                            .notifyOnApproval(approver.getNotifyOnApproval())
+                            .notifyOnRejection(approver.getNotifyOnRejection())
+                            .displayOrder(approver.getDisplayOrder())
+                            // Note: userId and roleId are cleared - need to be reassigned after import
+                            .build())
+                    .collect(Collectors.toList());
+            exportDto.setApprovers(exportApprovers);
+        }
+
+        return exportDto;
+    }
+
+    @Transactional
+    public WorkflowDTO importWorkflow(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException("No file provided for import");
+        }
+
+        try {
+            String content = new String(file.getBytes(), StandardCharsets.UTF_8);
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+
+            WorkflowDTO importDto = mapper.readValue(content, WorkflowDTO.class);
+
+            // Ensure unique name
+            String baseName = importDto.getName();
+            if (baseName == null || baseName.isBlank()) {
+                baseName = "Imported Workflow";
+            }
+            String uniqueName = baseName;
+            int counter = 1;
+            while (workflowRepository.existsByName(uniqueName)) {
+                uniqueName = baseName + " (" + counter + ")";
+                counter++;
+            }
+            importDto.setName(uniqueName);
+
+            // Clear the code to auto-generate
+            importDto.setCode(null);
+
+            // Ensure it starts inactive and unpublished
+            importDto.setIsActive(false);
+            importDto.setIsPublished(false);
+
+            // Clear all IDs to create new records
+            importDto.setId(null);
+            if (importDto.getForms() != null) {
+                importDto.getForms().forEach(form -> {
+                    form.setId(null);
+                    if (form.getFields() != null) {
+                        form.getFields().forEach(field -> field.setId(null));
+                    }
+                    if (form.getFieldGroups() != null) {
+                        form.getFieldGroups().forEach(group -> group.setId(null));
+                    }
+                });
+            }
+            if (importDto.getApprovers() != null) {
+                importDto.getApprovers().forEach(approver -> {
+                    approver.setId(null);
+                    // Clear user/role references - need to be reassigned
+                    approver.setUserId(null);
+                    approver.setRoleId(null);
+                });
+            }
+
+            // Create the workflow
+            return createWorkflow(importDto);
+
+        } catch (IOException e) {
+            log.error("Failed to parse import file", e);
+            throw new BusinessException("Failed to parse import file: " + e.getMessage());
+        }
     }
 }

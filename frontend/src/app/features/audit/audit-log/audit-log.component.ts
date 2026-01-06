@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -14,8 +14,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
 import { SettingService } from '@core/services/setting.service';
 import { AuditLog } from '@core/models/setting.model';
+import { AuditDetailDialogComponent } from './audit-detail-dialog.component';
 
 @Component({
   selector: 'app-audit-log',
@@ -35,7 +38,9 @@ import { AuditLog } from '@core/models/setting.model';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatDialogModule,
+    MatDividerModule
   ],
   template: `
     <div class="audit-log-container">
@@ -110,19 +115,24 @@ import { AuditLog } from '@core/models/setting.model';
           </mat-expansion-panel>
 
           <table mat-table [dataSource]="dataSource" matSort class="data-table">
-            <ng-container matColumnDef="createdAt">
+            <ng-container matColumnDef="actionDate">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Timestamp</th>
               <td mat-cell *matCellDef="let log">
-                {{ log.createdAt | date:'medium' }}
+                {{ log.actionDate | date:'medium' }}
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="performedBy">
+            <ng-container matColumnDef="user">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>User</th>
               <td mat-cell *matCellDef="let log">
                 <div class="user-info">
-                  <div class="avatar">{{ getInitials(log.performedBy) }}</div>
-                  <span>{{ log.performedBy }}</span>
+                  <div class="avatar">{{ getInitials(log.userFullName || log.username) }}</div>
+                  <div class="user-details">
+                    <span class="user-name">{{ log.userFullName || log.username }}</span>
+                    @if (log.userFullName && log.username) {
+                      <span class="username">({{ log.username }})</span>
+                    }
+                  </div>
                 </div>
               </td>
             </ng-container>
@@ -139,70 +149,37 @@ import { AuditLog } from '@core/models/setting.model';
               <td mat-cell *matCellDef="let log">{{ log.entityType }}</td>
             </ng-container>
 
-            <ng-container matColumnDef="entityId">
-              <th mat-header-cell *matHeaderCellDef>Entity ID</th>
+            <ng-container matColumnDef="entityName">
+              <th mat-header-cell *matHeaderCellDef>Entity</th>
               <td mat-cell *matCellDef="let log">
-                <span class="entity-id">{{ log.entityId | slice:0:8 }}...</span>
+                <span class="entity-name">{{ log.entityName || (log.entityId | slice:0:8) + '...' }}</span>
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="details">
-              <th mat-header-cell *matHeaderCellDef>Details</th>
+            <ng-container matColumnDef="summary">
+              <th mat-header-cell *matHeaderCellDef>Summary</th>
               <td mat-cell *matCellDef="let log">
-                {{ log.details | slice:0:50 }}{{ log.details?.length > 50 ? '...' : '' }}
+                {{ (log.summary || '') | slice:0:40 }}{{ (log.summary?.length || 0) > 40 ? '...' : '' }}
               </td>
             </ng-container>
 
             <ng-container matColumnDef="ipAddress">
               <th mat-header-cell *matHeaderCellDef>IP Address</th>
-              <td mat-cell *matCellDef="let log">{{ log.ipAddress }}</td>
+              <td mat-cell *matCellDef="let log">{{ log.ipAddress || '-' }}</td>
             </ng-container>
 
-            <ng-container matColumnDef="expand">
+            <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let log">
-                <button mat-icon-button (click)="toggleDetails(log)">
-                  <mat-icon>{{ expandedLog === log ? 'expand_less' : 'expand_more' }}</mat-icon>
+                <button mat-icon-button (click)="viewDetails(log)" matTooltip="View Details">
+                  <mat-icon>visibility</mat-icon>
                 </button>
               </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-                [class.expanded]="expandedLog === row"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="clickable-row" (click)="viewDetails(row)"></tr>
           </table>
-
-          @if (expandedLog) {
-            <div class="log-details">
-              <h4>Full Details</h4>
-              <div class="details-content">
-                <div class="detail-row">
-                  <span class="label">Entity Type:</span>
-                  <span class="value">{{ expandedLog.entityType }}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Entity ID:</span>
-                  <span class="value">{{ expandedLog.entityId }}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Details:</span>
-                  <span class="value">{{ expandedLog.details }}</span>
-                </div>
-                @if (expandedLog.oldValue) {
-                  <div class="detail-row">
-                    <span class="label">Old Value:</span>
-                    <pre class="value">{{ expandedLog.oldValue }}</pre>
-                  </div>
-                }
-                @if (expandedLog.newValue) {
-                  <div class="detail-row">
-                    <span class="label">New Value:</span>
-                    <pre class="value">{{ expandedLog.newValue }}</pre>
-                  </div>
-                }
-              </div>
-            </div>
-          }
 
           <mat-paginator [length]="totalElements"
                          [pageSize]="pageSize"
@@ -279,64 +256,39 @@ import { AuditLog } from '@core/models/setting.model';
     .badge.approve { background: #e8f5e9; color: #2e7d32; }
     .badge.reject { background: #ffebee; color: #c62828; }
 
-    .entity-id {
-      font-family: monospace;
-      font-size: 0.75rem;
-      background: #f5f5f5;
-      padding: 0.125rem 0.25rem;
-      border-radius: 2px;
-    }
-
-    .log-details {
-      background: #f5f5f5;
-      padding: 1rem;
-      margin: 0.5rem 0;
-      border-radius: 4px;
-    }
-
-    .log-details h4 {
-      margin: 0 0 1rem 0;
-    }
-
-    .detail-row {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .detail-row .label {
+    .entity-name {
       font-weight: 500;
-      min-width: 100px;
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-name {
+      font-weight: 500;
+    }
+
+    .username {
+      font-size: 0.75rem;
       color: #666;
     }
 
-    .detail-row .value {
-      flex: 1;
+    .clickable-row {
+      cursor: pointer;
     }
 
-    .detail-row pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-all;
-      font-size: 0.75rem;
-      background: white;
-      padding: 0.5rem;
-      border-radius: 4px;
-    }
-
-    tr.expanded {
-      background: #e3f2fd;
+    .clickable-row:hover {
+      background: #f5f5f5;
     }
   `]
 })
 export class AuditLogComponent implements OnInit {
-  displayedColumns = ['createdAt', 'performedBy', 'action', 'entityType', 'entityId', 'details', 'ipAddress', 'expand'];
+  displayedColumns = ['actionDate', 'user', 'action', 'entityType', 'entityName', 'summary', 'ipAddress', 'actions'];
   dataSource = new MatTableDataSource<AuditLog>([]);
   totalElements = 0;
   pageSize = 25;
   currentPage = 0;
-
-  expandedLog: AuditLog | null = null;
 
   filters = {
     performedBy: '',
@@ -346,11 +298,13 @@ export class AuditLogComponent implements OnInit {
     toDate: null as Date | null
   };
 
-  actions = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'APPROVE', 'REJECT', 'ESCALATE', 'SUBMIT'];
-  entityTypes = ['User', 'Role', 'Workflow', 'WorkflowInstance', 'Setting', 'SBU'];
+  actions = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'APPROVE', 'REJECT', 'ESCALATE', 'SUBMIT', 'PASSWORD_CHANGE', 'PASSWORD_RESET'];
+  entityTypes = ['User', 'Role', 'Workflow', 'WorkflowInstance', 'Setting', 'SBU', 'Corporate', 'Branch', 'Category'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
+  private dialog = inject(MatDialog);
 
   constructor(private settingService: SettingService) {}
 
@@ -415,11 +369,15 @@ export class AuditLogComponent implements OnInit {
   }
 
   getActionClass(action: string): string {
-    return action.toLowerCase();
+    return action?.toLowerCase() || '';
   }
 
-  toggleDetails(log: AuditLog) {
-    this.expandedLog = this.expandedLog === log ? null : log;
+  viewDetails(log: AuditLog) {
+    this.dialog.open(AuditDetailDialogComponent, {
+      width: '700px',
+      maxHeight: '90vh',
+      data: log
+    });
   }
 
   exportLogs() {

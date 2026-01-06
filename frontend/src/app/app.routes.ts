@@ -54,10 +54,30 @@ export const routes: Routes = [
         path: 'roles',
         loadComponent: () => import('./features/roles/role-list/role-list.component').then(m => m.RoleListComponent)
       },
+      // Categories
+      {
+        path: 'categories',
+        loadComponent: () => import('./features/categories/category-list/category-list.component').then(m => m.CategoryListComponent)
+      },
+      // Corporates
+      {
+        path: 'corporates',
+        loadComponent: () => import('./features/corporates/corporate-list/corporate-list.component').then(m => m.CorporateListComponent)
+      },
       // SBUs
       {
         path: 'sbus',
         loadComponent: () => import('./features/sbus/sbu-list/sbu-list.component').then(m => m.SbuListComponent)
+      },
+      // Branches
+      {
+        path: 'branches',
+        loadComponent: () => import('./features/branches/branch-list/branch-list.component').then(m => m.BranchListComponent)
+      },
+      // Departments
+      {
+        path: 'departments',
+        loadComponent: () => import('./features/departments/department-list/department-list.component').then(m => m.DepartmentListComponent)
       },
       // Settings
       {
@@ -80,7 +100,8 @@ export const routes: Routes = [
       },
       {
         path: 'workflows/builder/:id',
-        loadComponent: () => import('./features/workflows/workflow-builder/workflow-builder.component').then(m => m.WorkflowBuilderComponent)
+        loadComponent: () => import('./features/workflows/workflow-builder/workflow-builder.component').then(m => m.WorkflowBuilderComponent),
+        runGuardsAndResolvers: 'paramsChange'
       },
       {
         path: 'workflows/:workflowCode/instances',
@@ -88,6 +109,10 @@ export const routes: Routes = [
       },
       {
         path: 'workflows/:workflowCode/new',
+        loadComponent: () => import('./features/workflows/workflow-form/workflow-form.component').then(m => m.WorkflowFormComponent)
+      },
+      {
+        path: 'workflows/:workflowCode/edit/:instanceId',
         loadComponent: () => import('./features/workflows/workflow-form/workflow-form.component').then(m => m.WorkflowFormComponent)
       },
       {

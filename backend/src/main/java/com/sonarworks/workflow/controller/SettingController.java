@@ -2,9 +2,11 @@ package com.sonarworks.workflow.controller;
 
 import com.sonarworks.workflow.dto.ApiResponse;
 import com.sonarworks.workflow.dto.SettingDTO;
+import com.sonarworks.workflow.service.EmailService;
 import com.sonarworks.workflow.service.SettingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +18,11 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/settings")
 @RequiredArgsConstructor
+@Slf4j
 public class SettingController {
 
     private final SettingService settingService;
+    private final EmailService emailService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN') or hasRole('ROLE_ADMIN')")
@@ -66,5 +70,21 @@ public class SettingController {
     public ResponseEntity<ApiResponse<Void>> deleteSetting(@PathVariable UUID id) {
         settingService.deleteSetting(id);
         return ResponseEntity.ok(ApiResponse.success("Setting deleted", null));
+    }
+
+    @PostMapping("/test-email")
+    @PreAuthorize("hasAuthority('ADMIN') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> sendTestEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Email address is required"));
+        }
+        try {
+            emailService.sendTestEmail(email);
+            return ResponseEntity.ok(ApiResponse.success("Test email sent successfully to " + email, null));
+        } catch (Exception e) {
+            log.error("Failed to send test email to {}", email, e);
+            return ResponseEntity.ok(ApiResponse.error("Failed to send test email: " + e.getMessage()));
+        }
     }
 }

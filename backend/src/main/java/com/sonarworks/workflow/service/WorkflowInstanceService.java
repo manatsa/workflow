@@ -59,7 +59,28 @@ public class WorkflowInstanceService {
     @Transactional(readOnly = true)
     public Page<WorkflowInstanceDTO> getPendingApprovals(Pageable pageable) {
         CustomUserDetails userDetails = getCurrentUser();
-        return workflowInstanceRepository.findPendingApprovalsByUserId(userDetails.getId(), pageable).map(this::toDTO);
+        String email = userDetails.getEmail() != null ? userDetails.getEmail() : "";
+        return workflowInstanceRepository.findPendingApprovalsByUserIdOrEmail(
+                userDetails.getId(), email, pageable).map(this::toDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public long getPendingApprovalsCount() {
+        CustomUserDetails userDetails = getCurrentUser();
+        String email = userDetails.getEmail() != null ? userDetails.getEmail() : "";
+        return workflowInstanceRepository.countPendingApprovalsByUserIdOrEmail(userDetails.getId(), email);
+    }
+
+    @Transactional(readOnly = true)
+    public long getMySubmissionsCount() {
+        CustomUserDetails userDetails = getCurrentUser();
+        return workflowInstanceRepository.countByInitiatorId(userDetails.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public long getMyPendingSubmissionsCount() {
+        CustomUserDetails userDetails = getCurrentUser();
+        return workflowInstanceRepository.countPendingByInitiatorId(userDetails.getId());
     }
 
     @Transactional(readOnly = true)
@@ -161,14 +182,17 @@ public class WorkflowInstanceService {
         instance.setStatus(WorkflowInstance.Status.PENDING);
         instance.setSubmittedAt(LocalDateTime.now());
         instance.setCurrentLevel(1);
+        instance.setCurrentApproverOrder(0);
 
-        // Find first level approver
+        // Find first level approvers (sorted by displayOrder)
         List<WorkflowApprover> approvers = workflowApproverRepository
                 .findByWorkflowIdAndLevel(instance.getWorkflow().getId(), 1);
 
         if (!approvers.isEmpty()) {
-            WorkflowApprover approver = findEligibleApprover(approvers, instance);
+            // Get the first approver at this level (lowest displayOrder)
+            WorkflowApprover approver = approvers.get(0);
             instance.setCurrentApprover(approver);
+            instance.setCurrentApproverOrder(0);
 
             // Send notification
             if (approver.getNotifyOnPending()) {
@@ -249,6 +273,41 @@ public class WorkflowInstanceService {
     }
 
     @Transactional
+    public WorkflowInstanceDTO updateAndSubmitInstance(UUID instanceId, Map<String, Object> fieldValues,
+                                                        Boolean isDraft, String comments, List<MultipartFile> attachments) {
+        WorkflowInstance instance = workflowInstanceRepository.findById(instanceId)
+                .orElseThrow(() -> new BusinessException("Workflow instance not found"));
+
+        if (instance.getStatus() != WorkflowInstance.Status.DRAFT) {
+            throw new BusinessException("Only draft instances can be edited");
+        }
+
+        // Update field values
+        if (fieldValues != null) {
+            saveFieldValues(instance, fieldValues);
+        }
+
+        // Handle attachments
+        if (attachments != null && !attachments.isEmpty()) {
+            for (MultipartFile file : attachments) {
+                if (!file.isEmpty()) {
+                    attachmentService.uploadAttachment(instance.getId(), file, null);
+                }
+            }
+        }
+
+        auditService.logWorkflowAction(AuditLog.AuditAction.UPDATE, instance,
+                "Workflow instance updated: " + instance.getReferenceNumber(), null, fieldValues);
+
+        // If not a draft, submit the instance
+        if (!isDraft) {
+            return submitInstance(instance.getId());
+        }
+
+        return toDTO(instance);
+    }
+
+    @Transactional
     public WorkflowInstanceDTO processApproval(ApprovalRequest request) {
         WorkflowInstance instance = workflowInstanceRepository.findById(request.getWorkflowInstanceId())
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
@@ -309,12 +368,30 @@ public class WorkflowInstanceService {
 
     private void handleApproval(WorkflowInstance instance, User approver) {
         Integer maxLevel = workflowApproverRepository.findMaxLevelByWorkflowId(instance.getWorkflow().getId());
+        int currentLevel = instance.getCurrentLevel();
+        int currentOrder = instance.getCurrentApproverOrder() != null ? instance.getCurrentApproverOrder() : 0;
 
-        if (maxLevel == null || instance.getCurrentLevel() >= maxLevel) {
-            // Final approval
+        // Get all approvers at current level (sorted by displayOrder)
+        List<WorkflowApprover> currentLevelApprovers = workflowApproverRepository
+                .findByWorkflowIdAndLevel(instance.getWorkflow().getId(), currentLevel);
+
+        // Check if there are more approvers at the same level
+        int nextOrderIndex = currentOrder + 1;
+        if (nextOrderIndex < currentLevelApprovers.size()) {
+            // Move to next approver at the same level
+            WorkflowApprover nextApprover = currentLevelApprovers.get(nextOrderIndex);
+            instance.setCurrentApprover(nextApprover);
+            instance.setCurrentApproverOrder(nextOrderIndex);
+
+            if (nextApprover.getNotifyOnPending()) {
+                sendApprovalRequestNotification(instance, nextApprover);
+            }
+        } else if (maxLevel == null || currentLevel >= maxLevel) {
+            // No more approvers at this level and this is the final level
             instance.setStatus(WorkflowInstance.Status.APPROVED);
             instance.setCompletedAt(LocalDateTime.now());
             instance.setCurrentApprover(null);
+            instance.setCurrentApproverOrder(null);
 
             // Notify initiator
             emailService.sendApprovalNotificationEmail(
@@ -328,14 +405,16 @@ public class WorkflowInstanceService {
             );
         } else {
             // Move to next level
-            int nextLevel = instance.getCurrentLevel() + 1;
+            int nextLevel = currentLevel + 1;
             instance.setCurrentLevel(nextLevel);
+            instance.setCurrentApproverOrder(0);
 
             List<WorkflowApprover> nextApprovers = workflowApproverRepository
                     .findByWorkflowIdAndLevel(instance.getWorkflow().getId(), nextLevel);
 
             if (!nextApprovers.isEmpty()) {
-                WorkflowApprover nextApprover = findEligibleApprover(nextApprovers, instance);
+                // Get the first approver at the next level
+                WorkflowApprover nextApprover = nextApprovers.get(0);
                 instance.setCurrentApprover(nextApprover);
 
                 if (nextApprover.getNotifyOnPending()) {
@@ -500,6 +579,7 @@ public class WorkflowInstanceService {
 
         instance.setStatus(WorkflowInstance.Status.DRAFT);
         instance.setCurrentLevel(0);
+        instance.setCurrentApproverOrder(null);
         instance.setCurrentApprover(null);
         instance.setSubmittedAt(null);
 
@@ -538,7 +618,10 @@ public class WorkflowInstanceService {
     private void saveFieldValues(WorkflowInstance instance, Map<String, Object> fieldValues) {
         List<WorkflowField> fields = workflowFieldRepository.findByWorkflowId(instance.getWorkflow().getId());
         Map<String, WorkflowField> fieldMap = fields.stream()
-                .collect(Collectors.toMap(WorkflowField::getName, f -> f));
+                .collect(Collectors.toMap(WorkflowField::getName, f -> f, (existing, replacement) -> replacement));
+
+        // First, validate unique constraints before saving any values
+        validateUniqueFields(instance, fieldValues, fieldMap);
 
         for (Map.Entry<String, Object> entry : fieldValues.entrySet()) {
             WorkflowField field = fieldMap.get(entry.getKey());
@@ -568,14 +651,41 @@ public class WorkflowInstanceService {
         }
     }
 
+    private void validateUniqueFields(WorkflowInstance instance, Map<String, Object> fieldValues, Map<String, WorkflowField> fieldMap) {
+        List<String> duplicateFields = new ArrayList<>();
+
+        for (Map.Entry<String, Object> entry : fieldValues.entrySet()) {
+            WorkflowField field = fieldMap.get(entry.getKey());
+            if (field != null && Boolean.TRUE.equals(field.getIsUnique()) && entry.getValue() != null) {
+                String value = entry.getValue().toString();
+                if (!value.isEmpty()) {
+                    // Check if this value already exists for this field in another instance
+                    List<WorkflowFieldValue> existingValues = workflowFieldValueRepository
+                            .findByFieldIdAndValueExcludingInstance(field.getId(), value, instance.getId());
+
+                    if (!existingValues.isEmpty()) {
+                        duplicateFields.add(field.getLabel() + " (\"" + value + "\")");
+                    }
+                }
+            }
+        }
+
+        if (!duplicateFields.isEmpty()) {
+            throw new BusinessException("Duplicate values not allowed for unique fields: " + String.join(", ", duplicateFields));
+        }
+    }
+
     private void validateMandatoryFields(WorkflowInstance instance) {
-        List<WorkflowField> mandatoryFields = instance.getWorkflow().getForms().stream()
-                .flatMap(form -> form.getFields().stream())
+        // Get mandatory fields for the workflow
+        List<WorkflowField> mandatoryFields = workflowFieldRepository.findByWorkflowId(instance.getWorkflow().getId())
+                .stream()
                 .filter(WorkflowField::getIsMandatory)
                 .collect(Collectors.toList());
 
-        Map<String, String> fieldValueMap = instance.getFieldValues().stream()
-                .collect(Collectors.toMap(WorkflowFieldValue::getFieldName, v -> v.getValue() != null ? v.getValue() : ""));
+        // Fetch field values directly from repository to avoid lazy loading issues
+        List<WorkflowFieldValue> fieldValues = workflowFieldValueRepository.findByWorkflowInstanceId(instance.getId());
+        Map<String, String> fieldValueMap = fieldValues.stream()
+                .collect(Collectors.toMap(WorkflowFieldValue::getFieldName, v -> v.getValue() != null ? v.getValue() : "", (existing, replacement) -> replacement));
 
         List<String> missingFields = mandatoryFields.stream()
                 .filter(f -> !fieldValueMap.containsKey(f.getName()) || fieldValueMap.get(f.getName()).isEmpty())
@@ -652,7 +762,8 @@ public class WorkflowInstanceService {
         return instance.getFieldValues().stream()
                 .collect(Collectors.toMap(
                         WorkflowFieldValue::getFieldName,
-                        v -> v.getValue() != null ? v.getValue() : ""
+                        v -> v.getValue() != null ? v.getValue() : "",
+                        (existing, replacement) -> replacement
                 ));
     }
 
@@ -661,6 +772,13 @@ public class WorkflowInstanceService {
     }
 
     private WorkflowInstanceDTO toDTO(WorkflowInstance instance) {
+        // Get total approvers at current level
+        Integer totalApproversAtLevel = null;
+        if (instance.getCurrentLevel() != null && instance.getCurrentLevel() > 0) {
+            totalApproversAtLevel = workflowApproverRepository.countByWorkflowIdAndLevel(
+                    instance.getWorkflow().getId(), instance.getCurrentLevel());
+        }
+
         return WorkflowInstanceDTO.builder()
                 .id(instance.getId())
                 .workflowId(instance.getWorkflow().getId())
@@ -674,6 +792,8 @@ public class WorkflowInstanceService {
                 .initiatorName(instance.getInitiator().getFullName())
                 .initiatorEmail(instance.getInitiator().getEmail())
                 .currentLevel(instance.getCurrentLevel())
+                .currentApproverOrder(instance.getCurrentApproverOrder())
+                .totalApproversAtLevel(totalApproversAtLevel)
                 .currentApproverName(instance.getCurrentApprover() != null ? instance.getCurrentApprover().getApproverName() : null)
                 .currentApproverEmail(instance.getCurrentApprover() != null ? instance.getCurrentApprover().getApproverEmail() : null)
                 .submittedAt(instance.getSubmittedAt())

@@ -41,4 +41,18 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
             "LOWER(a.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(a.entityName) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<AuditLog> searchAuditLogs(@Param("search") String search, Pageable pageable);
+
+    @Query(value = "SELECT * FROM audit_logs a WHERE " +
+            "(CAST(:username AS VARCHAR) IS NULL OR CAST(a.username AS VARCHAR) ILIKE '%' || CAST(:username AS VARCHAR) || '%') AND " +
+            "(CAST(:action AS VARCHAR) IS NULL OR a.action = CAST(:action AS VARCHAR)) AND " +
+            "(CAST(:entityType AS VARCHAR) IS NULL OR a.entity_type = CAST(:entityType AS VARCHAR)) AND " +
+            "(CAST(:fromDate AS TIMESTAMP) IS NULL OR a.action_date >= CAST(:fromDate AS TIMESTAMP)) AND " +
+            "(CAST(:toDate AS TIMESTAMP) IS NULL OR a.action_date <= CAST(:toDate AS TIMESTAMP)) " +
+            "ORDER BY a.action_date DESC", nativeQuery = true)
+    List<AuditLog> findAllFiltered(
+            @Param("username") String username,
+            @Param("action") String action,
+            @Param("entityType") String entityType,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate);
 }

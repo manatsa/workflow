@@ -57,12 +57,39 @@ public class Workflow extends BaseEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
+            name = "workflow_corporates",
+            joinColumns = @JoinColumn(name = "workflow_id"),
+            inverseJoinColumns = @JoinColumn(name = "corporate_id")
+    )
+    @Builder.Default
+    private Set<Corporate> corporates = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
             name = "workflow_sbus",
             joinColumns = @JoinColumn(name = "workflow_id"),
             inverseJoinColumns = @JoinColumn(name = "sbu_id")
     )
     @Builder.Default
     private Set<SBU> sbus = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "workflow_branches",
+            joinColumns = @JoinColumn(name = "workflow_id"),
+            inverseJoinColumns = @JoinColumn(name = "branch_id")
+    )
+    @Builder.Default
+    private Set<Branch> branches = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "workflow_departments",
+            joinColumns = @JoinColumn(name = "workflow_id"),
+            inverseJoinColumns = @JoinColumn(name = "department_id")
+    )
+    @Builder.Default
+    private Set<Department> departments = new HashSet<>();
 
     @Column(name = "comments_mandatory")
     private Boolean commentsMandatory = false;

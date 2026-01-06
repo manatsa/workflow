@@ -25,12 +25,20 @@ public class SBU extends BaseEntity {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "corporate_id")
+    private Corporate corporate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private SBU parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @Builder.Default
     private Set<SBU> children = new HashSet<>();
+
+    @OneToMany(mappedBy = "sbu", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<Branch> branches = new HashSet<>();
 
     @Column(name = "is_root")
     private Boolean isRoot = false;

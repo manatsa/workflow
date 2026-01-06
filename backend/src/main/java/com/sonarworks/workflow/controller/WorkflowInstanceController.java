@@ -1,6 +1,7 @@
 package com.sonarworks.workflow.controller;
 
 import com.sonarworks.workflow.dto.*;
+import com.sonarworks.workflow.exception.BusinessException;
 import com.sonarworks.workflow.service.AttachmentService;
 import com.sonarworks.workflow.service.WorkflowInstanceService;
 import jakarta.validation.Valid;
@@ -47,9 +48,24 @@ public class WorkflowInstanceController {
         return ResponseEntity.ok(ApiResponse.success(workflowInstanceService.getMySubmissions(pageable)));
     }
 
+    @GetMapping("/my-submissions/count")
+    public ResponseEntity<ApiResponse<Long>> getMySubmissionsCount() {
+        return ResponseEntity.ok(ApiResponse.success(workflowInstanceService.getMySubmissionsCount()));
+    }
+
+    @GetMapping("/my-submissions/pending-count")
+    public ResponseEntity<ApiResponse<Long>> getMyPendingSubmissionsCount() {
+        return ResponseEntity.ok(ApiResponse.success(workflowInstanceService.getMyPendingSubmissionsCount()));
+    }
+
     @GetMapping("/pending-approvals")
     public ResponseEntity<ApiResponse<Page<WorkflowInstanceDTO>>> getPendingApprovals(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(workflowInstanceService.getPendingApprovals(pageable)));
+    }
+
+    @GetMapping("/pending-approvals/count")
+    public ResponseEntity<ApiResponse<Long>> getPendingApprovalsCount() {
+        return ResponseEntity.ok(ApiResponse.success(workflowInstanceService.getPendingApprovalsCount()));
     }
 
     @GetMapping("/search")
@@ -106,8 +122,34 @@ public class WorkflowInstanceController {
 
             String message = isDraft ? "Draft saved successfully" : "Submission created successfully";
             return ResponseEntity.ok(ApiResponse.success(message, instance));
+        } catch (BusinessException e) {
+            throw e; // Re-throw business exceptions as-is
         } catch (Exception e) {
             throw new RuntimeException("Failed to process submission: " + e.getMessage(), e);
+        }
+    }
+
+    @PostMapping("/{id}/update")
+    public ResponseEntity<ApiResponse<WorkflowInstanceDTO>> updateInstance(
+            @PathVariable UUID id,
+            @RequestParam("workflowCode") String workflowCode,
+            @RequestParam("isDraft") Boolean isDraft,
+            @RequestParam(value = "comments", required = false) String comments,
+            @RequestParam("fieldValues") String fieldValuesJson,
+            @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments) {
+        try {
+            Map<String, Object> fieldValues = objectMapper.readValue(fieldValuesJson,
+                    new TypeReference<Map<String, Object>>() {});
+
+            WorkflowInstanceDTO instance = workflowInstanceService.updateAndSubmitInstance(
+                    id, fieldValues, isDraft, comments, attachments);
+
+            String message = isDraft ? "Draft updated successfully" : "Submission updated successfully";
+            return ResponseEntity.ok(ApiResponse.success(message, instance));
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update submission: " + e.getMessage(), e);
         }
     }
 

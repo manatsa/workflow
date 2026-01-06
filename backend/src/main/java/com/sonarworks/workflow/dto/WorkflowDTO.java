@@ -38,5 +38,8 @@ public class WorkflowDTO {
     private Boolean commentsMandatoryOnEscalate;
     private List<WorkflowFormDTO> forms;
     private List<WorkflowApproverDTO> approvers;
+    private Set<UUID> corporateIds;
     private Set<UUID> sbuIds;
+    private Set<UUID> branchIds;
+    private Set<UUID> departmentIds;
 }

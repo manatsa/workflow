@@ -259,7 +259,7 @@ export class ProfileComponent implements OnInit {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        phone: user.phone,
+        phone: user.phoneNumber,
         staffId: user.staffId,
         department: user.department
       });
@@ -276,7 +276,7 @@ export class ProfileComponent implements OnInit {
       email: this.profileForm.value.email,
       firstName: this.profileForm.value.firstName,
       lastName: this.profileForm.value.lastName,
-      phone: this.profileForm.value.phone,
+      phoneNumber: this.profileForm.value.phone,
       department: this.profileForm.value.department
     };
 

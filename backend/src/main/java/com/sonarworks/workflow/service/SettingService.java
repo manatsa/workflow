@@ -23,7 +23,7 @@ public class SettingService {
     public String getValue(String key, String defaultValue) {
         return settingRepository.findByKey(key)
                 .map(setting -> {
-                    if (setting.getIsEncrypted()) {
+                    if (Boolean.TRUE.equals(setting.getIsEncrypted())) {
                         return encryptionUtil.decrypt(setting.getValue());
                     }
                     return setting.getValue();
@@ -115,20 +115,22 @@ public class SettingService {
     }
 
     private SettingDTO toDTO(Setting setting) {
+        boolean isEncrypted = Boolean.TRUE.equals(setting.getIsEncrypted());
         return SettingDTO.builder()
                 .id(setting.getId())
                 .key(setting.getKey())
-                .value(setting.getIsEncrypted() ? "********" : setting.getValue())
+                .value(isEncrypted ? "********" : setting.getValue())
                 .label(setting.getLabel())
                 .description(setting.getDescription())
                 .type(setting.getType())
                 .category(setting.getCategory())
                 .tab(setting.getTab())
-                .isEncrypted(setting.getIsEncrypted())
-                .isSystem(setting.getIsSystem())
+                .isEncrypted(isEncrypted)
+                .isSystem(Boolean.TRUE.equals(setting.getIsSystem()))
                 .displayOrder(setting.getDisplayOrder())
                 .validationRegex(setting.getValidationRegex())
                 .defaultValue(setting.getDefaultValue())
+                .options(setting.getOptions())
                 .build();
     }
 }

@@ -49,7 +49,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
         </button>
         <div>
           <h1>{{ workflow?.name }}</h1>
-          <p class="subtitle">New Submission</p>
+          <p class="subtitle">{{ isEditMode ? 'Edit Submission' : 'New Submission' }}</p>
         </div>
       </div>
 
@@ -71,7 +71,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('TEXT') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+                            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
                             @if (form.get(field.name)?.hasError('required')) {
                               <mat-error>{{ field.label }} is required</mat-error>
                             }
@@ -81,7 +81,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
                             <textarea matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''"
-                                      rows="4"></textarea>
+                                      rows="4" [readonly]="isFieldReadonly(field)"></textarea>
                             @if (form.get(field.name)?.hasError('required')) {
                               <mat-error>{{ field.label }} is required</mat-error>
                             }
@@ -90,7 +90,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('NUMBER') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+                            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
                             @if (form.get(field.name)?.hasError('required')) {
                               <mat-error>{{ field.label }} is required</mat-error>
                             }
@@ -99,7 +99,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('CURRENCY') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+                            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
                             <span matPrefix>$&nbsp;</span>
                             @if (form.get(field.name)?.hasError('required')) {
                               <mat-error>{{ field.label }} is required</mat-error>
@@ -109,7 +109,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('EMAIL') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput type="email" [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+                            <input matInput type="email" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
                             @if (form.get(field.name)?.hasError('required')) {
                               <mat-error>{{ field.label }} is required</mat-error>
                             }
@@ -121,7 +121,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('PHONE') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput type="tel" [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+                            <input matInput type="tel" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
                             @if (form.get(field.name)?.hasError('required')) {
                               <mat-error>{{ field.label }} is required</mat-error>
                             }
@@ -130,9 +130,9 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('DATE') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput [matDatepicker]="picker" [formControlName]="field.name">
-                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                            <mat-datepicker #picker></mat-datepicker>
+                            <input matInput [matDatepicker]="picker" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            <mat-datepicker-toggle matIconSuffix [for]="picker" [disabled]="isFieldReadonly(field)"></mat-datepicker-toggle>
+                            <mat-datepicker #picker [disabled]="isFieldReadonly(field)"></mat-datepicker>
                             @if (form.get(field.name)?.hasError('required')) {
                               <mat-error>{{ field.label }} is required</mat-error>
                             }
@@ -141,7 +141,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('SELECT') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+                            <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
                               @for (option of field.options; track option.value) {
                                 <mat-option [value]="option.value">{{ option.label }}</mat-option>
                               }
@@ -154,20 +154,20 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('RADIO') {
                           <div class="radio-field">
                             <label class="field-label">{{ field.label }} @if (field.required) { <span class="required">*</span> }</label>
-                            <mat-radio-group [formControlName]="field.name">
+                            <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
                               @for (option of field.options; track option.value) {
-                                <mat-radio-button [value]="option.value">{{ option.label }}</mat-radio-button>
+                                <mat-radio-button [value]="option.value" [disabled]="isFieldReadonly(field)">{{ option.label }}</mat-radio-button>
                               }
                             </mat-radio-group>
                           </div>
                         }
                         @case ('CHECKBOX') {
-                          <mat-checkbox [formControlName]="field.name">{{ field.label }}</mat-checkbox>
+                          <mat-checkbox [formControlName]="field.name" [disabled]="isFieldReadonly(field)">{{ field.label }}</mat-checkbox>
                         }
                         @case ('FILE') {
                           <div class="file-field">
                             <label class="field-label">{{ field.label }} @if (field.required) { <span class="required">*</span> }</label>
-                            <input type="file" (change)="onFileSelect($event, field.name)" [multiple]="field.multiple">
+                            <input type="file" (change)="onFileSelect($event, field.name)" [multiple]="field.multiple" [disabled]="isFieldReadonly(field)">
                             @if (selectedFiles[field.name] && selectedFiles[field.name].length > 0) {
                               <div class="file-list">
                                 @for (file of selectedFiles[field.name]; track file.name) {
@@ -180,7 +180,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('URL') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput type="url" [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+                            <input matInput type="url" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
                             @if (form.get(field.name)?.hasError('required')) {
                               <mat-error>{{ field.label }} is required</mat-error>
                             }
@@ -189,7 +189,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @default {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+                            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
                           </mat-form-field>
                         }
                       }
@@ -218,7 +218,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('TEXT') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+                            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
                             @if (form.get(field.name)?.hasError('required')) {
                               <mat-error>{{ field.label }} is required</mat-error>
                             }
@@ -227,19 +227,19 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('TEXTAREA') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <textarea matInput [formControlName]="field.name" rows="4"></textarea>
+                            <textarea matInput [formControlName]="field.name" rows="4" [readonly]="isFieldReadonly(field)"></textarea>
                           </mat-form-field>
                         }
                         @case ('NUMBER') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput type="number" [formControlName]="field.name">
+                            <input matInput type="number" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
                           </mat-form-field>
                         }
                         @case ('SELECT') {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <mat-select [formControlName]="field.name">
+                            <mat-select [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
                               @for (option of field.options; track option.value) {
                                 <mat-option [value]="option.value">{{ option.label }}</mat-option>
                               }
@@ -249,7 +249,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @default {
                           <mat-form-field appearance="outline" class="full-width">
                             <mat-label>{{ field.label }}</mat-label>
-                            <input matInput [formControlName]="field.name">
+                            <input matInput [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
                           </mat-form-field>
                         }
                       }
@@ -462,6 +462,9 @@ export class WorkflowFormComponent implements OnInit {
   fieldGroups: FieldGroup[] = [];
   selectedFiles: Record<string, File[]> = {};
   attachments: File[] = [];
+  instanceId: string | null = null;
+  isEditMode = false;
+  existingFieldValues: Record<string, any> = {};
 
   constructor(
     private fb: FormBuilder,
@@ -473,21 +476,50 @@ export class WorkflowFormComponent implements OnInit {
 
   ngOnInit() {
     this.workflowCode = this.route.snapshot.paramMap.get('workflowCode') || '';
+    this.instanceId = this.route.snapshot.paramMap.get('instanceId') || null;
+    this.isEditMode = !!this.instanceId;
     this.loadWorkflow();
   }
 
   loadWorkflow() {
     this.workflowService.getWorkflowByCode(this.workflowCode).subscribe({
       next: (res) => {
-        this.loading = false;
         if (res.success) {
           this.workflow = res.data;
-          this.initializeForm();
+          if (this.isEditMode && this.instanceId) {
+            this.loadInstance();
+          } else {
+            this.loading = false;
+            this.initializeForm();
+          }
+        } else {
+          this.loading = false;
         }
       },
       error: () => {
         this.loading = false;
         this.snackBar.open('Failed to load workflow', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  loadInstance() {
+    this.workflowService.getInstance(this.instanceId!).subscribe({
+      next: (res) => {
+        this.loading = false;
+        if (res.success && res.data) {
+          // Extract field values from instance
+          if (res.data.fieldValues) {
+            res.data.fieldValues.forEach((fv: any) => {
+              this.existingFieldValues[fv.fieldName] = fv.value;
+            });
+          }
+          this.initializeForm();
+        }
+      },
+      error: () => {
+        this.loading = false;
+        this.snackBar.open('Failed to load instance', 'Close', { duration: 3000 });
       }
     });
   }
@@ -512,13 +544,27 @@ export class WorkflowFormComponent implements OnInit {
         validators.push(Validators.email);
       }
 
-      let defaultValue: any = field.defaultValue || '';
+      // Use existing value if in edit mode, otherwise use default
+      let defaultValue: any = this.isEditMode && this.existingFieldValues[field.name] !== undefined
+        ? this.existingFieldValues[field.name]
+        : (field.defaultValue || '');
+
       if (field.type === 'CHECKBOX') {
-        defaultValue = false;
+        defaultValue = this.isEditMode && this.existingFieldValues[field.name] !== undefined
+          ? this.existingFieldValues[field.name] === 'true' || this.existingFieldValues[field.name] === true
+          : false;
       } else if (field.type === 'NUMBER' || field.type === 'CURRENCY') {
-        defaultValue = field.defaultValue ? Number(field.defaultValue) : null;
-      } else if ((field.type === 'DATE' || field.type === 'DATETIME') && field.defaultValue === 'TODAY') {
-        defaultValue = new Date();
+        if (this.isEditMode && this.existingFieldValues[field.name] !== undefined) {
+          defaultValue = Number(this.existingFieldValues[field.name]) || null;
+        } else {
+          defaultValue = field.defaultValue ? Number(field.defaultValue) : null;
+        }
+      } else if ((field.type === 'DATE' || field.type === 'DATETIME')) {
+        if (this.isEditMode && this.existingFieldValues[field.name]) {
+          defaultValue = new Date(this.existingFieldValues[field.name]);
+        } else if (field.defaultValue === 'TODAY') {
+          defaultValue = new Date();
+        }
       }
 
       formControls[field.name] = [defaultValue, validators];
@@ -533,6 +579,10 @@ export class WorkflowFormComponent implements OnInit {
 
   getFieldsInGroup(groupId: string): WorkflowField[] {
     return this.fields.filter(f => f.fieldGroupId === groupId && !f.hidden);
+  }
+
+  isFieldReadonly(field: WorkflowField): boolean {
+    return field.readOnly || field.isReadonly || false;
   }
 
   onFileSelect(event: Event, fieldName: string) {
@@ -601,15 +651,19 @@ export class WorkflowFormComponent implements OnInit {
       });
     });
 
-    this.workflowService.submitInstance(formData).subscribe({
+    // Use update API if in edit mode
+    const apiCall = this.isEditMode && this.instanceId
+      ? this.workflowService.updateInstance(this.instanceId, formData)
+      : this.workflowService.submitInstance(formData);
+
+    apiCall.subscribe({
       next: (res) => {
         this.submitting = false;
         if (res.success) {
-          this.snackBar.open(
-            isDraft ? 'Draft saved successfully' : 'Submission created successfully',
-            'Close',
-            { duration: 3000 }
-          );
+          const message = this.isEditMode
+            ? (isDraft ? 'Draft updated successfully' : 'Submission updated successfully')
+            : (isDraft ? 'Draft saved successfully' : 'Submission created successfully');
+          this.snackBar.open(message, 'Close', { duration: 3000 });
           this.router.navigate(['/workflows', this.workflowCode, 'instances']);
         }
       },

@@ -2,8 +2,10 @@ package com.sonarworks.workflow.service;
 
 import com.sonarworks.workflow.dto.SBUDTO;
 import com.sonarworks.workflow.entity.AuditLog;
+import com.sonarworks.workflow.entity.Corporate;
 import com.sonarworks.workflow.entity.SBU;
 import com.sonarworks.workflow.exception.BusinessException;
+import com.sonarworks.workflow.repository.CorporateRepository;
 import com.sonarworks.workflow.repository.SBURepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,26 +22,45 @@ import java.util.stream.Collectors;
 public class SBUService {
 
     private final SBURepository sbuRepository;
+    private final CorporateRepository corporateRepository;
     private final AuditService auditService;
 
+    @Transactional(readOnly = true)
     public List<SBUDTO> getAllSBUs() {
         return sbuRepository.findAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<SBUDTO> getActiveSBUs() {
         return sbuRepository.findByIsActiveTrue().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<SBUDTO> getRootSBUs() {
         return sbuRepository.findRootSBUs().stream()
                 .map(this::toDTOWithChildren)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<SBUDTO> getSBUsByCorporateId(UUID corporateId) {
+        return sbuRepository.findByCorporateIdAndIsActiveTrue(corporateId).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SBUDTO> getSBUsByCorporateIds(List<UUID> corporateIds) {
+        return sbuRepository.findByCorporateIdsAndIsActiveTrue(corporateIds).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public SBUDTO getSBUById(UUID id) {
         SBU sbu = sbuRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("SBU not found"));
@@ -61,6 +82,12 @@ public class SBUService {
                 .contactEmail(dto.getContactEmail())
                 .contactPhone(dto.getContactPhone())
                 .build();
+
+        if (dto.getCorporateId() != null) {
+            Corporate corporate = corporateRepository.findById(dto.getCorporateId())
+                    .orElseThrow(() -> new BusinessException("Corporate not found"));
+            sbu.setCorporate(corporate);
+        }
 
         if (dto.getParentId() != null) {
             SBU parent = sbuRepository.findById(dto.getParentId())
@@ -87,6 +114,14 @@ public class SBUService {
         sbu.setAddress(dto.getAddress());
         sbu.setContactEmail(dto.getContactEmail());
         sbu.setContactPhone(dto.getContactPhone());
+
+        if (dto.getCorporateId() != null) {
+            Corporate corporate = corporateRepository.findById(dto.getCorporateId())
+                    .orElseThrow(() -> new BusinessException("Corporate not found"));
+            sbu.setCorporate(corporate);
+        } else {
+            sbu.setCorporate(null);
+        }
 
         if (dto.getParentId() != null && !dto.getParentId().equals(sbu.getParent() != null ? sbu.getParent().getId() : null)) {
             SBU parent = sbuRepository.findById(dto.getParentId())
@@ -148,6 +183,9 @@ public class SBUService {
                 .code(sbu.getCode())
                 .name(sbu.getName())
                 .description(sbu.getDescription())
+                .corporateId(sbu.getCorporate() != null ? sbu.getCorporate().getId() : null)
+                .corporateName(sbu.getCorporate() != null ? sbu.getCorporate().getName() : null)
+                .corporateCode(sbu.getCorporate() != null ? sbu.getCorporate().getCode() : null)
                 .parentId(sbu.getParent() != null ? sbu.getParent().getId() : null)
                 .parentName(sbu.getParent() != null ? sbu.getParent().getName() : null)
                 .isRoot(sbu.getIsRoot())

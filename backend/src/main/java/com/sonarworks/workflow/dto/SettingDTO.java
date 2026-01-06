@@ -34,4 +34,5 @@ public class SettingDTO {
     private Integer displayOrder;
     private String validationRegex;
     private String defaultValue;
+    private String options; // Comma-separated values for SELECT type
 }

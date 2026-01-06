@@ -16,6 +16,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserService } from '@core/services/user.service';
 import { User } from '@core/models/user.model';
+import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog/user-detail-dialog.component';
 
 @Component({
   selector: 'app-user-list',
@@ -123,6 +124,10 @@ import { User } from '@core/models/user.model';
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="viewUser(user)">
+                    <mat-icon>visibility</mat-icon>
+                    <span>View</span>
+                  </button>
                   <button mat-menu-item [routerLink]="['/users', user.id]">
                     <mat-icon>edit</mat-icon>
                     <span>Edit</span>
@@ -274,6 +279,20 @@ export class UserListComponent implements OnInit {
 
   getInitials(user: User): string {
     return (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
+  }
+
+  viewUser(user: User) {
+    const dialogRef = this.dialog.open(UserDetailDialogComponent, {
+      width: '650px',
+      maxHeight: '90vh',
+      data: user
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'refresh') {
+        this.loadUsers();
+      }
+    });
   }
 
   lockUser(user: User) {

@@ -159,75 +159,75 @@ export interface PreviewDialogData {
     <ng-template #fieldTemplate let-field="field">
       @switch (field.fieldType || field.type) {
         @case ('TEXT') {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
-            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
+            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
           </mat-form-field>
         }
         @case ('TEXTAREA') {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
-            <textarea matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" rows="4"></textarea>
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
+            <textarea matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" rows="4" [readonly]="isFieldReadonly(field)"></textarea>
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
           </mat-form-field>
         }
         @case ('NUMBER') {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
-            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
+            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
           </mat-form-field>
         }
         @case ('CURRENCY') {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
             <span matPrefix>$&nbsp;</span>
-            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
           </mat-form-field>
         }
         @case ('EMAIL') {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
-            <input matInput type="email" [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
+            <input matInput type="email" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
           </mat-form-field>
         }
         @case ('PHONE') {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
-            <input matInput type="tel" [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
+            <input matInput type="tel" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
           </mat-form-field>
         }
         @case ('DATE') {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
-            <input matInput [matDatepicker]="picker" [formControlName]="field.name">
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
+            <input matInput [matDatepicker]="picker" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+            <mat-datepicker-toggle matIconSuffix [for]="picker" [disabled]="isFieldReadonly(field)"></mat-datepicker-toggle>
+            <mat-datepicker #picker [disabled]="isFieldReadonly(field)"></mat-datepicker>
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
           </mat-form-field>
         }
         @case ('SELECT') {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
-            <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || 'Select an option'">
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
+            <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || 'Select an option'" [disabled]="isFieldReadonly(field)">
               @for (option of getFieldOptions(field); track option.value) {
                 <mat-option [value]="option.value">{{ option.label }}</mat-option>
               }
@@ -238,11 +238,11 @@ export interface PreviewDialogData {
           </mat-form-field>
         }
         @case ('RADIO') {
-          <div class="radio-field">
-            <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> }</label>
-            <mat-radio-group [formControlName]="field.name">
+          <div class="radio-field" [class.readonly-field]="isFieldReadonly(field)">
+            <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> } @if (isFieldReadonly(field)) { <span class="readonly-badge">(Read Only)</span> }</label>
+            <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
               @for (option of getFieldOptions(field); track option.value) {
-                <mat-radio-button [value]="option.value">{{ option.label }}</mat-radio-button>
+                <mat-radio-button [value]="option.value" [disabled]="isFieldReadonly(field)">{{ option.label }}</mat-radio-button>
               }
             </mat-radio-group>
             @if (field.helpText) {
@@ -251,19 +251,19 @@ export interface PreviewDialogData {
           </div>
         }
         @case ('CHECKBOX') {
-          <div class="checkbox-field">
-            <mat-checkbox [formControlName]="field.name">{{ field.label }}</mat-checkbox>
+          <div class="checkbox-field" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-checkbox [formControlName]="field.name" [disabled]="isFieldReadonly(field)">{{ field.label }} @if (isFieldReadonly(field)) { (Read Only) }</mat-checkbox>
             @if (field.helpText) {
               <p class="hint-text">{{ field.helpText }}</p>
             }
           </div>
         }
         @case ('CHECKBOX_GROUP') {
-          <div class="checkbox-group-field">
-            <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> }</label>
+          <div class="checkbox-group-field" [class.readonly-field]="isFieldReadonly(field)">
+            <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> } @if (isFieldReadonly(field)) { <span class="readonly-badge">(Read Only)</span> }</label>
             <div class="checkbox-options">
               @for (option of getFieldOptions(field); track option.value) {
-                <mat-checkbox>{{ option.label }}</mat-checkbox>
+                <mat-checkbox [disabled]="isFieldReadonly(field)">{{ option.label }}</mat-checkbox>
               }
             </div>
             @if (field.helpText) {
@@ -272,10 +272,10 @@ export interface PreviewDialogData {
           </div>
         }
         @case ('FILE') {
-          <div class="file-field">
-            <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> }</label>
+          <div class="file-field" [class.readonly-field]="isFieldReadonly(field)">
+            <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> } @if (isFieldReadonly(field)) { <span class="readonly-badge">(Read Only)</span> }</label>
             <div class="file-input-wrapper">
-              <button mat-stroked-button type="button">
+              <button mat-stroked-button type="button" [disabled]="isFieldReadonly(field)">
                 <mat-icon>attach_file</mat-icon>
                 Choose File
               </button>
@@ -287,18 +287,18 @@ export interface PreviewDialogData {
           </div>
         }
         @case ('URL') {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
-            <input matInput type="url" [formControlName]="field.name" [placeholder]="field.placeholder || 'https://'">
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
+            <input matInput type="url" [formControlName]="field.name" [placeholder]="field.placeholder || 'https://'" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
           </mat-form-field>
         }
         @default {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ field.label }} @if (field.isMandatory) { * }</mat-label>
-            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''">
+          <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
+            <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
+            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -503,6 +503,18 @@ export interface PreviewDialogData {
         box-shadow: none;
       }
     }
+
+    .readonly-field {
+      opacity: 0.7;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+    }
+
+    .readonly-badge {
+      font-size: 0.75rem;
+      color: #666;
+      font-style: italic;
+    }
   `]
 })
 export class WorkflowPreviewDialogComponent {
@@ -568,6 +580,10 @@ export class WorkflowPreviewDialogComponent {
         .map((value: string) => ({ value: value.trim(), label: value.trim() }));
     }
     return [];
+  }
+
+  isFieldReadonly(field: any): boolean {
+    return field.readOnly || field.isReadonly || false;
   }
 
   close() {

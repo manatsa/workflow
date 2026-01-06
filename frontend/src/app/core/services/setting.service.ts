@@ -38,6 +38,10 @@ export class SettingService {
     return this.api.delete<void>(`/settings/${id}`);
   }
 
+  sendTestEmail(email: string): Observable<ApiResponse<void>> {
+    return this.api.post<void>('/settings/test-email', { email });
+  }
+
   // Audit
   searchAuditLogs(query: string, page = 0, size = 20): Observable<ApiResponse<PageResponse<AuditLog>>> {
     return this.api.getPage<AuditLog>('/audit/search', page, size, { q: query });

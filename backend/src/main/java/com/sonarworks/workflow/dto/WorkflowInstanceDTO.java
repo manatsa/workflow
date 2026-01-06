@@ -30,6 +30,8 @@ public class WorkflowInstanceDTO {
     private String initiatorName;
     private String initiatorEmail;
     private Integer currentLevel;
+    private Integer currentApproverOrder;
+    private Integer totalApproversAtLevel;
     private String currentApproverName;
     private String currentApproverEmail;
     private LocalDateTime submittedAt;

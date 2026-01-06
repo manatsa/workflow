@@ -24,7 +24,9 @@ public class CustomUserDetails implements UserDetails {
     private final boolean accountNonLocked;
     private final Collection<? extends GrantedAuthority> authorities;
     private final User.UserType userType;
+    private final Set<UUID> corporateIds;
     private final Set<UUID> sbuIds;
+    private final Set<UUID> branchIds;
 
     public CustomUserDetails(User user) {
         this.id = user.getId();
@@ -35,7 +37,9 @@ public class CustomUserDetails implements UserDetails {
         this.enabled = user.getIsActive();
         this.accountNonLocked = !user.getIsLocked();
         this.userType = user.getUserType();
+        this.corporateIds = user.getCorporates().stream().map(corporate -> corporate.getId()).collect(Collectors.toSet());
         this.sbuIds = user.getSbus().stream().map(sbu -> sbu.getId()).collect(Collectors.toSet());
+        this.branchIds = user.getBranches().stream().map(branch -> branch.getId()).collect(Collectors.toSet());
 
         this.authorities = Stream.concat(
                 user.getRoles().stream()

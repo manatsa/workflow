@@ -7,10 +7,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -141,5 +144,28 @@ public class WorkflowController {
     public ResponseEntity<ApiResponse<Void>> deleteWorkflow(@PathVariable UUID id) {
         workflowService.deleteWorkflow(id);
         return ResponseEntity.ok(ApiResponse.success("Workflow deleted", null));
+    }
+
+    @GetMapping("/{id}/export")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('WORKFLOW_BUILDER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<byte[]> exportWorkflow(@PathVariable UUID id) {
+        byte[] jsonData = workflowService.exportWorkflow(id);
+        WorkflowDTO workflow = workflowService.getWorkflowById(id);
+        String filename = (workflow.getCode() != null ? workflow.getCode() : "workflow") + "_export.json";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentDispositionFormData("attachment", filename);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(jsonData);
+    }
+
+    @PostMapping("/import")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('WORKFLOW_BUILDER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<WorkflowDTO>> importWorkflow(@RequestParam("file") MultipartFile file) {
+        WorkflowDTO imported = workflowService.importWorkflow(file);
+        return ResponseEntity.ok(ApiResponse.success("Workflow imported successfully", imported));
     }
 }

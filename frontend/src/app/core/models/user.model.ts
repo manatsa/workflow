@@ -6,25 +6,47 @@ export interface User {
   lastName: string;
   fullName?: string;
   phone?: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   staffId?: string;
   department?: string;
   userType: UserType;
   isActive: boolean;
   enabled?: boolean;
   isLocked: boolean;
+  locked?: boolean;
   lockReason?: string;
   lastLogin?: string;
   passwordChangedAt?: string;
   mustChangePassword: boolean;
   roleIds: string[];
+  corporateIds?: string[];
   sbuIds: string[];
-  roles: string[];
+  branchIds?: string[];
+  departmentIds?: string[];
+  roles: any[];
   privileges: string[];
+  corporates?: Corporate[];
   sbus?: SBU[];
+  branches?: Branch[];
   profilePicture?: string;
   createdAt: string;
   createdBy: string;
+}
+
+export interface Corporate {
+  id: string;
+  code: string;
+  name: string;
+  isActive: boolean;
+}
+
+export interface Branch {
+  id: string;
+  code: string;
+  name: string;
+  sbuId: string;
+  sbuName?: string;
+  isActive: boolean;
 }
 
 export enum UserType {
@@ -50,13 +72,15 @@ export interface AuthResponse {
   fullName: string;
   firstName?: string;
   lastName?: string;
-  phone?: string;
+  phoneNumber?: string;
   staffId?: string;
   department?: string;
   userType: UserType;
   roles: string[];
   privileges: string[];
+  corporateIds: string[];
   sbuIds: string[];
+  branchIds: string[];
   mustChangePassword: boolean;
   lastLogin?: string;
   createdAt?: string;
@@ -84,6 +108,9 @@ export interface SBU {
   code: string;
   name: string;
   description: string;
+  corporateId?: string;
+  corporateName?: string;
+  corporateCode?: string;
   parentId?: string;
   parentName?: string;
   parent?: SBU;
@@ -93,4 +120,5 @@ export interface SBU {
   contactEmail?: string;
   contactPhone?: string;
   children?: SBU[];
+  branches?: Branch[];
 }

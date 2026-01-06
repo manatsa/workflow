@@ -20,7 +20,10 @@ export interface Workflow {
   requireComments: boolean;
   forms?: WorkflowForm[];
   approvers?: WorkflowApprover[];
+  corporateIds?: string[];
   sbuIds: string[];
+  branchIds?: string[];
+  departmentIds?: string[];
 }
 
 export interface WorkflowType {
@@ -79,6 +82,7 @@ export interface WorkflowField {
   readOnly: boolean;
   isHidden: boolean;
   hidden: boolean;
+  isUnique: boolean;
   displayOrder: number;
   columnSpan: number;
   defaultValue?: string;
@@ -150,6 +154,7 @@ export interface WorkflowApprover {
   userId?: string;
   userName?: string;
   approverId?: string;
+  approverIds?: string[];
   approverName?: string;
   approverEmail?: string;
   approverType?: string;
@@ -188,6 +193,8 @@ export interface WorkflowInstance {
   initiatorEmail: string;
   currentLevel: number;
   currentApprovalLevel: number;
+  currentApproverOrder?: number;
+  totalApproversAtLevel?: number;
   currentApproverName?: string;
   currentApproverEmail?: string;
   submittedAt?: string;

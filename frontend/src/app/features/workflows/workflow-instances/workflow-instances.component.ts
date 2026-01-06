@@ -1,6 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -111,7 +112,10 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Current Level</th>
               <td mat-cell *matCellDef="let instance">
                 @if (instance.status === 'PENDING') {
-                  Level {{ instance.currentApprovalLevel }}
+                  Level {{ instance.currentLevel || instance.currentApprovalLevel }}
+                  @if (instance.totalApproversAtLevel && instance.totalApproversAtLevel > 1) {
+                    <br><small class="approver-progress">(Approver {{ (instance.currentApproverOrder || 0) + 1 }} of {{ instance.totalApproversAtLevel }})</small>
+                  }
                 } @else {
                   -
                 }
@@ -281,6 +285,11 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
 
     .delete-action { color: #c62828; }
 
+    .approver-progress {
+      color: #666;
+      font-size: 0.7rem;
+    }
+
     .empty-state {
       display: flex;
       flex-direction: column;
@@ -298,7 +307,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
     }
   `]
 })
-export class WorkflowInstancesComponent implements OnInit {
+export class WorkflowInstancesComponent implements OnInit, OnDestroy {
   displayedColumns = ['referenceNumber', 'initiatorName', 'status', 'currentLevel', 'createdAt', 'updatedAt', 'actions'];
   dataSource = new MatTableDataSource<WorkflowInstance>([]);
   searchTerm = '';
@@ -307,6 +316,7 @@ export class WorkflowInstancesComponent implements OnInit {
   workflowName = '';
 
   statuses = Object.values(InstanceStatus);
+  private destroy$ = new Subject<void>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -320,9 +330,22 @@ export class WorkflowInstancesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.workflowCode = this.route.snapshot.paramMap.get('workflowCode') || '';
-    this.loadWorkflow();
-    this.loadInstances();
+    // Subscribe to route params to detect navigation changes
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const newWorkflowCode = params['workflowCode'] || '';
+      if (newWorkflowCode !== this.workflowCode || !this.workflowCode) {
+        this.workflowCode = newWorkflowCode;
+        this.searchTerm = '';
+        this.statusFilter = '';
+        this.loadWorkflow();
+        this.loadInstances();
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewInit() {

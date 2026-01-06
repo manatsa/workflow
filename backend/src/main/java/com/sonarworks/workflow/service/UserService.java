@@ -25,13 +25,17 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final CorporateRepository corporateRepository;
     private final SBURepository sbuRepository;
+    private final BranchRepository branchRepository;
+    private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidator passwordValidator;
     private final AuditService auditService;
     private final EmailService emailService;
     private final SettingService settingService;
 
+    @Transactional(readOnly = true)
     public Page<UserDTO> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable).map(this::toDTO);
     }
@@ -43,16 +47,19 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<UserDTO> searchUsers(String search, Pageable pageable) {
         return userRepository.searchUsers(search, pageable).map(this::toDTO);
     }
 
+    @Transactional(readOnly = true)
     public UserDTO getUserById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("User not found"));
         return toDTO(user);
     }
 
+    @Transactional(readOnly = true)
     public UserDTO getUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException("User not found"));
@@ -82,10 +89,12 @@ public class UserService {
                 .firstName(dto.getFirstName())
                 .lastName(dto.getLastName())
                 .phoneNumber(dto.getPhoneNumber())
+                .staffId(dto.getStaffId())
+                .department(dto.getDepartment())
                 .userType(dto.getUserType() != null ? dto.getUserType() : User.UserType.STAFF)
-                .isActive(true)
+                .isActive(dto.getEnabled() != null ? dto.getEnabled() : true)
                 .isLocked(false)
-                .mustChangePassword(dto.getPassword() == null)
+                .mustChangePassword(dto.getMustChangePassword() != null ? dto.getMustChangePassword() : (dto.getPassword() == null))
                 .passwordChangedAt(LocalDateTime.now())
                 .build();
 
@@ -94,9 +103,24 @@ public class UserService {
             user.setRoles(roles);
         }
 
+        if (dto.getCorporateIds() != null && !dto.getCorporateIds().isEmpty()) {
+            Set<Corporate> corporates = new HashSet<>(corporateRepository.findAllById(dto.getCorporateIds()));
+            user.setCorporates(corporates);
+        }
+
         if (dto.getSbuIds() != null && !dto.getSbuIds().isEmpty()) {
             Set<SBU> sbus = new HashSet<>(sbuRepository.findAllById(dto.getSbuIds()));
             user.setSbus(sbus);
+        }
+
+        if (dto.getBranchIds() != null && !dto.getBranchIds().isEmpty()) {
+            Set<Branch> branches = new HashSet<>(branchRepository.findAllById(dto.getBranchIds()));
+            user.setBranches(branches);
+        }
+
+        if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
+            Set<Department> departments = new HashSet<>(departmentRepository.findAllById(dto.getDepartmentIds()));
+            user.setDepartments(departments);
         }
 
         User saved = userRepository.save(user);
@@ -121,17 +145,40 @@ public class UserService {
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setPhoneNumber(dto.getPhoneNumber());
+        user.setStaffId(dto.getStaffId());
+        user.setDepartment(dto.getDepartment());
         user.setUserType(dto.getUserType());
         user.setProfilePicture(dto.getProfilePicture());
+        if (dto.getEnabled() != null) {
+            user.setIsActive(dto.getEnabled());
+        }
+        if (dto.getMustChangePassword() != null) {
+            user.setMustChangePassword(dto.getMustChangePassword());
+        }
 
         if (dto.getRoleIds() != null) {
             Set<Role> roles = new HashSet<>(roleRepository.findAllById(dto.getRoleIds()));
             user.setRoles(roles);
         }
 
+        if (dto.getCorporateIds() != null) {
+            Set<Corporate> corporates = new HashSet<>(corporateRepository.findAllById(dto.getCorporateIds()));
+            user.setCorporates(corporates);
+        }
+
         if (dto.getSbuIds() != null) {
             Set<SBU> sbus = new HashSet<>(sbuRepository.findAllById(dto.getSbuIds()));
             user.setSbus(sbus);
+        }
+
+        if (dto.getBranchIds() != null) {
+            Set<Branch> branches = new HashSet<>(branchRepository.findAllById(dto.getBranchIds()));
+            user.setBranches(branches);
+        }
+
+        if (dto.getDepartmentIds() != null) {
+            Set<Department> departments = new HashSet<>(departmentRepository.findAllById(dto.getDepartmentIds()));
+            user.setDepartments(departments);
         }
 
         User saved = userRepository.save(user);
@@ -329,15 +376,22 @@ public class UserService {
                 .lastName(user.getLastName())
                 .fullName(fullName)
                 .phoneNumber(user.getPhoneNumber())
+                .staffId(user.getStaffId())
+                .department(user.getDepartment())
                 .userType(user.getUserType())
+                .enabled(user.getIsActive())
                 .isActive(user.getIsActive())
+                .locked(user.getIsLocked())
                 .isLocked(user.getIsLocked())
                 .lockReason(user.getLockReason())
                 .lastLogin(user.getLastLogin())
                 .passwordChangedAt(user.getPasswordChangedAt())
                 .mustChangePassword(user.getMustChangePassword())
                 .roleIds(user.getRoles().stream().map(Role::getId).collect(Collectors.toSet()))
+                .corporateIds(user.getCorporates().stream().map(Corporate::getId).collect(Collectors.toSet()))
                 .sbuIds(user.getSbus().stream().map(SBU::getId).collect(Collectors.toSet()))
+                .branchIds(user.getBranches().stream().map(Branch::getId).collect(Collectors.toSet()))
+                .departmentIds(user.getDepartments().stream().map(Department::getId).collect(Collectors.toSet()))
                 .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
                 .privileges(user.getRoles().stream()
                         .flatMap(role -> role.getPrivileges().stream())

@@ -25,4 +25,15 @@ public interface WorkflowFieldValueRepository extends JpaRepository<WorkflowFiel
     Optional<WorkflowFieldValue> findByInstanceIdAndFieldName(
             @Param("instanceId") UUID instanceId,
             @Param("fieldName") String fieldName);
+
+    @Query("SELECT v FROM WorkflowFieldValue v WHERE v.field.id = :fieldId AND v.value = :value AND v.workflowInstance.id <> :excludeInstanceId")
+    List<WorkflowFieldValue> findByFieldIdAndValueExcludingInstance(
+            @Param("fieldId") UUID fieldId,
+            @Param("value") String value,
+            @Param("excludeInstanceId") UUID excludeInstanceId);
+
+    @Query("SELECT v FROM WorkflowFieldValue v WHERE v.field.id = :fieldId AND v.value = :value")
+    List<WorkflowFieldValue> findByFieldIdAndValue(
+            @Param("fieldId") UUID fieldId,
+            @Param("value") String value);
 }

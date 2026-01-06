@@ -75,6 +75,11 @@ public class AuthService {
                     .username(userDetails.getUsername())
                     .email(userDetails.getEmail())
                     .fullName(userDetails.getFullName())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .phoneNumber(user.getPhoneNumber())
+                    .staffId(user.getStaffId())
+                    .department(user.getDepartment())
                     .userType(userDetails.getUserType())
                     .roles(userDetails.getAuthorities().stream()
                             .filter(a -> a.getAuthority().startsWith("ROLE_"))
@@ -84,8 +89,12 @@ public class AuthService {
                             .filter(a -> !a.getAuthority().startsWith("ROLE_"))
                             .map(a -> a.getAuthority())
                             .collect(Collectors.toSet()))
+                    .corporateIds(userDetails.getCorporateIds().stream().toList())
                     .sbuIds(userDetails.getSbuIds().stream().toList())
+                    .branchIds(userDetails.getBranchIds().stream().toList())
                     .mustChangePassword(user.getMustChangePassword())
+                    .lastLogin(user.getLastLogin())
+                    .createdAt(user.getCreatedAt())
                     .build();
         } catch (BadCredentialsException e) {
             userService.recordFailedLogin(request.getUsername());
@@ -105,6 +114,13 @@ public class AuthService {
         String newToken = tokenProvider.generateToken(username);
         String newRefreshToken = tokenProvider.generateRefreshToken(username);
 
+        String fullName = (user.getFirstName() != null ? user.getFirstName() : "") +
+                          (user.getLastName() != null ? " " + user.getLastName() : "");
+        fullName = fullName.trim();
+        if (fullName.isEmpty()) {
+            fullName = user.getUsername();
+        }
+
         return AuthResponse.builder()
                 .token(newToken)
                 .refreshToken(newRefreshToken)
@@ -112,6 +128,17 @@ public class AuthService {
                 .expiresIn(tokenProvider.getExpirationTime())
                 .userId(user.getId())
                 .username(user.getUsername())
+                .email(user.getEmail())
+                .fullName(fullName)
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phoneNumber(user.getPhoneNumber())
+                .staffId(user.getStaffId())
+                .department(user.getDepartment())
+                .userType(user.getUserType())
+                .mustChangePassword(user.getMustChangePassword())
+                .lastLogin(user.getLastLogin())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 

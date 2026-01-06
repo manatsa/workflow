@@ -29,6 +29,16 @@ public class SBUController {
         return ResponseEntity.ok(ApiResponse.success(sbuService.getActiveSBUs()));
     }
 
+    @GetMapping("/by-corporate/{corporateId}")
+    public ResponseEntity<ApiResponse<List<SBUDTO>>> getSBUsByCorporate(@PathVariable UUID corporateId) {
+        return ResponseEntity.ok(ApiResponse.success(sbuService.getSBUsByCorporateId(corporateId)));
+    }
+
+    @GetMapping("/by-corporates")
+    public ResponseEntity<ApiResponse<List<SBUDTO>>> getSBUsByCorporates(@RequestParam List<UUID> corporateIds) {
+        return ResponseEntity.ok(ApiResponse.success(sbuService.getSBUsByCorporateIds(corporateIds)));
+    }
+
     @GetMapping("/tree")
     public ResponseEntity<ApiResponse<List<SBUDTO>>> getSBUTree() {
         return ResponseEntity.ok(ApiResponse.success(sbuService.getRootSBUs()));

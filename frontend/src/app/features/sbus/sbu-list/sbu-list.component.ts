@@ -10,8 +10,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatChipsModule } from '@angular/material/chips';
 import { UserService } from '@core/services/user.service';
 import { SBU } from '@core/models/user.model';
+import { Corporate } from '@core/models/corporate.model';
 
 interface SBUNode extends SBU {
   children?: SBUNode[];
@@ -31,7 +33,8 @@ interface SBUNode extends SBU {
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatChipsModule
   ],
   template: `
     <div class="sbu-list-container">
@@ -59,6 +62,9 @@ interface SBUNode extends SBU {
                     @if (node.code) {
                       <span class="code">({{ node.code }})</span>
                     }
+                    @if (node.corporateName) {
+                      <mat-chip class="corporate-chip">{{ node.corporateName }}</mat-chip>
+                    }
                   </div>
                   <button mat-icon-button (click)="editSbu(node)">
                     <mat-icon>edit</mat-icon>
@@ -81,6 +87,9 @@ interface SBUNode extends SBU {
                     <span>{{ node.name }}</span>
                     @if (node.code) {
                       <span class="code">({{ node.code }})</span>
+                    }
+                    @if (node.corporateName) {
+                      <mat-chip class="corporate-chip">{{ node.corporateName }}</mat-chip>
                     }
                   </div>
                   <button mat-icon-button (click)="editSbu(node)">
@@ -113,6 +122,19 @@ interface SBUNode extends SBU {
             @if (showAddSbu || editingSbu) {
               <form [formGroup]="sbuForm" (ngSubmit)="saveSbu()">
                 <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Corporate</mat-label>
+                  <mat-select formControlName="corporateId">
+                    <mat-option [value]="null">-- Select Corporate --</mat-option>
+                    @for (corp of corporates; track corp.id) {
+                      <mat-option [value]="corp.id">{{ corp.name }}</mat-option>
+                    }
+                  </mat-select>
+                  @if (sbuForm.get('corporateId')?.hasError('required')) {
+                    <mat-error>Corporate is required</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
                   <mat-label>Name</mat-label>
                   <input matInput formControlName="name">
                   @if (sbuForm.get('name')?.hasError('required')) {
@@ -136,7 +158,7 @@ interface SBUNode extends SBU {
                     <mat-option [value]="null">None (Root Level)</mat-option>
                     @for (sbu of flatSbus; track sbu.id) {
                       @if (!editingSbu || sbu.id !== editingSbu.id) {
-                        <mat-option [value]="sbu.id">{{ sbu.name }}</mat-option>
+                        <mat-option [value]="sbu.id">{{ sbu.name }} @if (sbu.corporateName) { ({{ sbu.corporateName }}) }</mat-option>
                       }
                     }
                   </mat-select>
@@ -144,13 +166,19 @@ interface SBUNode extends SBU {
 
                 <div class="form-actions">
                   <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+                  <button mat-raised-button color="primary" type="submit" [disabled]="loading || sbuForm.invalid">
                     {{ editingSbu ? 'Update' : 'Create' }}
                   </button>
                 </div>
               </form>
             } @else if (selectedSbu) {
               <div class="sbu-details">
+                @if (selectedSbu.corporateName) {
+                  <div class="detail-row">
+                    <span class="label">Corporate</span>
+                    <span class="value">{{ selectedSbu.corporateName }}</span>
+                  </div>
+                }
                 <div class="detail-row">
                   <span class="label">Name</span>
                   <span class="value">{{ selectedSbu.name }}</span>
@@ -300,12 +328,20 @@ interface SBUNode extends SBU {
       gap: 0.5rem;
       margin-top: 1.5rem;
     }
+
+    .corporate-chip {
+      font-size: 0.7rem;
+      min-height: 20px;
+      padding: 2px 8px;
+      margin-left: 0.5rem;
+    }
   `]
 })
 export class SbuListComponent implements OnInit {
   treeControl = new NestedTreeControl<SBUNode>(node => node.children);
   dataSource = new MatTreeNestedDataSource<SBUNode>();
   flatSbus: SBU[] = [];
+  corporates: Corporate[] = [];
 
   selectedSbu: SBU | null = null;
   editingSbu: SBU | null = null;
@@ -320,6 +356,7 @@ export class SbuListComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {
     this.sbuForm = this.fb.group({
+      corporateId: [null, Validators.required],
       name: ['', Validators.required],
       code: [''],
       description: [''],
@@ -329,6 +366,15 @@ export class SbuListComponent implements OnInit {
 
   ngOnInit() {
     this.loadSbus();
+    this.loadCorporates();
+  }
+
+  loadCorporates() {
+    this.userService.getActiveCorporates().subscribe(res => {
+      if (res.success) {
+        this.corporates = res.data;
+      }
+    });
   }
 
   hasChild = (_: number, node: SBUNode) => !!node.children && node.children.length > 0;
@@ -376,6 +422,7 @@ export class SbuListComponent implements OnInit {
     this.editingSbu = sbu;
     this.showAddSbu = false;
     this.sbuForm.patchValue({
+      corporateId: sbu.corporateId || null,
       name: sbu.name,
       code: sbu.code,
       description: sbu.description,
@@ -388,6 +435,7 @@ export class SbuListComponent implements OnInit {
     this.editingSbu = null;
     this.sbuForm.reset();
     this.sbuForm.patchValue({
+      corporateId: this.selectedSbu?.corporateId || null,
       parentId: this.selectedSbu?.id || null
     });
   }
