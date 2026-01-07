@@ -65,13 +65,42 @@ public class SettingService {
 
     public Map<String, List<SettingDTO>> getSettingsGroupedByTab() {
         List<Setting> allSettings = settingRepository.findAll();
-        return allSettings.stream()
+
+        // Define the desired tab order
+        List<String> tabOrder = List.of(
+            "General",
+            "Theme Settings",
+            "User Settings",
+            "Workflow Settings",
+            "Mail Settings"
+        );
+
+        // Group settings by tab
+        Map<String, List<SettingDTO>> grouped = allSettings.stream()
                 .map(this::toDTO)
                 .collect(Collectors.groupingBy(
                         s -> s.getTab() != null ? s.getTab() : "General",
-                        LinkedHashMap::new,
                         Collectors.toList()
                 ));
+
+        // Create ordered map based on tabOrder
+        LinkedHashMap<String, List<SettingDTO>> orderedMap = new LinkedHashMap<>();
+
+        // First add tabs in the defined order
+        for (String tab : tabOrder) {
+            if (grouped.containsKey(tab)) {
+                orderedMap.put(tab, grouped.get(tab));
+            }
+        }
+
+        // Then add any remaining tabs not in the defined order
+        for (String tab : grouped.keySet()) {
+            if (!orderedMap.containsKey(tab)) {
+                orderedMap.put(tab, grouped.get(tab));
+            }
+        }
+
+        return orderedMap;
     }
 
     @Transactional
@@ -107,6 +136,24 @@ public class SettingService {
         return settings.stream()
                 .map(this::saveSetting)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public SettingDTO updateSetting(String key, SettingDTO dto) {
+        Setting setting = settingRepository.findByKey(key)
+                .orElseThrow(() -> new RuntimeException("Setting not found: " + key));
+
+        // Only update value if not encrypted
+        if (!Boolean.TRUE.equals(setting.getIsEncrypted()) && dto.getValue() != null && !dto.getValue().equals("********")) {
+            setting.setValue(dto.getValue());
+        }
+
+        if (dto.getLabel() != null) setting.setLabel(dto.getLabel());
+        if (dto.getDescription() != null) setting.setDescription(dto.getDescription());
+        if (dto.getCategory() != null) setting.setCategory(dto.getCategory());
+
+        Setting saved = settingRepository.save(setting);
+        return toDTO(saved);
     }
 
     @Transactional

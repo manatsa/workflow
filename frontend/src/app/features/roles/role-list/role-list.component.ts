@@ -14,6 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserService } from '@core/services/user.service';
+import { ImportExportService } from '@core/services/import-export.service';
 import { Role, Privilege } from '@core/models/user.model';
 
 @Component({
@@ -40,10 +41,22 @@ import { Role, Privilege } from '@core/models/user.model';
     <div class="role-list-container">
       <div class="header">
         <h1>Roles & Privileges</h1>
-        <button mat-raised-button color="primary" (click)="showAddRole = true">
-          <mat-icon>add</mat-icon>
-          Add Role
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button (click)="downloadTemplate()">
+            <mat-icon>description</mat-icon> Template
+          </button>
+          <button mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon> Import
+          </button>
+          <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
+          <button mat-stroked-button (click)="exportToExcel()">
+            <mat-icon>download</mat-icon> Export
+          </button>
+          <button mat-raised-button color="primary" (click)="showAddRole = true">
+            <mat-icon>add</mat-icon>
+            Add Role
+          </button>
+        </div>
       </div>
 
       <div class="content-grid">
@@ -185,6 +198,12 @@ import { Role, Privilege } from '@core/models/user.model';
       margin-bottom: 1rem;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
     .content-grid {
       display: grid;
       grid-template-columns: 2fr 1fr;
@@ -270,6 +289,7 @@ export class RoleListComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private importExportService: ImportExportService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {
@@ -406,5 +426,43 @@ export class RoleListComponent implements OnInit {
         }
       });
     }
+  }
+
+  downloadTemplate() {
+    this.importExportService.downloadTemplate('roles').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Roles_Template.xlsx');
+        this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+    });
+  }
+
+  importFromExcel(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    this.importExportService.importFromExcel('roles', file).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open(res.message || 'Roles imported', 'Close', { duration: 3000 });
+          this.loadRoles();
+        } else {
+          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+        }
+        input.value = '';
+      },
+      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+    });
+  }
+
+  exportToExcel() {
+    this.importExportService.exportToExcel('roles').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Roles_Export.xlsx');
+        this.snackBar.open('Roles exported', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to export', 'Close', { duration: 3000 })
+    });
   }
 }

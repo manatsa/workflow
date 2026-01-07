@@ -292,6 +292,24 @@ a {
   }
 }
 
+// Report filter font size (applied globally for dropdown overlays)
+:root {
+  --report-font-size: 14px;
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel .mat-mdc-option,
+.cdk-overlay-pane .mat-datepicker-content {
+  font-size: var(--report-font-size, 14px) !important;
+}
+
+.mat-mdc-select-panel .mat-mdc-option {
+  font-size: var(--report-font-size, 14px) !important;
+}
+
+.mat-calendar {
+  font-size: var(--report-font-size, 14px) !important;
+}
+
 // Command console styles
 .command-console {
   position: fixed;

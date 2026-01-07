@@ -14,9 +14,18 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AuthService } from '@core/services/auth.service';
 import { WorkflowService } from '@core/services/workflow.service';
 import { ThemeService } from '@core/services/theme.service';
+import { ReportService } from '@core/services/report.service';
 import { Workflow } from '@core/models/workflow.model';
 import { ProfileDialogComponent } from '@shared/components/profile-dialog/profile-dialog.component';
 import { ChangePasswordDialogComponent } from '@shared/components/change-password-dialog/change-password-dialog.component';
+
+interface ReportCategory {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  reports: { id: string; name: string; icon: string }[];
+}
 
 @Component({
   selector: 'app-main-layout',
@@ -54,7 +63,7 @@ import { ChangePasswordDialogComponent } from '@shared/components/change-passwor
         <nav class="sidebar-nav">
           <a class="menu-item" routerLink="/dashboard" routerLinkActive="active">
             <mat-icon>dashboard</mat-icon>
-            <span>Dashboard</span>
+            <span>Home</span>
           </a>
 
           <!-- System Admin -->
@@ -164,12 +173,37 @@ import { ChangePasswordDialogComponent } from '@shared/components/change-passwor
               <span class="badge-count primary">{{ mySubmissionsCount }}</span>
             }
           </a>
+
+          <!-- Reports -->
+          <mat-expansion-panel class="nav-panel">
+            <mat-expansion-panel-header>
+              <mat-icon>assessment</mat-icon>
+              <span>Reports</span>
+            </mat-expansion-panel-header>
+            <div class="submenu reports-submenu">
+              @for (category of reportCategories; track category.id) {
+                <mat-expansion-panel class="nav-panel nested-panel">
+                  <mat-expansion-panel-header>
+                    <mat-icon>{{ category.icon }}</mat-icon>
+                    <span>{{ category.name }}</span>
+                  </mat-expansion-panel-header>
+                  <div class="submenu nested-submenu">
+                    @for (report of category.reports; track report.id) {
+                      <a class="menu-item" [routerLink]="['/reports', report.id]">
+                        <mat-icon>{{ report.icon }}</mat-icon>
+                        <span>{{ report.name }}</span>
+                      </a>
+                    }
+                  </div>
+                </mat-expansion-panel>
+              }
+            </div>
+          </mat-expansion-panel>
         </nav>
 
         <div class="sidebar-footer">
-          <div class="version">v1.0.0</div>
           <div class="developer">Developed By: Sonar Microsystems</div>
-          <div class="copyright">&copy; {{ currentYear }} All Rights Reserved</div>
+          <div class="copyright">v1.0.0 | &copy; {{ currentYear }} All Rights Reserved</div>
         </div>
       </aside>
 
@@ -299,6 +333,26 @@ import { ChangePasswordDialogComponent } from '@shared/components/change-passwor
       font-size: 0.875rem;
     }
 
+    .nested-panel {
+      margin: 0 !important;
+    }
+
+    .nested-panel ::ng-deep .mat-expansion-panel-header {
+      padding-left: 2.5rem !important;
+      font-size: 0.875rem;
+      min-height: 40px !important;
+    }
+
+    .nested-submenu .menu-item {
+      padding-left: 4rem !important;
+      font-size: 0.8rem;
+    }
+
+    .reports-submenu {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
     .badge-count {
       margin-left: auto;
       background: #f44336;
@@ -321,10 +375,6 @@ import { ChangePasswordDialogComponent } from '@shared/components/change-passwor
       border-top: 1px solid var(--menu-hover-bg, #37474f);
       font-size: 0.75rem;
       opacity: 0.8;
-    }
-
-    .sidebar-footer .version {
-      margin-bottom: 0.25rem;
     }
 
     .sidebar-footer .developer {
@@ -381,6 +431,7 @@ import { ChangePasswordDialogComponent } from '@shared/components/change-passwor
 export class MainLayoutComponent implements OnInit {
   workflows: Workflow[] = [];
   activeWorkflows: Workflow[] = [];
+  reportCategories: ReportCategory[] = [];
   sidebarOpen = true;
   pendingApprovalsCount = 0;
   mySubmissionsCount = 0;
@@ -390,6 +441,7 @@ export class MainLayoutComponent implements OnInit {
     private authService: AuthService,
     private workflowService: WorkflowService,
     private themeService: ThemeService,
+    private reportService: ReportService,
     private router: Router,
     private dialog: MatDialog
   ) {}
@@ -399,6 +451,19 @@ export class MainLayoutComponent implements OnInit {
     this.loadWorkflows();
     this.loadPendingApprovalsCount();
     this.loadMySubmissionsCount();
+    this.loadReportCategories();
+  }
+
+  loadReportCategories() {
+    const categories = this.reportService.getReportCategories();
+    const allReports = this.reportService.getAllReports();
+
+    this.reportCategories = categories.map(cat => ({
+      ...cat,
+      reports: allReports
+        .filter(r => r.category === cat.id)
+        .map(r => ({ id: r.id, name: r.name, icon: r.icon }))
+    }));
   }
 
   loadPendingApprovalsCount() {

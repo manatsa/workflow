@@ -357,6 +357,7 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                               <mat-checkbox [(ngModel)]="field.readOnly">Read Only</mat-checkbox>
                               <mat-checkbox [(ngModel)]="field.hidden">Hidden</mat-checkbox>
                               <mat-checkbox [(ngModel)]="field.isUnique">Unique</mat-checkbox>
+                              <mat-checkbox [(ngModel)]="field.isTitle">Make Title</mat-checkbox>
                             </div>
 
                             <div class="field-actions">
@@ -1428,6 +1429,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
             readOnly: f.isReadonly ?? f.readOnly ?? false,
             hidden: f.isHidden ?? f.hidden ?? false,
             isUnique: f.isUnique ?? false,
+            isTitle: f.isTitle ?? false,
             optionsText: f.options?.map((o: any) => o.value).join('\n') || ''
           })) || [];
           this.fieldGroups = workflow.forms[0].fieldGroups || [];
@@ -1460,6 +1462,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       readOnly: false,
       hidden: false,
       isUnique: false,
+      isTitle: false,
       columnSpan: 2,
       displayOrder: this.fields.length,
       fieldGroupId: null,
@@ -1667,6 +1670,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       isReadonly: f.readOnly ?? f.isReadonly ?? false,
       isHidden: f.hidden ?? f.isHidden ?? false,
       isUnique: f.isUnique ?? false,
+      isTitle: f.isTitle ?? false,
       options: f.optionsText?.split('\n').filter((o: string) => o.trim()).map((value: string, index: number) => ({
         value: value.trim(),
         label: value.trim(),

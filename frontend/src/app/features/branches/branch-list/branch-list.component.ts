@@ -12,6 +12,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '@core/services/user.service';
+import { ImportExportService } from '@core/services/import-export.service';
 import { Branch } from '@core/models/branch.model';
 import { Corporate } from '@core/models/corporate.model';
 import { SBU } from '@core/models/user.model';
@@ -38,10 +39,22 @@ import { SBU } from '@core/models/user.model';
     <div class="branch-list-container">
       <div class="header">
         <h1>Branches</h1>
-        <button mat-raised-button color="primary" (click)="openNewForm()">
-          <mat-icon>add</mat-icon>
-          Add Branch
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button (click)="downloadTemplate()">
+            <mat-icon>description</mat-icon> Template
+          </button>
+          <button mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon> Import
+          </button>
+          <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
+          <button mat-stroked-button (click)="exportToExcel()">
+            <mat-icon>download</mat-icon> Export
+          </button>
+          <button mat-raised-button color="primary" (click)="openNewForm()">
+            <mat-icon>add</mat-icon>
+            Add Branch
+          </button>
+        </div>
       </div>
 
       <!-- Filters -->
@@ -234,6 +247,12 @@ import { SBU } from '@core/models/user.model';
       margin-bottom: 1rem;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
     .filter-card {
       margin-bottom: 1rem;
     }
@@ -335,6 +354,7 @@ export class BranchListComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private importExportService: ImportExportService,
     private snackBar: MatSnackBar
   ) {
     this.branchForm = this.fb.group({
@@ -528,5 +548,43 @@ export class BranchListComponent implements OnInit {
         }
       });
     }
+  }
+
+  downloadTemplate() {
+    this.importExportService.downloadTemplate('branches').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Branches_Template.xlsx');
+        this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+    });
+  }
+
+  importFromExcel(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    this.importExportService.importFromExcel('branches', file).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open(res.message || 'Branches imported', 'Close', { duration: 3000 });
+          this.loadBranches();
+        } else {
+          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+        }
+        input.value = '';
+      },
+      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+    });
+  }
+
+  exportToExcel() {
+    this.importExportService.exportToExcel('branches').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Branches_Export.xlsx');
+        this.snackBar.open('Branches exported', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to export', 'Close', { duration: 3000 })
+    });
   }
 }

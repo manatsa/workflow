@@ -13,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DepartmentService } from '@core/services/department.service';
 import { UserService } from '@core/services/user.service';
+import { ImportExportService } from '@core/services/import-export.service';
 import { Department } from '@core/models/department.model';
 import { Corporate } from '@core/models/corporate.model';
 
@@ -38,10 +39,22 @@ import { Corporate } from '@core/models/corporate.model';
     <div class="department-list-container">
       <div class="header">
         <h1>Departments</h1>
-        <button mat-raised-button color="primary" (click)="openNewForm()">
-          <mat-icon>add</mat-icon>
-          Add Department
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button (click)="downloadTemplate()">
+            <mat-icon>description</mat-icon> Template
+          </button>
+          <button mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon> Import
+          </button>
+          <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
+          <button mat-stroked-button (click)="exportToExcel()">
+            <mat-icon>download</mat-icon> Export
+          </button>
+          <button mat-raised-button color="primary" (click)="openNewForm()">
+            <mat-icon>add</mat-icon>
+            Add Department
+          </button>
+        </div>
       </div>
 
       <!-- Filters -->
@@ -208,6 +221,12 @@ import { Corporate } from '@core/models/corporate.model';
       margin-bottom: 1rem;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
     .filter-card {
       margin-bottom: 1rem;
     }
@@ -306,6 +325,7 @@ export class DepartmentListComponent implements OnInit {
     private fb: FormBuilder,
     private departmentService: DepartmentService,
     private userService: UserService,
+    private importExportService: ImportExportService,
     private snackBar: MatSnackBar
   ) {
     this.departmentForm = this.fb.group({
@@ -421,5 +441,43 @@ export class DepartmentListComponent implements OnInit {
         }
       });
     }
+  }
+
+  downloadTemplate() {
+    this.importExportService.downloadTemplate('departments').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Departments_Template.xlsx');
+        this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+    });
+  }
+
+  importFromExcel(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    this.importExportService.importFromExcel('departments', file).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open(res.message || 'Departments imported', 'Close', { duration: 3000 });
+          this.loadDepartments();
+        } else {
+          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+        }
+        input.value = '';
+      },
+      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+    });
+  }
+
+  exportToExcel() {
+    this.importExportService.exportToExcel('departments').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Departments_Export.xlsx');
+        this.snackBar.open('Departments exported', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to export', 'Close', { duration: 3000 })
+    });
   }
 }

@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { UserService } from '@core/services/user.service';
+import { ImportExportService } from '@core/services/import-export.service';
 import { SBU } from '@core/models/user.model';
 import { Corporate } from '@core/models/corporate.model';
 
@@ -40,10 +41,22 @@ interface SBUNode extends SBU {
     <div class="sbu-list-container">
       <div class="header">
         <h1>SBU Management</h1>
-        <button mat-raised-button color="primary" (click)="showAddSbu = true">
-          <mat-icon>add</mat-icon>
-          Add SBU
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button (click)="downloadTemplate()">
+            <mat-icon>description</mat-icon> Template
+          </button>
+          <button mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon> Import
+          </button>
+          <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
+          <button mat-stroked-button (click)="exportToExcel()">
+            <mat-icon>download</mat-icon> Export
+          </button>
+          <button mat-raised-button color="primary" (click)="showAddSbu = true">
+            <mat-icon>add</mat-icon>
+            Add SBU
+          </button>
+        </div>
       </div>
 
       <div class="content-grid">
@@ -233,6 +246,12 @@ interface SBUNode extends SBU {
       margin-bottom: 1rem;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
     .content-grid {
       display: grid;
       grid-template-columns: 1fr 400px;
@@ -353,6 +372,7 @@ export class SbuListComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private importExportService: ImportExportService,
     private snackBar: MatSnackBar
   ) {
     this.sbuForm = this.fb.group({
@@ -493,5 +513,43 @@ export class SbuListComponent implements OnInit {
         }
       });
     }
+  }
+
+  downloadTemplate() {
+    this.importExportService.downloadTemplate('sbus').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'SBUs_Template.xlsx');
+        this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+    });
+  }
+
+  importFromExcel(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    this.importExportService.importFromExcel('sbus', file).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open(res.message || 'SBUs imported', 'Close', { duration: 3000 });
+          this.loadSbus();
+        } else {
+          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+        }
+        input.value = '';
+      },
+      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+    });
+  }
+
+  exportToExcel() {
+    this.importExportService.exportToExcel('sbus').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'SBUs_Export.xlsx');
+        this.snackBar.open('SBUs exported', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to export', 'Close', { duration: 3000 })
+    });
   }
 }

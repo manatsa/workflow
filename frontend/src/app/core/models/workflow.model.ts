@@ -83,6 +83,7 @@ export interface WorkflowField {
   isHidden: boolean;
   hidden: boolean;
   isUnique: boolean;
+  isTitle: boolean;
   displayOrder: number;
   columnSpan: number;
   defaultValue?: string;
@@ -223,7 +224,8 @@ export enum InstanceStatus {
   REJECTED = 'REJECTED',
   ESCALATED = 'ESCALATED',
   CANCELLED = 'CANCELLED',
-  ON_HOLD = 'ON_HOLD'
+  ON_HOLD = 'ON_HOLD',
+  RECALLED = 'RECALLED'
 }
 
 export interface ApprovalHistory {

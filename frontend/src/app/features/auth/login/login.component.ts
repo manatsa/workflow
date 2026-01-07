@@ -156,8 +156,53 @@ export class LoginComponent {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.message || 'An error occurred. Please try again.';
+        this.errorMessage = this.getErrorMessage(err);
       }
     });
+  }
+
+  private getErrorMessage(error: any): string {
+    // Network/connectivity errors
+    if (error.status === 0) {
+      if (error.error instanceof ProgressEvent) {
+        return 'Cannot connect to server. Please check if the server is running and accessible.';
+      }
+      return 'Network error. Please check your internet connection.';
+    }
+
+    // HTTP status-based errors
+    switch (error.status) {
+      case 401:
+        return 'Invalid username or password.';
+      case 403:
+        return 'Access denied. Your account may be disabled or locked.';
+      case 404:
+        return 'Authentication service not available.';
+      case 500:
+        return 'Server error. Please try again later.';
+      case 502:
+        return 'Server is temporarily unavailable. Please try again later.';
+      case 503:
+        return 'Service is currently unavailable. Please try again later.';
+      case 504:
+        return 'Request timed out. Please try again.';
+      default:
+        break;
+    }
+
+    // Check for error message in response
+    if (error.error?.message) {
+      return error.error.message;
+    }
+
+    if (error.message) {
+      // CORS-related errors
+      if (error.message.includes('CORS') || error.message.includes('cross-origin')) {
+        return 'Connection blocked. Please contact your administrator.';
+      }
+      return error.message;
+    }
+
+    return 'Login failed. Please try again.';
   }
 }

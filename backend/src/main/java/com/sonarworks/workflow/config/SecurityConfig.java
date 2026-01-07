@@ -79,7 +79,17 @@ public class SecurityConfig {
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/profile/**"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/change-password"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/forgot-password"),
-            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/reset-password")
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/reset-password"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/reports"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/reports/**"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/categories"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/categories/**"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/corporates"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/corporates/**"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/branches"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/branches/**"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/departments"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/departments/**")
         );
     }
 
@@ -92,6 +102,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/password/**").permitAll()
+                        .requestMatchers("/api/import-export/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

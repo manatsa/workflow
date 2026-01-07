@@ -94,6 +94,11 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
+              <td mat-cell *matCellDef="let instance">{{ instance.title || '-' }}</td>
+            </ng-container>
+
             <ng-container matColumnDef="initiatorName">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Submitted By</th>
               <td mat-cell *matCellDef="let instance">{{ instance.initiatorName }}</td>
@@ -308,7 +313,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
   `]
 })
 export class WorkflowInstancesComponent implements OnInit, OnDestroy {
-  displayedColumns = ['referenceNumber', 'initiatorName', 'status', 'currentLevel', 'createdAt', 'updatedAt', 'actions'];
+  displayedColumns = ['referenceNumber', 'title', 'initiatorName', 'status', 'currentLevel', 'createdAt', 'updatedAt', 'actions'];
   dataSource = new MatTableDataSource<WorkflowInstance>([]);
   searchTerm = '';
   statusFilter = '';

@@ -264,6 +264,10 @@ public class DataInitializer implements CommandLineRunner {
         createSettingIfNotExists("workflow.comments.mandatory", "false", "Comments Mandatory on Approval", "Workflow", "Workflows", Setting.SettingType.BOOLEAN);
         createSettingIfNotExists("workflow.comments.mandatory.reject", "true", "Comments Mandatory on Rejection", "Workflow", "Workflows", Setting.SettingType.BOOLEAN);
         createSettingIfNotExists("workflow.comments.mandatory.escalate", "true", "Comments Mandatory on Escalation", "Workflow", "Workflows", Setting.SettingType.BOOLEAN);
+
+        // Reporting Settings
+        createSettingIfNotExists("reporting.font.size", "14", "Reporting Font Size (px)", "Display", "Reporting", Setting.SettingType.NUMBER);
+        createSettingIfNotExists("reporting.roles", "", "Report Roles (comma-separated role names)", "Access Control", "Reporting", Setting.SettingType.STRING);
     }
 
     private void createSettingIfNotExists(String key, String value, String label, String category, String tab, Setting.SettingType type) {

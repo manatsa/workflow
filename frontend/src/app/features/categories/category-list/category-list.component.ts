@@ -11,6 +11,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { UserService } from '@core/services/user.service';
+import { ImportExportService } from '@core/services/import-export.service';
 import { Category } from '@core/models/category.model';
 
 @Component({
@@ -34,10 +35,22 @@ import { Category } from '@core/models/category.model';
     <div class="category-list-container">
       <div class="header">
         <h1>Categories (Industries)</h1>
-        <button mat-raised-button color="primary" (click)="showForm = true; editingCategory = null; categoryForm.reset()">
-          <mat-icon>add</mat-icon>
-          Add Category
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button (click)="downloadTemplate()">
+            <mat-icon>description</mat-icon> Template
+          </button>
+          <button mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon> Import
+          </button>
+          <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
+          <button mat-stroked-button (click)="exportToExcel()">
+            <mat-icon>download</mat-icon> Export
+          </button>
+          <button mat-raised-button color="primary" (click)="showForm = true; editingCategory = null; categoryForm.reset()">
+            <mat-icon>add</mat-icon>
+            Add Category
+          </button>
+        </div>
       </div>
 
       <div class="content-grid">
@@ -147,6 +160,12 @@ import { Category } from '@core/models/category.model';
       margin-bottom: 1rem;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
     .content-grid {
       display: grid;
       grid-template-columns: 1fr 400px;
@@ -201,6 +220,7 @@ export class CategoryListComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private importExportService: ImportExportService,
     private snackBar: MatSnackBar
   ) {
     this.categoryForm = this.fb.group({
@@ -296,5 +316,43 @@ export class CategoryListComponent implements OnInit {
         }
       });
     }
+  }
+
+  downloadTemplate() {
+    this.importExportService.downloadTemplate('categories').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Categories_Template.xlsx');
+        this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+    });
+  }
+
+  importFromExcel(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    this.importExportService.importFromExcel('categories', file).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open(res.message || 'Categories imported', 'Close', { duration: 3000 });
+          this.loadCategories();
+        } else {
+          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+        }
+        input.value = '';
+      },
+      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+    });
+  }
+
+  exportToExcel() {
+    this.importExportService.exportToExcel('categories').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Categories_Export.xlsx');
+        this.snackBar.open('Categories exported', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to export', 'Close', { duration: 3000 })
+    });
   }
 }

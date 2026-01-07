@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -13,8 +13,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { WorkflowService } from '@core/services/workflow.service';
 import { WorkflowInstance, InstanceStatus } from '@core/models/workflow.model';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-my-submissions',
@@ -33,7 +36,9 @@ import { WorkflowInstance, InstanceStatus } from '@core/models/workflow.model';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatMenuModule
+    MatMenuModule,
+    MatDialogModule,
+    MatSnackBarModule
   ],
   template: `
     <div class="my-submissions-container">
@@ -72,6 +77,13 @@ import { WorkflowInstance, InstanceStatus } from '@core/models/workflow.model';
                 <a [routerLink]="['/workflows', item.workflowCode, 'instances', item.id]" class="reference-link">
                   {{ item.referenceNumber }}
                 </a>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
+              <td mat-cell *matCellDef="let item">
+                {{ item.title || '-' }}
               </td>
             </ng-container>
 
@@ -130,10 +142,16 @@ import { WorkflowInstance, InstanceStatus } from '@core/models/workflow.model';
                     <mat-icon>visibility</mat-icon>
                     <span>View Details</span>
                   </button>
-                  @if (item.status === 'DRAFT') {
-                    <button mat-menu-item [routerLink]="['/workflows', item.workflowCode, 'edit', item.id]">
+                  @if (canEdit(item)) {
+                    <button mat-menu-item (click)="editSubmission(item)">
                       <mat-icon>edit</mat-icon>
-                      <span>Edit Draft</span>
+                      <span>Edit Submission</span>
+                    </button>
+                  }
+                  @if (canDelete(item)) {
+                    <button mat-menu-item (click)="deleteSubmission(item)">
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete Submission</span>
                     </button>
                   }
                 </mat-menu>
@@ -150,7 +168,7 @@ import { WorkflowInstance, InstanceStatus } from '@core/models/workflow.model';
               <h3>No Submissions Yet</h3>
               <p>Start by submitting a new workflow request.</p>
               <button mat-raised-button color="primary" routerLink="/dashboard">
-                Go to Dashboard
+                Go to Home
               </button>
             </div>
           }
@@ -225,6 +243,9 @@ import { WorkflowInstance, InstanceStatus } from '@core/models/workflow.model';
     .badge.rejected { background: #ffebee; color: #c62828; }
     .badge.draft { background: #f5f5f5; color: #666; }
     .badge.escalated { background: #e3f2fd; color: #1565c0; }
+    .badge.recalled { background: #fce4ec; color: #c2185b; }
+    .badge.cancelled { background: #f5f5f5; color: #666; }
+    .badge.on_hold { background: #fff8e1; color: #f57f17; }
 
     .empty-state {
       display: flex;
@@ -253,7 +274,7 @@ import { WorkflowInstance, InstanceStatus } from '@core/models/workflow.model';
   `]
 })
 export class MySubmissionsComponent implements OnInit {
-  displayedColumns = ['referenceNumber', 'workflowName', 'status', 'currentApprovalLevel', 'createdAt', 'updatedAt', 'actions'];
+  displayedColumns = ['referenceNumber', 'title', 'workflowName', 'status', 'currentApprovalLevel', 'createdAt', 'updatedAt', 'actions'];
   dataSource = new MatTableDataSource<WorkflowInstance>([]);
   searchTerm = '';
   statusFilter = '';
@@ -266,7 +287,12 @@ export class MySubmissionsComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private workflowService: WorkflowService) {}
+  constructor(
+    private workflowService: WorkflowService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.loadSubmissions();
@@ -294,5 +320,48 @@ export class MySubmissionsComponent implements OnInit {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadSubmissions();
+  }
+
+  canEdit(item: WorkflowInstance): boolean {
+    return item.status === 'DRAFT' || item.status === 'RECALLED';
+  }
+
+  canDelete(item: WorkflowInstance): boolean {
+    return item.status === 'DRAFT' || item.status === 'RECALLED';
+  }
+
+  editSubmission(item: WorkflowInstance) {
+    this.router.navigate(['/workflows', item.workflowCode, 'submit'], {
+      queryParams: { edit: item.id }
+    });
+  }
+
+  deleteSubmission(item: WorkflowInstance) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Submission',
+        message: `Are you sure you want to delete submission "${item.referenceNumber}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.workflowService.deleteInstance(item.id).subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.snackBar.open('Submission deleted successfully', 'Close', { duration: 3000 });
+              this.loadSubmissions();
+            }
+          },
+          error: () => {
+            this.snackBar.open('Failed to delete submission', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 }

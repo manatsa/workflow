@@ -12,6 +12,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '@core/services/user.service';
+import { ImportExportService } from '@core/services/import-export.service';
 import { Corporate, CorporateType, CorporateTypeLabels } from '@core/models/corporate.model';
 import { Category } from '@core/models/category.model';
 
@@ -37,10 +38,22 @@ import { Category } from '@core/models/category.model';
     <div class="corporate-list-container">
       <div class="header">
         <h1>Corporates</h1>
-        <button mat-raised-button color="primary" (click)="showForm = true; editingCorporate = null; corporateForm.reset()">
-          <mat-icon>add</mat-icon>
-          Add Corporate
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button (click)="downloadTemplate()">
+            <mat-icon>description</mat-icon> Template
+          </button>
+          <button mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon> Import
+          </button>
+          <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
+          <button mat-stroked-button (click)="exportToExcel()">
+            <mat-icon>download</mat-icon> Export
+          </button>
+          <button mat-raised-button color="primary" (click)="showForm = true; editingCorporate = null; corporateForm.reset()">
+            <mat-icon>add</mat-icon>
+            Add Corporate
+          </button>
+        </div>
       </div>
 
       <div class="content-grid" [class.with-form]="showForm">
@@ -204,6 +217,12 @@ import { Category } from '@core/models/category.model';
       margin-bottom: 1rem;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
     .content-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -286,6 +305,7 @@ export class CorporateListComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private importExportService: ImportExportService,
     private snackBar: MatSnackBar
   ) {
     this.corporateForm = this.fb.group({
@@ -402,5 +422,43 @@ export class CorporateListComponent implements OnInit {
         }
       });
     }
+  }
+
+  downloadTemplate() {
+    this.importExportService.downloadTemplate('corporates').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Corporates_Template.xlsx');
+        this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+    });
+  }
+
+  importFromExcel(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    this.importExportService.importFromExcel('corporates', file).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open(res.message || 'Corporates imported', 'Close', { duration: 3000 });
+          this.loadCorporates();
+        } else {
+          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+        }
+        input.value = '';
+      },
+      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+    });
+  }
+
+  exportToExcel() {
+    this.importExportService.exportToExcel('corporates').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Corporates_Export.xlsx');
+        this.snackBar.open('Corporates exported', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to export', 'Close', { duration: 3000 })
+    });
   }
 }

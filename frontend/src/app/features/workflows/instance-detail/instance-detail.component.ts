@@ -9,10 +9,14 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { WorkflowService } from '@core/services/workflow.service';
 import { SettingService } from '@core/services/setting.service';
 import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
 import { AuditLog } from '@core/models/setting.model';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-instance-detail',
@@ -27,7 +31,10 @@ import { AuditLog } from '@core/models/setting.model';
     MatChipsModule,
     MatTableModule,
     MatDividerModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatMenuModule,
+    MatDialogModule,
+    MatSnackBarModule
   ],
   template: `
     <div class="instance-detail-container">
@@ -45,6 +52,23 @@ import { AuditLog } from '@core/models/setting.model';
             <p class="subtitle">{{ instance.workflowName }}</p>
           </div>
           <span class="badge" [class]="instance.status.toLowerCase()">{{ instance.status }}</span>
+          <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #actionsMenu="matMenu">
+            @if (canEdit) {
+              <button mat-menu-item (click)="editSubmission()">
+                <mat-icon>edit</mat-icon>
+                <span>Edit Submission</span>
+              </button>
+            }
+            @if (canDelete) {
+              <button mat-menu-item (click)="deleteSubmission()">
+                <mat-icon>delete</mat-icon>
+                <span>Delete Submission</span>
+              </button>
+            }
+          </mat-menu>
         </div>
 
         <mat-tab-group>
@@ -312,6 +336,9 @@ import { AuditLog } from '@core/models/setting.model';
     .badge.approved { background: #e8f5e9; color: #2e7d32; }
     .badge.rejected { background: #ffebee; color: #c62828; }
     .badge.escalated { background: #e3f2fd; color: #1565c0; }
+    .badge.recalled { background: #fce4ec; color: #c2185b; }
+    .badge.cancelled { background: #f5f5f5; color: #666; }
+    .badge.on_hold { background: #fff8e1; color: #f57f17; }
 
     .attachments-list {
       display: flex;
@@ -430,6 +457,8 @@ export class InstanceDetailComponent implements OnInit {
   auditLogs: AuditLog[] = [];
   loading = true;
   canTakeAction = false;
+  canEdit = false;
+  canDelete = false;
 
   auditColumns = ['createdAt', 'action', 'performedBy', 'details'];
 
@@ -450,7 +479,9 @@ export class InstanceDetailComponent implements OnInit {
     private workflowService: WorkflowService,
     private settingService: SettingService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -468,6 +499,8 @@ export class InstanceDetailComponent implements OnInit {
           this.instance = res.data;
           this.approvalHistory = res.data.approvalHistory || [];
           this.canTakeAction = res.data.status === 'PENDING';
+          this.canEdit = res.data.status === 'DRAFT' || res.data.status === 'RECALLED';
+          this.canDelete = res.data.status === 'DRAFT' || res.data.status === 'RECALLED';
           this.loadAuditLogs(id);
         }
       },
@@ -509,6 +542,45 @@ export class InstanceDetailComponent implements OnInit {
       a.download = attachment.originalFileName;
       a.click();
       window.URL.revokeObjectURL(url);
+    });
+  }
+
+  editSubmission() {
+    if (this.instance) {
+      this.router.navigate(['/workflows', this.instance.workflowCode, 'submit'], {
+        queryParams: { edit: this.instance.id }
+      });
+    }
+  }
+
+  deleteSubmission() {
+    if (!this.instance) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Submission',
+        message: `Are you sure you want to delete submission "${this.instance.referenceNumber}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && this.instance) {
+        this.workflowService.deleteInstance(this.instance.id).subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.snackBar.open('Submission deleted successfully', 'Close', { duration: 3000 });
+              this.router.navigate(['/my-submissions']);
+            }
+          },
+          error: () => {
+            this.snackBar.open('Failed to delete submission', 'Close', { duration: 3000 });
+          }
+        });
+      }
     });
   }
 }

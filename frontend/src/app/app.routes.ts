@@ -132,6 +132,15 @@ export const routes: Routes = [
       {
         path: 'my-submissions',
         loadComponent: () => import('./features/my-submissions/my-submissions.component').then(m => m.MySubmissionsComponent)
+      },
+      // Reports
+      {
+        path: 'reports',
+        loadComponent: () => import('./features/reports/report-list/report-list.component').then(m => m.ReportListComponent)
+      },
+      {
+        path: 'reports/:reportId',
+        loadComponent: () => import('./features/reports/report-viewer/report-viewer.component').then(m => m.ReportViewerComponent)
       }
     ]
   },

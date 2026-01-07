@@ -13,9 +13,12 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatChipsModule } from '@angular/material/chips';
 import { SettingService } from '@core/services/setting.service';
 import { ThemeService } from '@core/services/theme.service';
+import { ImportExportService } from '@core/services/import-export.service';
 import { Setting } from '@core/models/setting.model';
+import { HttpClient } from '@angular/common/http';
 
 interface SettingGroup {
   category: string;
@@ -39,16 +42,28 @@ interface SettingGroup {
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatDividerModule,
-    MatDialogModule
+    MatDialogModule,
+    MatChipsModule
   ],
   template: `
     <div class="settings-container">
       <div class="header">
         <h1>Settings</h1>
-        <button mat-raised-button color="primary" (click)="saveAll()" [disabled]="loading || tabs.length === 0">
-          <mat-icon>save</mat-icon>
-          Save Changes
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button (click)="jsonFileInput.click()" [disabled]="loading">
+            <mat-icon>upload</mat-icon>
+            Import JSON
+          </button>
+          <input hidden #jsonFileInput type="file" accept=".json" (change)="importSettingsJson($event)">
+          <button mat-stroked-button (click)="exportSettingsJson()" [disabled]="loading || tabs.length === 0">
+            <mat-icon>download</mat-icon>
+            Export JSON
+          </button>
+          <button mat-raised-button color="primary" (click)="saveAll()" [disabled]="loading || tabs.length === 0">
+            <mat-icon>save</mat-icon>
+            Save Changes
+          </button>
+        </div>
       </div>
 
       @if (loading) {
@@ -100,6 +115,30 @@ interface SettingGroup {
                       </button>
                     </div>
                     <mat-divider></mat-divider>
+                  }
+
+                  <!-- Special handling for Reporting tab - Report Roles multi-select -->
+                  @if (tab === 'Reporting') {
+                    <div class="reporting-section">
+                      <h3 class="category-title">Access Control</h3>
+                      <div class="setting-item full-width">
+                        <div class="setting-label">
+                          <strong>Report Roles</strong>
+                          <span class="description">Select roles that can access reports</span>
+                        </div>
+                        <div class="setting-input roles-select">
+                          <mat-form-field appearance="outline" class="full-width-field">
+                            <mat-label>Select Roles</mat-label>
+                            <mat-select [(ngModel)]="selectedReportRoles" [ngModelOptions]="{standalone: true}" multiple (selectionChange)="onReportRolesChange()">
+                              @for (role of availableRoles; track role.id) {
+                                <mat-option [value]="role.name">{{ role.name }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                        </div>
+                      </div>
+                      <mat-divider></mat-divider>
+                    </div>
                   }
 
                   <!-- Settings grouped by category in 2 columns -->
@@ -181,6 +220,12 @@ interface SettingGroup {
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
     }
 
     .tab-content { padding: 1rem; }
@@ -338,6 +383,37 @@ interface SettingGroup {
     mat-divider {
       margin: 1rem 0;
     }
+
+    .reporting-section {
+      margin-bottom: 1rem;
+    }
+
+    .setting-item.full-width {
+      grid-column: 1 / -1;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+
+    .setting-item.full-width .setting-label {
+      padding-right: 0;
+    }
+
+    .setting-item.full-width .setting-input {
+      width: 100%;
+    }
+
+    .roles-select {
+      max-width: 500px;
+    }
+
+    .full-width-field {
+      width: 100%;
+    }
+
+    .full-width-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
   `]
 })
 export class SettingsComponent implements OnInit {
@@ -348,15 +424,46 @@ export class SettingsComponent implements OnInit {
   error: string | null = null;
   testEmailAddress = '';
   sendingTestEmail = false;
+  availableRoles: { id: string; name: string }[] = [];
+  selectedReportRoles: string[] = [];
+
+  private apiUrl = '/api';
 
   constructor(
     private settingService: SettingService,
     private themeService: ThemeService,
-    private snackBar: MatSnackBar
+    private importExportService: ImportExportService,
+    private snackBar: MatSnackBar,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
     this.loadSettings();
+    this.loadRoles();
+  }
+
+  loadRoles() {
+    this.http.get<any>(`${this.apiUrl}/roles`).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.availableRoles = res.data.map((r: any) => ({ id: r.id, name: r.name }));
+        }
+      }
+    });
+  }
+
+  initReportRolesFromSettings() {
+    const reportRolesSetting = this.settings.find(s => s.key === 'reporting.roles');
+    if (reportRolesSetting && reportRolesSetting.value) {
+      this.selectedReportRoles = reportRolesSetting.value.split(',').map(r => r.trim()).filter(r => r.length > 0);
+    }
+  }
+
+  onReportRolesChange() {
+    const reportRolesSetting = this.settings.find(s => s.key === 'reporting.roles');
+    if (reportRolesSetting) {
+      reportRolesSetting.value = this.selectedReportRoles.join(',');
+    }
   }
 
   loadSettings() {
@@ -369,6 +476,7 @@ export class SettingsComponent implements OnInit {
           this.settingsGrouped = res.data;
           this.tabs = Object.keys(res.data);
           this.settings = Object.values(res.data).flat();
+          this.initReportRolesFromSettings();
         } else {
           this.error = res.message || 'Failed to load settings';
         }
@@ -385,7 +493,13 @@ export class SettingsComponent implements OnInit {
   }
 
   getGroupedSettingsForTab(tab: string): SettingGroup[] {
-    const settings = this.getSettingsForTab(tab);
+    let settings = this.getSettingsForTab(tab);
+
+    // Filter out reporting.roles as it's handled separately in the Reporting tab
+    if (tab === 'Reporting') {
+      settings = settings.filter(s => s.key !== 'reporting.roles');
+    }
+
     const categoryMap = new Map<string, Setting[]>();
 
     // Group settings by category
@@ -454,6 +568,40 @@ export class SettingsComponent implements OnInit {
       error: (err) => {
         this.sendingTestEmail = false;
         this.snackBar.open(err.error?.message || 'Failed to send test email', 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  exportSettingsJson() {
+    this.importExportService.exportSettingsJson().subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Settings_Export.json');
+        this.snackBar.open('Settings exported successfully', 'Close', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Failed to export settings', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  importSettingsJson(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const file = input.files[0];
+    this.importExportService.importSettingsJson(file).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open(res.message || 'Settings imported successfully', 'Close', { duration: 3000 });
+          this.loadSettings();
+        } else {
+          this.snackBar.open(res.message || 'Failed to import settings', 'Close', { duration: 3000 });
+        }
+        input.value = '';
+      },
+      error: (err) => {
+        this.snackBar.open(err.error?.message || 'Failed to import settings', 'Close', { duration: 3000 });
+        input.value = '';
       }
     });
   }

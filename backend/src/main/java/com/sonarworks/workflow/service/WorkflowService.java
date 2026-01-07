@@ -376,6 +376,7 @@ public class WorkflowService {
         field.setIsReadonly(dto.getIsReadonly() != null ? dto.getIsReadonly() : false);
         field.setIsHidden(dto.getIsHidden() != null ? dto.getIsHidden() : false);
         field.setIsUnique(dto.getIsUnique() != null ? dto.getIsUnique() : false);
+        field.setIsTitle(dto.getIsTitle() != null ? dto.getIsTitle() : false);
         field.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0);
         field.setDefaultValue(dto.getDefaultValue());
         field.setMinValue(dto.getMinValue());
@@ -634,6 +635,7 @@ public class WorkflowService {
                     field.setIsReadonly(fieldDto.getIsReadonly() != null ? fieldDto.getIsReadonly() : false);
                     field.setIsHidden(fieldDto.getIsHidden() != null ? fieldDto.getIsHidden() : false);
                     field.setIsUnique(fieldDto.getIsUnique() != null ? fieldDto.getIsUnique() : false);
+                    field.setIsTitle(fieldDto.getIsTitle() != null ? fieldDto.getIsTitle() : false);
                     field.setDisplayOrder(fieldDto.getDisplayOrder() != null ? fieldDto.getDisplayOrder() : 0);
                     field.setDefaultValue(fieldDto.getDefaultValue());
                     field.setMinValue(fieldDto.getMinValue());
@@ -896,6 +898,7 @@ public class WorkflowService {
                 .isReadonly(field.getIsReadonly())
                 .isHidden(field.getIsHidden())
                 .isUnique(field.getIsUnique())
+                .isTitle(field.getIsTitle())
                 .displayOrder(field.getDisplayOrder())
                 .defaultValue(field.getDefaultValue())
                 .minValue(field.getMinValue())
@@ -1015,6 +1018,7 @@ public class WorkflowService {
                                             .isReadonly(field.getIsReadonly())
                                             .isHidden(field.getIsHidden())
                                             .isUnique(field.getIsUnique())
+                                            .isTitle(field.getIsTitle())
                                             .minLength(field.getMinLength())
                                             .maxLength(field.getMaxLength())
                                             .minValue(field.getMinValue())

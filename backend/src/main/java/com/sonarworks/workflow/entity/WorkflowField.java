@@ -58,6 +58,9 @@ public class WorkflowField extends BaseEntity {
     @Column(name = "is_unique")
     private Boolean isUnique = false;
 
+    @Column(name = "is_title")
+    private Boolean isTitle = false;
+
     @Column(name = "display_order")
     private Integer displayOrder = 0;
 

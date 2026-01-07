@@ -35,6 +35,7 @@ public class WorkflowFieldDTO {
     private Boolean isReadonly;
     private Boolean isHidden;
     private Boolean isUnique;
+    private Boolean isTitle;
     private Integer displayOrder;
 
     // Alias getters for frontend compatibility

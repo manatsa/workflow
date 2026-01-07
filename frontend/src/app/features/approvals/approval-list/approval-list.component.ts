@@ -61,6 +61,11 @@ import { WorkflowInstance } from '@core/models/workflow.model';
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
+              <td mat-cell *matCellDef="let item">{{ item.title || '-' }}</td>
+            </ng-container>
+
             <ng-container matColumnDef="workflowName">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Workflow</th>
               <td mat-cell *matCellDef="let item">
@@ -194,7 +199,7 @@ import { WorkflowInstance } from '@core/models/workflow.model';
   `]
 })
 export class ApprovalListComponent implements OnInit {
-  displayedColumns = ['referenceNumber', 'workflowName', 'initiatorName', 'currentApprovalLevel', 'createdAt', 'actions'];
+  displayedColumns = ['referenceNumber', 'title', 'workflowName', 'initiatorName', 'currentApprovalLevel', 'createdAt', 'actions'];
   dataSource = new MatTableDataSource<WorkflowInstance>([]);
   searchTerm = '';
   totalElements = 0;

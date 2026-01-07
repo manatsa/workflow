@@ -649,6 +649,35 @@ public class WorkflowInstanceService {
                 }
             }
         }
+
+        // Generate title from fields marked as isTitle
+        generateTitleFromFields(instance, fieldValues, fields);
+    }
+
+    private void generateTitleFromFields(WorkflowInstance instance, Map<String, Object> fieldValues, List<WorkflowField> fields) {
+        // Get all fields marked as isTitle, sorted by displayOrder
+        List<WorkflowField> titleFields = fields.stream()
+                .filter(f -> Boolean.TRUE.equals(f.getIsTitle()))
+                .sorted(Comparator.comparingInt(WorkflowField::getDisplayOrder))
+                .collect(Collectors.toList());
+
+        if (titleFields.isEmpty()) {
+            return;
+        }
+
+        // Build title by concatenating values with "_"
+        List<String> titleParts = new ArrayList<>();
+        for (WorkflowField field : titleFields) {
+            Object value = fieldValues.get(field.getName());
+            if (value != null && !value.toString().isEmpty()) {
+                titleParts.add(value.toString());
+            }
+        }
+
+        if (!titleParts.isEmpty()) {
+            String title = String.join("_", titleParts);
+            instance.setTitle(title);
+        }
     }
 
     private void validateUniqueFields(WorkflowInstance instance, Map<String, Object> fieldValues, Map<String, WorkflowField> fieldMap) {

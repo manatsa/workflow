@@ -15,6 +15,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserService } from '@core/services/user.service';
+import { ImportExportService } from '@core/services/import-export.service';
 import { User } from '@core/models/user.model';
 import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog/user-detail-dialog.component';
 
@@ -42,10 +43,22 @@ import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog
     <div class="user-list-container">
       <div class="header">
         <h1>Users</h1>
-        <button mat-raised-button color="primary" routerLink="/users/new">
-          <mat-icon>add</mat-icon>
-          Add User
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button (click)="downloadTemplate()">
+            <mat-icon>description</mat-icon> Template
+          </button>
+          <button mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon> Import
+          </button>
+          <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
+          <button mat-stroked-button (click)="exportToExcel()">
+            <mat-icon>download</mat-icon> Export
+          </button>
+          <button mat-raised-button color="primary" routerLink="/users/new">
+            <mat-icon>add</mat-icon>
+            Add User
+          </button>
+        </div>
       </div>
 
       <mat-card>
@@ -176,6 +189,12 @@ import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog
       margin-bottom: 1rem;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
     .table-toolbar {
       margin-bottom: 1rem;
     }
@@ -252,6 +271,7 @@ export class UserListComponent implements OnInit {
 
   constructor(
     private userService: UserService,
+    private importExportService: ImportExportService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
@@ -330,5 +350,46 @@ export class UserListComponent implements OnInit {
         }
       });
     }
+  }
+
+  downloadTemplate() {
+    this.importExportService.downloadTemplate('users').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Users_Template.xlsx');
+        this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+    });
+  }
+
+  importFromExcel(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    this.importExportService.importFromExcel('users', file).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open(res.message || 'Users imported successfully', 'Close', { duration: 3000 });
+          this.loadUsers();
+        } else {
+          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+        }
+        input.value = '';
+      },
+      error: (err) => {
+        this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 });
+        input.value = '';
+      }
+    });
+  }
+
+  exportToExcel() {
+    this.importExportService.exportToExcel('users').subscribe({
+      next: (blob) => {
+        this.importExportService.downloadFile(blob, 'Users_Export.xlsx');
+        this.snackBar.open('Users exported', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to export', 'Close', { duration: 3000 })
+    });
   }
 }
