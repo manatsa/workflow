@@ -368,6 +368,28 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
       box-shadow: none;
     }
 
+    .group-card ::ng-deep .mat-expansion-panel-header {
+      background: var(--form-field-header-bg, #1976d2) !important;
+      color: var(--form-field-header-color, #ffffff) !important;
+    }
+
+    .group-card ::ng-deep .mat-expansion-panel-header:hover {
+      background: var(--form-field-header-bg, #1976d2) !important;
+    }
+
+    .group-card ::ng-deep .mat-expansion-panel-header .mat-expansion-indicator::after {
+      color: var(--form-field-header-color, #ffffff) !important;
+    }
+
+    .group-card ::ng-deep .mat-expansion-panel-header .mat-content {
+      color: var(--form-field-header-color, #ffffff) !important;
+    }
+
+    .group-card ::ng-deep .mat-expansion-panel-header-title,
+    .group-card ::ng-deep .mat-expansion-panel-header-description {
+      color: var(--form-field-header-color, #ffffff) !important;
+    }
+
     .fields-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);

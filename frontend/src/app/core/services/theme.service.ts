@@ -52,7 +52,9 @@ export class ThemeService {
     'theme.badge.approved.bg': '--badge-approved-bg',
     'theme.badge.rejected.bg': '--badge-rejected-bg',
     'theme.font.primary': '--font-primary',
-    'theme.font.size.base': '--font-size-base'
+    'theme.font.size.base': '--font-size-base',
+    'theme.form.field.header.bg': '--form-field-header-bg',
+    'theme.form.field.header.color': '--form-field-header-color'
   };
 
   constructor(private http: HttpClient) {}

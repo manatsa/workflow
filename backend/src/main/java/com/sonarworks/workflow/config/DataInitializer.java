@@ -258,6 +258,10 @@ public class DataInitializer implements CommandLineRunner {
         createSettingIfNotExists("theme.font.size.base", "14", "Base Font Size (px)", "Typography", "Theme Settings", Setting.SettingType.NUMBER);
         createSettingIfNotExists("theme.dark.mode", "false", "Dark Mode Enabled", "Typography", "Theme Settings", Setting.SettingType.BOOLEAN);
 
+        // Theme Settings - Form Fields
+        createSettingIfNotExists("theme.form.field.header.bg", "#1976d2", "Form Field Header Background", "Form Fields", "Theme Settings", Setting.SettingType.COLOR);
+        createSettingIfNotExists("theme.form.field.header.color", "#ffffff", "Form Field Header Color", "Form Fields", "Theme Settings", Setting.SettingType.COLOR);
+
         // Backup Settings
         createSettingIfNotExists("backup.location", "C:/Sonar Docs/backups/", "Backup Location", "Backup", "General", Setting.SettingType.STRING);
         createSettingIfNotExists("backup.filename", "workflow_backup", "Backup Filename Prefix", "Backup", "General", Setting.SettingType.STRING);
@@ -268,6 +272,7 @@ public class DataInitializer implements CommandLineRunner {
         createSettingIfNotExists("workflow.comments.mandatory.reject", "true", "Comments Mandatory on Rejection", "Workflow", "Workflow Settings", Setting.SettingType.BOOLEAN);
         createSettingIfNotExists("workflow.comments.mandatory.escalate", "true", "Comments Mandatory on Escalation", "Workflow", "Workflow Settings", Setting.SettingType.BOOLEAN);
         createSettingIfNotExists("workflow.skip.unauthorized.approvers", "true", "Skip Unauthorized Approvers", "Financial Workflows", "Workflow Settings", Setting.SettingType.BOOLEAN);
+        createSettingIfNotExists("workflow.allow.email.approvals", "true", "Allow Approvals From Email", "Email Approvals", "Workflow Settings", Setting.SettingType.BOOLEAN);
 
         // Reporting Settings
         createSettingIfNotExists("reporting.font.size", "14", "Reporting Font Size (px)", "Display", "Reporting", Setting.SettingType.NUMBER);

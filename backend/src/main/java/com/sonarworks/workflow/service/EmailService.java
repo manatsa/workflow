@@ -59,6 +59,15 @@ public class EmailService {
     @Async
     public void sendApprovalRequestEmail(String toEmail, String approverName, String workflowName,
                                           String referenceNumber, String initiatorName, String approvalLink) {
+        sendApprovalRequestEmail(toEmail, approverName, workflowName, referenceNumber, initiatorName,
+                approvalLink, null, null, null, false);
+    }
+
+    @Async
+    public void sendApprovalRequestEmail(String toEmail, String approverName, String workflowName,
+                                          String referenceNumber, String initiatorName, String approvalLink,
+                                          String approveLink, String rejectLink, String amount,
+                                          boolean emailApprovalEnabled) {
         try {
             Context context = new Context();
             context.setVariable("approverName", approverName);
@@ -66,6 +75,10 @@ public class EmailService {
             context.setVariable("referenceNumber", referenceNumber);
             context.setVariable("initiatorName", initiatorName);
             context.setVariable("approvalLink", approvalLink);
+            context.setVariable("approveLink", approveLink);
+            context.setVariable("rejectLink", rejectLink);
+            context.setVariable("amount", amount);
+            context.setVariable("emailApprovalEnabled", emailApprovalEnabled);
 
             String htmlContent = templateEngine.process("approval-request-email", context);
             sendHtmlEmail(toEmail, "Approval Required: " + workflowName + " - " + referenceNumber, htmlContent);

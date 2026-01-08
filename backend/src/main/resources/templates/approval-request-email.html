@@ -9,8 +9,13 @@
         .header { background: #ff9800; color: white; padding: 20px; text-align: center; }
         .content { padding: 20px; background: #f9f9f9; }
         .info-box { background: white; padding: 15px; border-left: 4px solid #1976d2; margin: 15px 0; }
-        .button { display: inline-block; padding: 12px 24px; background: #1976d2; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+        .button { display: inline-block; padding: 12px 24px; background: #1976d2; color: white; text-decoration: none; border-radius: 4px; margin: 10px 5px; }
+        .button-approve { background: #4caf50; }
+        .button-reject { background: #f44336; }
+        .button-view { background: #1976d2; }
+        .action-buttons { text-align: center; margin: 20px 0; }
         .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+        .divider { border-top: 1px solid #ddd; margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -25,11 +30,27 @@
                 <p><strong>Workflow:</strong> <span th:text="${workflowName}">Workflow Name</span></p>
                 <p><strong>Reference:</strong> <span th:text="${referenceNumber}">REF-123</span></p>
                 <p><strong>Submitted by:</strong> <span th:text="${initiatorName}">John Doe</span></p>
+                <p th:if="${amount != null}"><strong>Amount:</strong> <span th:text="${amount}">$0.00</span></p>
             </div>
-            <p>Please review and take action on this request:</p>
+
+            <!-- Quick Action Buttons (shown when email approvals are enabled) -->
+            <div th:if="${emailApprovalEnabled}" class="action-buttons">
+                <p><strong>Quick Actions:</strong></p>
+                <a th:href="${approveLink}" class="button button-approve">Approve</a>
+                <a th:href="${rejectLink}" class="button button-reject">Reject</a>
+            </div>
+
+            <div class="divider"></div>
+
+            <p>To view full details and take action:</p>
             <p style="text-align: center;">
-                <a th:href="${approvalLink}" class="button">Review Request</a>
+                <a th:href="${approvalLink}" class="button button-view">View Full Details</a>
             </p>
+
+            <p th:if="${emailApprovalEnabled}" style="font-size: 12px; color: #666;">
+                <em>Note: Clicking Approve or Reject will redirect you to login if you're not already signed in.</em>
+            </p>
+
             <p>Best regards,<br>Sonarworks Workflow System</p>
         </div>
         <div class="footer">

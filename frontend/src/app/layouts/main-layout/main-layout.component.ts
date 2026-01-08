@@ -139,7 +139,7 @@ interface ReportCategory {
           <!-- Workflows -->
           <mat-expansion-panel class="nav-panel" [expanded]="true">
             <mat-expansion-panel-header>
-              <mat-icon>folder</mat-icon>
+              <mat-icon>timeline</mat-icon>
               <span>Workflows</span>
             </mat-expansion-panel-header>
             <div class="submenu">

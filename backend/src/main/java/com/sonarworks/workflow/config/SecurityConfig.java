@@ -89,7 +89,9 @@ public class SecurityConfig {
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/branches"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/branches/**"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/departments"),
-            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/departments/**")
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/departments/**"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/email-approval"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/email-approval/**")
         );
     }
 
@@ -103,6 +105,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/password/**").permitAll()
                         .requestMatchers("/api/import-export/**").permitAll()
+                        .requestMatchers("/api/email-approval/validate").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

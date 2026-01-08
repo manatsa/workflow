@@ -2,6 +2,7 @@ package com.sonarworks.workflow.service;
 
 import com.sonarworks.workflow.dto.*;
 import com.sonarworks.workflow.entity.*;
+import com.sonarworks.workflow.entity.EmailApprovalToken;
 import com.sonarworks.workflow.exception.BusinessException;
 import com.sonarworks.workflow.repository.*;
 import com.sonarworks.workflow.security.CustomUserDetails;
@@ -37,6 +38,7 @@ public class WorkflowInstanceService {
     private final EmailService emailService;
     private final SettingService settingService;
     private final AttachmentService attachmentService;
+    private final EmailApprovalService emailApprovalService;
 
     @Transactional(readOnly = true)
     public Page<WorkflowInstanceDTO> getWorkflowInstances(UUID workflowId, Pageable pageable) {
@@ -929,13 +931,51 @@ public class WorkflowInstanceService {
         String baseUrl = settingService.getValue("app.base.url", "http://localhost:4200");
         String approvalLink = baseUrl + "/approvals/" + instance.getId();
 
+        // Check if email approvals are enabled
+        boolean emailApprovalEnabled = emailApprovalService.isEmailApprovalEnabled();
+
+        String approveLink = null;
+        String rejectLink = null;
+
+        if (emailApprovalEnabled) {
+            // Generate approval tokens
+            EmailApprovalToken approveToken = emailApprovalService.createToken(
+                    instance,
+                    approver.getApproverEmail(),
+                    approver.getApproverName(),
+                    instance.getCurrentLevel(),
+                    EmailApprovalToken.ActionType.APPROVE
+            );
+
+            EmailApprovalToken rejectToken = emailApprovalService.createToken(
+                    instance,
+                    approver.getApproverEmail(),
+                    approver.getApproverName(),
+                    instance.getCurrentLevel(),
+                    EmailApprovalToken.ActionType.REJECT
+            );
+
+            approveLink = emailApprovalService.generateApprovalUrl(approveToken.getToken(), EmailApprovalToken.ActionType.APPROVE);
+            rejectLink = emailApprovalService.generateApprovalUrl(rejectToken.getToken(), EmailApprovalToken.ActionType.REJECT);
+        }
+
+        // Get amount if this is a financial workflow
+        String amount = null;
+        if (instance.getAmount() != null) {
+            amount = "$" + instance.getAmount().toString();
+        }
+
         emailService.sendApprovalRequestEmail(
                 approver.getApproverEmail(),
                 approver.getApproverName(),
                 instance.getWorkflow().getName(),
                 instance.getReferenceNumber(),
                 instance.getInitiator().getFullName(),
-                approvalLink
+                approvalLink,
+                approveLink,
+                rejectLink,
+                amount,
+                emailApprovalEnabled
         );
     }
 
