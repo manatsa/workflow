@@ -251,12 +251,20 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
         </mat-tab-group>
 
         <!-- Action Buttons -->
-        @if (canTakeAction) {
+        @if (canTakeAction || canEdit) {
           <div class="action-bar">
-            <button mat-raised-button color="primary" [routerLink]="['/approvals', instance.id]">
-              <mat-icon>approval</mat-icon>
-              Review & Approve
-            </button>
+            @if (canEdit) {
+              <button mat-raised-button color="accent" (click)="editSubmission()">
+                <mat-icon>edit</mat-icon>
+                Edit Submission
+              </button>
+            }
+            @if (canTakeAction) {
+              <button mat-raised-button color="primary" [routerLink]="['/approvals', instance.id]">
+                <mat-icon>approval</mat-icon>
+                Review & Approve
+              </button>
+            }
           </div>
         }
       }
@@ -445,6 +453,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
     .action-bar {
       display: flex;
       justify-content: flex-end;
+      gap: 1rem;
       padding: 1rem 0;
       margin-top: 1rem;
       border-top: 1px solid #eee;

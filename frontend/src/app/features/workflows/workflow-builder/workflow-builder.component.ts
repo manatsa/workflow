@@ -16,10 +16,11 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { WorkflowService } from '@core/services/workflow.service';
 import { UserService } from '@core/services/user.service';
 import { DepartmentService } from '@core/services/department.service';
-import { Workflow, FieldType, WorkflowField, FieldGroup } from '@core/models/workflow.model';
+import { Workflow, FieldType, WorkflowField, FieldGroup, WorkflowCategory } from '@core/models/workflow.model';
 import { User, SBU, Corporate, Branch } from '@core/models/user.model';
 import { Department } from '@core/models/department.model';
 import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.component';
@@ -44,7 +45,8 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
     MatExpansionModule,
     MatChipsModule,
     MatSnackBarModule,
-    MatDialogModule
+    MatDialogModule,
+    MatTooltipModule
   ],
   template: `
     <div class="workflow-builder-container">
@@ -112,6 +114,17 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                           <mat-option [value]="type.id">{{ type.name }}</mat-option>
                         }
                       </mat-select>
+                    </mat-form-field>
+                  </div>
+
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Workflow Category</mat-label>
+                      <mat-select formControlName="workflowCategory">
+                        <mat-option value="NON_FINANCIAL">Non-Financial</mat-option>
+                        <mat-option value="FINANCIAL">Financial</mat-option>
+                      </mat-select>
+                      <mat-hint>Financial workflows enable amount-based approval limits</mat-hint>
                     </mat-form-field>
                   </div>
 
@@ -358,6 +371,14 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                               <mat-checkbox [(ngModel)]="field.hidden">Hidden</mat-checkbox>
                               <mat-checkbox [(ngModel)]="field.isUnique">Unique</mat-checkbox>
                               <mat-checkbox [(ngModel)]="field.isTitle">Make Title</mat-checkbox>
+                              @if (isFinancialWorkflow() && isAmountField(field.type)) {
+                                <mat-checkbox [(ngModel)]="field.isLimited"
+                                              [disabled]="!field.isLimited && hasLimitedField()"
+                                              (change)="onLimitedChange(field)"
+                                              matTooltip="Mark this field as the amount to check against approver limits for auto-escalation">
+                                  Limited
+                                </mat-checkbox>
+                              }
                             </div>
 
                             <div class="field-actions">
@@ -1212,6 +1233,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       description: [''],
       icon: ['description'],
       workflowTypeId: [null],
+      workflowCategory: ['NON_FINANCIAL'],
       isActive: [true],
       commentsMandatory: [false],
       commentsMandatoryOnReject: [true],
@@ -1266,6 +1288,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       description: '',
       icon: 'description',
       workflowTypeId: '',
+      workflowCategory: 'NON_FINANCIAL',
       isActive: true,
       commentsMandatory: false,
       commentsMandatoryOnReject: true,
@@ -1407,6 +1430,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           commentsMandatory: workflow.commentsMandatory ?? false,
           commentsMandatoryOnReject: workflow.commentsMandatoryOnReject ?? true,
           commentsMandatoryOnEscalate: workflow.commentsMandatoryOnEscalate ?? true,
+          workflowCategory: workflow.workflowCategory || 'NON_FINANCIAL',
           corporateIds: workflow.corporateIds || [],
           sbuIds: workflow.sbuIds || [],
           branchIds: workflow.branchIds || [],
@@ -1430,6 +1454,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
             hidden: f.isHidden ?? f.hidden ?? false,
             isUnique: f.isUnique ?? false,
             isTitle: f.isTitle ?? false,
+            isLimited: f.isLimited ?? false,
             optionsText: f.options?.map((o: any) => o.value).join('\n') || ''
           })) || [];
           this.fieldGroups = workflow.forms[0].fieldGroups || [];
@@ -1463,6 +1488,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       hidden: false,
       isUnique: false,
       isTitle: false,
+      isLimited: false,
       columnSpan: 2,
       displayOrder: this.fields.length,
       fieldGroupId: null,
@@ -1562,6 +1588,30 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     });
 
     return summary;
+  }
+
+  isFinancialWorkflow(): boolean {
+    return this.basicForm.get('workflowCategory')?.value === 'FINANCIAL';
+  }
+
+  isAmountField(type: string): boolean {
+    // Only field types that can represent currency/monetary values
+    return type === 'NUMBER' || type === 'CURRENCY';
+  }
+
+  hasLimitedField(): boolean {
+    return this.fields.some(f => f.isLimited);
+  }
+
+  onLimitedChange(field: any) {
+    if (field.isLimited) {
+      // Uncheck all other fields' isLimited when this one is checked
+      this.fields.forEach(f => {
+        if (f.id !== field.id) {
+          f.isLimited = false;
+        }
+      });
+    }
   }
 
   addApprover() {
@@ -1671,6 +1721,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       isHidden: f.hidden ?? f.isHidden ?? false,
       isUnique: f.isUnique ?? false,
       isTitle: f.isTitle ?? false,
+      isLimited: f.isLimited ?? false,
       options: f.optionsText?.split('\n').filter((o: string) => o.trim()).map((value: string, index: number) => ({
         value: value.trim(),
         label: value.trim(),

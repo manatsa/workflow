@@ -61,6 +61,9 @@ public class WorkflowField extends BaseEntity {
     @Column(name = "is_title")
     private Boolean isTitle = false;
 
+    @Column(name = "is_limited")
+    private Boolean isLimited = false;
+
     @Column(name = "display_order")
     private Integer displayOrder = 0;
 
@@ -124,7 +127,7 @@ public class WorkflowField extends BaseEntity {
     private Integer maxFiles;
 
     public enum FieldType {
-        TEXT, TEXTAREA, NUMBER, DATE, DATETIME, CHECKBOX, RADIO, SELECT, MULTISELECT,
+        TEXT, TEXTAREA, NUMBER, CURRENCY, DATE, DATETIME, CHECKBOX, RADIO, SELECT, MULTISELECT,
         FILE, EMAIL, PHONE, URL, PASSWORD, HIDDEN, LABEL, DIVIDER
     }
 

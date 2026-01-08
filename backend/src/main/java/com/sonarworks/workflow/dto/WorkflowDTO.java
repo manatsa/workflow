@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.sonarworks.workflow.entity.Workflow;
+
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -36,6 +38,7 @@ public class WorkflowDTO {
     private Boolean commentsMandatory;
     private Boolean commentsMandatoryOnReject;
     private Boolean commentsMandatoryOnEscalate;
+    private Workflow.WorkflowCategory workflowCategory;
     private List<WorkflowFormDTO> forms;
     private List<WorkflowApproverDTO> approvers;
     private Set<UUID> corporateIds;

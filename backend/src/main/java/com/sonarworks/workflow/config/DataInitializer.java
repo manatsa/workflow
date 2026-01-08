@@ -156,6 +156,9 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initializeSettings() {
+        // Migrate existing workflow settings tab from "Workflows" to "Workflow Settings"
+        migrateWorkflowSettingsTab();
+
         // General Settings
         createSettingIfNotExists("app.name", "Sonarworks Workflow System", "Application Name", "General", "General", Setting.SettingType.STRING);
         createSettingIfNotExists("app.base.url", "http://localhost:4200", "Application Base URL", "General", "General", Setting.SettingType.URL);
@@ -260,14 +263,26 @@ public class DataInitializer implements CommandLineRunner {
         createSettingIfNotExists("backup.filename", "workflow_backup", "Backup Filename Prefix", "Backup", "General", Setting.SettingType.STRING);
 
         // Workflow Settings
-        createSettingIfNotExists("workflow.require.approvers", "true", "Require At Least One Approver", "Workflow", "Workflows", Setting.SettingType.BOOLEAN);
-        createSettingIfNotExists("workflow.comments.mandatory", "false", "Comments Mandatory on Approval", "Workflow", "Workflows", Setting.SettingType.BOOLEAN);
-        createSettingIfNotExists("workflow.comments.mandatory.reject", "true", "Comments Mandatory on Rejection", "Workflow", "Workflows", Setting.SettingType.BOOLEAN);
-        createSettingIfNotExists("workflow.comments.mandatory.escalate", "true", "Comments Mandatory on Escalation", "Workflow", "Workflows", Setting.SettingType.BOOLEAN);
+        createSettingIfNotExists("workflow.require.approvers", "true", "Require At Least One Approver", "Workflow", "Workflow Settings", Setting.SettingType.BOOLEAN);
+        createSettingIfNotExists("workflow.comments.mandatory", "false", "Comments Mandatory on Approval", "Workflow", "Workflow Settings", Setting.SettingType.BOOLEAN);
+        createSettingIfNotExists("workflow.comments.mandatory.reject", "true", "Comments Mandatory on Rejection", "Workflow", "Workflow Settings", Setting.SettingType.BOOLEAN);
+        createSettingIfNotExists("workflow.comments.mandatory.escalate", "true", "Comments Mandatory on Escalation", "Workflow", "Workflow Settings", Setting.SettingType.BOOLEAN);
+        createSettingIfNotExists("workflow.skip.unauthorized.approvers", "true", "Skip Unauthorized Approvers", "Financial Workflows", "Workflow Settings", Setting.SettingType.BOOLEAN);
 
         // Reporting Settings
         createSettingIfNotExists("reporting.font.size", "14", "Reporting Font Size (px)", "Display", "Reporting", Setting.SettingType.NUMBER);
         createSettingIfNotExists("reporting.roles", "", "Report Roles (comma-separated role names)", "Access Control", "Reporting", Setting.SettingType.STRING);
+    }
+
+    private void migrateWorkflowSettingsTab() {
+        // Update any settings with old tab name "Workflows" to new tab name "Workflow Settings"
+        settingRepository.findAll().stream()
+                .filter(s -> "Workflows".equals(s.getTab()))
+                .forEach(s -> {
+                    s.setTab("Workflow Settings");
+                    settingRepository.save(s);
+                    log.info("Migrated setting {} tab from 'Workflows' to 'Workflow Settings'", s.getKey());
+                });
     }
 
     private void createSettingIfNotExists(String key, String value, String label, String category, String tab, Setting.SettingType type) {

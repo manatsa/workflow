@@ -38,4 +38,14 @@ public interface WorkflowApproverRepository extends JpaRepository<WorkflowApprov
 
     @Query("SELECT MAX(a.level) FROM WorkflowApprover a WHERE a.workflow.id = :workflowId")
     Integer findMaxLevelByWorkflowId(@Param("workflowId") UUID workflowId);
+
+    @Query("SELECT MIN(a.level) FROM WorkflowApprover a WHERE a.workflow.id = :workflowId AND " +
+            "(a.isUnlimited = true OR a.approvalLimit >= :amount)")
+    Integer findMinLevelForAmount(@Param("workflowId") UUID workflowId, @Param("amount") BigDecimal amount);
+
+    @Query("SELECT a FROM WorkflowApprover a WHERE a.workflow.id = :workflowId AND " +
+            "(a.isUnlimited = true OR a.approvalLimit >= :amount) ORDER BY a.level, a.displayOrder")
+    List<WorkflowApprover> findApproversWithSufficientLimit(
+            @Param("workflowId") UUID workflowId,
+            @Param("amount") BigDecimal amount);
 }

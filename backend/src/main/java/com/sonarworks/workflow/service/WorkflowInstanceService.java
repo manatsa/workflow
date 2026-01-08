@@ -181,12 +181,50 @@ public class WorkflowInstanceService {
 
         instance.setStatus(WorkflowInstance.Status.PENDING);
         instance.setSubmittedAt(LocalDateTime.now());
-        instance.setCurrentLevel(1);
         instance.setCurrentApproverOrder(0);
 
-        // Find first level approvers (sorted by displayOrder)
+        Workflow workflow = instance.getWorkflow();
+        int startingLevel = 1;
+
+        // Check if this is a financial workflow and determine starting approval level based on amount
+        if (workflow.getWorkflowCategory() == Workflow.WorkflowCategory.FINANCIAL) {
+            BigDecimal limitedAmount = getLimitedFieldAmount(instance);
+            if (limitedAmount != null) {
+                // Store the amount on the instance for reference
+                instance.setAmount(limitedAmount);
+
+                // Check if skip unauthorized approvers setting is enabled
+                boolean skipUnauthorized = settingService.getBooleanValue("workflow.skip.unauthorized.approvers", true);
+
+                if (skipUnauthorized) {
+                    // Find the minimum level that can approve this amount
+                    Integer minLevel = workflowApproverRepository.findMinLevelForAmount(
+                            workflow.getId(), limitedAmount);
+
+                    if (minLevel != null) {
+                        startingLevel = minLevel;
+                        log.info("Financial workflow auto-escalation: Amount {} requires minimum level {}",
+                                limitedAmount, startingLevel);
+                    } else {
+                        // No approver can approve this amount - escalate to max level
+                        Integer maxLevel = workflowApproverRepository.findMaxLevelByWorkflowId(workflow.getId());
+                        if (maxLevel != null) {
+                            startingLevel = maxLevel;
+                            log.warn("No approver with sufficient limit for amount {}. Escalating to max level {}",
+                                    limitedAmount, startingLevel);
+                        }
+                    }
+                } else {
+                    log.info("Skip unauthorized approvers is disabled. Starting at level 1 for amount {}", limitedAmount);
+                }
+            }
+        }
+
+        instance.setCurrentLevel(startingLevel);
+
+        // Find approvers at the determined level (sorted by displayOrder)
         List<WorkflowApprover> approvers = workflowApproverRepository
-                .findByWorkflowIdAndLevel(instance.getWorkflow().getId(), 1);
+                .findByWorkflowIdAndLevel(workflow.getId(), startingLevel);
 
         if (!approvers.isEmpty()) {
             // Get the first approver at this level (lowest displayOrder)
@@ -367,13 +405,35 @@ public class WorkflowInstanceService {
     }
 
     private void handleApproval(WorkflowInstance instance, User approver) {
-        Integer maxLevel = workflowApproverRepository.findMaxLevelByWorkflowId(instance.getWorkflow().getId());
+        Workflow workflow = instance.getWorkflow();
+        Integer maxLevel = workflowApproverRepository.findMaxLevelByWorkflowId(workflow.getId());
         int currentLevel = instance.getCurrentLevel();
         int currentOrder = instance.getCurrentApproverOrder() != null ? instance.getCurrentApproverOrder() : 0;
 
+        // For financial workflows, check if current approver has sufficient limit
+        if (workflow.getWorkflowCategory() == Workflow.WorkflowCategory.FINANCIAL &&
+                instance.getAmount() != null) {
+            // Check if skip unauthorized approvers setting is enabled
+            boolean skipUnauthorized = settingService.getBooleanValue("workflow.skip.unauthorized.approvers", true);
+
+            if (skipUnauthorized) {
+                WorkflowApprover currentApprover = instance.getCurrentApprover();
+                if (currentApprover != null && !Boolean.TRUE.equals(currentApprover.getIsUnlimited())) {
+                    BigDecimal approverLimit = currentApprover.getApprovalLimit();
+                    if (approverLimit != null && instance.getAmount().compareTo(approverLimit) > 0) {
+                        // Amount exceeds approver's limit - auto-escalate
+                        log.info("Amount {} exceeds approver limit {}. Auto-escalating.",
+                                instance.getAmount(), approverLimit);
+                        autoEscalateForAmount(instance, approver);
+                        return;
+                    }
+                }
+            }
+        }
+
         // Get all approvers at current level (sorted by displayOrder)
         List<WorkflowApprover> currentLevelApprovers = workflowApproverRepository
-                .findByWorkflowIdAndLevel(instance.getWorkflow().getId(), currentLevel);
+                .findByWorkflowIdAndLevel(workflow.getId(), currentLevel);
 
         // Check if there are more approvers at the same level
         int nextOrderIndex = currentOrder + 1;
@@ -397,7 +457,7 @@ public class WorkflowInstanceService {
             emailService.sendApprovalNotificationEmail(
                     instance.getInitiator().getEmail(),
                     instance.getInitiator().getFirstName(),
-                    instance.getWorkflow().getName(),
+                    workflow.getName(),
                     instance.getReferenceNumber(),
                     "APPROVED",
                     approver.getFullName(),
@@ -410,7 +470,7 @@ public class WorkflowInstanceService {
             instance.setCurrentApproverOrder(0);
 
             List<WorkflowApprover> nextApprovers = workflowApproverRepository
-                    .findByWorkflowIdAndLevel(instance.getWorkflow().getId(), nextLevel);
+                    .findByWorkflowIdAndLevel(workflow.getId(), nextLevel);
 
             if (!nextApprovers.isEmpty()) {
                 // Get the first approver at the next level
@@ -420,6 +480,59 @@ public class WorkflowInstanceService {
                 if (nextApprover.getNotifyOnPending()) {
                     sendApprovalRequestNotification(instance, nextApprover);
                 }
+            }
+        }
+    }
+
+    /**
+     * Auto-escalates a financial workflow to an approver with sufficient limit for the amount.
+     */
+    private void autoEscalateForAmount(WorkflowInstance instance, User currentApprover) {
+        Workflow workflow = instance.getWorkflow();
+        BigDecimal amount = instance.getAmount();
+
+        // Find the minimum level with an approver who can approve this amount
+        Integer targetLevel = workflowApproverRepository.findMinLevelForAmount(workflow.getId(), amount);
+
+        if (targetLevel == null) {
+            // No approver can approve this amount - escalate to max level
+            targetLevel = workflowApproverRepository.findMaxLevelByWorkflowId(workflow.getId());
+            log.warn("No approver with sufficient limit for amount {}. Escalating to max level {}",
+                    amount, targetLevel);
+        }
+
+        if (targetLevel != null && targetLevel > instance.getCurrentLevel()) {
+            instance.setCurrentLevel(targetLevel);
+            instance.setCurrentApproverOrder(0);
+            instance.setStatus(WorkflowInstance.Status.ESCALATED);
+
+            List<WorkflowApprover> targetApprovers = workflowApproverRepository
+                    .findByWorkflowIdAndLevel(workflow.getId(), targetLevel);
+
+            if (!targetApprovers.isEmpty()) {
+                WorkflowApprover nextApprover = targetApprovers.get(0);
+                instance.setCurrentApprover(nextApprover);
+
+                // Create escalation history
+                ApprovalHistory escalationHistory = ApprovalHistory.builder()
+                        .workflowInstance(instance)
+                        .approver(userRepository.findById(getCurrentUser().getId()).orElse(null))
+                        .approverName(currentApprover.getFullName())
+                        .approverEmail(currentApprover.getEmail())
+                        .level(instance.getCurrentLevel())
+                        .action(ApprovalHistory.Action.ESCALATED)
+                        .comments("Auto-escalated: Amount " + amount + " exceeds approval limit")
+                        .actionDate(LocalDateTime.now())
+                        .actionSource(ApprovalHistory.ActionSource.SYSTEM)
+                        .build();
+                approvalHistoryRepository.save(escalationHistory);
+
+                if (nextApprover.getNotifyOnPending()) {
+                    sendApprovalRequestNotification(instance, nextApprover);
+                }
+
+                log.info("Auto-escalated workflow {} from level {} to level {} for amount {}",
+                        instance.getReferenceNumber(), instance.getCurrentLevel() - 1, targetLevel, amount);
             }
         }
     }
@@ -723,6 +836,51 @@ public class WorkflowInstanceService {
 
         if (!missingFields.isEmpty()) {
             throw new BusinessException("Missing mandatory fields: " + String.join(", ", missingFields));
+        }
+    }
+
+    /**
+     * Gets the amount from the field marked as isLimited in a financial workflow.
+     * This amount is used to determine the starting approval level based on approver limits.
+     */
+    private BigDecimal getLimitedFieldAmount(WorkflowInstance instance) {
+        // Find the field marked as limited (the amount field for limit checks)
+        Optional<WorkflowField> limitedField = workflowFieldRepository
+                .findByWorkflowId(instance.getWorkflow().getId())
+                .stream()
+                .filter(f -> Boolean.TRUE.equals(f.getIsLimited()))
+                .findFirst();
+
+        if (limitedField.isEmpty()) {
+            log.debug("No limited field found for financial workflow: {}", instance.getWorkflow().getCode());
+            return null;
+        }
+
+        // Get the value of the limited field from the instance
+        String fieldName = limitedField.get().getName();
+        List<WorkflowFieldValue> fieldValues = workflowFieldValueRepository
+                .findByWorkflowInstanceId(instance.getId());
+
+        Optional<WorkflowFieldValue> limitedValue = fieldValues.stream()
+                .filter(fv -> fv.getFieldName().equals(fieldName))
+                .findFirst();
+
+        if (limitedValue.isEmpty() || limitedValue.get().getValue() == null ||
+                limitedValue.get().getValue().isBlank()) {
+            log.debug("No value found for limited field '{}' in instance: {}",
+                    fieldName, instance.getReferenceNumber());
+            return null;
+        }
+
+        try {
+            // Parse the amount value (handle potential formatting like commas)
+            String valueStr = limitedValue.get().getValue()
+                    .replaceAll("[^\\d.-]", ""); // Remove non-numeric characters except . and -
+            return new BigDecimal(valueStr);
+        } catch (NumberFormatException e) {
+            log.warn("Could not parse amount from limited field '{}': {}",
+                    fieldName, limitedValue.get().getValue());
+            return null;
         }
     }
 

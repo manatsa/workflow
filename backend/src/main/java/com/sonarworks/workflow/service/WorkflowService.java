@@ -163,6 +163,7 @@ public class WorkflowService {
                 .commentsMandatory(dto.getCommentsMandatory() != null ? dto.getCommentsMandatory() : false)
                 .commentsMandatoryOnReject(dto.getCommentsMandatoryOnReject() != null ? dto.getCommentsMandatoryOnReject() : true)
                 .commentsMandatoryOnEscalate(dto.getCommentsMandatoryOnEscalate() != null ? dto.getCommentsMandatoryOnEscalate() : true)
+                .workflowCategory(dto.getWorkflowCategory() != null ? dto.getWorkflowCategory() : Workflow.WorkflowCategory.NON_FINANCIAL)
                 .build();
 
         // Set isActive from DTO (defaults to true)
@@ -229,6 +230,9 @@ public class WorkflowService {
         workflow.setCommentsMandatory(dto.getCommentsMandatory());
         workflow.setCommentsMandatoryOnReject(dto.getCommentsMandatoryOnReject());
         workflow.setCommentsMandatoryOnEscalate(dto.getCommentsMandatoryOnEscalate());
+        if (dto.getWorkflowCategory() != null) {
+            workflow.setWorkflowCategory(dto.getWorkflowCategory());
+        }
 
         if (dto.getWorkflowTypeId() != null) {
             WorkflowType type = workflowTypeRepository.findById(dto.getWorkflowTypeId())
@@ -377,6 +381,7 @@ public class WorkflowService {
         field.setIsHidden(dto.getIsHidden() != null ? dto.getIsHidden() : false);
         field.setIsUnique(dto.getIsUnique() != null ? dto.getIsUnique() : false);
         field.setIsTitle(dto.getIsTitle() != null ? dto.getIsTitle() : false);
+        field.setIsLimited(dto.getIsLimited() != null ? dto.getIsLimited() : false);
         field.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0);
         field.setDefaultValue(dto.getDefaultValue());
         field.setMinValue(dto.getMinValue());
@@ -636,6 +641,7 @@ public class WorkflowService {
                     field.setIsHidden(fieldDto.getIsHidden() != null ? fieldDto.getIsHidden() : false);
                     field.setIsUnique(fieldDto.getIsUnique() != null ? fieldDto.getIsUnique() : false);
                     field.setIsTitle(fieldDto.getIsTitle() != null ? fieldDto.getIsTitle() : false);
+                    field.setIsLimited(fieldDto.getIsLimited() != null ? fieldDto.getIsLimited() : false);
                     field.setDisplayOrder(fieldDto.getDisplayOrder() != null ? fieldDto.getDisplayOrder() : 0);
                     field.setDefaultValue(fieldDto.getDefaultValue());
                     field.setMinValue(fieldDto.getMinValue());
@@ -841,6 +847,7 @@ public class WorkflowService {
                 .commentsMandatory(workflow.getCommentsMandatory())
                 .commentsMandatoryOnReject(workflow.getCommentsMandatoryOnReject())
                 .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
+                .workflowCategory(workflow.getWorkflowCategory())
                 .sbuIds(workflow.getSbus().stream().map(SBU::getId).collect(Collectors.toSet()))
                 .departmentIds(workflow.getDepartments().stream().map(Department::getId).collect(Collectors.toSet()))
                 .build();
@@ -899,6 +906,7 @@ public class WorkflowService {
                 .isHidden(field.getIsHidden())
                 .isUnique(field.getIsUnique())
                 .isTitle(field.getIsTitle())
+                .isLimited(field.getIsLimited())
                 .displayOrder(field.getDisplayOrder())
                 .defaultValue(field.getDefaultValue())
                 .minValue(field.getMinValue())
@@ -991,6 +999,7 @@ public class WorkflowService {
                 .commentsMandatory(workflow.getCommentsMandatory())
                 .commentsMandatoryOnReject(workflow.getCommentsMandatoryOnReject())
                 .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
+                .workflowCategory(workflow.getWorkflowCategory())
                 .build();
 
         // Export forms without IDs
@@ -1019,6 +1028,7 @@ public class WorkflowService {
                                             .isHidden(field.getIsHidden())
                                             .isUnique(field.getIsUnique())
                                             .isTitle(field.getIsTitle())
+                                            .isLimited(field.getIsLimited())
                                             .minLength(field.getMinLength())
                                             .maxLength(field.getMaxLength())
                                             .minValue(field.getMinValue())

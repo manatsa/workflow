@@ -99,4 +99,12 @@ public class Workflow extends BaseEntity {
 
     @Column(name = "comments_mandatory_on_escalate")
     private Boolean commentsMandatoryOnEscalate = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "workflow_category")
+    private WorkflowCategory workflowCategory = WorkflowCategory.NON_FINANCIAL;
+
+    public enum WorkflowCategory {
+        FINANCIAL, NON_FINANCIAL
+    }
 }

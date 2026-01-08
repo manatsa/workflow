@@ -16,6 +16,7 @@ export interface Workflow {
   commentsMandatory: boolean;
   commentsMandatoryOnReject: boolean;
   commentsMandatoryOnEscalate: boolean;
+  workflowCategory?: WorkflowCategory;
   requireAttachments: boolean;
   requireComments: boolean;
   forms?: WorkflowForm[];
@@ -84,6 +85,7 @@ export interface WorkflowField {
   hidden: boolean;
   isUnique: boolean;
   isTitle: boolean;
+  isLimited: boolean;
   displayOrder: number;
   columnSpan: number;
   defaultValue?: string;
@@ -275,4 +277,9 @@ export interface ApprovalRequest {
   comments?: string;
   escalateToUserId?: string;
   actionSource?: string;
+}
+
+export enum WorkflowCategory {
+  FINANCIAL = 'FINANCIAL',
+  NON_FINANCIAL = 'NON_FINANCIAL'
 }
