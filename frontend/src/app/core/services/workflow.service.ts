@@ -232,4 +232,13 @@ export class WorkflowService {
   submitApproval(data: { instanceId: string; action: string; comments?: string }): Observable<ApiResponse<WorkflowInstance>> {
     return this.api.post<WorkflowInstance>('/workflow-instances/approval', data);
   }
+
+  // Validation
+  validateUniqueField(workflowCode: string, fieldName: string, value: string, excludeInstanceId?: string): Observable<ApiResponse<boolean>> {
+    let url = `/workflow-instances/validate-unique?workflowCode=${encodeURIComponent(workflowCode)}&fieldName=${encodeURIComponent(fieldName)}&value=${encodeURIComponent(value)}`;
+    if (excludeInstanceId) {
+      url += `&excludeInstanceId=${excludeInstanceId}`;
+    }
+    return this.api.get<boolean>(url);
+  }
 }

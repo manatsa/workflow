@@ -220,4 +220,14 @@ public class WorkflowInstanceController {
         attachmentService.deleteAttachment(attachmentId);
         return ResponseEntity.ok(ApiResponse.success("Attachment deleted", null));
     }
+
+    @GetMapping("/validate-unique")
+    public ResponseEntity<ApiResponse<Boolean>> validateUniqueField(
+            @RequestParam String workflowCode,
+            @RequestParam String fieldName,
+            @RequestParam String value,
+            @RequestParam(required = false) UUID excludeInstanceId) {
+        boolean isUnique = workflowInstanceService.isFieldValueUnique(workflowCode, fieldName, value, excludeInstanceId);
+        return ResponseEntity.ok(ApiResponse.success(isUnique));
+    }
 }

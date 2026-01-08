@@ -37,6 +37,7 @@ public class WorkflowFieldDTO {
     private Boolean isUnique;
     private Boolean isTitle;
     private Boolean isLimited;
+    private Boolean inSummary;
     private Integer displayOrder;
 
     // Alias getters for frontend compatibility
@@ -81,6 +82,8 @@ public class WorkflowFieldDTO {
     private String validationMessage;
     private String customValidationRule;
     private String customValidationMessage;
+    private String validation;
+    private Integer columnSpan;
     private Integer width;
     private String cssClass;
     private List<FieldOptionDTO> options;

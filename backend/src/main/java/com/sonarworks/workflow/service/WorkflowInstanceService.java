@@ -965,6 +965,9 @@ public class WorkflowInstanceService {
             amount = "$" + instance.getAmount().toString();
         }
 
+        // Collect summary fields (fields marked with inSummary=true)
+        List<Map<String, String>> summaryFields = collectSummaryFields(instance);
+
         emailService.sendApprovalRequestEmail(
                 approver.getApproverEmail(),
                 approver.getApproverName(),
@@ -975,8 +978,43 @@ public class WorkflowInstanceService {
                 approveLink,
                 rejectLink,
                 amount,
-                emailApprovalEnabled
+                emailApprovalEnabled,
+                summaryFields
         );
+    }
+
+    private List<Map<String, String>> collectSummaryFields(WorkflowInstance instance) {
+        List<Map<String, String>> summaryFields = new ArrayList<>();
+
+        // Get all fields from the workflow's forms that have inSummary=true
+        Workflow workflow = instance.getWorkflow();
+        if (workflow.getForms() == null || workflow.getForms().isEmpty()) {
+            return summaryFields;
+        }
+
+        // Get field values map for quick lookup
+        Map<String, String> fieldValuesMap = instance.getFieldValues().stream()
+                .collect(Collectors.toMap(
+                        WorkflowFieldValue::getFieldName,
+                        v -> v.getValue() != null ? v.getValue() : "",
+                        (existing, replacement) -> replacement
+                ));
+
+        // Iterate through all forms and fields
+        for (WorkflowForm form : workflow.getForms()) {
+            if (form.getFields() == null) continue;
+
+            for (WorkflowField field : form.getFields()) {
+                if (Boolean.TRUE.equals(field.getInSummary())) {
+                    Map<String, String> fieldData = new HashMap<>();
+                    fieldData.put("label", field.getLabel());
+                    fieldData.put("value", fieldValuesMap.getOrDefault(field.getName(), ""));
+                    summaryFields.add(fieldData);
+                }
+            }
+        }
+
+        return summaryFields;
     }
 
     private String generateReferenceNumber(String workflowCode) {
@@ -1071,5 +1109,38 @@ public class WorkflowInstanceService {
                 .uploadedBy(attachment.getUploadedBy())
                 .uploadedAt(attachment.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * Check if a field value is unique across all instances of a workflow.
+     * Used for Unique() validation.
+     */
+    public boolean isFieldValueUnique(String workflowCode, String fieldName, String value, UUID excludeInstanceId) {
+        if (value == null || value.trim().isEmpty()) {
+            return true; // Empty values are considered unique (or handled by Required validation)
+        }
+
+        // Find workflow by code
+        Workflow workflow = workflowRepository.findByCode(workflowCode)
+                .orElse(null);
+        if (workflow == null) {
+            return true; // Workflow not found, consider unique
+        }
+
+        // Check if any other instance has this field value
+        List<WorkflowFieldValue> existingValues = workflowFieldValueRepository
+                .findByWorkflowInstance_Workflow_CodeAndFieldNameAndValue(workflowCode, fieldName, value.trim());
+
+        if (existingValues.isEmpty()) {
+            return true; // No existing values, it's unique
+        }
+
+        // If we're editing an instance, exclude it from the check
+        if (excludeInstanceId != null) {
+            return existingValues.stream()
+                    .noneMatch(fv -> !fv.getWorkflowInstance().getId().equals(excludeInstanceId));
+        }
+
+        return false; // Value already exists in another instance
     }
 }

@@ -64,6 +64,9 @@ public class WorkflowField extends BaseEntity {
     @Column(name = "is_limited")
     private Boolean isLimited = false;
 
+    @Column(name = "in_summary")
+    private Boolean inSummary = false;
+
     @Column(name = "display_order")
     private Integer displayOrder = 0;
 
@@ -93,6 +96,12 @@ public class WorkflowField extends BaseEntity {
 
     @Column(name = "custom_validation_message")
     private String customValidationMessage;
+
+    @Column(name = "validation", columnDefinition = "TEXT")
+    private String validation;
+
+    @Column(name = "column_span")
+    private Integer columnSpan;
 
     @Column(name = "width")
     private Integer width;

@@ -36,4 +36,10 @@ public interface WorkflowFieldValueRepository extends JpaRepository<WorkflowFiel
     List<WorkflowFieldValue> findByFieldIdAndValue(
             @Param("fieldId") UUID fieldId,
             @Param("value") String value);
+
+    @Query("SELECT v FROM WorkflowFieldValue v WHERE v.workflowInstance.workflow.code = :workflowCode AND v.fieldName = :fieldName AND v.value = :value")
+    List<WorkflowFieldValue> findByWorkflowInstance_Workflow_CodeAndFieldNameAndValue(
+            @Param("workflowCode") String workflowCode,
+            @Param("fieldName") String fieldName,
+            @Param("value") String value);
 }
