@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -20,12 +23,38 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final SettingService settingService;
+    private final EmailSettingsService emailSettingsService;
 
     @Value("${spring.mail.username:}")
     private String springMailUsername;
 
+    /**
+     * Gets the appropriate JavaMailSender - either from EmailSettings (if configured)
+     * or falls back to the Spring-configured mailSender
+     */
+    private JavaMailSender getMailSender() {
+        try {
+            if (emailSettingsService.isEmailConfigured()) {
+                return emailSettingsService.buildMailSender();
+            }
+        } catch (Exception e) {
+            log.warn("Could not build mail sender from EmailSettings, falling back to default: {}", e.getMessage());
+        }
+        return mailSender;
+    }
+
     private String getFromEmail() {
-        // First try to get from settings
+        // First try to get from EmailSettings entity
+        try {
+            String emailSettingsSender = emailSettingsService.getSenderEmail();
+            if (emailSettingsSender != null && !emailSettingsSender.isBlank()) {
+                return emailSettingsSender;
+            }
+        } catch (Exception e) {
+            log.debug("Could not get sender from EmailSettings: {}", e.getMessage());
+        }
+
+        // Second, try to get from legacy settings
         String fromAddress = settingService.getValue("mail.from.address", null);
         if (fromAddress != null && !fromAddress.isBlank()) {
             return fromAddress;
@@ -36,6 +65,18 @@ public class EmailService {
         }
         // Default fallback
         return "noreply@sonarworks.com";
+    }
+
+    private String getSenderName() {
+        try {
+            String senderName = emailSettingsService.getSenderName();
+            if (senderName != null && !senderName.isBlank()) {
+                return senderName;
+            }
+        } catch (Exception e) {
+            log.debug("Could not get sender name from EmailSettings: {}", e.getMessage());
+        }
+        return settingService.getValue("mail.from.name", "Sonarworks Workflow");
     }
 
     @Async
@@ -68,6 +109,15 @@ public class EmailService {
                                           String referenceNumber, String initiatorName, String approvalLink,
                                           String approveLink, String rejectLink, String amount,
                                           boolean emailApprovalEnabled) {
+        sendApprovalRequestEmail(toEmail, approverName, workflowName, referenceNumber, initiatorName,
+                approvalLink, approveLink, rejectLink, amount, emailApprovalEnabled, null);
+    }
+
+    @Async
+    public void sendApprovalRequestEmail(String toEmail, String approverName, String workflowName,
+                                          String referenceNumber, String initiatorName, String approvalLink,
+                                          String approveLink, String rejectLink, String amount,
+                                          boolean emailApprovalEnabled, List<Map<String, String>> summaryFields) {
         try {
             Context context = new Context();
             context.setVariable("approverName", approverName);
@@ -79,6 +129,7 @@ public class EmailService {
             context.setVariable("rejectLink", rejectLink);
             context.setVariable("amount", amount);
             context.setVariable("emailApprovalEnabled", emailApprovalEnabled);
+            context.setVariable("summaryFields", summaryFields);
 
             String htmlContent = templateEngine.process("approval-request-email", context);
             sendHtmlEmail(toEmail, "Approval Required: " + workflowName + " - " + referenceNumber, htmlContent);
@@ -113,10 +164,11 @@ public class EmailService {
 
         String fromEmail = getFromEmail();
         if (fromEmail == null || fromEmail.isBlank() || !fromEmail.contains("@")) {
-            throw new MessagingException("Invalid sender email address. Please configure mail.from.address in settings.");
+            throw new MessagingException("Invalid sender email address. Please configure mail settings.");
         }
 
-        MimeMessage message = mailSender.createMimeMessage();
+        JavaMailSender sender = getMailSender();
+        MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setFrom(fromEmail);
@@ -124,7 +176,7 @@ public class EmailService {
         helper.setSubject(subject);
         helper.setText(htmlContent, true);
 
-        mailSender.send(message);
+        sender.send(message);
         log.info("Email sent successfully to {}", to);
     }
 
