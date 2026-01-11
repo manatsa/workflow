@@ -178,6 +178,9 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
                               @case ('ESCALATED') {
                                 <mat-icon>arrow_upward</mat-icon>
                               }
+                              @case ('RECALLED') {
+                                <mat-icon>undo</mat-icon>
+                              }
                               @default {
                                 <mat-icon>pending</mat-icon>
                               }
@@ -422,6 +425,11 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
       color: #1565c0;
     }
 
+    .timeline-marker.recalled {
+      background: #fce4ec;
+      color: #c2185b;
+    }
+
     .timeline-content {
       flex: 1;
     }
@@ -556,9 +564,7 @@ export class InstanceDetailComponent implements OnInit {
 
   editSubmission() {
     if (this.instance) {
-      this.router.navigate(['/workflows', this.instance.workflowCode, 'submit'], {
-        queryParams: { edit: this.instance.id }
-      });
+      this.router.navigate(['/workflows', this.instance.workflowCode, 'edit', this.instance.id]);
     }
   }
 

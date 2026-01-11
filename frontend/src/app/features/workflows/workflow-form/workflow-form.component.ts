@@ -650,9 +650,15 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         if (res.success && res.data) {
           // Extract field values from instance
           if (res.data.fieldValues) {
-            res.data.fieldValues.forEach((fv: any) => {
-              this.existingFieldValues[fv.fieldName] = fv.value;
-            });
+            if (Array.isArray(res.data.fieldValues)) {
+              // Handle array format: [{fieldName: 'x', value: 'y'}, ...]
+              res.data.fieldValues.forEach((fv: any) => {
+                this.existingFieldValues[fv.fieldName] = fv.value;
+              });
+            } else {
+              // Handle object/map format: {fieldName: value, ...}
+              this.existingFieldValues = { ...res.data.fieldValues };
+            }
           }
           this.initializeForm();
         }

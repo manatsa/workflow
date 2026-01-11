@@ -97,6 +97,7 @@ export interface WorkflowField {
   validationMessage?: string;
   customValidationRule?: string;
   customValidationMessage?: string;
+  validation?: string;
   width?: number;
   cssClass?: string;
   options?: FieldOption[];
@@ -251,7 +252,8 @@ export enum ApprovalAction {
   ESCALATED = 'ESCALATED',
   CANCELLED = 'CANCELLED',
   RETURNED = 'RETURNED',
-  REASSIGNED = 'REASSIGNED'
+  REASSIGNED = 'REASSIGNED',
+  RECALLED = 'RECALLED'
 }
 
 export enum ActionSource {

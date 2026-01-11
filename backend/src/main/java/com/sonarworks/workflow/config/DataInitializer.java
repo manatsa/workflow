@@ -3,6 +3,8 @@ package com.sonarworks.workflow.config;
 import com.sonarworks.workflow.entity.*;
 import com.sonarworks.workflow.repository.*;
 import com.sonarworks.workflow.repository.WorkflowTypeRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -28,9 +30,13 @@ public class DataInitializer implements CommandLineRunner {
     private final SBURepository sbuRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Override
     @Transactional
     public void run(String... args) {
+        updateApprovalHistoryConstraint();
         initializePrivileges();
         initializeRoles();
         initializeUsers();
@@ -40,6 +46,29 @@ public class DataInitializer implements CommandLineRunner {
         initializeWorkflowTypes();
         initializeSampleWorkflows();
         log.info("Data initialization completed");
+    }
+
+    /**
+     * Updates the approval_history action check constraint to include RECALLED action.
+     * This is needed because the constraint was created before RECALLED was added to the enum.
+     */
+    private void updateApprovalHistoryConstraint() {
+        try {
+            // Drop the old constraint and create a new one with RECALLED
+            entityManager.createNativeQuery(
+                "ALTER TABLE approval_history DROP CONSTRAINT IF EXISTS approval_history_action_check"
+            ).executeUpdate();
+
+            entityManager.createNativeQuery(
+                "ALTER TABLE approval_history ADD CONSTRAINT approval_history_action_check " +
+                "CHECK (action IN ('SUBMITTED', 'APPROVED', 'REJECTED', 'ESCALATED', 'CANCELLED', 'RETURNED', 'REASSIGNED', 'RECALLED'))"
+            ).executeUpdate();
+
+            log.info("Updated approval_history action constraint to include RECALLED");
+        } catch (Exception e) {
+            // Constraint might not exist or already be updated, which is fine
+            log.debug("Could not update approval_history constraint: {}", e.getMessage());
+        }
     }
 
     private void initializePrivileges() {
@@ -261,6 +290,11 @@ public class DataInitializer implements CommandLineRunner {
         // Theme Settings - Form Fields
         createSettingIfNotExists("theme.form.field.header.bg", "#1976d2", "Form Field Header Background", "Form Fields", "Theme Settings", Setting.SettingType.COLOR);
         createSettingIfNotExists("theme.form.field.header.color", "#ffffff", "Form Field Header Color", "Form Fields", "Theme Settings", Setting.SettingType.COLOR);
+
+        // Theme Settings - Function Categories
+        createSettingIfNotExists("theme.function.category.bg", "#f5f5f5", "Functions Category Collapsible Background", "Function Categories", "Theme Settings", Setting.SettingType.COLOR);
+        createSettingIfNotExists("theme.function.category.color", "#1e90ff", "Functions Category Collapsible Color", "Function Categories", "Theme Settings", Setting.SettingType.COLOR);
+        createSettingIfNotExists("theme.function.font.size", "11", "Functions Font Size", "Function Categories", "Theme Settings", Setting.SettingType.NUMBER);
 
         // Backup Settings
         createSettingIfNotExists("backup.location", "C:/Sonar Docs/backups/", "Backup Location", "Backup", "General", Setting.SettingType.STRING);

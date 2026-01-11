@@ -692,21 +692,27 @@ public class WorkflowInstanceService {
             throw new BusinessException("Can only recall pending submissions");
         }
 
-        instance.setStatus(WorkflowInstance.Status.DRAFT);
-        instance.setCurrentLevel(0);
-        instance.setCurrentApproverOrder(null);
-        instance.setCurrentApprover(null);
-        instance.setSubmittedAt(null);
+        // Capture current level before resetting
+        int recalledFromLevel = instance.getCurrentLevel() != null ? instance.getCurrentLevel() : 1;
 
+        // Record the recall action in history first
         ApprovalHistory history = ApprovalHistory.builder()
                 .workflowInstance(instance)
                 .action(ApprovalHistory.Action.RECALLED)
                 .comments(reason)
+                .level(recalledFromLevel)
                 .actionDate(LocalDateTime.now())
                 .approverName(currentUser.getFullName())
                 .approverEmail(currentUser.getEmail())
                 .build();
         approvalHistoryRepository.save(history);
+
+        // Reset instance to draft status
+        instance.setStatus(WorkflowInstance.Status.DRAFT);
+        instance.setCurrentLevel(0);
+        instance.setCurrentApproverOrder(null);
+        instance.setCurrentApprover(null);
+        instance.setSubmittedAt(null);
 
         workflowInstanceRepository.save(instance);
 
