@@ -217,7 +217,11 @@ public class UserService {
 
     @Transactional
     public void initiatePasswordReset(String email) {
-        User user = userRepository.findByEmail(email)
+        if (email == null || email.trim().isEmpty()) {
+            throw new BusinessException("Email is required");
+        }
+
+        User user = userRepository.findByEmailIgnoreCase(email.trim())
                 .orElseThrow(() -> new BusinessException("User not found with this email"));
 
         String token = UUID.randomUUID().toString();
@@ -227,18 +231,43 @@ public class UserService {
         user.setPasswordResetTokenExpiry(LocalDateTime.now().plusHours(expiryHours));
         userRepository.save(user);
 
-        emailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), token);
+        // Send email synchronously so we can report failures to the user
+        try {
+            String firstName = user.getFirstName() != null ? user.getFirstName() : "User";
+            emailService.sendPasswordResetEmail(user.getEmail(), firstName, token);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to: {}", email, e);
+            // Clear the token since email failed
+            user.setPasswordResetToken(null);
+            user.setPasswordResetTokenExpiry(null);
+            userRepository.save(user);
+            throw new BusinessException("Failed to send password reset email. Please check that email settings are configured correctly or contact your administrator.");
+        }
 
-        auditService.log(AuditLog.AuditAction.PASSWORD_RESET, "User", user.getId(),
-                user.getUsername(), "Password reset initiated for: " + user.getUsername(), null, null);
+        // Log audit - wrapped in try-catch to not fail the main operation
+        try {
+            auditService.log(AuditLog.AuditAction.PASSWORD_RESET, "User", user.getId(),
+                    user.getUsername(), "Password reset initiated for: " + user.getUsername(), null, null);
+        } catch (Exception e) {
+            log.warn("Failed to log audit for password reset", e);
+        }
     }
 
     @Transactional
     public void confirmPasswordReset(String token, String newPassword, String confirmPassword) {
-        User user = userRepository.findByPasswordResetToken(token)
+        if (token == null || token.trim().isEmpty()) {
+            throw new BusinessException("Reset token is required");
+        }
+
+        if (newPassword == null || newPassword.isEmpty()) {
+            throw new BusinessException("New password is required");
+        }
+
+        User user = userRepository.findByPasswordResetToken(token.trim())
                 .orElseThrow(() -> new BusinessException("Invalid or expired token"));
 
-        if (user.getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
+        if (user.getPasswordResetTokenExpiry() == null ||
+            user.getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new BusinessException("Password reset token has expired");
         }
 
@@ -251,17 +280,29 @@ public class UserService {
             throw new BusinessException("Password validation failed: " + String.join(", ", validation.errors()));
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setPasswordResetToken(null);
-        user.setPasswordResetTokenExpiry(null);
-        user.setPasswordChangedAt(LocalDateTime.now());
-        user.setMustChangePassword(false);
-        user.setFailedLoginAttempts(0);
-        user.setIsLocked(false);
-        userRepository.save(user);
+        try {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setPasswordResetToken(null);
+            user.setPasswordResetTokenExpiry(null);
+            user.setPasswordChangedAt(LocalDateTime.now());
+            user.setMustChangePassword(false);
+            user.setFailedLoginAttempts(0);
+            user.setIsLocked(false);
+            userRepository.save(user);
 
-        auditService.log(AuditLog.AuditAction.PASSWORD_RESET, "User", user.getId(),
-                user.getUsername(), "Password reset completed for: " + user.getUsername(), null, null);
+            // Log audit - wrapped in try-catch to not fail the main operation
+            try {
+                auditService.log(AuditLog.AuditAction.PASSWORD_RESET, "User", user.getId(),
+                        user.getUsername(), "Password reset completed for: " + user.getUsername(), null, null);
+            } catch (Exception e) {
+                log.warn("Failed to log audit for password reset completion", e);
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to complete password reset", e);
+            throw new BusinessException("Failed to reset password. Please try again later.");
+        }
     }
 
     @Transactional

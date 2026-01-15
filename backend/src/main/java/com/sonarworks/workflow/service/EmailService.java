@@ -79,22 +79,22 @@ public class EmailService {
         return settingService.getValue("mail.from.name", "Sonarworks Workflow");
     }
 
-    @Async
-    public void sendPasswordResetEmail(String toEmail, String firstName, String token) {
-        try {
-            String baseUrl = settingService.getValue("app.base.url", "http://localhost:4200");
-            String resetLink = baseUrl + "/reset-password?token=" + token;
+    /**
+     * Sends password reset email synchronously so we can report errors to the user.
+     * This method is NOT @Async because the user needs to know if the email failed.
+     */
+    public void sendPasswordResetEmail(String toEmail, String firstName, String token) throws MessagingException {
+        String baseUrl = settingService.getValue("app.base.url", "http://localhost:8080");
+        String resetLink = baseUrl + "/reset-password?token=" + token;
 
-            Context context = new Context();
-            context.setVariable("firstName", firstName);
-            context.setVariable("resetLink", resetLink);
-            context.setVariable("expiryHours", settingService.getIntValue("password.reset.token.expiry.hours", 24));
+        Context context = new Context();
+        context.setVariable("firstName", firstName);
+        context.setVariable("resetLink", resetLink);
+        context.setVariable("expiryHours", settingService.getIntValue("password.reset.token.expiry.hours", 24));
 
-            String htmlContent = templateEngine.process("password-reset-email", context);
-            sendHtmlEmail(toEmail, "Password Reset Request", htmlContent);
-        } catch (Exception e) {
-            log.error("Failed to send password reset email to {}", toEmail, e);
-        }
+        String htmlContent = templateEngine.process("password-reset-email", context);
+        sendHtmlEmail(toEmail, "Password Reset Request", htmlContent);
+        log.info("Password reset email sent successfully to {}", toEmail);
     }
 
     @Async

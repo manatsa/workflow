@@ -60,6 +60,7 @@ import { AuthService } from '@core/services/auth.service';
                       class="submit-button" [disabled]="loading">
                 @if (loading) {
                   <mat-spinner diameter="20"></mat-spinner>
+                  <span style="margin-left: 8px;">Sending...</span>
                 } @else {
                   Send Reset Link
                 }
@@ -138,24 +139,38 @@ export class ForgotPasswordComponent {
   }
 
   onSubmit() {
-    if (this.forgotPasswordForm.invalid) return;
+    // Mark all fields as touched to trigger validation display
+    this.forgotPasswordForm.markAllAsTouched();
+
+    if (this.forgotPasswordForm.invalid) {
+      return;
+    }
 
     this.loading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
-    this.authService.forgotPassword(this.forgotPasswordForm.value.email).subscribe({
+    const email = this.forgotPasswordForm.get('email')?.value?.trim();
+
+    if (!email) {
+      this.loading = false;
+      this.errorMessage = 'Please enter your email address';
+      return;
+    }
+
+    this.authService.forgotPassword(email).subscribe({
       next: (response) => {
         this.loading = false;
         if (response.success) {
           this.submitted = true;
-          this.successMessage = 'Password reset link has been sent to your email address.';
+          this.successMessage = 'Password reset link has been sent to your email address. Please check your inbox.';
         } else {
-          this.errorMessage = response.message || 'Failed to send reset link';
+          this.errorMessage = response.message || 'Failed to send reset link. Please try again.';
         }
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.message || 'An error occurred. Please try again.';
+        this.errorMessage = err.error?.message || err.message || 'An error occurred. Please try again.';
       }
     });
   }

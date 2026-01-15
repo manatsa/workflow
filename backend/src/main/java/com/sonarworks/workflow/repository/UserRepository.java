@@ -19,6 +19,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 
+    @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    Optional<User> findByEmailIgnoreCase(@Param("email") String email);
+
     Optional<User> findByPasswordResetToken(String token);
 
     boolean existsByUsername(String username);

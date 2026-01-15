@@ -181,12 +181,22 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.resetPasswordForm.invalid) return;
+    // Mark all fields as touched to trigger validation display
+    this.resetPasswordForm.markAllAsTouched();
+
+    if (this.resetPasswordForm.invalid) {
+      return;
+    }
 
     this.loading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
-    this.authService.resetPassword(this.token, this.resetPasswordForm.value.password).subscribe({
+    this.authService.resetPassword(
+      this.token,
+      this.resetPasswordForm.value.password,
+      this.resetPasswordForm.value.confirmPassword
+    ).subscribe({
       next: (response) => {
         this.loading = false;
         if (response.success) {
@@ -194,12 +204,12 @@ export class ResetPasswordComponent implements OnInit {
           this.successMessage = 'Your password has been reset successfully. Redirecting to login...';
           setTimeout(() => this.router.navigate(['/login']), 3000);
         } else {
-          this.errorMessage = response.message || 'Failed to reset password';
+          this.errorMessage = response.message || 'Failed to reset password. Please try again.';
         }
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.message || 'An error occurred. Please try again.';
+        this.errorMessage = err.error?.message || err.message || 'An error occurred. Please try again.';
       }
     });
   }
