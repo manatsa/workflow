@@ -45,4 +45,5 @@ public class WorkflowDTO {
     private Set<UUID> sbuIds;
     private Set<UUID> branchIds;
     private Set<UUID> departmentIds;
+    private String createdBy;
 }

@@ -83,6 +83,8 @@ public class WorkflowService {
     private final WorkflowApproverRepository workflowApproverRepository;
     private final SBURepository sbuRepository;
     private final DepartmentRepository departmentRepository;
+    private final CorporateRepository corporateRepository;
+    private final BranchRepository branchRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final AuditService auditService;
@@ -185,6 +187,16 @@ public class WorkflowService {
             workflow.setDepartments(departments);
         }
 
+        if (dto.getCorporateIds() != null && !dto.getCorporateIds().isEmpty()) {
+            Set<Corporate> corporates = new HashSet<>(corporateRepository.findAllById(dto.getCorporateIds()));
+            workflow.setCorporates(corporates);
+        }
+
+        if (dto.getBranchIds() != null && !dto.getBranchIds().isEmpty()) {
+            Set<Branch> branches = new HashSet<>(branchRepository.findAllById(dto.getBranchIds()));
+            workflow.setBranches(branches);
+        }
+
         Workflow saved = workflowRepository.save(workflow);
 
         // Process forms, fields, groups from DTO
@@ -248,6 +260,16 @@ public class WorkflowService {
         if (dto.getDepartmentIds() != null) {
             Set<Department> departments = new HashSet<>(departmentRepository.findAllById(dto.getDepartmentIds()));
             workflow.setDepartments(departments);
+        }
+
+        if (dto.getCorporateIds() != null) {
+            Set<Corporate> corporates = new HashSet<>(corporateRepository.findAllById(dto.getCorporateIds()));
+            workflow.setCorporates(corporates);
+        }
+
+        if (dto.getBranchIds() != null) {
+            Set<Branch> branches = new HashSet<>(branchRepository.findAllById(dto.getBranchIds()));
+            workflow.setBranches(branches);
         }
 
         Workflow saved = workflowRepository.save(workflow);
@@ -725,82 +747,22 @@ public class WorkflowService {
                 approver.setWorkflow(workflow);
             }
 
-            // Handle user selection based on approverType
-            String approverType = dto.getApproverType();
-            if ("USER".equals(approverType)) {
-                // Check for multiple user IDs first (approverIds), then fall back to single approverId
-                List<String> approverIds = dto.getApproverIds();
-                if (approverIds != null && !approverIds.isEmpty()) {
-                    // Create multiple approver records for each user at the same level
-                    boolean isFirst = true;
-                    for (String userIdStr : approverIds) {
-                        UUID userIdToUse = parseUuid(userIdStr);
-                        if (userIdToUse != null) {
-                            User user = userRepository.findById(userIdToUse).orElse(null);
-                            if (user != null) {
-                                WorkflowApprover multiApprover;
-                                if (isFirst) {
-                                    multiApprover = approver;
-                                    isFirst = false;
-                                } else {
-                                    multiApprover = new WorkflowApprover();
-                                    multiApprover.setWorkflow(workflow);
-                                    multiApprover.setLevel(dto.getLevel());
-                                    BigDecimal limit = dto.getAmountLimit() != null ? dto.getAmountLimit() : dto.getApprovalLimit();
-                                    multiApprover.setApprovalLimit(limit);
-                                    multiApprover.setIsUnlimited(limit == null || (dto.getIsUnlimited() != null && dto.getIsUnlimited()));
-                                    multiApprover.setCanEscalate(dto.getCanEscalate() != null ? dto.getCanEscalate() : true);
-                                    multiApprover.setEscalationTimeoutHours(dto.getEscalationTimeoutHours());
-                                    Boolean emailNotification = dto.getEmailNotification() != null ? dto.getEmailNotification() : true;
-                                    multiApprover.setNotifyOnPending(dto.getNotifyOnPending() != null ? dto.getNotifyOnPending() : emailNotification);
-                                    multiApprover.setNotifyOnApproval(dto.getNotifyOnApproval() != null ? dto.getNotifyOnApproval() : emailNotification);
-                                    multiApprover.setNotifyOnRejection(dto.getNotifyOnRejection() != null ? dto.getNotifyOnRejection() : emailNotification);
-                                    multiApprover.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : dto.getLevel());
-                                }
-                                multiApprover.setUser(user);
-                                multiApprover.setApproverName(user.getFullName());
-                                multiApprover.setApproverEmail(user.getEmail());
-                                if (!isFirst || multiApprover != approver) {
-                                    workflowApproverRepository.save(multiApprover);
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // Fall back to single approverId for backward compatibility
-                    UUID userIdToUse = null;
-                    if (dto.getApproverId() != null && !dto.getApproverId().isEmpty()) {
-                        userIdToUse = parseUuid(dto.getApproverId());
-                    } else if (dto.getUserId() != null) {
-                        userIdToUse = dto.getUserId();
-                    }
+            // Always use specific user as approver - get user ID from various possible fields
+            UUID userIdToUse = dto.getUserId();
+            if (userIdToUse == null && dto.getApproverId() != null && !dto.getApproverId().isEmpty()) {
+                userIdToUse = parseUuid(dto.getApproverId());
+            }
+            if (userIdToUse == null && dto.getApproverIds() != null && !dto.getApproverIds().isEmpty()) {
+                userIdToUse = parseUuid(dto.getApproverIds().get(0));
+            }
 
-                    if (userIdToUse != null) {
-                        User user = userRepository.findById(userIdToUse).orElse(null);
-                        if (user != null) {
-                            approver.setUser(user);
-                            approver.setApproverName(user.getFullName());
-                            approver.setApproverEmail(user.getEmail());
-                        }
-                    }
+            if (userIdToUse != null) {
+                User user = userRepository.findById(userIdToUse).orElse(null);
+                if (user != null) {
+                    approver.setUser(user);
+                    approver.setApproverName(user.getFullName());
+                    approver.setApproverEmail(user.getEmail());
                 }
-            } else if ("ROLE".equals(approverType)) {
-                // Handle role-based approver
-                if (dto.getRoleId() != null && !dto.getRoleId().isEmpty()) {
-                    UUID roleId = parseUuid(dto.getRoleId());
-                    if (roleId != null) {
-                        Role role = roleRepository.findById(roleId).orElse(null);
-                        if (role != null) {
-                            approver.setApproverName(role.getName());
-                            // For role-based, email might come from dto.email
-                            approver.setApproverEmail(dto.getEmail());
-                        }
-                    }
-                }
-            } else {
-                // MANAGER, SBU_HEAD, or other types
-                approver.setApproverName(dto.getLabel() != null ? dto.getLabel() : dto.getApproverName());
-                approver.setApproverEmail(dto.getEmail() != null ? dto.getEmail() : dto.getApproverEmail());
             }
 
             approver.setLevel(dto.getLevel());
@@ -848,8 +810,11 @@ public class WorkflowService {
                 .commentsMandatoryOnReject(workflow.getCommentsMandatoryOnReject())
                 .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
                 .workflowCategory(workflow.getWorkflowCategory())
+                .corporateIds(workflow.getCorporates().stream().map(Corporate::getId).collect(Collectors.toSet()))
                 .sbuIds(workflow.getSbus().stream().map(SBU::getId).collect(Collectors.toSet()))
+                .branchIds(workflow.getBranches().stream().map(Branch::getId).collect(Collectors.toSet()))
                 .departmentIds(workflow.getDepartments().stream().map(Department::getId).collect(Collectors.toSet()))
+                .createdBy(workflow.getCreatedBy())
                 .build();
     }
 
@@ -954,6 +919,7 @@ public class WorkflowService {
                 .approverEmail(approver.getApproverEmail())
                 .level(approver.getLevel())
                 .approvalLimit(approver.getApprovalLimit())
+                .amountLimit(approver.getApprovalLimit())  // Frontend uses amountLimit
                 .isUnlimited(approver.getIsUnlimited())
                 .canEscalate(approver.getCanEscalate())
                 .escalationTimeoutHours(approver.getEscalationTimeoutHours())
@@ -1061,15 +1027,13 @@ public class WorkflowService {
             exportDto.setForms(exportForms);
         }
 
-        // Export approvers without IDs (but keep approver type info)
+        // Export approvers without IDs
         if (workflow.getApprovers() != null) {
             List<WorkflowApproverDTO> exportApprovers = workflow.getApprovers().stream()
                     .map(approver -> WorkflowApproverDTO.builder()
                             .level(approver.getLevel())
-                            .label(approver.getLabel())
-                            .approverType(approver.getApproverType())
                             .approverName(approver.getApproverName())
-                            .email(approver.getEmail())
+                            .approverEmail(approver.getApproverEmail())
                             .approvalLimit(approver.getApprovalLimit())
                             .isUnlimited(approver.getIsUnlimited())
                             .canEscalate(approver.getCanEscalate())
@@ -1078,7 +1042,7 @@ public class WorkflowService {
                             .notifyOnApproval(approver.getNotifyOnApproval())
                             .notifyOnRejection(approver.getNotifyOnRejection())
                             .displayOrder(approver.getDisplayOrder())
-                            // Note: userId and roleId are cleared - need to be reassigned after import
+                            // Note: userId is cleared - need to be reassigned after import
                             .build())
                     .collect(Collectors.toList());
             exportDto.setApprovers(exportApprovers);
@@ -1136,9 +1100,8 @@ public class WorkflowService {
             if (importDto.getApprovers() != null) {
                 importDto.getApprovers().forEach(approver -> {
                     approver.setId(null);
-                    // Clear user/role references - need to be reassigned
+                    // Clear user references - need to be reassigned
                     approver.setUserId(null);
-                    approver.setRoleId(null);
                 });
             }
 

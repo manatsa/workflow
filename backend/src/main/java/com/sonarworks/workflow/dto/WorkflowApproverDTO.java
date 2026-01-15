@@ -23,24 +23,15 @@ public class WorkflowApproverDTO {
     private String id;  // String to accept temp IDs from frontend
     private UUID workflowId;
 
-    // User selection (when approverType = USER)
-    private String approverId;  // User ID as string (single user - legacy)
-    private List<String> approverIds;  // Multiple user IDs (preferred)
+    // User selection - approvers are always specific users
+    private String approverId;  // User ID as string
+    private List<String> approverIds;  // Multiple user IDs
     private UUID userId;        // Alternative user ID field
     private String userName;
     private String approverName;
     private String approverEmail;
 
-    // Role selection (when approverType = ROLE)
-    private String roleId;      // Role ID as string
-
-    // Approver type: USER, ROLE, MANAGER, SBU_HEAD
-    private String approverType;
-
-    // Label for display
-    private String label;
-
-    // Email for notifications (frontend uses 'email')
+    // Email for notifications
     private String email;
 
     private Integer level;

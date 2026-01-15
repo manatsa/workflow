@@ -491,9 +491,10 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                           Level {{ approver.level }}: {{ getApproverDisplayName(approver) || 'Approver' }}
                         </mat-panel-title>
                         <mat-panel-description>
-                          {{ approver.approverType }}
                           @if (approver.amountLimit) {
-                            - Up to {{ approver.amountLimit | currency }}
+                            Up to {{ approver.amountLimit | currency }}
+                          } @else {
+                            No limit
                           }
                         </mat-panel-description>
                       </mat-expansion-panel-header>
@@ -507,16 +508,6 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                           </mat-form-field>
 
                           <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Approver Type</mat-label>
-                            <mat-select [(ngModel)]="approver.approverType" (selectionChange)="onApproverTypeChange(approver)">
-                              <mat-option value="USER">Specific User</mat-option>
-                              <mat-option value="ROLE">Role</mat-option>
-                            </mat-select>
-                          </mat-form-field>
-                        </div>
-
-                        @if (approver.approverType === 'USER') {
-                          <mat-form-field appearance="outline" class="form-field full-width">
                             <mat-label>Select User</mat-label>
                             <mat-select [(ngModel)]="approver.approverId" (selectionChange)="onUserSelected(approver)">
                               @for (user of users; track user.id) {
@@ -525,18 +516,7 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                             </mat-select>
                             <mat-hint>Select the approver for this level</mat-hint>
                           </mat-form-field>
-                        }
-
-                        @if (approver.approverType === 'ROLE') {
-                          <mat-form-field appearance="outline" class="form-field full-width">
-                            <mat-label>Select Role</mat-label>
-                            <mat-select [(ngModel)]="approver.roleId">
-                              @for (role of roles; track role.id) {
-                                <mat-option [value]="role.id">{{ role.name }}</mat-option>
-                              }
-                            </mat-select>
-                          </mat-form-field>
-                        }
+                        </div>
 
                         <div class="form-row">
                           <mat-form-field appearance="outline" class="form-field">
@@ -547,8 +527,8 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
 
                           <mat-form-field appearance="outline" class="form-field">
                             <mat-label>Email</mat-label>
-                            <input matInput type="email" [(ngModel)]="approver.email" [readonly]="approver.approverType === 'USER'">
-                            <mat-hint>{{ approver.approverType === 'USER' ? 'Auto-populated from user' : 'For email notifications' }}</mat-hint>
+                            <input matInput type="email" [(ngModel)]="approver.email" readonly>
+                            <mat-hint>Auto-populated from selected user</mat-hint>
                           </mat-form-field>
                         </div>
 
@@ -1425,7 +1405,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           code: workflow.code,
           description: workflow.description,
           icon: workflow.icon,
-          workflowTypeId: workflow.workflowType?.id,
+          workflowTypeId: workflow.workflowTypeId || workflow.workflowType?.id,
           isActive: workflow.active ?? workflow.isActive ?? true,
           commentsMandatory: workflow.commentsMandatory ?? false,
           commentsMandatoryOnReject: workflow.commentsMandatoryOnReject ?? true,
@@ -1464,7 +1444,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         this.approvers = (workflow.approvers || []).map((a: any) => ({
           ...a,
           approverId: a.userId || a.approverId || null,
-          approverType: a.approverType || (a.userId ? 'USER' : (a.roleId ? 'ROLE' : 'USER'))
+          email: a.approverEmail || a.email || ''
         }));
       }
     });
@@ -1620,9 +1600,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       : 0;
     const approver = {
       level: maxLevel + 1,
-      approverType: 'USER',
       approverId: null as string | null,
-      roleId: null,
       email: '',
       amountLimit: null,
       canEscalate: true,
@@ -1653,29 +1631,14 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   }
 
   getApproverDisplayName(approver: any): string {
-    if (approver.approverType === 'USER') {
-      const userId = approver.approverId || approver.userId;
-      if (userId) {
-        const user = this.users.find(u => u.id === userId);
-        if (user?.fullName) {
-          return user.fullName;
-        }
-      }
-      // Fallback to backend-provided name
-      if (approver.approverName) {
-        return approver.approverName;
+    const userId = approver.approverId || approver.userId;
+    if (userId) {
+      const user = this.users.find(u => u.id === userId);
+      if (user?.fullName) {
+        return user.fullName;
       }
     }
-    if (approver.approverType === 'ROLE' && approver.roleId) {
-      const role = this.roles.find(r => r.id === approver.roleId);
-      if (role?.name) {
-        return role.name;
-      }
-      // Fallback to backend-provided name
-      if (approver.approverName) {
-        return approver.approverName;
-      }
-    }
+    // Fallback to backend-provided name
     return approver.approverName || '';
   }
 
