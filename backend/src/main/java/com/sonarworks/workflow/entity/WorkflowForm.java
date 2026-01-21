@@ -41,6 +41,11 @@ public class WorkflowForm extends BaseEntity {
     @Builder.Default
     private List<FieldGroup> fieldGroups = new ArrayList<>();
 
+    @OneToMany(mappedBy = "form", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderBy("displayOrder ASC")
+    @Builder.Default
+    private List<Screen> screens = new ArrayList<>();
+
     @Column(name = "is_main_form")
     private Boolean isMainForm = false;
 }

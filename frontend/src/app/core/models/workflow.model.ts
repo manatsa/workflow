@@ -48,11 +48,24 @@ export interface WorkflowForm {
   isMainForm: boolean;
   fields: WorkflowField[];
   fieldGroups: FieldGroup[];
+  screens?: Screen[];
+}
+
+export interface Screen {
+  id: string;
+  formId?: string;
+  title: string;
+  description?: string;
+  displayOrder: number;
+  icon?: string;
+  fieldGroups?: FieldGroup[];
+  fields?: WorkflowField[];
 }
 
 export interface FieldGroup {
   id: string;
   formId?: string;
+  screenId?: string;
   title: string;
   description?: string;
   displayOrder: number;
@@ -68,6 +81,7 @@ export interface FieldGroup {
 export interface WorkflowField {
   id: string;
   formId?: string;
+  screenId?: string;
   fieldGroupId?: string;
   name: string;
   label: string;
@@ -93,11 +107,11 @@ export interface WorkflowField {
   maxValue?: string;
   minLength?: number;
   maxLength?: number;
+  validation?: string;
   validationRegex?: string;
   validationMessage?: string;
   customValidationRule?: string;
   customValidationMessage?: string;
-  validation?: string;
   width?: number;
   cssClass?: string;
   options?: FieldOption[];
@@ -212,6 +226,7 @@ export interface WorkflowInstance {
   createdAt: string;
   updatedAt?: string;
   createdBy: string;
+  isCurrentApprover?: boolean;
 }
 
 export interface WorkflowFieldValue {
@@ -252,8 +267,7 @@ export enum ApprovalAction {
   ESCALATED = 'ESCALATED',
   CANCELLED = 'CANCELLED',
   RETURNED = 'RETURNED',
-  REASSIGNED = 'REASSIGNED',
-  RECALLED = 'RECALLED'
+  REASSIGNED = 'REASSIGNED'
 }
 
 export enum ActionSource {

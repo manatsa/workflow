@@ -19,6 +19,10 @@ public class FieldGroup extends BaseEntity {
     @JoinColumn(name = "form_id", nullable = false)
     private WorkflowForm form;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "screen_id")
+    private Screen screen;
+
     @Column(nullable = false)
     private String title;
 

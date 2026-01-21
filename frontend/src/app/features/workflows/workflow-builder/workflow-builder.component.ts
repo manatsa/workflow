@@ -221,65 +221,91 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                               }
                             </div>
                           } @else {
-                            <div class="function-category">
-                              <h4><mat-icon>text_fields</mat-icon> String Functions</h4>
-                              <div class="function-list">
-                                @for (fn of stringFunctions; track fn.name) {
-                                  <div class="function-item" (click)="insertFunction(fn)">
-                                    <div class="function-name">{{ fn.name }}</div>
-                                    <div class="function-desc">{{ fn.description }}</div>
-                                  </div>
-                                }
-                              </div>
-                            </div>
+                            <mat-accordion class="function-accordion" multi>
+                              <mat-expansion-panel [expanded]="expandedCategories['string']" (opened)="expandedCategories['string']=true" (closed)="expandedCategories['string']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>text_fields</mat-icon> String Functions ({{ stringFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of stringFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-name">{{ fn.name }}</div>
+                                      <div class="function-desc">{{ fn.description }}</div>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
 
-                            <div class="function-category">
-                              <h4><mat-icon>pin</mat-icon> Number Functions</h4>
-                              <div class="function-list">
-                                @for (fn of numberFunctions; track fn.name) {
-                                  <div class="function-item" (click)="insertFunction(fn)">
-                                    <div class="function-name">{{ fn.name }}</div>
-                                    <div class="function-desc">{{ fn.description }}</div>
-                                  </div>
-                                }
-                              </div>
-                            </div>
+                              <mat-expansion-panel [expanded]="expandedCategories['number']" (opened)="expandedCategories['number']=true" (closed)="expandedCategories['number']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>pin</mat-icon> Number Functions ({{ numberFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of numberFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-name">{{ fn.name }}</div>
+                                      <div class="function-desc">{{ fn.description }}</div>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
 
-                            <div class="function-category">
-                              <h4><mat-icon>calendar_today</mat-icon> Date Functions</h4>
-                              <div class="function-list">
-                                @for (fn of dateFunctions; track fn.name) {
-                                  <div class="function-item" (click)="insertFunction(fn)">
-                                    <div class="function-name">{{ fn.name }}</div>
-                                    <div class="function-desc">{{ fn.description }}</div>
-                                  </div>
-                                }
-                              </div>
-                            </div>
+                              <mat-expansion-panel [expanded]="expandedCategories['date']" (opened)="expandedCategories['date']=true" (closed)="expandedCategories['date']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>calendar_today</mat-icon> Date Functions ({{ dateFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of dateFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-name">{{ fn.name }}</div>
+                                      <div class="function-desc">{{ fn.description }}</div>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
 
-                            <div class="function-category">
-                              <h4><mat-icon>toggle_on</mat-icon> Boolean/Logic Functions</h4>
-                              <div class="function-list">
-                                @for (fn of booleanFunctions; track fn.name) {
-                                  <div class="function-item" (click)="insertFunction(fn)">
-                                    <div class="function-name">{{ fn.name }}</div>
-                                    <div class="function-desc">{{ fn.description }}</div>
-                                  </div>
-                                }
-                              </div>
-                            </div>
+                              <mat-expansion-panel [expanded]="expandedCategories['boolean']" (opened)="expandedCategories['boolean']=true" (closed)="expandedCategories['boolean']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>toggle_on</mat-icon> Boolean/Logic Functions ({{ booleanFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of booleanFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-name">{{ fn.name }}</div>
+                                      <div class="function-desc">{{ fn.description }}</div>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
 
-                            <div class="function-category">
-                              <h4><mat-icon>functions</mat-icon> Utility Functions</h4>
-                              <div class="function-list">
-                                @for (fn of utilityFunctions; track fn.name) {
-                                  <div class="function-item" (click)="insertFunction(fn)">
-                                    <div class="function-name">{{ fn.name }}</div>
-                                    <div class="function-desc">{{ fn.description }}</div>
-                                  </div>
-                                }
-                              </div>
-                            </div>
+                              <mat-expansion-panel [expanded]="expandedCategories['utility']" (opened)="expandedCategories['utility']=true" (closed)="expandedCategories['utility']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>functions</mat-icon> Utility Functions ({{ utilityFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of utilityFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-name">{{ fn.name }}</div>
+                                      <div class="function-desc">{{ fn.description }}</div>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
+
+                              <mat-expansion-panel [expanded]="expandedCategories['other']" (opened)="expandedCategories['other']=true" (closed)="expandedCategories['other']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>more_horiz</mat-icon> Other Functions ({{ otherFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of otherFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-name">{{ fn.name }}</div>
+                                      <div class="function-desc">{{ fn.description }}</div>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
+                            </mat-accordion>
                           }
                         </div>
                       </mat-tab>
@@ -335,12 +361,27 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                               <mat-hint>Enter a preset value or use a function (click Functions tab to copy syntax)</mat-hint>
                             </mat-form-field>
 
-                            @if (field.type === 'SELECT' || field.type === 'RADIO' || field.type === 'CHECKBOX_GROUP') {
+                            @if (field.type === 'SELECT' || field.type === 'MULTISELECT' || field.type === 'RADIO' || field.type === 'CHECKBOX_GROUP') {
                               <mat-form-field appearance="outline" class="form-field full-width">
                                 <mat-label>Options (one per line)</mat-label>
                                 <textarea matInput [(ngModel)]="field.optionsText" rows="4"
                                           placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
                               </mat-form-field>
+                            }
+
+                            @if (screens.length > 0) {
+                              <div class="form-row">
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>Screen</mat-label>
+                                  <mat-select [(ngModel)]="field.screenId">
+                                    <mat-option [value]="null">None</mat-option>
+                                    @for (screen of screens; track screen.id) {
+                                      <mat-option [value]="screen.id">{{ screen.title || 'Untitled Screen' }}</mat-option>
+                                    }
+                                  </mat-select>
+                                  <mat-hint>Assign field to a screen for multi-step forms</mat-hint>
+                                </mat-form-field>
+                              </div>
                             }
 
                             <div class="form-row">
@@ -371,6 +412,7 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                               <mat-checkbox [(ngModel)]="field.hidden">Hidden</mat-checkbox>
                               <mat-checkbox [(ngModel)]="field.isUnique">Unique</mat-checkbox>
                               <mat-checkbox [(ngModel)]="field.isTitle">Make Title</mat-checkbox>
+                              <mat-checkbox [(ngModel)]="field.inSummary" matTooltip="Include this field in approval email summary">Summary</mat-checkbox>
                               @if (isFinancialWorkflow() && isAmountField(field.type)) {
                                 <mat-checkbox [(ngModel)]="field.isLimited"
                                               [disabled]="!field.isLimited && hasLimitedField()"
@@ -444,6 +486,19 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                         <input matInput [(ngModel)]="group.description">
                       </mat-form-field>
 
+                      @if (screens.length > 0) {
+                        <mat-form-field appearance="outline" class="form-field full-width">
+                          <mat-label>Screen</mat-label>
+                          <mat-select [(ngModel)]="group.screenId">
+                            <mat-option [value]="null">None</mat-option>
+                            @for (screen of screens; track screen.id) {
+                              <mat-option [value]="screen.id">{{ screen.title || 'Untitled Screen' }}</mat-option>
+                            }
+                          </mat-select>
+                          <mat-hint>Assign this group to a screen</mat-hint>
+                        </mat-form-field>
+                      }
+
                       <div class="checkbox-row">
                         <mat-checkbox [(ngModel)]="group.collapsible">Collapsible</mat-checkbox>
                         <mat-checkbox [(ngModel)]="group.collapsed">Start Collapsed</mat-checkbox>
@@ -463,6 +518,91 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                   <div class="empty-state">
                     <mat-icon>dashboard</mat-icon>
                     <p>No field groups defined. Groups help organize fields into titled sections.</p>
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Screens Tab -->
+        <mat-tab label="Screens">
+          <div class="tab-content">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Form Screens</mat-card-title>
+                <button mat-raised-button color="primary" (click)="addScreen()">
+                  <mat-icon>add</mat-icon>
+                  Add Screen
+                </button>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="screen-info" *ngIf="screens.length === 0">
+                  <mat-icon>info</mat-icon>
+                  <p>Without screens, the form displays as a single page. Add 2+ screens to create a multi-step wizard.</p>
+                </div>
+
+                <div cdkDropList (cdkDropListDropped)="dropScreen($event)" class="screen-list">
+                  @for (screen of screens; track screen.id; let i = $index) {
+                    <mat-expansion-panel cdkDrag class="screen-panel">
+                      <mat-expansion-panel-header>
+                        <mat-panel-title>
+                          <mat-icon cdkDragHandle>drag_indicator</mat-icon>
+                          <mat-icon>{{ screen.icon || 'view_carousel' }}</mat-icon>
+                          {{ screen.title || 'Untitled Screen' }}
+                        </mat-panel-title>
+                        <mat-panel-description>
+                          {{ getFieldsInScreen(screen.id).length }} fields, {{ getFieldGroupsInScreen(screen.id).length }} groups
+                        </mat-panel-description>
+                      </mat-expansion-panel-header>
+
+                      <div class="screen-config">
+                        <div class="form-row">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Title</mat-label>
+                            <input matInput [(ngModel)]="screen.title">
+                          </mat-form-field>
+
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Display Order</mat-label>
+                            <input matInput type="number" [(ngModel)]="screen.displayOrder">
+                          </mat-form-field>
+                        </div>
+
+                        <mat-form-field appearance="outline" class="form-field full-width">
+                          <mat-label>Description</mat-label>
+                          <input matInput [(ngModel)]="screen.description">
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Icon</mat-label>
+                          <mat-select [(ngModel)]="screen.icon">
+                            <mat-option value="view_carousel">view_carousel</mat-option>
+                            <mat-option value="article">article</mat-option>
+                            <mat-option value="assignment">assignment</mat-option>
+                            <mat-option value="description">description</mat-option>
+                            <mat-option value="info">info</mat-option>
+                            <mat-option value="checklist">checklist</mat-option>
+                            <mat-option value="fact_check">fact_check</mat-option>
+                            <mat-option value="summarize">summarize</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+
+                        <div class="screen-actions">
+                          <button mat-button color="warn" (click)="removeScreen(i)">
+                            <mat-icon>delete</mat-icon>
+                            Remove Screen
+                          </button>
+                        </div>
+                      </div>
+                    </mat-expansion-panel>
+                  }
+                </div>
+
+                @if (screens.length === 1) {
+                  <div class="screen-warning">
+                    <mat-icon>warning</mat-icon>
+                    <p>Add at least one more screen to enable multi-step navigation.</p>
                   </div>
                 }
               </mat-card-content>
@@ -491,10 +631,9 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                           Level {{ approver.level }}: {{ getApproverDisplayName(approver) || 'Approver' }}
                         </mat-panel-title>
                         <mat-panel-description>
+                          {{ approver.approverType }}
                           @if (approver.amountLimit) {
-                            Up to {{ approver.amountLimit | currency }}
-                          } @else {
-                            No limit
+                            - Up to {{ approver.amountLimit | currency }}
                           }
                         </mat-panel-description>
                       </mat-expansion-panel-header>
@@ -508,6 +647,16 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                           </mat-form-field>
 
                           <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Approver Type</mat-label>
+                            <mat-select [(ngModel)]="approver.approverType" (selectionChange)="onApproverTypeChange(approver)">
+                              <mat-option value="USER">Specific User</mat-option>
+                              <mat-option value="ROLE">Role</mat-option>
+                            </mat-select>
+                          </mat-form-field>
+                        </div>
+
+                        @if (approver.approverType === 'USER') {
+                          <mat-form-field appearance="outline" class="form-field full-width">
                             <mat-label>Select User</mat-label>
                             <mat-select [(ngModel)]="approver.approverId" (selectionChange)="onUserSelected(approver)">
                               @for (user of users; track user.id) {
@@ -516,7 +665,18 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                             </mat-select>
                             <mat-hint>Select the approver for this level</mat-hint>
                           </mat-form-field>
-                        </div>
+                        }
+
+                        @if (approver.approverType === 'ROLE') {
+                          <mat-form-field appearance="outline" class="form-field full-width">
+                            <mat-label>Select Role</mat-label>
+                            <mat-select [(ngModel)]="approver.roleId">
+                              @for (role of roles; track role.id) {
+                                <mat-option [value]="role.id">{{ role.name }}</mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+                        }
 
                         <div class="form-row">
                           <mat-form-field appearance="outline" class="form-field">
@@ -527,8 +687,8 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
 
                           <mat-form-field appearance="outline" class="form-field">
                             <mat-label>Email</mat-label>
-                            <input matInput type="email" [(ngModel)]="approver.email" readonly>
-                            <mat-hint>Auto-populated from selected user</mat-hint>
+                            <input matInput type="email" [(ngModel)]="approver.email" [readonly]="approver.approverType === 'USER'">
+                            <mat-hint>{{ approver.approverType === 'USER' ? 'Auto-populated from user' : 'For email notifications' }}</mat-hint>
                           </mat-form-field>
                         </div>
 
@@ -671,7 +831,8 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
 
     .checkbox-row {
       display: flex;
-      gap: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
       margin: 1rem 0;
     }
 
@@ -958,18 +1119,50 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
       min-height: 200px;
     }
 
-    .field-panel, .group-panel, .approver-panel {
+    .field-panel, .group-panel, .approver-panel, .screen-panel {
       margin-bottom: 0.5rem;
     }
 
-    .field-config, .group-config, .approver-config {
+    .field-config, .group-config, .approver-config, .screen-config {
       padding: 1rem;
     }
 
-    .field-actions, .group-actions, .approver-actions {
+    .field-actions, .group-actions, .approver-actions, .screen-actions {
       display: flex;
       justify-content: flex-end;
       margin-top: 1rem;
+    }
+
+    .screen-info, .screen-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 1rem;
+      background: #e3f2fd;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .screen-warning {
+      background: #fff3e0;
+    }
+
+    .screen-info mat-icon, .screen-warning mat-icon {
+      color: #1976d2;
+      flex-shrink: 0;
+    }
+
+    .screen-warning mat-icon {
+      color: #f57c00;
+    }
+
+    .screen-info p, .screen-warning p {
+      margin: 0;
+      color: #333;
+    }
+
+    .screen-list {
+      min-height: 100px;
     }
 
     .empty-canvas, .empty-state {
@@ -1074,6 +1267,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   basicForm: FormGroup;
   fields: any[] = [];
   fieldGroups: any[] = [];
+  screens: any[] = [];
   approvers: any[] = [];
 
   workflowTypes: any[] = [];
@@ -1102,31 +1296,62 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { value: 'NUMBER', label: 'Number', icon: 'pin' },
     { value: 'EMAIL', label: 'Email', icon: 'email' },
     { value: 'PHONE', label: 'Phone', icon: 'phone' },
+    { value: 'PASSWORD', label: 'Password', icon: 'password' },
     { value: 'DATE', label: 'Date', icon: 'calendar_today' },
     { value: 'DATETIME', label: 'Date & Time', icon: 'schedule' },
     { value: 'SELECT', label: 'Dropdown', icon: 'arrow_drop_down_circle' },
+    { value: 'MULTISELECT', label: 'Multi-Select', icon: 'checklist_rtl' },
     { value: 'RADIO', label: 'Radio Buttons', icon: 'radio_button_checked' },
     { value: 'CHECKBOX', label: 'Checkbox', icon: 'check_box' },
     { value: 'CHECKBOX_GROUP', label: 'Checkbox Group', icon: 'checklist' },
     { value: 'FILE', label: 'File Upload', icon: 'attach_file' },
     { value: 'CURRENCY', label: 'Currency', icon: 'attach_money' },
-    { value: 'URL', label: 'URL', icon: 'link' }
+    { value: 'URL', label: 'URL', icon: 'link' },
+    { value: 'USER', label: 'User Select', icon: 'person_search' },
+    { value: 'HIDDEN', label: 'Hidden Field', icon: 'visibility_off' },
+    { value: 'LABEL', label: 'Label/Text', icon: 'label' },
+    { value: 'DIVIDER', label: 'Divider', icon: 'horizontal_rule' }
   ];
+
+  // Track expanded state of function categories
+  expandedCategories: Record<string, boolean> = {
+    string: true,
+    number: false,
+    date: false,
+    boolean: false,
+    utility: false,
+    other: false
+  };
 
   // String Functions
   stringFunctions = [
     { name: 'UPPER(field)', description: 'Convert text to uppercase', syntax: 'UPPER(fieldName)' },
     { name: 'LOWER(field)', description: 'Convert text to lowercase', syntax: 'LOWER(fieldName)' },
     { name: 'TRIM(field)', description: 'Remove leading/trailing spaces', syntax: 'TRIM(fieldName)' },
+    { name: 'LTRIM(field)', description: 'Remove leading spaces', syntax: 'LTRIM(fieldName)' },
+    { name: 'RTRIM(field)', description: 'Remove trailing spaces', syntax: 'RTRIM(fieldName)' },
     { name: 'CONCAT(a, b)', description: 'Join two or more text values', syntax: 'CONCAT(field1, field2)' },
+    { name: 'CONCAT_WS(sep, a, b)', description: 'Join with separator', syntax: 'CONCAT_WS("-", field1, field2)' },
     { name: 'LEFT(field, n)', description: 'Get first n characters', syntax: 'LEFT(fieldName, 5)' },
     { name: 'RIGHT(field, n)', description: 'Get last n characters', syntax: 'RIGHT(fieldName, 5)' },
     { name: 'SUBSTRING(field, start, len)', description: 'Extract part of text', syntax: 'SUBSTRING(fieldName, 1, 5)' },
     { name: 'LENGTH(field)', description: 'Get text length', syntax: 'LENGTH(fieldName)' },
     { name: 'REPLACE(field, old, new)', description: 'Replace text', syntax: 'REPLACE(fieldName, "old", "new")' },
+    { name: 'REPLACE_ALL(field, old, new)', description: 'Replace all occurrences', syntax: 'REPLACE_ALL(fieldName, "old", "new")' },
     { name: 'CONTAINS(field, text)', description: 'Check if text contains value', syntax: 'CONTAINS(fieldName, "search")' },
     { name: 'STARTS_WITH(field, text)', description: 'Check if text starts with value', syntax: 'STARTS_WITH(fieldName, "prefix")' },
-    { name: 'ENDS_WITH(field, text)', description: 'Check if text ends with value', syntax: 'ENDS_WITH(fieldName, "suffix")' }
+    { name: 'ENDS_WITH(field, text)', description: 'Check if text ends with value', syntax: 'ENDS_WITH(fieldName, "suffix")' },
+    { name: 'REVERSE(field)', description: 'Reverse text string', syntax: 'REVERSE(fieldName)' },
+    { name: 'REPEAT(field, n)', description: 'Repeat text n times', syntax: 'REPEAT(fieldName, 3)' },
+    { name: 'PAD_LEFT(field, len, char)', description: 'Pad text on left', syntax: 'PAD_LEFT(fieldName, 10, "0")' },
+    { name: 'PAD_RIGHT(field, len, char)', description: 'Pad text on right', syntax: 'PAD_RIGHT(fieldName, 10, " ")' },
+    { name: 'CAPITALIZE(field)', description: 'Capitalize first letter', syntax: 'CAPITALIZE(fieldName)' },
+    { name: 'TITLE_CASE(field)', description: 'Title case all words', syntax: 'TITLE_CASE(fieldName)' },
+    { name: 'SPLIT(field, sep)', description: 'Split text by separator', syntax: 'SPLIT(fieldName, ",")' },
+    { name: 'JOIN(array, sep)', description: 'Join array with separator', syntax: 'JOIN(arrayField, ", ")' },
+    { name: 'INDEX_OF(field, text)', description: 'Find position of text', syntax: 'INDEX_OF(fieldName, "search")' },
+    { name: 'REGEX_MATCH(field, pattern)', description: 'Match regex pattern', syntax: 'REGEX_MATCH(fieldName, "\\\\d+")' },
+    { name: 'REGEX_REPLACE(field, pattern, rep)', description: 'Replace with regex', syntax: 'REGEX_REPLACE(fieldName, "\\\\d+", "#")' }
   ];
 
   // Number Functions
@@ -1138,47 +1363,85 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { name: 'ROUND(field, decimals)', description: 'Round to decimal places', syntax: 'ROUND(fieldName, 2)' },
     { name: 'FLOOR(field)', description: 'Round down to integer', syntax: 'FLOOR(fieldName)' },
     { name: 'CEIL(field)', description: 'Round up to integer', syntax: 'CEIL(fieldName)' },
+    { name: 'TRUNC(field)', description: 'Truncate decimal part', syntax: 'TRUNC(fieldName)' },
     { name: 'ABS(field)', description: 'Get absolute value', syntax: 'ABS(fieldName)' },
+    { name: 'SIGN(field)', description: 'Get sign (-1, 0, 1)', syntax: 'SIGN(fieldName)' },
     { name: 'MIN(a, b, ...)', description: 'Get minimum value', syntax: 'MIN(field1, field2)' },
     { name: 'MAX(a, b, ...)', description: 'Get maximum value', syntax: 'MAX(field1, field2)' },
     { name: 'AVERAGE(a, b, ...)', description: 'Calculate average', syntax: 'AVERAGE(field1, field2, field3)' },
+    { name: 'MEDIAN(a, b, ...)', description: 'Calculate median', syntax: 'MEDIAN(field1, field2, field3)' },
+    { name: 'COUNT(a, b, ...)', description: 'Count non-empty values', syntax: 'COUNT(field1, field2, field3)' },
     { name: 'PERCENTAGE(value, total)', description: 'Calculate percentage', syntax: 'PERCENTAGE(part, total)' },
     { name: 'MOD(a, b)', description: 'Get remainder of division', syntax: 'MOD(field1, field2)' },
-    { name: 'POWER(base, exp)', description: 'Raise to power', syntax: 'POWER(fieldName, 2)' }
+    { name: 'POWER(base, exp)', description: 'Raise to power', syntax: 'POWER(fieldName, 2)' },
+    { name: 'SQRT(field)', description: 'Square root', syntax: 'SQRT(fieldName)' },
+    { name: 'LOG(field)', description: 'Natural logarithm', syntax: 'LOG(fieldName)' },
+    { name: 'LOG10(field)', description: 'Base 10 logarithm', syntax: 'LOG10(fieldName)' },
+    { name: 'EXP(field)', description: 'e raised to power', syntax: 'EXP(fieldName)' },
+    { name: 'CLAMP(field, min, max)', description: 'Limit to range', syntax: 'CLAMP(fieldName, 0, 100)' },
+    { name: 'IS_NUMBER(field)', description: 'Check if value is number', syntax: 'IS_NUMBER(fieldName)' }
   ];
 
   // Date Functions
   dateFunctions = [
     { name: 'TODAY()', description: 'Get current date', syntax: 'TODAY()' },
     { name: 'NOW()', description: 'Get current date and time', syntax: 'NOW()' },
+    { name: 'DATE(y, m, d)', description: 'Create date from parts', syntax: 'DATE(2024, 12, 25)' },
+    { name: 'TIME(h, m, s)', description: 'Create time from parts', syntax: 'TIME(14, 30, 0)' },
     { name: 'DATE_FORMAT(field, format)', description: 'Format date', syntax: 'DATE_FORMAT(fieldName, "DD/MM/YYYY")' },
+    { name: 'DATE_PARSE(text, format)', description: 'Parse date from text', syntax: 'DATE_PARSE(fieldName, "DD/MM/YYYY")' },
     { name: 'DATE_ADD(field, n, unit)', description: 'Add time to date', syntax: 'DATE_ADD(fieldName, 7, "days")' },
     { name: 'DATE_SUBTRACT(field, n, unit)', description: 'Subtract time from date', syntax: 'DATE_SUBTRACT(fieldName, 1, "month")' },
     { name: 'DATE_DIFF(a, b, unit)', description: 'Difference between dates', syntax: 'DATE_DIFF(startDate, endDate, "days")' },
     { name: 'YEAR(field)', description: 'Extract year from date', syntax: 'YEAR(fieldName)' },
     { name: 'MONTH(field)', description: 'Extract month from date', syntax: 'MONTH(fieldName)' },
     { name: 'DAY(field)', description: 'Extract day from date', syntax: 'DAY(fieldName)' },
+    { name: 'HOUR(field)', description: 'Extract hour from datetime', syntax: 'HOUR(fieldName)' },
+    { name: 'MINUTE(field)', description: 'Extract minute from datetime', syntax: 'MINUTE(fieldName)' },
+    { name: 'SECOND(field)', description: 'Extract second from datetime', syntax: 'SECOND(fieldName)' },
     { name: 'WEEKDAY(field)', description: 'Get day of week (1-7)', syntax: 'WEEKDAY(fieldName)' },
+    { name: 'WEEK_OF_YEAR(field)', description: 'Get week number', syntax: 'WEEK_OF_YEAR(fieldName)' },
+    { name: 'QUARTER(field)', description: 'Get quarter (1-4)', syntax: 'QUARTER(fieldName)' },
     { name: 'START_OF_MONTH(field)', description: 'Get first day of month', syntax: 'START_OF_MONTH(fieldName)' },
     { name: 'END_OF_MONTH(field)', description: 'Get last day of month', syntax: 'END_OF_MONTH(fieldName)' },
+    { name: 'START_OF_YEAR(field)', description: 'Get first day of year', syntax: 'START_OF_YEAR(fieldName)' },
+    { name: 'END_OF_YEAR(field)', description: 'Get last day of year', syntax: 'END_OF_YEAR(fieldName)' },
+    { name: 'START_OF_WEEK(field)', description: 'Get first day of week', syntax: 'START_OF_WEEK(fieldName)' },
     { name: 'IS_WEEKEND(field)', description: 'Check if date is weekend', syntax: 'IS_WEEKEND(fieldName)' },
-    { name: 'BUSINESS_DAYS(a, b)', description: 'Count business days between dates', syntax: 'BUSINESS_DAYS(startDate, endDate)' }
+    { name: 'IS_WORKDAY(field)', description: 'Check if date is workday', syntax: 'IS_WORKDAY(fieldName)' },
+    { name: 'IS_PAST(field)', description: 'Check if date is in past', syntax: 'IS_PAST(fieldName)' },
+    { name: 'IS_FUTURE(field)', description: 'Check if date is in future', syntax: 'IS_FUTURE(fieldName)' },
+    { name: 'BUSINESS_DAYS(a, b)', description: 'Count business days between dates', syntax: 'BUSINESS_DAYS(startDate, endDate)' },
+    { name: 'ADD_BUSINESS_DAYS(field, n)', description: 'Add business days', syntax: 'ADD_BUSINESS_DAYS(fieldName, 5)' },
+    { name: 'AGE(birthDate)', description: 'Calculate age in years', syntax: 'AGE(birthDateField)' }
   ];
 
   // Boolean/Logic Functions
   booleanFunctions = [
     { name: 'IF(condition, then, else)', description: 'Conditional logic', syntax: 'IF(field > 100, "High", "Low")' },
+    { name: 'IFS(cond1, val1, ...)', description: 'Multiple conditions', syntax: 'IFS(field > 100, "High", field > 50, "Medium", true, "Low")' },
     { name: 'AND(a, b, ...)', description: 'All conditions must be true', syntax: 'AND(condition1, condition2)' },
     { name: 'OR(a, b, ...)', description: 'Any condition must be true', syntax: 'OR(condition1, condition2)' },
+    { name: 'XOR(a, b)', description: 'Exclusive OR', syntax: 'XOR(condition1, condition2)' },
     { name: 'NOT(condition)', description: 'Reverse boolean value', syntax: 'NOT(fieldName)' },
+    { name: 'TRUE()', description: 'Returns true value', syntax: 'TRUE()' },
+    { name: 'FALSE()', description: 'Returns false value', syntax: 'FALSE()' },
     { name: 'IS_EMPTY(field)', description: 'Check if field is empty', syntax: 'IS_EMPTY(fieldName)' },
     { name: 'IS_NOT_EMPTY(field)', description: 'Check if field has value', syntax: 'IS_NOT_EMPTY(fieldName)' },
+    { name: 'IS_NULL(field)', description: 'Check if field is null', syntax: 'IS_NULL(fieldName)' },
+    { name: 'IS_BLANK(field)', description: 'Check if empty or whitespace', syntax: 'IS_BLANK(fieldName)' },
     { name: 'EQUALS(a, b)', description: 'Check if values are equal', syntax: 'EQUALS(field1, field2)' },
     { name: 'NOT_EQUALS(a, b)', description: 'Check if values differ', syntax: 'NOT_EQUALS(field1, field2)' },
     { name: 'GREATER_THAN(a, b)', description: 'Check if a > b', syntax: 'GREATER_THAN(field1, field2)' },
+    { name: 'GREATER_OR_EQUAL(a, b)', description: 'Check if a >= b', syntax: 'GREATER_OR_EQUAL(field1, field2)' },
     { name: 'LESS_THAN(a, b)', description: 'Check if a < b', syntax: 'LESS_THAN(field1, field2)' },
+    { name: 'LESS_OR_EQUAL(a, b)', description: 'Check if a <= b', syntax: 'LESS_OR_EQUAL(field1, field2)' },
     { name: 'BETWEEN(field, min, max)', description: 'Check if value is in range', syntax: 'BETWEEN(fieldName, 10, 100)' },
-    { name: 'IN(field, list)', description: 'Check if value is in list', syntax: 'IN(fieldName, ["A", "B", "C"])' }
+    { name: 'IN(field, list)', description: 'Check if value is in list', syntax: 'IN(fieldName, ["A", "B", "C"])' },
+    { name: 'NOT_IN(field, list)', description: 'Check if value not in list', syntax: 'NOT_IN(fieldName, ["X", "Y", "Z"])' },
+    { name: 'IS_VALID_EMAIL(field)', description: 'Validate email format', syntax: 'IS_VALID_EMAIL(emailField)' },
+    { name: 'IS_VALID_PHONE(field)', description: 'Validate phone format', syntax: 'IS_VALID_PHONE(phoneField)' },
+    { name: 'IS_VALID_URL(field)', description: 'Validate URL format', syntax: 'IS_VALID_URL(urlField)' }
   ];
 
   // Utility Functions
@@ -1187,14 +1450,42 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { name: 'DEFAULT(field, value)', description: 'Set default if empty', syntax: 'DEFAULT(fieldName, "N/A")' },
     { name: 'FORMAT_CURRENCY(field, currency)', description: 'Format as currency', syntax: 'FORMAT_CURRENCY(amount, "USD")' },
     { name: 'FORMAT_NUMBER(field, decimals)', description: 'Format number with decimals', syntax: 'FORMAT_NUMBER(fieldName, 2)' },
+    { name: 'FORMAT_PERCENT(field)', description: 'Format as percentage', syntax: 'FORMAT_PERCENT(fieldName)' },
     { name: 'TO_NUMBER(field)', description: 'Convert text to number', syntax: 'TO_NUMBER(fieldName)' },
     { name: 'TO_TEXT(field)', description: 'Convert value to text', syntax: 'TO_TEXT(fieldName)' },
+    { name: 'TO_BOOLEAN(field)', description: 'Convert value to boolean', syntax: 'TO_BOOLEAN(fieldName)' },
+    { name: 'TO_DATE(field)', description: 'Convert text to date', syntax: 'TO_DATE(fieldName)' },
     { name: 'UUID()', description: 'Generate unique identifier', syntax: 'UUID()' },
     { name: 'SEQUENCE(prefix)', description: 'Generate sequential number', syntax: 'SEQUENCE("INV-")' },
     { name: 'CURRENT_USER()', description: 'Get current user name', syntax: 'CURRENT_USER()' },
     { name: 'CURRENT_USER_EMAIL()', description: 'Get current user email', syntax: 'CURRENT_USER_EMAIL()' },
+    { name: 'CURRENT_USER_ID()', description: 'Get current user ID', syntax: 'CURRENT_USER_ID()' },
+    { name: 'CURRENT_USER_DEPT()', description: 'Get current user department', syntax: 'CURRENT_USER_DEPT()' },
+    { name: 'CURRENT_USER_SBU()', description: 'Get current user SBU', syntax: 'CURRENT_USER_SBU()' },
     { name: 'FIELD_VALUE(name)', description: 'Get value of another field', syntax: 'FIELD_VALUE("otherFieldName")' },
-    { name: 'LOOKUP(field, source)', description: 'Lookup value from data source', syntax: 'LOOKUP(fieldName, "employees")' }
+    { name: 'LOOKUP(field, source)', description: 'Lookup value from data source', syntax: 'LOOKUP(fieldName, "employees")' },
+    { name: 'TYPE_OF(field)', description: 'Get type of value', syntax: 'TYPE_OF(fieldName)' },
+    { name: 'HASH(field)', description: 'Generate hash of value', syntax: 'HASH(fieldName)' }
+  ];
+
+  // Other Functions
+  otherFunctions = [
+    { name: 'ARRAY_LENGTH(field)', description: 'Get length of array', syntax: 'ARRAY_LENGTH(arrayField)' },
+    { name: 'ARRAY_FIRST(field)', description: 'Get first element of array', syntax: 'ARRAY_FIRST(arrayField)' },
+    { name: 'ARRAY_LAST(field)', description: 'Get last element of array', syntax: 'ARRAY_LAST(arrayField)' },
+    { name: 'ARRAY_CONTAINS(field, val)', description: 'Check if array contains value', syntax: 'ARRAY_CONTAINS(arrayField, "value")' },
+    { name: 'ARRAY_UNIQUE(field)', description: 'Remove duplicates from array', syntax: 'ARRAY_UNIQUE(arrayField)' },
+    { name: 'ARRAY_SORT(field)', description: 'Sort array values', syntax: 'ARRAY_SORT(arrayField)' },
+    { name: 'JSON_GET(field, path)', description: 'Get value from JSON path', syntax: 'JSON_GET(jsonField, "data.name")' },
+    { name: 'JSON_SET(field, path, val)', description: 'Set value in JSON', syntax: 'JSON_SET(jsonField, "data.name", "value")' },
+    { name: 'ENCODE_BASE64(field)', description: 'Encode to Base64', syntax: 'ENCODE_BASE64(fieldName)' },
+    { name: 'DECODE_BASE64(field)', description: 'Decode from Base64', syntax: 'DECODE_BASE64(fieldName)' },
+    { name: 'ENCODE_URL(field)', description: 'URL encode text', syntax: 'ENCODE_URL(fieldName)' },
+    { name: 'DECODE_URL(field)', description: 'URL decode text', syntax: 'DECODE_URL(fieldName)' },
+    { name: 'RANDOM()', description: 'Generate random number 0-1', syntax: 'RANDOM()' },
+    { name: 'RANDOM_INT(min, max)', description: 'Generate random integer', syntax: 'RANDOM_INT(1, 100)' },
+    { name: 'SWITCH(field, cases)', description: 'Multi-case conditional', syntax: 'SWITCH(status, "A", "Active", "I", "Inactive", "Unknown")' },
+    { name: 'TEMPLATE(str, vars)', description: 'String template with variables', syntax: 'TEMPLATE("Hello {name}", {"name": fieldName})' }
   ];
 
   constructor(
@@ -1261,6 +1552,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     this.workflowName = '';
     this.fields = [];
     this.fieldGroups = [];
+    this.screens = [];
     this.approvers = [];
     this.basicForm.reset({
       name: '',
@@ -1435,16 +1727,18 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
             isUnique: f.isUnique ?? false,
             isTitle: f.isTitle ?? false,
             isLimited: f.isLimited ?? false,
+            inSummary: f.inSummary ?? false,
             optionsText: f.options?.map((o: any) => o.value).join('\n') || ''
           })) || [];
           this.fieldGroups = workflow.forms[0].fieldGroups || [];
+          this.screens = workflow.forms[0].screens || [];
         }
 
         // Map approvers and convert userId to approverId for the dropdown
         this.approvers = (workflow.approvers || []).map((a: any) => ({
           ...a,
           approverId: a.userId || a.approverId || null,
-          email: a.approverEmail || a.email || ''
+          approverType: a.approverType || (a.userId ? 'USER' : (a.roleId ? 'ROLE' : 'USER'))
         }));
       }
     });
@@ -1512,6 +1806,47 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     return this.fields.filter(f => f.fieldGroupId === groupId);
   }
 
+  addScreen() {
+    const screen = {
+      id: 'temp_' + Date.now(),
+      title: '',
+      description: '',
+      displayOrder: this.screens.length,
+      icon: 'view_carousel'
+    };
+    this.screens.push(screen);
+  }
+
+  removeScreen(index: number) {
+    const screenId = this.screens[index].id;
+    // Clear screenId from fields assigned to this screen
+    this.fields.forEach(f => {
+      if (f.screenId === screenId) {
+        f.screenId = null;
+      }
+    });
+    // Clear screenId from field groups assigned to this screen
+    this.fieldGroups.forEach(g => {
+      if (g.screenId === screenId) {
+        g.screenId = null;
+      }
+    });
+    this.screens.splice(index, 1);
+  }
+
+  dropScreen(event: CdkDragDrop<any[]>) {
+    moveItemInArray(this.screens, event.previousIndex, event.currentIndex);
+    this.screens.forEach((s, i) => s.displayOrder = i);
+  }
+
+  getFieldsInScreen(screenId: string): any[] {
+    return this.fields.filter(f => f.screenId === screenId);
+  }
+
+  getFieldGroupsInScreen(screenId: string): any[] {
+    return this.fieldGroups.filter(g => g.screenId === screenId);
+  }
+
   insertFunction(fn: any) {
     // Copy the function syntax to clipboard and show a snackbar message
     navigator.clipboard.writeText(fn.syntax).then(() => {
@@ -1530,7 +1865,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       ...this.numberFunctions.map(f => ({ ...f, category: 'Number' })),
       ...this.dateFunctions.map(f => ({ ...f, category: 'Date' })),
       ...this.booleanFunctions.map(f => ({ ...f, category: 'Boolean/Logic' })),
-      ...this.utilityFunctions.map(f => ({ ...f, category: 'Utility' }))
+      ...this.utilityFunctions.map(f => ({ ...f, category: 'Utility' })),
+      ...this.otherFunctions.map(f => ({ ...f, category: 'Other' }))
     ];
 
     return allFunctions.filter(fn =>
@@ -1600,7 +1936,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       : 0;
     const approver = {
       level: maxLevel + 1,
+      approverType: 'USER',
       approverId: null as string | null,
+      roleId: null,
       email: '',
       amountLimit: null,
       canEscalate: true,
@@ -1631,14 +1969,29 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   }
 
   getApproverDisplayName(approver: any): string {
-    const userId = approver.approverId || approver.userId;
-    if (userId) {
-      const user = this.users.find(u => u.id === userId);
-      if (user?.fullName) {
-        return user.fullName;
+    if (approver.approverType === 'USER') {
+      const userId = approver.approverId || approver.userId;
+      if (userId) {
+        const user = this.users.find(u => u.id === userId);
+        if (user?.fullName) {
+          return user.fullName;
+        }
+      }
+      // Fallback to backend-provided name
+      if (approver.approverName) {
+        return approver.approverName;
       }
     }
-    // Fallback to backend-provided name
+    if (approver.approverType === 'ROLE' && approver.roleId) {
+      const role = this.roles.find(r => r.id === approver.roleId);
+      if (role?.name) {
+        return role.name;
+      }
+      // Fallback to backend-provided name
+      if (approver.approverName) {
+        return approver.approverName;
+      }
+    }
     return approver.approverName || '';
   }
 
@@ -1656,12 +2009,14 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     this.dialog.open(WorkflowPreviewDialogComponent, {
       width: '900px',
       maxHeight: '90vh',
+      panelClass: 'preview-dialog-container',
       data: {
         workflowName: this.basicForm.get('name')?.value || 'Untitled Workflow',
         workflowDescription: this.basicForm.get('description')?.value || '',
         workflowIcon: this.basicForm.get('icon')?.value || 'description',
         fields: this.fields,
-        fieldGroups: this.fieldGroups
+        fieldGroups: this.fieldGroups,
+        screens: this.screens
       }
     });
   }
@@ -1685,6 +2040,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       isUnique: f.isUnique ?? false,
       isTitle: f.isTitle ?? false,
       isLimited: f.isLimited ?? false,
+      inSummary: f.inSummary ?? false,
       options: f.optionsText?.split('\n').filter((o: string) => o.trim()).map((value: string, index: number) => ({
         value: value.trim(),
         label: value.trim(),
@@ -1698,7 +2054,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         id: this.formId,  // Include form ID for updates
         name: 'Main Form',
         fields: processedFields,
-        fieldGroups: this.fieldGroups
+        fieldGroups: this.fieldGroups,
+        screens: this.screens
       }],
       approvers: this.approvers
     };

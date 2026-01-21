@@ -28,4 +28,5 @@ public class WorkflowFormDTO {
     private Boolean isMainForm;
     private List<WorkflowFieldDTO> fields;
     private List<FieldGroupDTO> fieldGroups;
+    private List<ScreenDTO> screens;
 }

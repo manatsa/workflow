@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -30,6 +31,24 @@ interface ReportCategory {
 @Component({
   selector: 'app-main-layout',
   standalone: true,
+  animations: [
+    trigger('footerExpand', [
+      state('collapsed', style({
+        height: '0',
+        opacity: '0',
+        overflow: 'hidden',
+        padding: '0'
+      })),
+      state('expanded', style({
+        height: '*',
+        opacity: '1',
+        overflow: 'hidden'
+      })),
+      transition('collapsed <=> expanded', [
+        animate('200ms ease-in-out')
+      ])
+    ])
+  ],
   imports: [
     CommonModule,
     RouterModule,
@@ -48,8 +67,7 @@ interface ReportCategory {
     <div class="layout-container">
       <aside class="sidebar" [class.collapsed]="!sidebarOpen">
         <div class="sidebar-header">
-          <mat-icon>workflow</mat-icon>
-          <span class="brand-text">Sonarworks</span>
+          <img src="assets/sonar_logo.png" alt="Sonarworks" class="brand-logo">
         </div>
 
         <div class="user-profile">
@@ -201,9 +219,17 @@ interface ReportCategory {
           </mat-expansion-panel>
         </nav>
 
-        <div class="sidebar-footer">
-          <div class="developer">Developed By: Sonar Microsystems</div>
-          <div class="copyright">v1.0.0 | &copy; {{ currentYear }} All Rights Reserved</div>
+        <div class="sidebar-footer" [class.collapsed]="footerCollapsed">
+          <div class="footer-toggle" (click)="toggleFooter()">
+            @if (!footerCollapsed) {
+              <span>About</span>
+            }
+            <mat-icon class="toggle-icon">{{ footerCollapsed ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </div>
+          <div class="footer-content" [@footerExpand]="footerCollapsed ? 'collapsed' : 'expanded'">
+            <div class="developer">Developed By: Sonar Microsystems</div>
+            <div class="copyright">v1.0.0 | &copy; {{ currentYear }} All Rights Reserved</div>
+          </div>
         </div>
       </aside>
 
@@ -264,9 +290,16 @@ interface ReportCategory {
       background: var(--sidebar-header-bg, #1e272c);
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
       font-size: 1.25rem;
       font-weight: 500;
+    }
+
+    .brand-logo {
+      max-width: 180px;
+      max-height: 50px;
+      object-fit: contain;
     }
 
     .user-profile {
@@ -370,11 +403,36 @@ interface ReportCategory {
     }
 
     .sidebar-footer {
-      padding: 1rem;
-      text-align: center;
       border-top: 1px solid var(--menu-hover-bg, #37474f);
+      opacity: 0.9;
+    }
+
+    .footer-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background 0.2s, padding 0.2s;
+      font-weight: 500;
       font-size: 0.75rem;
-      opacity: 0.8;
+    }
+
+    .footer-toggle:hover {
+      background: var(--menu-hover-bg, #37474f);
+    }
+
+    .footer-toggle .toggle-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      transition: transform 0.2s, font-size 0.2s;
+    }
+
+    .footer-content {
+      text-align: center;
+      padding: 0.5rem 1rem 1rem;
+      font-size: 0.75rem;
     }
 
     .sidebar-footer .developer {
@@ -384,6 +442,31 @@ interface ReportCategory {
 
     .sidebar-footer .copyright {
       opacity: 0.7;
+    }
+
+    .sidebar-footer.collapsed {
+      border-top: none;
+      border-bottom: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-footer.collapsed .footer-toggle {
+      padding: 1px 0;
+      margin: 0;
+      justify-content: center;
+      height: auto;
+      min-height: 0;
+      line-height: 1;
+    }
+
+    .sidebar-footer.collapsed .footer-toggle .toggle-icon {
+      font-size: 8px !important;
+      width: 8px !important;
+      height: 8px !important;
+      line-height: 8px !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     .main-content {
@@ -433,6 +516,7 @@ export class MainLayoutComponent implements OnInit {
   activeWorkflows: Workflow[] = [];
   reportCategories: ReportCategory[] = [];
   sidebarOpen = true;
+  footerCollapsed = false;
   pendingApprovalsCount = 0;
   mySubmissionsCount = 0;
   currentYear = new Date().getFullYear();
@@ -529,6 +613,10 @@ export class MainLayoutComponent implements OnInit {
 
   toggleSidebar() {
     this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  toggleFooter() {
+    this.footerCollapsed = !this.footerCollapsed;
   }
 
   logout() {

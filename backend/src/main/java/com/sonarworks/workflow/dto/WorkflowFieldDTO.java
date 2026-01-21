@@ -20,6 +20,7 @@ public class WorkflowFieldDTO {
 
     private String id;  // String to accept temp IDs from frontend
     private String formId;  // String to match temp form IDs
+    private String screenId;  // String to match temp screen IDs
     private String fieldGroupId;  // String to match temp group IDs
 
     private String name;

@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Subscription, merge } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { Subscription, merge, Observable, of } from 'rxjs';
+import { debounceTime, map, startWith, switchMap, catchError } from 'rxjs/operators';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,9 +18,13 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatDividerModule } from '@angular/material/divider';
 import { WorkflowService } from '@core/services/workflow.service';
 import { AuthService } from '@core/services/auth.service';
-import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model';
+import { UserService } from '@core/services/user.service';
+import { Workflow, WorkflowField, FieldGroup, Screen } from '@core/models/workflow.model';
+import { User } from '@core/models/user.model';
 
 @Component({
   selector: 'app-workflow-form',
@@ -42,7 +46,9 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
     MatExpansionModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    MatChipsModule
+    MatChipsModule,
+    MatAutocompleteModule,
+    MatDividerModule
   ],
   template: `
     <div class="workflow-form-container">
@@ -63,12 +69,48 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
         </div>
       } @else if (workflow) {
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <!-- Multi-Step Progress Indicator -->
+          @if (isMultiStep) {
+            <div class="step-indicator">
+              @for (screen of screens; track screen.id; let i = $index) {
+                <div class="step" [class.active]="i === currentScreenIndex" [class.completed]="i < currentScreenIndex" (click)="goToScreen(i)">
+                  <div class="step-circle">
+                    @if (i < currentScreenIndex) {
+                      <mat-icon>check</mat-icon>
+                    } @else {
+                      {{ i + 1 }}
+                    }
+                  </div>
+                  <span class="step-label">{{ screen.title || 'Step ' + (i + 1) }}</span>
+                </div>
+                @if (i < screens.length - 1) {
+                  <div class="step-connector" [class.completed]="i < currentScreenIndex"></div>
+                }
+              }
+            </div>
+
+            <!-- Screen Header -->
+            @if (currentScreen) {
+              <div class="screen-header">
+                @if (currentScreen.icon) {
+                  <mat-icon>{{ currentScreen.icon }}</mat-icon>
+                }
+                <div>
+                  <h2>{{ currentScreen.title }}</h2>
+                  @if (currentScreen.description) {
+                    <p>{{ currentScreen.description }}</p>
+                  }
+                </div>
+              </div>
+            }
+          }
+
           <!-- Ungrouped Fields -->
-          @if (getUngroupedFields().length > 0) {
+          @if (isMultiStep ? getUngroupedFieldsOnScreen().length > 0 : getUngroupedFields().length > 0) {
             <mat-card class="form-card">
               <mat-card-content>
                 <div class="fields-grid">
-                  @for (field of getUngroupedFields(); track field.id) {
+                  @for (field of (isMultiStep ? getUngroupedFieldsOnScreen() : getUngroupedFields()); track field.id) {
                     <div class="field-wrapper" [style.grid-column]="'span ' + (field.columnSpan || 2)">
                       @switch (field.type) {
                         @case ('TEXT') {
@@ -138,6 +180,17 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                             }
                           </div>
                         }
+                        @case ('PASSWORD') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput type="password" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
                         @case ('DATE') {
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
@@ -151,11 +204,37 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                             }
                           </div>
                         }
+                        @case ('DATETIME') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput type="datetime-local" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
                         @case ('SELECT') {
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                               <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
                               <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
+                                @for (option of field.options; track option.value) {
+                                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                }
+                              </mat-select>
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('MULTISELECT') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" multiple>
                                 @for (option of field.options; track option.value) {
                                   <mat-option [value]="option.value">{{ option.label }}</mat-option>
                                 }
@@ -182,6 +261,24 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                         @case ('CHECKBOX') {
                           <div class="field-container">
                             <mat-checkbox [formControlName]="field.name" [disabled]="isFieldReadonly(field)">{{ field.label }}</mat-checkbox>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('CHECKBOX_GROUP') {
+                          <div class="field-container checkbox-group-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="checkbox-options">
+                              @for (option of field.options || []; track option.value) {
+                                <mat-checkbox
+                                  [checked]="isCheckboxOptionSelected(field.name, option.value)"
+                                  [disabled]="isFieldReadonly(field)"
+                                  (change)="onCheckboxGroupChange(field.name, option.value, $event.checked)">
+                                  {{ option.label || option.value }}
+                                </mat-checkbox>
+                              }
+                            </div>
                             @if (hasFieldError(field)) {
                               <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
                             }
@@ -214,6 +311,58 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                             }
                           </div>
                         }
+                        @case ('USER') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <mat-icon matPrefix>person_search</mat-icon>
+                              <input matInput
+                                [formControlName]="field.name"
+                                [matAutocomplete]="auto"
+                                [placeholder]="field.placeholder || 'Search for a user...'"
+                                (input)="onUserSearch($event, field.name)"
+                                [readonly]="isFieldReadonly(field)">
+                              <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayUserFn" (optionSelected)="onUserSelected($event, field.name)">
+                                @for (user of getFilteredUsers(field.name); track user.id) {
+                                  <mat-option [value]="user">
+                                    <div class="user-option">
+                                      <mat-icon>person</mat-icon>
+                                      <div class="user-info">
+                                        <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                                        <span class="user-email">{{ user.email }}</span>
+                                      </div>
+                                    </div>
+                                  </mat-option>
+                                }
+                                @if (getFilteredUsers(field.name).length === 0 && userSearchTerms[field.name]) {
+                                  <mat-option disabled>No users found</mat-option>
+                                }
+                              </mat-autocomplete>
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('HIDDEN') {
+                          <input type="hidden" [formControlName]="field.name">
+                        }
+                        @case ('LABEL') {
+                          <div class="label-field">
+                            <p class="label-text">{{ field.label }}</p>
+                            @if (field.defaultValue) {
+                              <p class="label-description">{{ field.defaultValue }}</p>
+                            }
+                          </div>
+                        }
+                        @case ('DIVIDER') {
+                          <div class="divider-field">
+                            <mat-divider></mat-divider>
+                            @if (field.label) {
+                              <span class="divider-label">{{ field.label }}</span>
+                            }
+                          </div>
+                        }
                         @default {
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width">
@@ -231,7 +380,7 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
           }
 
           <!-- Grouped Fields -->
-          @for (group of fieldGroups; track group.id) {
+          @for (group of (isMultiStep ? getFieldGroupsOnScreen() : fieldGroups); track group.id) {
             <mat-card class="form-card group-card">
               <mat-expansion-panel [expanded]="!group.collapsed" [hideToggle]="!group.collapsible">
                 <mat-expansion-panel-header>
@@ -293,6 +442,201 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
                             }
                           </div>
                         }
+                        @case ('MULTISELECT') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <mat-select [formControlName]="field.name" [disabled]="isFieldReadonly(field)" multiple>
+                                @for (option of field.options; track option.value) {
+                                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                }
+                              </mat-select>
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('CURRENCY') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <span matTextPrefix>$&nbsp;</span>
+                              <input matInput type="number" step="0.01" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('EMAIL') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput type="email" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('PHONE') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput type="tel" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('PASSWORD') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput type="password" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('DATE') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput [matDatepicker]="groupPicker" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                              <mat-datepicker-toggle matIconSuffix [for]="groupPicker" [disabled]="isFieldReadonly(field)"></mat-datepicker-toggle>
+                              <mat-datepicker #groupPicker [disabled]="isFieldReadonly(field)"></mat-datepicker>
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('DATETIME') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput type="datetime-local" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('RADIO') {
+                          <div class="radio-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+                              @for (option of field.options; track option.value) {
+                                <mat-radio-button [value]="option.value">{{ option.label }}</mat-radio-button>
+                              }
+                            </mat-radio-group>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('CHECKBOX') {
+                          <div class="field-container">
+                            <mat-checkbox [formControlName]="field.name" [disabled]="isFieldReadonly(field)">{{ field.label }}</mat-checkbox>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('CHECKBOX_GROUP') {
+                          <div class="field-container checkbox-group-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="checkbox-options">
+                              @for (option of field.options || []; track option.value) {
+                                <mat-checkbox
+                                  [checked]="isCheckboxOptionSelected(field.name, option.value)"
+                                  [disabled]="isFieldReadonly(field)"
+                                  (change)="onCheckboxGroupChange(field.name, option.value, $event.checked)">
+                                  {{ option.label || option.value }}
+                                </mat-checkbox>
+                              }
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('FILE') {
+                          <div class="file-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <input type="file" (change)="onFileSelect($event, field.name)" [multiple]="field.multiple" [disabled]="isFieldReadonly(field)">
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('URL') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput type="url" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('USER') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <mat-icon matPrefix>person_search</mat-icon>
+                              <input matInput
+                                [formControlName]="field.name"
+                                [matAutocomplete]="autoGroup"
+                                [placeholder]="field.placeholder || 'Search for a user...'"
+                                (input)="onUserSearch($event, field.name)"
+                                [readonly]="isFieldReadonly(field)">
+                              <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="displayUserFn" (optionSelected)="onUserSelected($event, field.name)">
+                                @for (user of getFilteredUsers(field.name); track user.id) {
+                                  <mat-option [value]="user">
+                                    <div class="user-option">
+                                      <mat-icon>person</mat-icon>
+                                      <div class="user-info">
+                                        <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                                        <span class="user-email">{{ user.email }}</span>
+                                      </div>
+                                    </div>
+                                  </mat-option>
+                                }
+                                @if (getFilteredUsers(field.name).length === 0 && userSearchTerms[field.name]) {
+                                  <mat-option disabled>No users found</mat-option>
+                                }
+                              </mat-autocomplete>
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('HIDDEN') {
+                          <input type="hidden" [formControlName]="field.name">
+                        }
+                        @case ('LABEL') {
+                          <div class="label-field">
+                            <p class="label-text">{{ field.label }}</p>
+                            @if (field.defaultValue) {
+                              <p class="label-description">{{ field.defaultValue }}</p>
+                            }
+                          </div>
+                        }
+                        @case ('DIVIDER') {
+                          <div class="divider-field">
+                            <mat-divider></mat-divider>
+                            @if (field.label) {
+                              <span class="divider-label">{{ field.label }}</span>
+                            }
+                          </div>
+                        }
                         @default {
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
@@ -345,34 +689,66 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
             </mat-card>
           }
 
-          <!-- Comments -->
-          <mat-card class="form-card">
-            <mat-card-header>
-              <mat-card-title>Additional Comments</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Comments</mat-label>
-                <textarea matInput formControlName="comments" rows="3"
-                          placeholder="Add any additional information or comments"></textarea>
-              </mat-form-field>
-            </mat-card-content>
-          </mat-card>
-
           <!-- Actions -->
-          <div class="form-actions">
-            <button mat-button type="button" (click)="goBack()">Cancel</button>
-            <button mat-stroked-button type="button" (click)="saveDraft()" [disabled]="submitting">
-              Save Draft
-            </button>
-            <button mat-raised-button color="primary" type="submit" [disabled]="submitting">
-              @if (submitting) {
-                <mat-spinner diameter="20"></mat-spinner>
+          <!-- Form Actions - Different layouts for single page vs multi-step -->
+          @if (!isMultiStep) {
+            <!-- Single Page Form Actions -->
+            <div class="form-actions">
+              <button mat-button type="button" (click)="goBack()">Cancel</button>
+              <button mat-stroked-button type="button" (click)="saveDraft()" [disabled]="submitting">
+                Save Draft
+              </button>
+              <button mat-raised-button color="primary" type="submit" [disabled]="submitting">
+                @if (submitting) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  Submit for Approval
+                }
+              </button>
+            </div>
+          } @else {
+            <!-- Multi-Step Form Actions -->
+            <div class="form-actions multi-step">
+              @if (isFirstScreen) {
+                <!-- First Screen: Cancel + Next -->
+                <button mat-button type="button" (click)="goBack()">Cancel</button>
+                <span class="spacer"></span>
+                <button mat-raised-button color="primary" type="button" (click)="goToNextScreen()">
+                  Next
+                  <mat-icon>arrow_forward</mat-icon>
+                </button>
+              } @else if (isLastScreen) {
+                <!-- Last Screen: Back + Cancel/Save Draft/Submit -->
+                <button mat-stroked-button type="button" (click)="goToPreviousScreen()">
+                  <mat-icon>arrow_back</mat-icon>
+                  Back
+                </button>
+                <span class="spacer"></span>
+                <button mat-button type="button" (click)="goBack()">Cancel</button>
+                <button mat-stroked-button type="button" (click)="saveDraft()" [disabled]="submitting">
+                  Save Draft
+                </button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="submitting">
+                  @if (submitting) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    Submit for Approval
+                  }
+                </button>
               } @else {
-                Submit for Approval
+                <!-- Middle Screens: Back + Next -->
+                <button mat-stroked-button type="button" (click)="goToPreviousScreen()">
+                  <mat-icon>arrow_back</mat-icon>
+                  Back
+                </button>
+                <span class="spacer"></span>
+                <button mat-raised-button color="primary" type="button" (click)="goToNextScreen()">
+                  Next
+                  <mat-icon>arrow_forward</mat-icon>
+                </button>
               }
-            </button>
-          </div>
+            </div>
+          }
         </form>
       }
     </div>
@@ -524,6 +900,56 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
       padding: 0.5rem 0;
     }
 
+    .checkbox-group-field {
+      padding: 0.5rem 0;
+    }
+
+    .checkbox-group-field .field-label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: rgba(0, 0, 0, 0.87);
+    }
+
+    .checkbox-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .label-field {
+      padding: 1rem 0;
+    }
+
+    .label-field .label-text {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0;
+      color: rgba(0, 0, 0, 0.87);
+    }
+
+    .label-field .label-description {
+      font-size: 0.875rem;
+      color: #666;
+      margin: 0.25rem 0 0 0;
+    }
+
+    .divider-field {
+      padding: 1rem 0;
+      position: relative;
+    }
+
+    .divider-field .divider-label {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 0 1rem;
+      color: #666;
+      font-size: 0.875rem;
+    }
+
     .file-list {
       display: flex;
       flex-wrap: wrap;
@@ -569,6 +995,159 @@ import { Workflow, WorkflowField, FieldGroup } from '@core/models/workflow.model
       gap: 1rem;
       margin-top: 1rem;
     }
+
+    .form-actions.multi-step {
+      justify-content: flex-start;
+    }
+
+    .form-actions .spacer {
+      flex: 1;
+    }
+
+    /* Step Indicator Styles */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 0.5rem;
+      margin-bottom: 0.5rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      min-width: 60px;
+    }
+
+    .step-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e0e0e0;
+      color: #666;
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .step.active .step-circle {
+      background: #1976d2;
+      color: white;
+      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.4);
+    }
+
+    .step.completed .step-circle {
+      background: #4caf50;
+      color: white;
+    }
+
+    .step.completed .step-circle mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .step-label {
+      margin-top: 0.25rem;
+      font-size: 0.7rem;
+      color: #666;
+      text-align: center;
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .step.active .step-label {
+      color: #1976d2;
+      font-weight: 500;
+    }
+
+    .step.completed .step-label {
+      color: #4caf50;
+    }
+
+    .step-connector {
+      flex: 1;
+      height: 2px;
+      background: #e0e0e0;
+      margin: 0 0.25rem;
+      margin-bottom: 0.75rem;
+      max-width: 80px;
+      transition: background 0.3s ease;
+    }
+
+    .step-connector.completed {
+      background: #4caf50;
+    }
+
+    /* Screen Header Styles */
+    .screen-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 0.5rem;
+      background: #f5f5f5;
+      border-radius: 6px;
+      border-left: 3px solid #1976d2;
+    }
+
+    .screen-header mat-icon {
+      color: #1976d2;
+      font-size: 1.25rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      margin-top: 0.125rem;
+    }
+
+    .screen-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .screen-header p {
+      margin: 0.125rem 0 0 0;
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .user-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.25rem 0;
+    }
+
+    .user-option mat-icon {
+      color: #666;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-name {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .user-email {
+      font-size: 0.75rem;
+      color: #666;
+    }
   `]
 })
 export class WorkflowFormComponent implements OnInit, OnDestroy {
@@ -580,11 +1159,14 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   fields: WorkflowField[] = [];
   fieldGroups: FieldGroup[] = [];
+  screens: Screen[] = [];
+  currentScreenIndex = 0;
   selectedFiles: Record<string, File[]> = {};
   attachments: File[] = [];
   instanceId: string | null = null;
   isEditMode = false;
   existingFieldValues: Record<string, any> = {};
+  checkboxGroupValues: Record<string, string[]> = {};
 
   // Track calculated fields and their dependencies
   private calculatedFields: Map<string, { expression: string; fieldType: string; dependencies: string[] }> = new Map();
@@ -600,8 +1182,15 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   private pendingUniqueChecks: Map<string, boolean> = new Map();
   private uniqueCheckCache: Map<string, boolean> = new Map();
 
+  // User field data
+  allUsers: User[] = [];
+  filteredUsersMap: Record<string, User[]> = {};
+  userSearchTerms: Record<string, string> = {};
+  selectedUsers: Record<string, User> = {};
+
   constructor(
     private fb: FormBuilder,
+    private userService: UserService,
     private workflowService: WorkflowService,
     private authService: AuthService,
     private router: Router,
@@ -615,6 +1204,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     this.instanceId = this.route.snapshot.paramMap.get('instanceId') || null;
     this.isEditMode = !!this.instanceId;
     this.loadWorkflow();
+    this.loadUsers();
   }
 
   ngOnDestroy() {
@@ -650,15 +1240,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         if (res.success && res.data) {
           // Extract field values from instance
           if (res.data.fieldValues) {
-            if (Array.isArray(res.data.fieldValues)) {
-              // Handle array format: [{fieldName: 'x', value: 'y'}, ...]
-              res.data.fieldValues.forEach((fv: any) => {
-                this.existingFieldValues[fv.fieldName] = fv.value;
-              });
-            } else {
-              // Handle object/map format: {fieldName: value, ...}
-              this.existingFieldValues = { ...res.data.fieldValues };
-            }
+            res.data.fieldValues.forEach((fv: any) => {
+              this.existingFieldValues[fv.fieldName] = fv.value;
+            });
           }
           this.initializeForm();
         }
@@ -728,13 +1312,13 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     });
 
     this.fieldGroups = fieldGroups;
+    this.screens = (mainForm.screens || []).sort((a: Screen, b: Screen) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    this.currentScreenIndex = 0;
 
     // Get all field names for dependency tracking
     const allFieldNames = new Set(this.fields.map(f => f.name));
 
-    const formControls: Record<string, any> = {
-      comments: ['']
-    };
+    const formControls: Record<string, any> = {};
 
     // First pass: create form controls with initial values
     this.fields.forEach(field => {
@@ -1295,6 +1879,105 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   getFieldsInGroup(groupId: string): WorkflowField[] {
     const gid = groupId?.toString();
     return this.fields.filter(f => f.fieldGroupId?.toString() === gid && !(f.hidden || f.isHidden));
+  }
+
+  // Multi-step screen navigation
+  get isMultiStep(): boolean {
+    return this.screens.length > 1;
+  }
+
+  get isFirstScreen(): boolean {
+    return this.currentScreenIndex === 0;
+  }
+
+  get isLastScreen(): boolean {
+    return this.currentScreenIndex === this.screens.length - 1;
+  }
+
+  get currentScreen(): Screen | null {
+    return this.screens[this.currentScreenIndex] || null;
+  }
+
+  getUngroupedFieldsOnScreen(): WorkflowField[] {
+    if (!this.isMultiStep) {
+      return this.getUngroupedFields();
+    }
+    const screenId = this.currentScreen?.id?.toString();
+    const isFirstScreen = this.currentScreenIndex === 0;
+    return this.fields.filter(f => {
+      if (f.fieldGroupId || f.hidden || f.isHidden) {
+        return false;
+      }
+      const fieldScreenId = f.screenId?.toString();
+      // Field matches if: its screenId matches current screen OR (first screen AND field has no screenId)
+      return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
+    });
+  }
+
+  getFieldGroupsOnScreen(): FieldGroup[] {
+    if (!this.isMultiStep) {
+      return this.fieldGroups;
+    }
+    const screenId = this.currentScreen?.id?.toString();
+    const isFirstScreen = this.currentScreenIndex === 0;
+    return this.fieldGroups.filter(g => {
+      const groupScreenId = g.screenId?.toString();
+      return groupScreenId === screenId || (isFirstScreen && !groupScreenId);
+    });
+  }
+
+  goToNextScreen(): void {
+    if (this.validateCurrentScreen()) {
+      if (this.currentScreenIndex < this.screens.length - 1) {
+        this.currentScreenIndex++;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }
+
+  goToPreviousScreen(): void {
+    if (this.currentScreenIndex > 0) {
+      this.currentScreenIndex--;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  goToScreen(index: number): void {
+    // Only allow going to screens that have been completed (or current/previous)
+    if (index <= this.currentScreenIndex) {
+      this.currentScreenIndex = index;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  validateCurrentScreen(): boolean {
+    if (!this.isMultiStep || !this.currentScreen) {
+      return true;
+    }
+
+    const screenId = this.currentScreen.id?.toString();
+    const isFirstScreen = this.currentScreenIndex === 0;
+    const fieldsOnScreen = this.fields.filter(f => {
+      const fieldScreenId = f.screenId?.toString();
+      return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
+    });
+
+    let isValid = true;
+    fieldsOnScreen.forEach(field => {
+      const control = this.form.get(field.name);
+      if (control) {
+        control.markAsTouched();
+        if (control.invalid) {
+          isValid = false;
+        }
+      }
+    });
+
+    if (!isValid) {
+      this.snackBar.open('Please fill in all required fields on this screen', 'Close', { duration: 3000 });
+    }
+
+    return isValid;
   }
 
   isFieldReadonly(field: WorkflowField): boolean {
@@ -2426,6 +3109,36 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Checkbox group handling
+  isCheckboxOptionSelected(fieldName: string, value: string): boolean {
+    if (!this.checkboxGroupValues[fieldName]) {
+      // Initialize from form control if exists
+      const formValue = this.form.get(fieldName)?.value;
+      if (formValue) {
+        this.checkboxGroupValues[fieldName] = Array.isArray(formValue) ? formValue : formValue.split(',').filter((v: string) => v);
+      } else {
+        this.checkboxGroupValues[fieldName] = [];
+      }
+    }
+    return this.checkboxGroupValues[fieldName].includes(value);
+  }
+
+  onCheckboxGroupChange(fieldName: string, value: string, checked: boolean) {
+    if (!this.checkboxGroupValues[fieldName]) {
+      this.checkboxGroupValues[fieldName] = [];
+    }
+    if (checked) {
+      if (!this.checkboxGroupValues[fieldName].includes(value)) {
+        this.checkboxGroupValues[fieldName].push(value);
+      }
+    } else {
+      this.checkboxGroupValues[fieldName] = this.checkboxGroupValues[fieldName].filter(v => v !== value);
+    }
+    // Update form control with comma-separated values
+    this.form.get(fieldName)?.setValue(this.checkboxGroupValues[fieldName].join(','));
+    this.form.get(fieldName)?.markAsTouched();
+  }
+
   onAttachmentSelect(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files) {
@@ -2487,11 +3200,15 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     const formData = new FormData();
     formData.append('workflowCode', this.workflowCode);
     formData.append('isDraft', isDraft.toString());
-    formData.append('comments', this.form.value.comments || '');
 
     const fieldValues: Record<string, any> = {};
     this.fields.forEach(field => {
-      fieldValues[field.name] = this.form.value[field.name];
+      let value = this.form.value[field.name];
+      // For USER fields, extract the user ID if value is a User object
+      if (field.type === 'USER' && value && typeof value === 'object' && value.id) {
+        value = value.id;
+      }
+      fieldValues[field.name] = value;
     });
     formData.append('fieldValues', JSON.stringify(fieldValues));
 
@@ -2526,5 +3243,71 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         this.snackBar.open(err.error?.message || 'Submission failed', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  // User field methods
+  loadUsers() {
+    this.userService.getUsers().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.allUsers = res.data;
+        }
+      },
+      error: () => {
+        console.error('Failed to load users');
+      }
+    });
+  }
+
+  onUserSearch(event: Event, fieldName: string) {
+    const input = event.target as HTMLInputElement;
+    const searchTerm = input.value?.toLowerCase() || '';
+    this.userSearchTerms[fieldName] = searchTerm;
+
+    if (!searchTerm) {
+      this.filteredUsersMap[fieldName] = [];
+      return;
+    }
+
+    this.filteredUsersMap[fieldName] = this.allUsers.filter(user => {
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      const email = (user.email || '').toLowerCase();
+      const username = (user.username || '').toLowerCase();
+      return fullName.includes(searchTerm) ||
+             email.includes(searchTerm) ||
+             username.includes(searchTerm);
+    }).slice(0, 10); // Limit to 10 results
+  }
+
+  getFilteredUsers(fieldName: string): User[] {
+    return this.filteredUsersMap[fieldName] || [];
+  }
+
+  displayUserFn = (user: User | string): string => {
+    if (!user) return '';
+    if (typeof user === 'string') return user;
+    return `${user.firstName} ${user.lastName}`;
+  }
+
+  onUserSelected(event: any, fieldName: string) {
+    const selectedUser = event.option.value as User;
+    // Store the selected user for reference
+    this.selectedUsers[fieldName] = selectedUser;
+    // Store the user object (ID will be extracted on submit)
+    this.form.get(fieldName)?.setValue(selectedUser);
+    // Clear the filtered list
+    this.filteredUsersMap[fieldName] = [];
+    this.userSearchTerms[fieldName] = '';
+  }
+
+  getUserFieldValue(fieldName: string): string {
+    const value = this.form.get(fieldName)?.value;
+    if (!value) return '';
+    // If it's a User object, return the ID
+    if (typeof value === 'object' && value.id) {
+      return value.id;
+    }
+    // Otherwise return as-is (should be a string ID)
+    return value;
   }
 }

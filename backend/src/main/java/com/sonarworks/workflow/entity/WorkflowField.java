@@ -19,6 +19,10 @@ public class WorkflowField extends BaseEntity {
     @JoinColumn(name = "form_id", nullable = false)
     private WorkflowForm form;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "screen_id")
+    private Screen screen;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "field_group_id")
     private FieldGroup fieldGroup;
@@ -136,8 +140,8 @@ public class WorkflowField extends BaseEntity {
     private Integer maxFiles;
 
     public enum FieldType {
-        TEXT, TEXTAREA, NUMBER, CURRENCY, DATE, DATETIME, CHECKBOX, RADIO, SELECT, MULTISELECT,
-        FILE, EMAIL, PHONE, URL, PASSWORD, HIDDEN, LABEL, DIVIDER
+        TEXT, TEXTAREA, NUMBER, CURRENCY, DATE, DATETIME, CHECKBOX, CHECKBOX_GROUP, RADIO, SELECT, MULTISELECT,
+        FILE, EMAIL, PHONE, URL, PASSWORD, HIDDEN, LABEL, DIVIDER, USER
     }
 
     public enum DataType {

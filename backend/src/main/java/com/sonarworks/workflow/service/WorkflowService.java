@@ -80,6 +80,7 @@ public class WorkflowService {
     private final WorkflowFieldRepository workflowFieldRepository;
     private final FieldGroupRepository fieldGroupRepository;
     private final FieldOptionRepository fieldOptionRepository;
+    private final ScreenRepository screenRepository;
     private final WorkflowApproverRepository workflowApproverRepository;
     private final SBURepository sbuRepository;
     private final DepartmentRepository departmentRepository;
@@ -537,12 +538,13 @@ public class WorkflowService {
     }
 
     /**
-     * Process forms, field groups, and fields for a workflow from DTOs.
+     * Process forms, field groups, screens, and fields for a workflow from DTOs.
      * Handles both create and update scenarios with temp IDs.
      */
     private void processFormsForWorkflow(Workflow workflow, List<WorkflowFormDTO> formDtos) {
-        // Map to track temp IDs to real IDs for field groups
+        // Map to track temp IDs to real IDs for field groups and screens
         Map<String, UUID> groupIdMap = new HashMap<>();
+        Map<String, UUID> screenIdMap = new HashMap<>();
 
         // Collect form IDs that should be kept
         Set<UUID> formIdsToKeep = new HashSet<>();
@@ -578,6 +580,36 @@ public class WorkflowService {
             WorkflowForm savedForm = workflowFormRepository.save(form);
             formIdsToKeep.add(savedForm.getId());  // Track this form ID
 
+            // Process screens for this form (before field groups so we can assign groups to screens)
+            if (formDto.getScreens() != null) {
+                for (ScreenDTO screenDto : formDto.getScreens()) {
+                    Screen screen;
+                    UUID screenId = parseUuid(screenDto.getId());
+                    if (screenId != null) {
+                        screen = screenRepository.findById(screenId).orElse(null);
+                        if (screen == null) {
+                            screen = new Screen();
+                            screen.setForm(savedForm);
+                        }
+                    } else {
+                        screen = new Screen();
+                        screen.setForm(savedForm);
+                    }
+
+                    screen.setTitle(screenDto.getTitle() != null ? screenDto.getTitle() : "Untitled Screen");
+                    screen.setDescription(screenDto.getDescription());
+                    screen.setDisplayOrder(screenDto.getDisplayOrder() != null ? screenDto.getDisplayOrder() : 0);
+                    screen.setIcon(screenDto.getIcon());
+
+                    Screen savedScreen = screenRepository.save(screen);
+
+                    // Map temp ID to real ID
+                    if (screenDto.getId() != null && screenDto.getId().startsWith("temp_")) {
+                        screenIdMap.put(screenDto.getId(), savedScreen.getId());
+                    }
+                }
+            }
+
             // Process field groups for this form
             if (formDto.getFieldGroups() != null) {
                 for (FieldGroupDTO groupDto : formDto.getFieldGroups()) {
@@ -601,6 +633,23 @@ public class WorkflowService {
                     group.setIsCollapsible(groupDto.getIsCollapsible() != null ? groupDto.getIsCollapsible() : false);
                     group.setIsCollapsedByDefault(groupDto.getIsCollapsedByDefault() != null ? groupDto.getIsCollapsedByDefault() : false);
                     group.setCssClass(groupDto.getCssClass());
+
+                    // Handle screen assignment - check if it's a temp ID that needs mapping
+                    String screenIdStr = groupDto.getScreenId();
+                    if (screenIdStr != null && !screenIdStr.isBlank()) {
+                        if (screenIdStr.startsWith("temp_") && screenIdMap.containsKey(screenIdStr)) {
+                            Screen screen = screenRepository.findById(screenIdMap.get(screenIdStr)).orElse(null);
+                            group.setScreen(screen);
+                        } else {
+                            UUID screenIdParsed = parseUuid(screenIdStr);
+                            if (screenIdParsed != null) {
+                                Screen screen = screenRepository.findById(screenIdParsed).orElse(null);
+                                group.setScreen(screen);
+                            }
+                        }
+                    } else {
+                        group.setScreen(null);
+                    }
 
                     FieldGroup savedGroup = fieldGroupRepository.save(group);
 
@@ -632,6 +681,23 @@ public class WorkflowService {
                     } else {
                         field = new WorkflowField();
                         field.setForm(savedForm);
+                    }
+
+                    // Handle screen assignment - check if it's a temp ID that needs mapping
+                    String screenIdStr = fieldDto.getScreenId();
+                    if (screenIdStr != null && !screenIdStr.isBlank()) {
+                        if (screenIdStr.startsWith("temp_") && screenIdMap.containsKey(screenIdStr)) {
+                            Screen screen = screenRepository.findById(screenIdMap.get(screenIdStr)).orElse(null);
+                            field.setScreen(screen);
+                        } else {
+                            UUID screenIdParsed = parseUuid(screenIdStr);
+                            if (screenIdParsed != null) {
+                                Screen screen = screenRepository.findById(screenIdParsed).orElse(null);
+                                field.setScreen(screen);
+                            }
+                        }
+                    } else {
+                        field.setScreen(null);
                     }
 
                     // Handle field group - check if it's a temp ID that needs mapping
@@ -719,6 +785,8 @@ public class WorkflowService {
                 workflowFieldRepository.deleteAll(existingForm.getFields());
                 // Delete field groups in this orphan form
                 fieldGroupRepository.deleteAll(existingForm.getFieldGroups());
+                // Delete screens in this orphan form
+                screenRepository.deleteAll(existingForm.getScreens());
                 // Delete the orphan form
                 workflowFormRepository.delete(existingForm);
             }
@@ -836,6 +904,18 @@ public class WorkflowService {
                 .isMainForm(form.getIsMainForm())
                 .fields(form.getFields().stream().map(this::toFieldDTO).collect(Collectors.toList()))
                 .fieldGroups(form.getFieldGroups().stream().map(this::toFieldGroupDTO).collect(Collectors.toList()))
+                .screens(form.getScreens().stream().map(this::toScreenDTO).collect(Collectors.toList()))
+                .build();
+    }
+
+    private ScreenDTO toScreenDTO(Screen screen) {
+        return ScreenDTO.builder()
+                .id(screen.getId() != null ? screen.getId().toString() : null)
+                .formId(screen.getForm().getId() != null ? screen.getForm().getId().toString() : null)
+                .title(screen.getTitle())
+                .description(screen.getDescription())
+                .displayOrder(screen.getDisplayOrder())
+                .icon(screen.getIcon())
                 .build();
     }
 
@@ -843,6 +923,7 @@ public class WorkflowService {
         return FieldGroupDTO.builder()
                 .id(group.getId() != null ? group.getId().toString() : null)
                 .formId(group.getForm().getId() != null ? group.getForm().getId().toString() : null)
+                .screenId(group.getScreen() != null && group.getScreen().getId() != null ? group.getScreen().getId().toString() : null)
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .displayOrder(group.getDisplayOrder())
@@ -859,6 +940,7 @@ public class WorkflowService {
                 .id(field.getId() != null ? field.getId().toString() : null)
                 .formId(field.getForm().getId() != null ? field.getForm().getId().toString() : null)
                 .fieldGroupId(field.getFieldGroup() != null && field.getFieldGroup().getId() != null ? field.getFieldGroup().getId().toString() : null)
+                .screenId(field.getScreen() != null && field.getScreen().getId() != null ? field.getScreen().getId().toString() : null)
                 .name(field.getName())
                 .label(field.getLabel())
                 .placeholder(field.getPlaceholder())
