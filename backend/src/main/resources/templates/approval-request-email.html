@@ -4,57 +4,121 @@
     <meta charset="UTF-8">
     <title>Approval Required</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #ff9800; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .info-box { background: white; padding: 15px; border-left: 4px solid #1976d2; margin: 15px 0; }
-        .button { display: inline-block; padding: 12px 24px; background: #1976d2; color: white; text-decoration: none; border-radius: 4px; margin: 10px 5px; }
-        .button-approve { background: #4caf50; }
-        .button-reject { background: #f44336; }
-        .button-view { background: #1976d2; }
-        .action-buttons { text-align: center; margin: 20px 0; }
-        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
-        .divider { border-top: 1px solid #ddd; margin: 20px 0; }
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f0f2f5; }
+        .container { max-width: 650px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #ff9800, #f57c00); color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .header p { margin: 5px 0 0; opacity: 0.9; font-size: 14px; }
+        .content { padding: 30px; }
+        .greeting { font-size: 16px; margin-bottom: 20px; }
+        .info-box { background: #f8f9fa; padding: 20px; border-left: 4px solid #1976d2; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .info-box p { margin: 8px 0; }
+        .info-box strong { color: #555; min-width: 120px; display: inline-block; }
+        .summary-section { background: #fff3e0; padding: 15px 20px; border-radius: 8px; margin: 20px 0; }
+        .summary-section h3 { margin: 0 0 10px; color: #e65100; font-size: 14px; text-transform: uppercase; }
+        .summary-field { margin: 8px 0; font-size: 14px; }
+        .summary-field strong { color: #555; }
+
+        /* Action Buttons Section */
+        .action-section { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
+        .action-section h3 { margin: 0 0 15px; color: #333; font-size: 14px; }
+        .action-buttons { text-align: center; }
+        .button {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 5px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+            min-width: 70px;
+            text-align: center;
+        }
+        .button-review { background: #2196f3; color: white; }
+        .button-review:hover { background: #1976d2; }
+        .button-approve { background: #4caf50; color: white; }
+        .button-approve:hover { background: #388e3c; }
+        .button-escalate { background: #ff9800; color: white; }
+        .button-escalate:hover { background: #f57c00; }
+        .button-reject { background: #f44336; color: white; }
+        .button-reject:hover { background: #d32f2f; }
+        .button-view { background: #607d8b; color: white; }
+        .button-view:hover { background: #455a64; }
+
+        .divider { border-top: 1px solid #e0e0e0; margin: 25px 0; }
+        .view-details { text-align: center; margin: 20px 0; }
+        .note { font-size: 12px; color: #888; font-style: italic; margin-top: 15px; text-align: center; }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+        }
+        .signature { margin-top: 25px; color: #666; }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .button { min-width: 60px; padding: 6px 12px; font-size: 10px; margin: 3px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Approval Required</h1>
+            <p th:text="${workflowName}">Workflow Name</p>
         </div>
         <div class="content">
-            <p>Hello <span th:text="${approverName}">Approver</span>,</p>
-            <p>A new workflow request requires your approval:</p>
+            <p class="greeting">Hello <strong th:text="${approverName}">Approver</strong>,</p>
+            <p>A workflow request requires your attention. Please review the details below and take appropriate action.</p>
+
             <div class="info-box">
-                <p><strong>Workflow:</strong> <span th:text="${workflowName}">Workflow Name</span></p>
                 <p><strong>Reference:</strong> <span th:text="${referenceNumber}">REF-123</span></p>
+                <p><strong>Workflow:</strong> <span th:text="${workflowName}">Workflow Name</span></p>
                 <p><strong>Submitted by:</strong> <span th:text="${initiatorName}">John Doe</span></p>
                 <p th:if="${amount != null}"><strong>Amount:</strong> <span th:text="${amount}">$0.00</span></p>
             </div>
 
-            <!-- Quick Action Buttons (shown when email approvals are enabled) -->
-            <div th:if="${emailApprovalEnabled}" class="action-buttons">
-                <p><strong>Quick Actions:</strong></p>
-                <a th:href="${approveLink}" class="button button-approve">Approve</a>
-                <a th:href="${rejectLink}" class="button button-reject">Reject</a>
+            <!-- Summary Fields Section -->
+            <div th:if="${summaryFields != null and !summaryFields.isEmpty()}" class="summary-section">
+                <h3>Request Summary</h3>
+                <div th:each="field : ${summaryFields}" class="summary-field">
+                    <strong th:text="${field.label} + ':'">Field:</strong>
+                    <span th:text="${field.value}">Value</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons Section (shown when email approvals are enabled) -->
+            <div th:if="${emailApprovalEnabled}" class="action-section">
+                <h3>Take Action</h3>
+                <div class="action-buttons">
+                    <a th:href="${reviewLink}" class="button button-review">Review</a>
+                    <a th:href="${approveLink}" class="button button-approve">Approve</a>
+                    <a th:href="${escalateLink}" class="button button-escalate">Escalate</a>
+                    <a th:href="${rejectLink}" class="button button-reject">Reject</a>
+                </div>
+                <p class="note">You will be asked to log in to confirm your action.</p>
             </div>
 
             <div class="divider"></div>
 
-            <p>To view full details and take action:</p>
-            <p style="text-align: center;">
+            <div class="view-details">
+                <p>For full request details and documents:</p>
                 <a th:href="${approvalLink}" class="button button-view">View Full Details</a>
-            </p>
+            </div>
 
-            <p th:if="${emailApprovalEnabled}" style="font-size: 12px; color: #666;">
-                <em>Note: Clicking Approve or Reject will redirect you to login if you're not already signed in.</em>
-            </p>
-
-            <p>Best regards,<br>Sonarworks Workflow System</p>
+            <div class="signature">
+                <p>Best regards,<br><strong>Sonarworks Workflow System</strong></p>
+            </div>
         </div>
         <div class="footer">
             <p>This is an automated message. Please do not reply directly to this email.</p>
+            <p>Reference: <span th:text="${referenceNumber}">REF-123</span></p>
         </div>
     </div>
 </body>

@@ -410,28 +410,72 @@ public class WorkflowInstanceService {
         Workflow workflow = instance.getWorkflow();
         Integer maxLevel = workflowApproverRepository.findMaxLevelByWorkflowId(workflow.getId());
         int currentLevel = instance.getCurrentLevel();
-        int currentOrder = instance.getCurrentApproverOrder() != null ? instance.getCurrentApproverOrder() : 0;
 
-        // For financial workflows, check if current approver has sufficient limit
+        // For financial workflows, check approver's limit
         if (workflow.getWorkflowCategory() == Workflow.WorkflowCategory.FINANCIAL &&
                 instance.getAmount() != null) {
-            // Check if skip unauthorized approvers setting is enabled
-            boolean skipUnauthorized = settingService.getBooleanValue("workflow.skip.unauthorized.approvers", true);
+            WorkflowApprover currentApprover = instance.getCurrentApprover();
 
-            if (skipUnauthorized) {
-                WorkflowApprover currentApprover = instance.getCurrentApprover();
-                if (currentApprover != null && !Boolean.TRUE.equals(currentApprover.getIsUnlimited())) {
-                    BigDecimal approverLimit = currentApprover.getApprovalLimit();
-                    if (approverLimit != null && instance.getAmount().compareTo(approverLimit) > 0) {
-                        // Amount exceeds approver's limit - auto-escalate
-                        log.info("Amount {} exceeds approver limit {}. Auto-escalating.",
-                                instance.getAmount(), approverLimit);
-                        autoEscalateForAmount(instance, approver);
-                        return;
-                    }
+            // Check if approver has sufficient limit
+            boolean hasSufficientLimit = false;
+            if (currentApprover != null) {
+                if (Boolean.TRUE.equals(currentApprover.getIsUnlimited())) {
+                    hasSufficientLimit = true;
+                } else if (currentApprover.getApprovalLimit() != null) {
+                    hasSufficientLimit = instance.getAmount().compareTo(currentApprover.getApprovalLimit()) <= 0;
                 }
             }
+
+            if (hasSufficientLimit) {
+                // Approver has sufficient limit - APPROVE immediately
+                log.info("Financial workflow approved: Approver {} has sufficient limit for amount {}",
+                        approver.getFullName(), instance.getAmount());
+                markAsApproved(instance, approver, workflow);
+                return;
+            } else {
+                // Approver's limit is insufficient - auto-escalate to next level
+                log.info("Amount {} exceeds approver limit. Auto-escalating to find approver with sufficient limit.",
+                        instance.getAmount());
+                autoEscalateForAmount(instance, approver);
+                return;
+            }
         }
+
+        // For non-financial workflows, use standard multi-level approval
+        handleStandardApproval(instance, approver, workflow, maxLevel, currentLevel);
+    }
+
+    /**
+     * Marks the workflow instance as approved and notifies the initiator.
+     */
+    private void markAsApproved(WorkflowInstance instance, User approver, Workflow workflow) {
+        instance.setStatus(WorkflowInstance.Status.APPROVED);
+        instance.setCompletedAt(LocalDateTime.now());
+        instance.setCurrentApprover(null);
+        instance.setCurrentApproverOrder(null);
+
+        // Invalidate any remaining tokens for this instance
+        emailApprovalService.invalidateAllTokensForInstance(instance.getId());
+
+        // Notify initiator
+        emailService.sendApprovalNotificationEmail(
+                instance.getInitiator().getEmail(),
+                instance.getInitiator().getFirstName(),
+                workflow.getName(),
+                instance.getReferenceNumber(),
+                "APPROVED",
+                approver.getFullName(),
+                null,
+                instance.getTitle()
+        );
+    }
+
+    /**
+     * Handles standard (non-financial) approval flow with multiple levels and approvers.
+     */
+    private void handleStandardApproval(WorkflowInstance instance, User approver, Workflow workflow,
+                                         Integer maxLevel, int currentLevel) {
+        int currentOrder = instance.getCurrentApproverOrder() != null ? instance.getCurrentApproverOrder() : 0;
 
         // Get all approvers at current level (sorted by displayOrder)
         List<WorkflowApprover> currentLevelApprovers = workflowApproverRepository
@@ -445,31 +489,23 @@ public class WorkflowInstanceService {
             instance.setCurrentApprover(nextApprover);
             instance.setCurrentApproverOrder(nextOrderIndex);
 
+            // Invalidate tokens for current level since it's been processed
+            emailApprovalService.invalidateTokensForInstanceAndLevel(instance.getId(), currentLevel);
+
             if (nextApprover.getNotifyOnPending()) {
                 sendApprovalRequestNotification(instance, nextApprover);
             }
         } else if (maxLevel == null || currentLevel >= maxLevel) {
             // No more approvers at this level and this is the final level
-            instance.setStatus(WorkflowInstance.Status.APPROVED);
-            instance.setCompletedAt(LocalDateTime.now());
-            instance.setCurrentApprover(null);
-            instance.setCurrentApproverOrder(null);
-
-            // Notify initiator
-            emailService.sendApprovalNotificationEmail(
-                    instance.getInitiator().getEmail(),
-                    instance.getInitiator().getFirstName(),
-                    workflow.getName(),
-                    instance.getReferenceNumber(),
-                    "APPROVED",
-                    approver.getFullName(),
-                    null
-            );
+            markAsApproved(instance, approver, workflow);
         } else {
             // Move to next level
             int nextLevel = currentLevel + 1;
             instance.setCurrentLevel(nextLevel);
             instance.setCurrentApproverOrder(0);
+
+            // Invalidate tokens for current level
+            emailApprovalService.invalidateTokensForInstanceAndLevel(instance.getId(), currentLevel);
 
             List<WorkflowApprover> nextApprovers = workflowApproverRepository
                     .findByWorkflowIdAndLevel(workflow.getId(), nextLevel);
@@ -488,22 +524,30 @@ public class WorkflowInstanceService {
 
     /**
      * Auto-escalates a financial workflow to an approver with sufficient limit for the amount.
+     * Continues escalating until an approver with sufficient limit is found.
      */
     private void autoEscalateForAmount(WorkflowInstance instance, User currentApprover) {
         Workflow workflow = instance.getWorkflow();
         BigDecimal amount = instance.getAmount();
+        int previousLevel = instance.getCurrentLevel();
+
+        // Invalidate all tokens for the current level since it's been processed
+        emailApprovalService.invalidateTokensForInstanceAndLevel(instance.getId(), previousLevel);
 
         // Find the minimum level with an approver who can approve this amount
         Integer targetLevel = workflowApproverRepository.findMinLevelForAmount(workflow.getId(), amount);
 
         if (targetLevel == null) {
-            // No approver can approve this amount - escalate to max level
-            targetLevel = workflowApproverRepository.findMaxLevelByWorkflowId(workflow.getId());
-            log.warn("No approver with sufficient limit for amount {}. Escalating to max level {}",
-                    amount, targetLevel);
+            // No approver can approve this amount - escalate to max level with unlimited approver
+            Integer maxLevel = workflowApproverRepository.findMaxLevelByWorkflowId(workflow.getId());
+            if (maxLevel != null) {
+                targetLevel = maxLevel;
+                log.warn("No approver with sufficient limit for amount {}. Escalating to max level {}",
+                        amount, targetLevel);
+            }
         }
 
-        if (targetLevel != null && targetLevel > instance.getCurrentLevel()) {
+        if (targetLevel != null && targetLevel > previousLevel) {
             instance.setCurrentLevel(targetLevel);
             instance.setCurrentApproverOrder(0);
             instance.setStatus(WorkflowInstance.Status.ESCALATED);
@@ -512,7 +556,11 @@ public class WorkflowInstanceService {
                     .findByWorkflowIdAndLevel(workflow.getId(), targetLevel);
 
             if (!targetApprovers.isEmpty()) {
-                WorkflowApprover nextApprover = targetApprovers.get(0);
+                // Find first approver at target level with sufficient limit
+                WorkflowApprover nextApprover = findApproverWithSufficientLimit(targetApprovers, amount);
+                if (nextApprover == null) {
+                    nextApprover = targetApprovers.get(0); // Fallback to first approver
+                }
                 instance.setCurrentApprover(nextApprover);
 
                 // Create escalation history
@@ -521,9 +569,9 @@ public class WorkflowInstanceService {
                         .approver(userRepository.findById(getCurrentUser().getId()).orElse(null))
                         .approverName(currentApprover.getFullName())
                         .approverEmail(currentApprover.getEmail())
-                        .level(instance.getCurrentLevel())
+                        .level(targetLevel)
                         .action(ApprovalHistory.Action.ESCALATED)
-                        .comments("Auto-escalated: Amount " + amount + " exceeds approval limit")
+                        .comments("Auto-escalated: Amount " + amount + " exceeds approval limit. Escalated from level " + previousLevel + " to level " + targetLevel)
                         .actionDate(LocalDateTime.now())
                         .actionSource(ApprovalHistory.ActionSource.SYSTEM)
                         .build();
@@ -534,15 +582,45 @@ public class WorkflowInstanceService {
                 }
 
                 log.info("Auto-escalated workflow {} from level {} to level {} for amount {}",
-                        instance.getReferenceNumber(), instance.getCurrentLevel() - 1, targetLevel, amount);
+                        instance.getReferenceNumber(), previousLevel, targetLevel, amount);
+            }
+        } else if (targetLevel != null && targetLevel.equals(previousLevel)) {
+            // Same level but need to find an approver with sufficient limit at this level
+            List<WorkflowApprover> currentLevelApprovers = workflowApproverRepository
+                    .findByWorkflowIdAndLevel(workflow.getId(), targetLevel);
+            WorkflowApprover nextApprover = findApproverWithSufficientLimit(currentLevelApprovers, amount);
+            if (nextApprover != null && !nextApprover.equals(instance.getCurrentApprover())) {
+                instance.setCurrentApprover(nextApprover);
+                if (nextApprover.getNotifyOnPending()) {
+                    sendApprovalRequestNotification(instance, nextApprover);
+                }
             }
         }
+    }
+
+    /**
+     * Finds an approver from the list who has sufficient limit for the given amount.
+     */
+    private WorkflowApprover findApproverWithSufficientLimit(List<WorkflowApprover> approvers, BigDecimal amount) {
+        for (WorkflowApprover approver : approvers) {
+            if (Boolean.TRUE.equals(approver.getIsUnlimited())) {
+                return approver;
+            }
+            if (approver.getApprovalLimit() != null && amount.compareTo(approver.getApprovalLimit()) <= 0) {
+                return approver;
+            }
+        }
+        return null;
     }
 
     private void handleRejection(WorkflowInstance instance, User approver, String comments) {
         instance.setStatus(WorkflowInstance.Status.REJECTED);
         instance.setCompletedAt(LocalDateTime.now());
         instance.setCurrentApprover(null);
+        instance.setCurrentApproverOrder(null);
+
+        // Invalidate all tokens for this instance since it's been rejected
+        emailApprovalService.invalidateAllTokensForInstance(instance.getId());
 
         // Notify initiator
         emailService.sendApprovalNotificationEmail(
@@ -552,7 +630,8 @@ public class WorkflowInstanceService {
                 instance.getReferenceNumber(),
                 "REJECTED",
                 approver.getFullName(),
-                comments
+                comments,
+                instance.getTitle()
         );
     }
 
@@ -934,7 +1013,7 @@ public class WorkflowInstanceService {
     }
 
     private void sendApprovalRequestNotification(WorkflowInstance instance, WorkflowApprover approver) {
-        String baseUrl = settingService.getValue("app.base.url", "http://localhost:4200");
+        String baseUrl = emailApprovalService.getBaseUrl();
         String approvalLink = baseUrl + "/approvals/" + instance.getId();
 
         // Check if email approvals are enabled
@@ -942,27 +1021,22 @@ public class WorkflowInstanceService {
 
         String approveLink = null;
         String rejectLink = null;
+        String escalateLink = null;
+        String reviewLink = null;
 
         if (emailApprovalEnabled) {
-            // Generate approval tokens
-            EmailApprovalToken approveToken = emailApprovalService.createToken(
+            // Generate all action tokens
+            EmailApprovalService.EmailApprovalTokens tokens = emailApprovalService.createAllActionTokens(
                     instance,
                     approver.getApproverEmail(),
                     approver.getApproverName(),
-                    instance.getCurrentLevel(),
-                    EmailApprovalToken.ActionType.APPROVE
+                    instance.getCurrentLevel()
             );
 
-            EmailApprovalToken rejectToken = emailApprovalService.createToken(
-                    instance,
-                    approver.getApproverEmail(),
-                    approver.getApproverName(),
-                    instance.getCurrentLevel(),
-                    EmailApprovalToken.ActionType.REJECT
-            );
-
-            approveLink = emailApprovalService.generateApprovalUrl(approveToken.getToken(), EmailApprovalToken.ActionType.APPROVE);
-            rejectLink = emailApprovalService.generateApprovalUrl(rejectToken.getToken(), EmailApprovalToken.ActionType.REJECT);
+            approveLink = emailApprovalService.generateApprovalUrl(tokens.approveToken().getToken(), EmailApprovalToken.ActionType.APPROVE);
+            rejectLink = emailApprovalService.generateApprovalUrl(tokens.rejectToken().getToken(), EmailApprovalToken.ActionType.REJECT);
+            escalateLink = emailApprovalService.generateApprovalUrl(tokens.escalateToken().getToken(), EmailApprovalToken.ActionType.ESCALATE);
+            reviewLink = emailApprovalService.generateApprovalUrl(tokens.reviewToken().getToken(), EmailApprovalToken.ActionType.REVIEW);
         }
 
         // Get amount if this is a financial workflow
@@ -983,6 +1057,8 @@ public class WorkflowInstanceService {
                 approvalLink,
                 approveLink,
                 rejectLink,
+                escalateLink,
+                reviewLink,
                 amount,
                 emailApprovalEnabled,
                 summaryFields
@@ -1148,5 +1224,37 @@ public class WorkflowInstanceService {
         }
 
         return false; // Value already exists in another instance
+    }
+
+    /**
+     * Get escalation targets for a workflow instance
+     * Returns approvers at higher levels who can receive escalation
+     */
+    public List<Map<String, Object>> getEscalationTargets(UUID instanceId) {
+        WorkflowInstance instance = workflowInstanceRepository.findById(instanceId)
+                .orElseThrow(() -> new BusinessException("Workflow instance not found"));
+
+        int currentLevel = instance.getCurrentLevel();
+        UUID workflowId = instance.getWorkflow().getId();
+
+        // Get approvers at next level and above
+        List<WorkflowApprover> higherLevelApprovers = workflowApproverRepository
+                .findByWorkflowId(workflowId)
+                .stream()
+                .filter(a -> a.getLevel() > currentLevel)
+                .toList();
+
+        return higherLevelApprovers.stream()
+                .map(approver -> {
+                    Map<String, Object> target = new HashMap<>();
+                    target.put("id", approver.getUser() != null ? approver.getUser().getId() : null);
+                    target.put("name", approver.getApproverName());
+                    target.put("email", approver.getApproverEmail());
+                    target.put("level", approver.getLevel());
+                    target.put("approvalLimit", approver.getApprovalLimit());
+                    target.put("isUnlimited", approver.getIsUnlimited());
+                    return target;
+                })
+                .collect(Collectors.toList());
     }
 }

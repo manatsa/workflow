@@ -221,9 +221,9 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
                     </div>
                   } @else {
                     <table mat-table [dataSource]="auditLogs" class="audit-table">
-                      <ng-container matColumnDef="createdAt">
+                      <ng-container matColumnDef="actionDate">
                         <th mat-header-cell *matHeaderCellDef>Date</th>
-                        <td mat-cell *matCellDef="let log">{{ log.createdAt | date:'medium' }}</td>
+                        <td mat-cell *matCellDef="let log">{{ log.actionDate | date:'medium' }}</td>
                       </ng-container>
 
                       <ng-container matColumnDef="action">
@@ -233,14 +233,14 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
                         </td>
                       </ng-container>
 
-                      <ng-container matColumnDef="performedBy">
+                      <ng-container matColumnDef="userFullName">
                         <th mat-header-cell *matHeaderCellDef>User</th>
-                        <td mat-cell *matCellDef="let log">{{ log.performedBy }}</td>
+                        <td mat-cell *matCellDef="let log">{{ log.userFullName || log.username }}</td>
                       </ng-container>
 
-                      <ng-container matColumnDef="details">
+                      <ng-container matColumnDef="summary">
                         <th mat-header-cell *matHeaderCellDef>Details</th>
-                        <td mat-cell *matCellDef="let log">{{ log.details }}</td>
+                        <td mat-cell *matCellDef="let log">{{ log.summary || log.details }}</td>
                       </ng-container>
 
                       <tr mat-header-row *matHeaderRowDef="auditColumns"></tr>
@@ -477,7 +477,7 @@ export class InstanceDetailComponent implements OnInit {
   canEdit = false;
   canDelete = false;
 
-  auditColumns = ['createdAt', 'action', 'performedBy', 'details'];
+  auditColumns = ['actionDate', 'action', 'userFullName', 'summary'];
 
   getFieldValuesArray(): { fieldName: string; fieldLabel: string; value: any }[] {
     if (!this.instance?.fieldValues) return [];

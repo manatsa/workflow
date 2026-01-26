@@ -44,8 +44,11 @@ public class EmailApprovalToken extends BaseEntity {
     @Column(name = "is_used")
     private Boolean isUsed = false;
 
+    @Column(name = "escalation_target_id")
+    private UUID escalationTargetId;
+
     public enum ActionType {
-        APPROVE, REJECT, VIEW
+        APPROVE, REJECT, ESCALATE, REVIEW
     }
 
     public boolean isExpired() {

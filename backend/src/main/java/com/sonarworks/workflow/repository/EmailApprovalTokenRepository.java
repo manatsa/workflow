@@ -28,6 +28,10 @@ public interface EmailApprovalTokenRepository extends JpaRepository<EmailApprova
     void invalidateTokensForInstanceAndLevel(@Param("instanceId") UUID instanceId, @Param("level") Integer level, @Param("usedAt") LocalDateTime usedAt);
 
     @Modifying
+    @Query("UPDATE EmailApprovalToken t SET t.isUsed = true, t.usedAt = :usedAt WHERE t.workflowInstance.id = :instanceId AND t.isUsed = false")
+    void invalidateAllTokensForInstance(@Param("instanceId") UUID instanceId, @Param("usedAt") LocalDateTime usedAt);
+
+    @Modifying
     @Query("DELETE FROM EmailApprovalToken t WHERE t.expiresAt < :now")
     void deleteExpiredTokens(@Param("now") LocalDateTime now);
 }

@@ -25,6 +25,7 @@
             <div class="info-box">
                 <p><strong>Workflow:</strong> <span th:text="${workflowName}">Workflow Name</span></p>
                 <p><strong>Reference:</strong> <span th:text="${referenceNumber}">REF-123</span></p>
+                <p th:if="${submissionTitle}"><strong>Title:</strong> <span th:text="${submissionTitle}">Submission Title</span></p>
                 <p><strong>Action by:</strong> <span th:text="${approverName}">Approver Name</span></p>
             </div>
             <div th:if="${comments}" class="comments">

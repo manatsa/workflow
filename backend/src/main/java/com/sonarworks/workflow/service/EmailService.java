@@ -118,6 +118,15 @@ public class EmailService {
                                           String referenceNumber, String initiatorName, String approvalLink,
                                           String approveLink, String rejectLink, String amount,
                                           boolean emailApprovalEnabled, List<Map<String, String>> summaryFields) {
+        sendApprovalRequestEmail(toEmail, approverName, workflowName, referenceNumber, initiatorName,
+                approvalLink, approveLink, rejectLink, null, null, amount, emailApprovalEnabled, summaryFields);
+    }
+
+    @Async
+    public void sendApprovalRequestEmail(String toEmail, String approverName, String workflowName,
+                                          String referenceNumber, String initiatorName, String approvalLink,
+                                          String approveLink, String rejectLink, String escalateLink, String reviewLink,
+                                          String amount, boolean emailApprovalEnabled, List<Map<String, String>> summaryFields) {
         try {
             Context context = new Context();
             context.setVariable("approverName", approverName);
@@ -127,6 +136,8 @@ public class EmailService {
             context.setVariable("approvalLink", approvalLink);
             context.setVariable("approveLink", approveLink);
             context.setVariable("rejectLink", rejectLink);
+            context.setVariable("escalateLink", escalateLink);
+            context.setVariable("reviewLink", reviewLink);
             context.setVariable("amount", amount);
             context.setVariable("emailApprovalEnabled", emailApprovalEnabled);
             context.setVariable("summaryFields", summaryFields);
@@ -140,7 +151,8 @@ public class EmailService {
 
     @Async
     public void sendApprovalNotificationEmail(String toEmail, String recipientName, String workflowName,
-                                               String referenceNumber, String action, String approverName, String comments) {
+                                               String referenceNumber, String action, String approverName,
+                                               String comments, String submissionTitle) {
         try {
             Context context = new Context();
             context.setVariable("recipientName", recipientName);
@@ -149,6 +161,7 @@ public class EmailService {
             context.setVariable("action", action);
             context.setVariable("approverName", approverName);
             context.setVariable("comments", comments);
+            context.setVariable("submissionTitle", submissionTitle);
 
             String htmlContent = templateEngine.process("approval-notification-email", context);
             sendHtmlEmail(toEmail, workflowName + " - " + referenceNumber + " " + action, htmlContent);

@@ -32,7 +32,9 @@ public class SpaController {
         "/audit/**",
         "/profile",
         "/profile/**",
-        "/change-password"
+        "/change-password",
+        "/email-approval",
+        "/email-approval/**"
     })
     public String forward() {
         return "forward:/index.html";
