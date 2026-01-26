@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -90,6 +92,7 @@ public class WorkflowService {
     private final RoleRepository roleRepository;
     private final AuditService auditService;
     private final SettingService settingService;
+    private final SqlObjectService sqlObjectService;
 
     @Transactional(readOnly = true)
     public List<WorkflowDTO> getAllWorkflows() {
@@ -99,16 +102,86 @@ public class WorkflowService {
     }
 
     public List<WorkflowDTO> getActivePublishedWorkflows() {
+        User currentUser = getCurrentUser();
+
         return workflowRepository.findActivePublishedWorkflows().stream()
+                .filter(workflow -> hasWorkflowAccess(workflow, currentUser))
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Check if a user has access to a workflow without throwing an exception.
+     * Returns true if user has access, false otherwise.
+     */
+    private boolean hasWorkflowAccess(Workflow workflow, User user) {
+        // If no restrictions, everyone has access
+        if (workflow.getCorporates().isEmpty() &&
+            workflow.getSbus().isEmpty() &&
+            workflow.getBranches().isEmpty() &&
+            workflow.getDepartments().isEmpty()) {
+            return true;
+        }
+
+        // If no user, deny access to restricted workflows
+        if (user == null) {
+            return false;
+        }
+
+        // Super users (ADMIN role) bypass access restrictions
+        if (user.getRoles() != null && user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()) || "ROLE_ADMIN".equalsIgnoreCase(role.getName()))) {
+            return true;
+        }
+
+        // Check if user matches any of the workflow's access restrictions
+        // Check corporates
+        if (!workflow.getCorporates().isEmpty() && user.getCorporates() != null) {
+            if (workflow.getCorporates().stream()
+                    .anyMatch(wfCorp -> user.getCorporates().stream()
+                            .anyMatch(userCorp -> userCorp.getId().equals(wfCorp.getId())))) {
+                return true;
+            }
+        }
+
+        // Check SBUs
+        if (!workflow.getSbus().isEmpty() && user.getSbus() != null) {
+            if (workflow.getSbus().stream()
+                    .anyMatch(wfSbu -> user.getSbus().stream()
+                            .anyMatch(userSbu -> userSbu.getId().equals(wfSbu.getId())))) {
+                return true;
+            }
+        }
+
+        // Check branches
+        if (!workflow.getBranches().isEmpty() && user.getBranches() != null) {
+            if (workflow.getBranches().stream()
+                    .anyMatch(wfBranch -> user.getBranches().stream()
+                            .anyMatch(userBranch -> userBranch.getId().equals(wfBranch.getId())))) {
+                return true;
+            }
+        }
+
+        // Check departments
+        if (!workflow.getDepartments().isEmpty() && user.getDepartments() != null) {
+            if (workflow.getDepartments().stream()
+                    .anyMatch(wfDept -> user.getDepartments().stream()
+                            .anyMatch(userDept -> userDept.getId().equals(wfDept.getId())))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public List<WorkflowDTO> getWorkflowsForUser(List<UUID> sbuIds) {
+        User currentUser = getCurrentUser();
+
         if (sbuIds == null || sbuIds.isEmpty()) {
             return getActivePublishedWorkflows();
         }
         return workflowRepository.findBySbuIds(sbuIds).stream()
+                .filter(workflow -> hasWorkflowAccess(workflow, currentUser))
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -119,8 +192,19 @@ public class WorkflowService {
 
     @Transactional(readOnly = true)
     public WorkflowDTO getWorkflowById(UUID id) {
+        return getWorkflowById(id, true);
+    }
+
+    @Transactional(readOnly = true)
+    public WorkflowDTO getWorkflowById(UUID id, boolean checkAccess) {
         Workflow workflow = workflowRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow not found"));
+
+        // Check user access restrictions if requested
+        if (checkAccess) {
+            checkWorkflowAccess(workflow);
+        }
+
         return toFullDTO(workflow);
     }
 
@@ -128,7 +212,88 @@ public class WorkflowService {
     public WorkflowDTO getWorkflowByCode(String code) {
         Workflow workflow = workflowRepository.findByCode(code)
                 .orElseThrow(() -> new BusinessException("Workflow not found"));
+
+        // Check user access restrictions
+        checkWorkflowAccess(workflow);
+
         return toFullDTO(workflow);
+    }
+
+    /**
+     * Check if the current user has access to the workflow based on access restrictions.
+     * If workflow has no restrictions (all sets empty), everyone has access.
+     * If workflow has restrictions, user must match at least one corporate, SBU, branch, or department.
+     */
+    private void checkWorkflowAccess(Workflow workflow) {
+        // If no restrictions, everyone has access
+        if (workflow.getCorporates().isEmpty() &&
+            workflow.getSbus().isEmpty() &&
+            workflow.getBranches().isEmpty() &&
+            workflow.getDepartments().isEmpty()) {
+            return;
+        }
+
+        // Get current user
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            throw new BusinessException("This workflow is restricted. Please consult your system administrator.");
+        }
+
+        // Super users (ADMIN role) bypass access restrictions
+        if (currentUser.getRoles() != null && currentUser.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()) || "ROLE_ADMIN".equalsIgnoreCase(role.getName()))) {
+            return;
+        }
+
+        // Check if user matches any of the workflow's access restrictions
+        boolean hasAccess = false;
+
+        // Check corporates
+        if (!workflow.getCorporates().isEmpty() && currentUser.getCorporates() != null) {
+            hasAccess = workflow.getCorporates().stream()
+                    .anyMatch(wfCorp -> currentUser.getCorporates().stream()
+                            .anyMatch(userCorp -> userCorp.getId().equals(wfCorp.getId())));
+        }
+
+        // Check SBUs
+        if (!hasAccess && !workflow.getSbus().isEmpty() && currentUser.getSbus() != null) {
+            hasAccess = workflow.getSbus().stream()
+                    .anyMatch(wfSbu -> currentUser.getSbus().stream()
+                            .anyMatch(userSbu -> userSbu.getId().equals(wfSbu.getId())));
+        }
+
+        // Check branches
+        if (!hasAccess && !workflow.getBranches().isEmpty() && currentUser.getBranches() != null) {
+            hasAccess = workflow.getBranches().stream()
+                    .anyMatch(wfBranch -> currentUser.getBranches().stream()
+                            .anyMatch(userBranch -> userBranch.getId().equals(wfBranch.getId())));
+        }
+
+        // Check departments
+        if (!hasAccess && !workflow.getDepartments().isEmpty() && currentUser.getDepartments() != null) {
+            hasAccess = workflow.getDepartments().stream()
+                    .anyMatch(wfDept -> currentUser.getDepartments().stream()
+                            .anyMatch(userDept -> userDept.getId().equals(wfDept.getId())));
+        }
+
+        if (!hasAccess) {
+            throw new BusinessException("This workflow is restricted. Please consult your system administrator.");
+        }
+    }
+
+    /**
+     * Get the current authenticated user.
+     */
+    private User getCurrentUser() {
+        try {
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.getPrincipal() instanceof com.sonarworks.workflow.security.CustomUserDetails userDetails) {
+                return userRepository.findById(userDetails.getId()).orElse(null);
+            }
+        } catch (Exception e) {
+            log.warn("Could not get current user: {}", e.getMessage());
+        }
+        return null;
     }
 
     @Transactional
@@ -417,13 +582,24 @@ public class WorkflowService {
         field.setCustomValidationMessage(dto.getCustomValidationMessage());
         field.setWidth(dto.getWidth());
         field.setCssClass(dto.getCssClass());
+        field.setOptionsLayout(dto.getOptionsLayout() != null ? dto.getOptionsLayout() : "vertical");
         field.setDropdownSource(dto.getDropdownSource());
         field.setDropdownDisplayField(dto.getDropdownDisplayField());
         field.setDropdownValueField(dto.getDropdownValueField());
+        field.setSqlObjectId(dto.getSqlObjectId());
+        field.setOptionsSource(dto.getOptionsSource() != null ? dto.getOptionsSource() : "STATIC");
+        if (dto.getViewType() != null) {
+            field.setViewType(WorkflowField.ViewType.valueOf(dto.getViewType()));
+        }
         field.setIsAttachment(dto.getIsAttachment() != null ? dto.getIsAttachment() : false);
         field.setAllowedFileTypes(dto.getAllowedFileTypes());
         field.setMaxFileSize(dto.getMaxFileSize());
         field.setMaxFiles(dto.getMaxFiles());
+        field.setInSummary(dto.getInSummary() != null ? dto.getInSummary() : false);
+        field.setRatingMax(dto.getRatingMax() != null ? dto.getRatingMax() : 5);
+        field.setSliderMin(dto.getSliderMin() != null ? dto.getSliderMin() : 0.0);
+        field.setSliderMax(dto.getSliderMax() != null ? dto.getSliderMax() : 100.0);
+        field.setSliderStep(dto.getSliderStep() != null ? dto.getSliderStep() : 1.0);
 
         WorkflowField saved = workflowFieldRepository.save(field);
 
@@ -546,8 +722,11 @@ public class WorkflowService {
         Map<String, UUID> groupIdMap = new HashMap<>();
         Map<String, UUID> screenIdMap = new HashMap<>();
 
-        // Collect form IDs that should be kept
+        // Collect IDs that should be kept
         Set<UUID> formIdsToKeep = new HashSet<>();
+        Map<UUID, Set<UUID>> fieldIdsToKeepByForm = new HashMap<>();
+        Map<UUID, Set<UUID>> groupIdsToKeepByForm = new HashMap<>();
+        Map<UUID, Set<UUID>> screenIdsToKeepByForm = new HashMap<>();
 
         for (WorkflowFormDTO formDto : formDtos) {
             // Create or update form
@@ -580,6 +759,11 @@ public class WorkflowService {
             WorkflowForm savedForm = workflowFormRepository.save(form);
             formIdsToKeep.add(savedForm.getId());  // Track this form ID
 
+            // Initialize tracking sets for this form
+            fieldIdsToKeepByForm.put(savedForm.getId(), new HashSet<>());
+            groupIdsToKeepByForm.put(savedForm.getId(), new HashSet<>());
+            screenIdsToKeepByForm.put(savedForm.getId(), new HashSet<>());
+
             // Process screens for this form (before field groups so we can assign groups to screens)
             if (formDto.getScreens() != null) {
                 for (ScreenDTO screenDto : formDto.getScreens()) {
@@ -602,6 +786,7 @@ public class WorkflowService {
                     screen.setIcon(screenDto.getIcon());
 
                     Screen savedScreen = screenRepository.save(screen);
+                    screenIdsToKeepByForm.get(savedForm.getId()).add(savedScreen.getId());
 
                     // Map temp ID to real ID
                     if (screenDto.getId() != null && screenDto.getId().startsWith("temp_")) {
@@ -652,6 +837,7 @@ public class WorkflowService {
                     }
 
                     FieldGroup savedGroup = fieldGroupRepository.save(group);
+                    groupIdsToKeepByForm.get(savedForm.getId()).add(savedGroup.getId());
 
                     // Map temp ID to real ID
                     if (groupDto.getId() != null && groupDto.getId().startsWith("temp_")) {
@@ -740,15 +926,30 @@ public class WorkflowService {
                     field.setValidationMessage(fieldDto.getValidationMessage());
                     field.setWidth(fieldDto.getWidth());
                     field.setCssClass(fieldDto.getCssClass());
+                    field.setOptionsLayout(fieldDto.getOptionsLayout() != null ? fieldDto.getOptionsLayout() : "vertical");
                     field.setDropdownSource(fieldDto.getDropdownSource());
                     field.setDropdownDisplayField(fieldDto.getDropdownDisplayField());
                     field.setDropdownValueField(fieldDto.getDropdownValueField());
+                    field.setSqlObjectId(fieldDto.getSqlObjectId());
+                    field.setOptionsSource(fieldDto.getOptionsSource() != null ? fieldDto.getOptionsSource() : "STATIC");
+                    if (fieldDto.getViewType() != null) {
+                        field.setViewType(WorkflowField.ViewType.valueOf(fieldDto.getViewType()));
+                    }
                     field.setIsAttachment(fieldDto.getIsAttachment() != null ? fieldDto.getIsAttachment() : false);
                     field.setAllowedFileTypes(fieldDto.getAllowedFileTypes());
                     field.setMaxFileSize(fieldDto.getMaxFileSize());
                     field.setMaxFiles(fieldDto.getMaxFiles());
+                    field.setInSummary(fieldDto.getInSummary() != null ? fieldDto.getInSummary() : false);
+                    field.setRatingMax(fieldDto.getRatingMax() != null ? fieldDto.getRatingMax() : 5);
+                    field.setSliderMin(fieldDto.getSliderMin() != null ? fieldDto.getSliderMin() : 0.0);
+                    field.setSliderMax(fieldDto.getSliderMax() != null ? fieldDto.getSliderMax() : 100.0);
+                    field.setSliderStep(fieldDto.getSliderStep() != null ? fieldDto.getSliderStep() : 1.0);
+                    field.setValidation(fieldDto.getValidation());
+                    field.setCustomValidationRule(fieldDto.getCustomValidationRule());
+                    field.setVisibilityExpression(fieldDto.getVisibilityExpression() != null ? fieldDto.getVisibilityExpression() : "true");
 
                     WorkflowField savedField = workflowFieldRepository.save(field);
+                    fieldIdsToKeepByForm.get(savedForm.getId()).add(savedField.getId());
 
                     // Process options for select/radio fields
                     if (fieldDto.getOptions() != null && !fieldDto.getOptions().isEmpty()) {
@@ -773,6 +974,41 @@ public class WorkflowService {
                             fieldOptionRepository.save(option);
                         }
                     }
+                }
+            }
+        }
+
+        // Clean up orphan items (fields, groups, screens) that are no longer in each form
+        for (UUID formId : formIdsToKeep) {
+            WorkflowForm form = workflowFormRepository.findById(formId).orElse(null);
+            if (form == null) continue;
+
+            // Delete orphan fields
+            Set<UUID> fieldIdsToKeep = fieldIdsToKeepByForm.getOrDefault(formId, new HashSet<>());
+            List<WorkflowField> allFields = workflowFieldRepository.findByFormId(formId);
+            for (WorkflowField field : allFields) {
+                if (!fieldIdsToKeep.contains(field.getId())) {
+                    // Delete options first
+                    fieldOptionRepository.deleteAll(field.getOptions());
+                    workflowFieldRepository.delete(field);
+                }
+            }
+
+            // Delete orphan field groups
+            Set<UUID> groupIdsToKeep = groupIdsToKeepByForm.getOrDefault(formId, new HashSet<>());
+            List<FieldGroup> allGroups = fieldGroupRepository.findByFormId(formId);
+            for (FieldGroup group : allGroups) {
+                if (!groupIdsToKeep.contains(group.getId())) {
+                    fieldGroupRepository.delete(group);
+                }
+            }
+
+            // Delete orphan screens
+            Set<UUID> screenIdsToKeep = screenIdsToKeepByForm.getOrDefault(formId, new HashSet<>());
+            List<Screen> allScreens = screenRepository.findByFormId(formId);
+            for (Screen screen : allScreens) {
+                if (!screenIdsToKeep.contains(screen.getId())) {
+                    screenRepository.delete(screen);
                 }
             }
         }
@@ -936,6 +1172,18 @@ public class WorkflowService {
     }
 
     private WorkflowFieldDTO toFieldDTO(WorkflowField field) {
+        // Determine options source - use SQL Object options if configured
+        List<FieldOptionDTO> fieldOptions;
+        // Fetch SQL Object options for SQL_OBJECT field type or if optionsSource is SQL
+        if ((field.getFieldType() == WorkflowField.FieldType.SQL_OBJECT || "SQL".equals(field.getOptionsSource()))
+                && field.getSqlObjectId() != null) {
+            // Fetch options from SQL Object table
+            fieldOptions = getSqlObjectOptionsAsFieldOptions(field.getSqlObjectId());
+        } else {
+            // Use static options defined on the field
+            fieldOptions = field.getOptions().stream().map(this::toOptionDTO).collect(Collectors.toList());
+        }
+
         return WorkflowFieldDTO.builder()
                 .id(field.getId() != null ? field.getId().toString() : null)
                 .formId(field.getForm().getId() != null ? field.getForm().getId().toString() : null)
@@ -964,17 +1212,50 @@ public class WorkflowService {
                 .validationMessage(field.getValidationMessage())
                 .customValidationRule(field.getCustomValidationRule())
                 .customValidationMessage(field.getCustomValidationMessage())
+                .validation(field.getValidation())
+                .visibilityExpression(field.getVisibilityExpression())
                 .width(field.getWidth())
                 .cssClass(field.getCssClass())
-                .options(field.getOptions().stream().map(this::toOptionDTO).collect(Collectors.toList()))
+                .options(fieldOptions)
+                .optionsLayout(field.getOptionsLayout())
                 .dropdownSource(field.getDropdownSource())
                 .dropdownDisplayField(field.getDropdownDisplayField())
                 .dropdownValueField(field.getDropdownValueField())
+                .sqlObjectId(field.getSqlObjectId())
+                .optionsSource(field.getOptionsSource())
+                .viewType(field.getViewType() != null ? field.getViewType().name() : null)
                 .isAttachment(field.getIsAttachment())
                 .allowedFileTypes(field.getAllowedFileTypes())
                 .maxFileSize(field.getMaxFileSize())
                 .maxFiles(field.getMaxFiles())
+                .inSummary(field.getInSummary())
+                .ratingMax(field.getRatingMax())
+                .sliderMin(field.getSliderMin())
+                .sliderMax(field.getSliderMax())
+                .sliderStep(field.getSliderStep())
                 .build();
+    }
+
+    /**
+     * Fetch options from SQL Object table and convert to FieldOptionDTO list
+     */
+    private List<FieldOptionDTO> getSqlObjectOptionsAsFieldOptions(UUID sqlObjectId) {
+        try {
+            List<Map<String, String>> sqlOptions = sqlObjectService.getOptionsFromSqlObject(sqlObjectId);
+            List<FieldOptionDTO> options = new ArrayList<>();
+            int order = 0;
+            for (Map<String, String> sqlOption : sqlOptions) {
+                options.add(FieldOptionDTO.builder()
+                        .value(sqlOption.get("value"))
+                        .label(sqlOption.get("label"))
+                        .displayOrder(order++)
+                        .build());
+            }
+            return options;
+        } catch (Exception e) {
+            log.warn("Failed to fetch SQL Object options for ID {}: {}", sqlObjectId, e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     private FieldOptionDTO toOptionDTO(FieldOption option) {

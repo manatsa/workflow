@@ -20,6 +20,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatSliderModule } from '@angular/material/slider';
 import { WorkflowService } from '@core/services/workflow.service';
 import { AuthService } from '@core/services/auth.service';
 import { UserService } from '@core/services/user.service';
@@ -48,7 +51,10 @@ import { User } from '@core/models/user.model';
     MatProgressSpinnerModule,
     MatChipsModule,
     MatAutocompleteModule,
-    MatDividerModule
+    MatDividerModule,
+    MatSlideToggleModule,
+    MatButtonToggleModule,
+    MatSliderModule
   ],
   template: `
     <div class="workflow-form-container">
@@ -111,6 +117,7 @@ import { User } from '@core/models/user.model';
               <mat-card-content>
                 <div class="fields-grid">
                   @for (field of (isMultiStep ? getUngroupedFieldsOnScreen() : getUngroupedFields()); track field.id) {
+                    @if (isFieldVisible(field)) {
                     <div class="field-wrapper" [style.grid-column]="'span ' + (field.columnSpan || 2)">
                       @switch (field.type) {
                         @case ('TEXT') {
@@ -248,7 +255,7 @@ import { User } from '@core/models/user.model';
                         @case ('RADIO') {
                           <div class="radio-field" [class.has-error]="hasFieldError(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+                            <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
                               @for (option of field.options; track option.value) {
                                 <mat-radio-button [value]="option.value" [disabled]="isFieldReadonly(field)">{{ option.label }}</mat-radio-button>
                               }
@@ -269,7 +276,7 @@ import { User } from '@core/models/user.model';
                         @case ('CHECKBOX_GROUP') {
                           <div class="field-container checkbox-group-field" [class.has-error]="hasFieldError(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            <div class="checkbox-options">
+                            <div class="checkbox-options" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
                               @for (option of field.options || []; track option.value) {
                                 <mat-checkbox
                                   [checked]="isCheckboxOptionSelected(field.name, option.value)"
@@ -363,6 +370,362 @@ import { User } from '@core/models/user.model';
                             }
                           </div>
                         }
+                        @case ('TOGGLE') {
+                          <div class="toggle-field">
+                            <mat-slide-toggle [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+                              {{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }
+                            </mat-slide-toggle>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('YES_NO') {
+                          <div class="yes-no-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <mat-button-toggle-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+                              <mat-button-toggle value="yes">Yes</mat-button-toggle>
+                              <mat-button-toggle value="no">No</mat-button-toggle>
+                            </mat-button-toggle-group>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('RATING') {
+                          <div class="rating-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="star-rating">
+                              @for (star of getStarArray(field); track star) {
+                                <mat-icon (click)="setRating(field, star)" [class.filled]="getRatingValue(field) >= star" [class.readonly]="isFieldReadonly(field)">
+                                  {{ getRatingValue(field) >= star ? 'star' : 'star_border' }}
+                                </mat-icon>
+                              }
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('TIME') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput type="time" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('SLIDER') {
+                          <div class="slider-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }}: {{ form.get(field.name)?.value || 0 }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <mat-slider [min]="field.sliderMin || 0" [max]="field.sliderMax || 100" [step]="field.sliderStep || 1" [discrete]="true" [disabled]="isFieldReadonly(field)">
+                              <input matSliderThumb [formControlName]="field.name">
+                            </mat-slider>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('COLOR') {
+                          <div class="color-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <input type="color" [formControlName]="field.name" class="color-input" [disabled]="isFieldReadonly(field)">
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('IMAGE') {
+                          <div class="image-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="image-upload-area">
+                              <input type="file" accept="image/*" (change)="onImageSelect($event, field)" #imageInput hidden>
+                              <button mat-stroked-button type="button" (click)="imageInput.click()" [disabled]="isFieldReadonly(field)">
+                                <mat-icon>add_photo_alternate</mat-icon>
+                                Select Image
+                              </button>
+                              @if (getImagePreview(field)) {
+                                <img [src]="getImagePreview(field)" class="image-preview">
+                              }
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('SIGNATURE') {
+                          <div class="signature-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="signature-pad-container">
+                              <canvas class="signature-canvas"
+                                      [attr.data-field]="field.name"
+                                      (mousedown)="startSignature($event, field)"
+                                      (mousemove)="drawSignature($event, field)"
+                                      (mouseup)="endSignature(field)"
+                                      (mouseleave)="endSignature(field)"
+                                      (touchstart)="startSignatureTouch($event, field)"
+                                      (touchmove)="drawSignatureTouch($event, field)"
+                                      (touchend)="endSignature(field)">
+                              </canvas>
+                              <div class="signature-actions">
+                                <button mat-icon-button type="button" (click)="clearSignature(field)" matTooltip="Clear signature" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>clear</mat-icon>
+                                </button>
+                              </div>
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('RICH_TEXT') {
+                          <div class="rich-text-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="rich-text-editor">
+                              <div class="rich-text-toolbar">
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('bold')" matTooltip="Bold" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_bold</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('italic')" matTooltip="Italic" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_italic</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('underline')" matTooltip="Underline" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_underlined</mat-icon>
+                                </button>
+                                <span class="toolbar-divider"></span>
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('insertUnorderedList')" matTooltip="Bullet list" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_list_bulleted</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('insertOrderedList')" matTooltip="Numbered list" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_list_numbered</mat-icon>
+                                </button>
+                              </div>
+                              <div class="rich-text-content"
+                                   contenteditable="true"
+                                   [attr.data-field]="field.name"
+                                   (input)="onRichTextInput($event, field)"
+                                   (blur)="onRichTextBlur($event, field)"
+                                   [innerHTML]="form.get(field.name)?.value || ''"
+                                   [class.readonly]="isFieldReadonly(field)">
+                              </div>
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('ICON') {
+                          <div class="icon-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="icon-picker">
+                              <div class="selected-icon" (click)="toggleIconPicker(field)" [class.disabled]="isFieldReadonly(field)">
+                                @if (form.get(field.name)?.value) {
+                                  <mat-icon>{{ form.get(field.name)?.value }}</mat-icon>
+                                  <span>{{ form.get(field.name)?.value }}</span>
+                                } @else {
+                                  <mat-icon>emoji_symbols</mat-icon>
+                                  <span>Select an icon...</span>
+                                }
+                                <mat-icon class="dropdown-arrow">arrow_drop_down</mat-icon>
+                              </div>
+                              @if (isIconPickerOpen(field)) {
+                                <div class="icon-picker-dropdown">
+                                  <input type="text" class="icon-search" placeholder="Search icons..." [value]="iconSearchText[field.name] || ''" (input)="onIconSearch($event, field)">
+                                  <div class="icon-grid">
+                                    @for (icon of getFilteredIcons(field); track icon) {
+                                      <div class="icon-option" (click)="selectIcon(field, icon)" [class.selected]="form.get(field.name)?.value === icon">
+                                        <mat-icon>{{ icon }}</mat-icon>
+                                      </div>
+                                    }
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('BARCODE') {
+                          <div class="barcode-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="barcode-input">
+                              <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Barcode/QR Code</mat-label>
+                                <input matInput [formControlName]="field.name" [readonly]="isFieldReadonly(field)" placeholder="Enter or scan barcode...">
+                                <button mat-icon-button matSuffix type="button" (click)="scanBarcode(field)" matTooltip="Scan barcode" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>qr_code_scanner</mat-icon>
+                                </button>
+                              </mat-form-field>
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('LOCATION') {
+                          <div class="location-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="location-input">
+                              <div class="location-coords">
+                                <mat-form-field appearance="outline" class="coord-field">
+                                  <mat-label>Latitude</mat-label>
+                                  <input matInput type="number" step="any" [value]="getLocationLat(field)" (input)="onLocationLatChange($event, field)" [readonly]="isFieldReadonly(field)">
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="coord-field">
+                                  <mat-label>Longitude</mat-label>
+                                  <input matInput type="number" step="any" [value]="getLocationLng(field)" (input)="onLocationLngChange($event, field)" [readonly]="isFieldReadonly(field)">
+                                </mat-form-field>
+                                <button mat-icon-button type="button" (click)="getCurrentLocation(field)" matTooltip="Get current location" [disabled]="isFieldReadonly(field) || isGettingLocation(field)">
+                                  @if (isGettingLocation(field)) {
+                                    <mat-icon class="spinning">sync</mat-icon>
+                                  } @else {
+                                    <mat-icon>my_location</mat-icon>
+                                  }
+                                </button>
+                              </div>
+                              @if (getLocationDisplay(field)) {
+                                <div class="location-preview">
+                                  <mat-icon>place</mat-icon>
+                                  <span>{{ getLocationDisplay(field) }}</span>
+                                </div>
+                              }
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('TABLE') {
+                          <div class="table-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="table-input">
+                              <table class="data-table">
+                                <thead>
+                                  <tr>
+                                    @for (col of getTableColumns(field); track col.name) {
+                                      <th>{{ col.label }}</th>
+                                    }
+                                    <th class="actions-col">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  @for (row of getTableRows(field); track $index; let rowIndex = $index) {
+                                    <tr>
+                                      @for (col of getTableColumns(field); track col.name) {
+                                        <td>
+                                          <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isFieldReadonly(field)" class="table-cell-input">
+                                        </td>
+                                      }
+                                      <td class="actions-col">
+                                        <button mat-icon-button type="button" (click)="removeTableRow(field, rowIndex)" [disabled]="isFieldReadonly(field)" matTooltip="Remove row">
+                                          <mat-icon>delete</mat-icon>
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  }
+                                  @if (getTableRows(field).length === 0) {
+                                    <tr>
+                                      <td [attr.colspan]="getTableColumns(field).length + 1" class="empty-table">
+                                        No rows added. Click "Add Row" to add data.
+                                      </td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                              <button mat-stroked-button type="button" (click)="addTableRow(field)" [disabled]="isFieldReadonly(field)" class="add-row-btn">
+                                <mat-icon>add</mat-icon> Add Row
+                              </button>
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('SQL_OBJECT') {
+                          <!-- Render based on viewType -->
+                          @switch (field.viewType) {
+                            @case ('SELECT') {
+                              <div class="field-container">
+                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                                  <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
+                                    @for (option of field.options; track option.value) {
+                                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                            @case ('MULTISELECT') {
+                              <div class="field-container">
+                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                                  <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" multiple>
+                                    @for (option of field.options; track option.value) {
+                                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                            @case ('RADIO') {
+                              <div class="radio-field" [class.has-error]="hasFieldError(field)">
+                                <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                                <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
+                                  @for (option of field.options; track option.value) {
+                                    <mat-radio-button [value]="option.value" [disabled]="isFieldReadonly(field)">{{ option.label }}</mat-radio-button>
+                                  }
+                                </mat-radio-group>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                            @case ('CHECKBOX_GROUP') {
+                              <div class="checkbox-group-field" [class.has-error]="hasFieldError(field)">
+                                <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                                <div class="checkbox-group" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
+                                  @for (option of field.options; track option.value) {
+                                    <mat-checkbox [checked]="isCheckboxOptionSelected(field.name, option.value)"
+                                                  (change)="onCheckboxGroupChange(field.name, option.value, $event.checked)"
+                                                  [disabled]="isFieldReadonly(field)">
+                                      {{ option.label }}
+                                    </mat-checkbox>
+                                  }
+                                </div>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                            @default {
+                              <!-- Default to SELECT if viewType not set -->
+                              <div class="field-container">
+                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                                  <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
+                                    @for (option of field.options; track option.value) {
+                                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                          }
+                        }
                         @default {
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width">
@@ -373,6 +736,7 @@ import { User } from '@core/models/user.model';
                         }
                       }
                     </div>
+                    }
                   }
                 </div>
               </mat-card-content>
@@ -392,6 +756,7 @@ import { User } from '@core/models/user.model';
 
                 <div class="fields-grid">
                   @for (field of getFieldsInGroup(group.id); track field.id) {
+                    @if (isFieldVisible(field)) {
                     <div class="field-wrapper" [style.grid-column]="'span ' + (field.columnSpan || 2)">
                       @switch (field.type) {
                         @case ('TEXT') {
@@ -529,7 +894,7 @@ import { User } from '@core/models/user.model';
                         @case ('RADIO') {
                           <div class="radio-field" [class.has-error]="hasFieldError(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+                            <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
                               @for (option of field.options; track option.value) {
                                 <mat-radio-button [value]="option.value">{{ option.label }}</mat-radio-button>
                               }
@@ -550,7 +915,7 @@ import { User } from '@core/models/user.model';
                         @case ('CHECKBOX_GROUP') {
                           <div class="field-container checkbox-group-field" [class.has-error]="hasFieldError(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            <div class="checkbox-options">
+                            <div class="checkbox-options" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
                               @for (option of field.options || []; track option.value) {
                                 <mat-checkbox
                                   [checked]="isCheckboxOptionSelected(field.name, option.value)"
@@ -637,6 +1002,362 @@ import { User } from '@core/models/user.model';
                             }
                           </div>
                         }
+                        @case ('TOGGLE') {
+                          <div class="toggle-field">
+                            <mat-slide-toggle [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+                              {{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }
+                            </mat-slide-toggle>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('YES_NO') {
+                          <div class="yes-no-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <mat-button-toggle-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+                              <mat-button-toggle value="yes">Yes</mat-button-toggle>
+                              <mat-button-toggle value="no">No</mat-button-toggle>
+                            </mat-button-toggle-group>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('RATING') {
+                          <div class="rating-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="star-rating">
+                              @for (star of getStarArray(field); track star) {
+                                <mat-icon (click)="setRating(field, star)" [class.filled]="getRatingValue(field) >= star" [class.readonly]="isFieldReadonly(field)">
+                                  {{ getRatingValue(field) >= star ? 'star' : 'star_border' }}
+                                </mat-icon>
+                              }
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('TIME') {
+                          <div class="field-container">
+                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                              <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                              <input matInput type="time" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+                            </mat-form-field>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('SLIDER') {
+                          <div class="slider-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }}: {{ form.get(field.name)?.value || 0 }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <mat-slider [min]="field.sliderMin || 0" [max]="field.sliderMax || 100" [step]="field.sliderStep || 1" [discrete]="true" [disabled]="isFieldReadonly(field)">
+                              <input matSliderThumb [formControlName]="field.name">
+                            </mat-slider>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('COLOR') {
+                          <div class="color-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <input type="color" [formControlName]="field.name" class="color-input" [disabled]="isFieldReadonly(field)">
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('IMAGE') {
+                          <div class="image-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="image-upload-area">
+                              <input type="file" accept="image/*" (change)="onImageSelect($event, field)" #imageInputGroup hidden>
+                              <button mat-stroked-button type="button" (click)="imageInputGroup.click()" [disabled]="isFieldReadonly(field)">
+                                <mat-icon>add_photo_alternate</mat-icon>
+                                Select Image
+                              </button>
+                              @if (getImagePreview(field)) {
+                                <img [src]="getImagePreview(field)" class="image-preview">
+                              }
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('SIGNATURE') {
+                          <div class="signature-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="signature-pad-container">
+                              <canvas class="signature-canvas"
+                                      [attr.data-field]="field.name"
+                                      (mousedown)="startSignature($event, field)"
+                                      (mousemove)="drawSignature($event, field)"
+                                      (mouseup)="endSignature(field)"
+                                      (mouseleave)="endSignature(field)"
+                                      (touchstart)="startSignatureTouch($event, field)"
+                                      (touchmove)="drawSignatureTouch($event, field)"
+                                      (touchend)="endSignature(field)">
+                              </canvas>
+                              <div class="signature-actions">
+                                <button mat-icon-button type="button" (click)="clearSignature(field)" matTooltip="Clear signature" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>clear</mat-icon>
+                                </button>
+                              </div>
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('RICH_TEXT') {
+                          <div class="rich-text-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="rich-text-editor">
+                              <div class="rich-text-toolbar">
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('bold')" matTooltip="Bold" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_bold</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('italic')" matTooltip="Italic" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_italic</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('underline')" matTooltip="Underline" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_underlined</mat-icon>
+                                </button>
+                                <span class="toolbar-divider"></span>
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('insertUnorderedList')" matTooltip="Bullet list" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_list_bulleted</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="execRichTextCommand('insertOrderedList')" matTooltip="Numbered list" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>format_list_numbered</mat-icon>
+                                </button>
+                              </div>
+                              <div class="rich-text-content"
+                                   contenteditable="true"
+                                   [attr.data-field]="field.name"
+                                   (input)="onRichTextInput($event, field)"
+                                   (blur)="onRichTextBlur($event, field)"
+                                   [innerHTML]="form.get(field.name)?.value || ''"
+                                   [class.readonly]="isFieldReadonly(field)">
+                              </div>
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('ICON') {
+                          <div class="icon-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="icon-picker">
+                              <div class="selected-icon" (click)="toggleIconPicker(field)" [class.disabled]="isFieldReadonly(field)">
+                                @if (form.get(field.name)?.value) {
+                                  <mat-icon>{{ form.get(field.name)?.value }}</mat-icon>
+                                  <span>{{ form.get(field.name)?.value }}</span>
+                                } @else {
+                                  <mat-icon>emoji_symbols</mat-icon>
+                                  <span>Select an icon...</span>
+                                }
+                                <mat-icon class="dropdown-arrow">arrow_drop_down</mat-icon>
+                              </div>
+                              @if (isIconPickerOpen(field)) {
+                                <div class="icon-picker-dropdown">
+                                  <input type="text" class="icon-search" placeholder="Search icons..." [value]="iconSearchText[field.name] || ''" (input)="onIconSearch($event, field)">
+                                  <div class="icon-grid">
+                                    @for (icon of getFilteredIcons(field); track icon) {
+                                      <div class="icon-option" (click)="selectIcon(field, icon)" [class.selected]="form.get(field.name)?.value === icon">
+                                        <mat-icon>{{ icon }}</mat-icon>
+                                      </div>
+                                    }
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('BARCODE') {
+                          <div class="barcode-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="barcode-input">
+                              <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Barcode/QR Code</mat-label>
+                                <input matInput [formControlName]="field.name" [readonly]="isFieldReadonly(field)" placeholder="Enter or scan barcode...">
+                                <button mat-icon-button matSuffix type="button" (click)="scanBarcode(field)" matTooltip="Scan barcode" [disabled]="isFieldReadonly(field)">
+                                  <mat-icon>qr_code_scanner</mat-icon>
+                                </button>
+                              </mat-form-field>
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('LOCATION') {
+                          <div class="location-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="location-input">
+                              <div class="location-coords">
+                                <mat-form-field appearance="outline" class="coord-field">
+                                  <mat-label>Latitude</mat-label>
+                                  <input matInput type="number" step="any" [value]="getLocationLat(field)" (input)="onLocationLatChange($event, field)" [readonly]="isFieldReadonly(field)">
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="coord-field">
+                                  <mat-label>Longitude</mat-label>
+                                  <input matInput type="number" step="any" [value]="getLocationLng(field)" (input)="onLocationLngChange($event, field)" [readonly]="isFieldReadonly(field)">
+                                </mat-form-field>
+                                <button mat-icon-button type="button" (click)="getCurrentLocation(field)" matTooltip="Get current location" [disabled]="isFieldReadonly(field) || isGettingLocation(field)">
+                                  @if (isGettingLocation(field)) {
+                                    <mat-icon class="spinning">sync</mat-icon>
+                                  } @else {
+                                    <mat-icon>my_location</mat-icon>
+                                  }
+                                </button>
+                              </div>
+                              @if (getLocationDisplay(field)) {
+                                <div class="location-preview">
+                                  <mat-icon>place</mat-icon>
+                                  <span>{{ getLocationDisplay(field) }}</span>
+                                </div>
+                              }
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('TABLE') {
+                          <div class="table-field" [class.has-error]="hasFieldError(field)">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            <div class="table-input">
+                              <table class="data-table">
+                                <thead>
+                                  <tr>
+                                    @for (col of getTableColumns(field); track col.name) {
+                                      <th>{{ col.label }}</th>
+                                    }
+                                    <th class="actions-col">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  @for (row of getTableRows(field); track $index; let rowIndex = $index) {
+                                    <tr>
+                                      @for (col of getTableColumns(field); track col.name) {
+                                        <td>
+                                          <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isFieldReadonly(field)" class="table-cell-input">
+                                        </td>
+                                      }
+                                      <td class="actions-col">
+                                        <button mat-icon-button type="button" (click)="removeTableRow(field, rowIndex)" [disabled]="isFieldReadonly(field)" matTooltip="Remove row">
+                                          <mat-icon>delete</mat-icon>
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  }
+                                  @if (getTableRows(field).length === 0) {
+                                    <tr>
+                                      <td [attr.colspan]="getTableColumns(field).length + 1" class="empty-table">
+                                        No rows added. Click "Add Row" to add data.
+                                      </td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                              <button mat-stroked-button type="button" (click)="addTableRow(field)" [disabled]="isFieldReadonly(field)" class="add-row-btn">
+                                <mat-icon>add</mat-icon> Add Row
+                              </button>
+                            </div>
+                            @if (hasFieldError(field)) {
+                              <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                            }
+                          </div>
+                        }
+                        @case ('SQL_OBJECT') {
+                          <!-- Render based on viewType -->
+                          @switch (field.viewType) {
+                            @case ('SELECT') {
+                              <div class="field-container">
+                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                                  <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
+                                    @for (option of field.options; track option.value) {
+                                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                            @case ('MULTISELECT') {
+                              <div class="field-container">
+                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                                  <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" multiple>
+                                    @for (option of field.options; track option.value) {
+                                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                            @case ('RADIO') {
+                              <div class="radio-field" [class.has-error]="hasFieldError(field)">
+                                <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                                <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
+                                  @for (option of field.options; track option.value) {
+                                    <mat-radio-button [value]="option.value" [disabled]="isFieldReadonly(field)">{{ option.label }}</mat-radio-button>
+                                  }
+                                </mat-radio-group>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                            @case ('CHECKBOX_GROUP') {
+                              <div class="checkbox-group-field" [class.has-error]="hasFieldError(field)">
+                                <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                                <div class="checkbox-group" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
+                                  @for (option of field.options; track option.value) {
+                                    <mat-checkbox [checked]="isCheckboxOptionSelected(field.name, option.value)"
+                                                  (change)="onCheckboxGroupChange(field.name, option.value, $event.checked)"
+                                                  [disabled]="isFieldReadonly(field)">
+                                      {{ option.label }}
+                                    </mat-checkbox>
+                                  }
+                                </div>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                            @default {
+                              <!-- Default to SELECT if viewType not set -->
+                              <div class="field-container">
+                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                                  <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
+                                    @for (option of field.options; track option.value) {
+                                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                                @if (hasFieldError(field)) {
+                                  <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
+                                }
+                              </div>
+                            }
+                          }
+                        }
                         @default {
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
@@ -650,6 +1371,7 @@ import { User } from '@core/models/user.model';
                         }
                       }
                     </div>
+                    }
                   }
                 </div>
               </mat-expansion-panel>
@@ -896,6 +1618,12 @@ import { User } from '@core/models/user.model';
       gap: 0.5rem;
     }
 
+    .radio-field mat-radio-group.horizontal-layout {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
     .file-field {
       padding: 0.5rem 0;
     }
@@ -915,6 +1643,12 @@ import { User } from '@core/models/user.model';
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+    }
+
+    .checkbox-options.horizontal-layout {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
 
     .label-field {
@@ -948,6 +1682,358 @@ import { User } from '@core/models/user.model';
       padding: 0 1rem;
       color: #666;
       font-size: 0.875rem;
+    }
+
+    /* New field type styles */
+    .toggle-field {
+      padding: 0.5rem 0;
+    }
+
+    .yes-no-field {
+      padding: 0.5rem 0;
+    }
+
+    .yes-no-field .field-label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .rating-field {
+      padding: 0.5rem 0;
+    }
+
+    .star-rating {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .star-rating mat-icon {
+      cursor: pointer;
+      color: #ffc107;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      transition: transform 0.1s ease;
+    }
+
+    .star-rating mat-icon:hover:not(.readonly) {
+      transform: scale(1.1);
+    }
+
+    .star-rating mat-icon.readonly {
+      cursor: default;
+    }
+
+    .star-rating mat-icon.filled {
+      color: #ffc107;
+    }
+
+    .slider-field {
+      padding: 0.5rem 0;
+    }
+
+    .slider-field mat-slider {
+      width: 100%;
+    }
+
+    .color-field {
+      padding: 0.5rem 0;
+    }
+
+    .color-field .color-input {
+      width: 60px;
+      height: 40px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .image-field {
+      padding: 0.5rem 0;
+    }
+
+    .image-upload-area {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .image-preview {
+      max-width: 200px;
+      max-height: 150px;
+      margin-top: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+
+    .signature-field, .rich-text-field, .icon-field, .barcode-field, .location-field, .table-field {
+      padding: 0.5rem 0;
+    }
+
+    /* Signature Field Styles */
+    .signature-pad-container {
+      position: relative;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .signature-canvas {
+      width: 100%;
+      height: 150px;
+      cursor: crosshair;
+      display: block;
+      touch-action: none;
+    }
+
+    .signature-actions {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+    }
+
+    .signature-actions button {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Rich Text Field Styles */
+    .rich-text-editor {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .rich-text-toolbar {
+      display: flex;
+      gap: 0.25rem;
+      padding: 0.5rem;
+      background: #f5f5f5;
+      border-bottom: 1px solid #ddd;
+      flex-wrap: wrap;
+    }
+
+    .rich-text-toolbar button {
+      min-width: 36px;
+      width: 36px;
+      height: 36px;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      background: #ddd;
+      margin: 0 0.25rem;
+    }
+
+    .rich-text-content {
+      min-height: 120px;
+      padding: 0.75rem;
+      outline: none;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    .rich-text-content:focus {
+      background: #fafafa;
+    }
+
+    .rich-text-content[contenteditable="false"] {
+      background: #f5f5f5;
+      cursor: not-allowed;
+    }
+
+    /* Icon Field Styles */
+    .icon-selector {
+      position: relative;
+    }
+
+    .selected-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 60px;
+      height: 60px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fff;
+    }
+
+    .selected-icon:hover:not(.disabled) {
+      border-color: #1976d2;
+      background: #e3f2fd;
+    }
+
+    .selected-icon.disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .selected-icon mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #333;
+    }
+
+    .icon-picker-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 1000;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 0.75rem;
+      width: 320px;
+      max-height: 350px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .icon-search {
+      margin-bottom: 0.5rem;
+    }
+
+    .icon-search input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 0.25rem;
+      overflow-y: auto;
+      max-height: 250px;
+      padding: 0.25rem;
+    }
+
+    .icon-option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .icon-option:hover {
+      background: #e3f2fd;
+    }
+
+    .icon-option mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: #666;
+    }
+
+    .icon-option:hover mat-icon {
+      color: #1976d2;
+    }
+
+    /* Barcode Field Styles */
+    .barcode-input {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    .barcode-input mat-form-field {
+      flex: 1;
+    }
+
+    /* Location Field Styles */
+    .location-inputs {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    .location-inputs mat-form-field {
+      flex: 1;
+    }
+
+    .location-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .location-display {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    /* Table/Grid Field Styles */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      background: #f5f5f5;
+      padding: 0.5rem;
+      text-align: left;
+      font-weight: 500;
+      font-size: 0.875rem;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .data-table td {
+      padding: 0.25rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .data-table input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .data-table input:focus {
+      border-color: #1976d2;
+      outline: none;
+    }
+
+    .data-table input:disabled {
+      background: #f5f5f5;
+      cursor: not-allowed;
+    }
+
+    .data-table .actions-cell {
+      width: 50px;
+      text-align: center;
+    }
+
+    .data-table .empty-table {
+      text-align: center;
+      padding: 1rem;
+      color: #999;
+      font-style: italic;
+    }
+
+    .table-actions {
+      margin-top: 0.5rem;
     }
 
     .file-list {
@@ -1148,6 +2234,242 @@ import { User } from '@core/models/user.model';
       font-size: 0.75rem;
       color: #666;
     }
+
+    /* Dark mode support */
+    :host-context(.dark-mode) .workflow-form-container {
+      background: #1e1e1e;
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) .form-card {
+      background: #2d2d2d !important;
+    }
+
+    :host-context(.dark-mode) .form-header {
+      background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+    }
+
+    :host-context(.dark-mode) .workflow-title,
+    :host-context(.dark-mode) h3,
+    :host-context(.dark-mode) .field-label,
+    :host-context(.dark-mode) .group-title {
+      color: #e0e0e0 !important;
+    }
+
+    :host-context(.dark-mode) .workflow-description,
+    :host-context(.dark-mode) .field-hint,
+    :host-context(.dark-mode) .group-description,
+    :host-context(.dark-mode) .screen-description {
+      color: #aaa !important;
+    }
+
+    :host-context(.dark-mode) .required-indicator {
+      color: #ff6b6b;
+    }
+
+    :host-context(.dark-mode) .field-group {
+      background: #333;
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .group-header {
+      background: #3d3d3d;
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .divider-field mat-divider {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .label-field span {
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) .file-upload-area {
+      border-color: #444;
+      background: #2d2d2d;
+    }
+
+    :host-context(.dark-mode) .file-upload-area p {
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) .file-list {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .file-item {
+      background: #333;
+      border-color: #444;
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) .star-rating mat-icon {
+      color: #ffc107;
+    }
+
+    :host-context(.dark-mode) .slider-field label {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) .color-preview {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .signature-pad {
+      border-color: #444;
+      background: #2d2d2d;
+    }
+
+    :host-context(.dark-mode) .signature-pad p {
+      color: #888;
+    }
+
+    :host-context(.dark-mode) .image-preview-area {
+      border-color: #444;
+      background: #2d2d2d;
+    }
+
+    :host-context(.dark-mode) .image-preview-area p {
+      color: #888;
+    }
+
+    :host-context(.dark-mode) .table-field table {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .table-field th {
+      background: #333;
+      border-color: #444;
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) .table-field td {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .icon-display {
+      border-color: #444;
+      background: #2d2d2d;
+    }
+
+    :host-context(.dark-mode) .icon-name {
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) .screen-tabs {
+      background: #2d2d2d;
+    }
+
+    :host-context(.dark-mode) .screen-tab {
+      background: #333;
+      border-color: #444;
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) .screen-tab.active {
+      background: #1976d2;
+      color: white;
+      border-color: #1976d2;
+    }
+
+    :host-context(.dark-mode) .screen-tab.completed {
+      background: #2e7d32;
+      color: white;
+    }
+
+    :host-context(.dark-mode) .screen-navigation {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .screen-counter {
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) .attachments-section {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .attachments-header h3 {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) .comments-section {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .user-option mat-icon {
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) .user-email {
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-form-field {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-floating-label {
+      color: #aaa !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-input-element {
+      color: #e0e0e0 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-select-value {
+      color: #e0e0e0 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mdc-text-field--outlined .mdc-notched-outline__leading,
+    :host-context(.dark-mode) ::ng-deep .mdc-text-field--outlined .mdc-notched-outline__notch,
+    :host-context(.dark-mode) ::ng-deep .mdc-text-field--outlined .mdc-notched-outline__trailing {
+      border-color: #555 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-form-field-hint {
+      color: #888 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-expansion-panel {
+      background: #2d2d2d !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-expansion-panel-header-title {
+      color: #e0e0e0 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-radio-button .mdc-label {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-checkbox .mdc-label {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-slide-toggle .mdc-label {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-button-toggle-group {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-button-toggle {
+      color: #e0e0e0;
+      background: #2d2d2d;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-button-toggle-checked {
+      background: #1976d2;
+      color: white;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-card {
+      background: #2d2d2d !important;
+      color: #e0e0e0;
+    }
   `]
 })
 export class WorkflowFormComponent implements OnInit, OnDestroy {
@@ -1236,16 +2558,27 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   loadInstance() {
     this.workflowService.getInstance(this.instanceId!).subscribe({
       next: (res) => {
-        this.loading = false;
         if (res.success && res.data) {
           // Extract field values from instance
+          // fieldValues is returned as an object/map from the backend, not an array
           if (res.data.fieldValues) {
-            res.data.fieldValues.forEach((fv: any) => {
-              this.existingFieldValues[fv.fieldName] = fv.value;
-            });
+            const fieldValues = res.data.fieldValues as any;
+            if (Array.isArray(fieldValues)) {
+              // Handle legacy array format
+              fieldValues.forEach((fv: any) => {
+                this.existingFieldValues[fv.fieldName] = fv.value;
+              });
+            } else if (typeof fieldValues === 'object') {
+              // Handle object/map format (current backend response)
+              Object.keys(fieldValues).forEach((fieldName: string) => {
+                this.existingFieldValues[fieldName] = fieldValues[fieldName];
+              });
+            }
           }
-          this.initializeForm();
         }
+        // Always initialize form after loading instance (workflow should already be loaded)
+        this.loading = false;
+        this.initializeForm();
       },
       error: () => {
         this.loading = false;
@@ -1255,7 +2588,10 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   }
 
   initializeForm() {
-    if (!this.workflow?.forms?.[0]) return;
+    if (!this.workflow?.forms?.[0]) {
+      console.warn('No workflow forms found for initialization');
+      return;
+    }
 
     const mainForm = this.workflow.forms[0];
     const fieldGroups = mainForm.fieldGroups || [];
@@ -1878,6 +3214,22 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   getFieldsInGroup(groupId: string): WorkflowField[] {
     const gid = groupId?.toString();
+
+    // In multi-step mode, also filter by screenId
+    if (this.isMultiStep) {
+      const screenId = this.currentScreen?.id?.toString();
+      const isFirstScreen = this.currentScreenIndex === 0;
+
+      return this.fields.filter(f => {
+        if (f.fieldGroupId?.toString() !== gid || f.hidden || f.isHidden) {
+          return false;
+        }
+        const fieldScreenId = f.screenId?.toString();
+        // Field matches if: its screenId matches current screen OR (first screen AND field has no screenId)
+        return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
+      });
+    }
+
     return this.fields.filter(f => f.fieldGroupId?.toString() === gid && !(f.hidden || f.isHidden));
   }
 
@@ -1993,6 +3345,177 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       // Check for Required() validation expression
       return /Required\s*\(/i.test(field.validation);
     }
+    return false;
+  }
+
+  /**
+   * Check if a field should be visible based on its visibility expression
+   * Returns true by default if no expression or expression is empty/true
+   */
+  isFieldVisible(field: WorkflowField): boolean {
+    const expression = field.visibilityExpression;
+
+    // Default to visible if no expression or empty
+    if (!expression || expression.trim() === '' || expression.trim().toLowerCase() === 'true') {
+      return true;
+    }
+
+    // If expression is explicitly 'false', hide the field
+    if (expression.trim().toLowerCase() === 'false') {
+      return false;
+    }
+
+    try {
+      // Evaluate the visibility expression
+      return this.evaluateVisibilityExpression(expression);
+    } catch (e) {
+      console.warn('Error evaluating visibility expression for field', field.name, e);
+      return true; // Default to visible on error
+    }
+  }
+
+  /**
+   * Evaluate a visibility expression that may reference other field values
+   * Supports: @{fieldName} references, comparison operators, logical operators
+   */
+  private evaluateVisibilityExpression(expression: string): boolean {
+    // Replace field references @{fieldName} with actual values
+    let evaluatedExpression = expression.replace(/@\{([^}]+)\}/g, (match, fieldName) => {
+      const value = this.form.get(fieldName.trim())?.value;
+      if (value === null || value === undefined || value === '') {
+        return 'null';
+      }
+      if (typeof value === 'string') {
+        return `'${value.replace(/'/g, "\\'")}'`;
+      }
+      if (typeof value === 'boolean') {
+        return value.toString();
+      }
+      if (typeof value === 'number') {
+        return value.toString();
+      }
+      return `'${String(value)}'`;
+    });
+
+    // Safe evaluation of comparison expressions
+    // Supported operators: ==, !=, >, <, >=, <=, &&, ||, !
+    try {
+      // Simple expression patterns
+      // Check for common patterns first
+
+      // Pattern: 'value1' == 'value2' or value1 == value2
+      const eqMatch = evaluatedExpression.match(/^['"]?([^'"=!<>]+)['"]?\s*(==|!=|===|!==)\s*['"]?([^'"]+)['"]?$/);
+      if (eqMatch) {
+        const left = eqMatch[1].trim();
+        const op = eqMatch[2];
+        const right = eqMatch[3].trim();
+        if (op === '==' || op === '===') {
+          return left === right;
+        } else {
+          return left !== right;
+        }
+      }
+
+      // Pattern: value > number or value < number
+      const compMatch = evaluatedExpression.match(/^['"]?([^'"<>=!]+)['"]?\s*(>=|<=|>|<)\s*['"]?([^'"]+)['"]?$/);
+      if (compMatch) {
+        const left = parseFloat(compMatch[1].trim());
+        const op = compMatch[2];
+        const right = parseFloat(compMatch[3].trim());
+        if (!isNaN(left) && !isNaN(right)) {
+          switch (op) {
+            case '>': return left > right;
+            case '<': return left < right;
+            case '>=': return left >= right;
+            case '<=': return left <= right;
+          }
+        }
+      }
+
+      // Pattern with && or ||
+      if (evaluatedExpression.includes('&&') || evaluatedExpression.includes('||')) {
+        // Split by && and || and evaluate each part
+        const parts = evaluatedExpression.split(/\s*(&&|\|\|)\s*/);
+        let result = this.evaluateSimpleCondition(parts[0]);
+
+        for (let i = 1; i < parts.length; i += 2) {
+          const operator = parts[i];
+          const nextCondition = this.evaluateSimpleCondition(parts[i + 1]);
+
+          if (operator === '&&') {
+            result = result && nextCondition;
+          } else if (operator === '||') {
+            result = result || nextCondition;
+          }
+        }
+        return result;
+      }
+
+      // Check for NOT operator
+      if (evaluatedExpression.trim().startsWith('!')) {
+        const inner = evaluatedExpression.trim().substring(1).trim();
+        return !this.evaluateSimpleCondition(inner);
+      }
+
+      // Default: try to evaluate as simple condition
+      return this.evaluateSimpleCondition(evaluatedExpression);
+    } catch (e) {
+      console.warn('Error in visibility expression evaluation:', e);
+      return true;
+    }
+  }
+
+  private evaluateSimpleCondition(condition: string): boolean {
+    condition = condition.trim();
+
+    // Handle parentheses
+    if (condition.startsWith('(') && condition.endsWith(')')) {
+      condition = condition.slice(1, -1).trim();
+    }
+
+    // Check for null comparisons
+    if (condition === 'null' || condition === "''" || condition === '""') {
+      return false;
+    }
+
+    // Check for boolean literals
+    if (condition.toLowerCase() === 'true') return true;
+    if (condition.toLowerCase() === 'false') return false;
+
+    // Check for equality
+    const eqMatch = condition.match(/^['"]?([^'"=!<>]+)['"]?\s*(==|!=|===|!==)\s*['"]?([^'"]+)['"]?$/);
+    if (eqMatch) {
+      const left = eqMatch[1].trim().replace(/^['"]|['"]$/g, '');
+      const op = eqMatch[2];
+      const right = eqMatch[3].trim().replace(/^['"]|['"]$/g, '');
+      if (op === '==' || op === '===') {
+        return left === right;
+      } else {
+        return left !== right;
+      }
+    }
+
+    // Check for numeric comparisons
+    const compMatch = condition.match(/^['"]?([^'"<>=!]+)['"]?\s*(>=|<=|>|<)\s*['"]?([^'"]+)['"]?$/);
+    if (compMatch) {
+      const left = parseFloat(compMatch[1].trim());
+      const op = compMatch[2];
+      const right = parseFloat(compMatch[3].trim());
+      if (!isNaN(left) && !isNaN(right)) {
+        switch (op) {
+          case '>': return left > right;
+          case '<': return left < right;
+          case '>=': return left >= right;
+          case '<=': return left <= right;
+        }
+      }
+    }
+
+    // If it's just a value, check if it's truthy
+    if (condition !== 'null' && condition !== '' && condition !== '0') {
+      return true;
+    }
+
     return false;
   }
 
@@ -3139,6 +4662,44 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     this.form.get(fieldName)?.markAsTouched();
   }
 
+  // New field type helper methods
+  imagePreviews: { [key: string]: string } = {};
+
+  getStarArray(field: any): number[] {
+    const max = field.ratingMax || 5;
+    return Array.from({ length: max }, (_, i) => i + 1);
+  }
+
+  getRatingValue(field: any): number {
+    const value = this.form.get(field.name)?.value;
+    return value ? parseInt(value, 10) : 0;
+  }
+
+  setRating(field: any, rating: number): void {
+    if (!this.isFieldReadonly(field)) {
+      this.form.get(field.name)?.setValue(rating);
+      this.form.get(field.name)?.markAsTouched();
+    }
+  }
+
+  getImagePreview(field: any): string | null {
+    return this.imagePreviews[field.name] || null;
+  }
+
+  onImageSelect(event: Event, field: any): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreviews[field.name] = e.target.result;
+        this.form.get(field.name)?.setValue(e.target.result);
+        this.form.get(field.name)?.markAsTouched();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   onAttachmentSelect(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files) {
@@ -3309,5 +4870,393 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     }
     // Otherwise return as-is (should be a string ID)
     return value;
+  }
+
+  // ========== SIGNATURE FIELD METHODS ==========
+  private signatureDrawing: Record<string, boolean> = {};
+  private signatureContexts: Record<string, CanvasRenderingContext2D | null> = {};
+
+  startSignature(event: MouseEvent, field: any): void {
+    if (this.isFieldReadonly(field)) return;
+    const canvas = event.target as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    this.signatureDrawing[field.name] = true;
+    this.signatureContexts[field.name] = ctx;
+
+    // Set canvas size if not set
+    if (canvas.width !== canvas.offsetWidth) {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const rect = canvas.getBoundingClientRect();
+    ctx.beginPath();
+    ctx.moveTo(event.clientX - rect.left, event.clientY - rect.top);
+  }
+
+  drawSignature(event: MouseEvent, field: any): void {
+    if (!this.signatureDrawing[field.name] || this.isFieldReadonly(field)) return;
+    const ctx = this.signatureContexts[field.name];
+    if (!ctx) return;
+
+    const canvas = event.target as HTMLCanvasElement;
+    const rect = canvas.getBoundingClientRect();
+    ctx.lineTo(event.clientX - rect.left, event.clientY - rect.top);
+    ctx.stroke();
+  }
+
+  endSignature(field: any): void {
+    if (this.signatureDrawing[field.name]) {
+      this.signatureDrawing[field.name] = false;
+      // Save signature as base64
+      const canvas = document.querySelector(`canvas[data-field="${field.name}"]`) as HTMLCanvasElement;
+      if (canvas) {
+        const dataUrl = canvas.toDataURL('image/png');
+        this.form.get(field.name)?.setValue(dataUrl);
+        this.form.get(field.name)?.markAsTouched();
+      }
+    }
+  }
+
+  startSignatureTouch(event: TouchEvent, field: any): void {
+    if (this.isFieldReadonly(field)) return;
+    event.preventDefault();
+    const canvas = event.target as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    this.signatureDrawing[field.name] = true;
+    this.signatureContexts[field.name] = ctx;
+
+    if (canvas.width !== canvas.offsetWidth) {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const rect = canvas.getBoundingClientRect();
+    const touch = event.touches[0];
+    ctx.beginPath();
+    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+  }
+
+  drawSignatureTouch(event: TouchEvent, field: any): void {
+    if (!this.signatureDrawing[field.name] || this.isFieldReadonly(field)) return;
+    event.preventDefault();
+    const ctx = this.signatureContexts[field.name];
+    if (!ctx) return;
+
+    const canvas = event.target as HTMLCanvasElement;
+    const rect = canvas.getBoundingClientRect();
+    const touch = event.touches[0];
+    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.stroke();
+  }
+
+  clearSignature(field: any): void {
+    const canvas = document.querySelector(`canvas[data-field="${field.name}"]`) as HTMLCanvasElement;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      this.form.get(field.name)?.setValue('');
+      this.form.get(field.name)?.markAsTouched();
+    }
+  }
+
+  // ========== RICH TEXT FIELD METHODS ==========
+  execRichTextCommand(command: string): void {
+    document.execCommand(command, false);
+  }
+
+  onRichTextInput(event: Event, field: any): void {
+    const div = event.target as HTMLDivElement;
+    this.form.get(field.name)?.setValue(div.innerHTML);
+  }
+
+  onRichTextBlur(event: Event, field: any): void {
+    const div = event.target as HTMLDivElement;
+    this.form.get(field.name)?.setValue(div.innerHTML);
+    this.form.get(field.name)?.markAsTouched();
+  }
+
+  getRichTextValue(field: any): string {
+    return this.form.get(field.name)?.value || '';
+  }
+
+  // ========== ICON PICKER FIELD METHODS ==========
+  iconPickerOpen: Record<string, boolean> = {};
+  iconSearchText: Record<string, string> = {};
+
+  availableIcons: string[] = [
+    'home', 'search', 'settings', 'favorite', 'star', 'check_circle', 'delete', 'edit',
+    'add', 'remove', 'close', 'menu', 'more_vert', 'more_horiz', 'refresh', 'sync',
+    'visibility', 'visibility_off', 'lock', 'lock_open', 'person', 'people', 'group',
+    'email', 'phone', 'chat', 'message', 'notifications', 'alarm', 'schedule', 'event',
+    'calendar_today', 'date_range', 'access_time', 'timer', 'hourglass_empty',
+    'folder', 'folder_open', 'file_copy', 'attach_file', 'cloud', 'cloud_upload', 'cloud_download',
+    'image', 'photo', 'camera', 'videocam', 'mic', 'volume_up', 'music_note',
+    'play_arrow', 'pause', 'stop', 'skip_next', 'skip_previous', 'replay',
+    'location_on', 'map', 'directions', 'navigation', 'explore', 'public', 'language',
+    'shopping_cart', 'store', 'payment', 'credit_card', 'account_balance', 'receipt',
+    'work', 'business', 'business_center', 'apartment', 'domain', 'corporate_fare',
+    'school', 'science', 'biotech', 'psychology', 'engineering',
+    'build', 'construction', 'handyman', 'plumbing', 'electrical_services',
+    'computer', 'laptop', 'smartphone', 'tablet', 'desktop_windows', 'devices',
+    'wifi', 'bluetooth', 'signal_wifi_4_bar', 'network_check', 'router',
+    'code', 'terminal', 'bug_report', 'memory', 'storage', 'dns',
+    'security', 'verified_user', 'shield', 'admin_panel_settings', 'policy',
+    'analytics', 'bar_chart', 'pie_chart', 'show_chart', 'trending_up', 'trending_down',
+    'assessment', 'leaderboard', 'insights', 'query_stats',
+    'local_shipping', 'flight', 'train', 'directions_car', 'directions_bus', 'two_wheeler',
+    'restaurant', 'local_cafe', 'local_bar', 'fastfood', 'lunch_dining',
+    'health_and_safety', 'medical_services', 'vaccines', 'medication', 'healing',
+    'pets', 'park', 'nature', 'eco', 'grass', 'forest', 'water_drop',
+    'sports_soccer', 'sports_basketball', 'sports_tennis', 'fitness_center', 'pool',
+    'thumb_up', 'thumb_down', 'sentiment_satisfied', 'sentiment_dissatisfied', 'mood',
+    'lightbulb', 'tips_and_updates', 'help', 'info', 'warning', 'error', 'report'
+  ];
+
+  toggleIconPicker(field: any): void {
+    if (this.isFieldReadonly(field)) return;
+    this.iconPickerOpen[field.name] = !this.iconPickerOpen[field.name];
+    if (this.iconPickerOpen[field.name]) {
+      this.iconSearchText[field.name] = '';
+    }
+  }
+
+  isIconPickerOpen(field: any): boolean {
+    return this.iconPickerOpen[field.name] || false;
+  }
+
+  selectIcon(field: any, icon: string): void {
+    this.form.get(field.name)?.setValue(icon);
+    this.form.get(field.name)?.markAsTouched();
+    this.iconPickerOpen[field.name] = false;
+  }
+
+  getSelectedIcon(field: any): string {
+    return this.form.get(field.name)?.value || 'help_outline';
+  }
+
+  getFilteredIcons(field: any): string[] {
+    const search = (this.iconSearchText[field.name] || '').toLowerCase();
+    if (!search) return this.availableIcons;
+    return this.availableIcons.filter(icon => icon.includes(search));
+  }
+
+  onIconSearch(event: Event, field: any): void {
+    const input = event.target as HTMLInputElement;
+    this.iconSearchText[field.name] = input.value;
+  }
+
+  // ========== BARCODE FIELD METHODS ==========
+  scanBarcode(field: any): void {
+    // In a real implementation, this would use a barcode scanning library
+    // For now, show an alert about the feature
+    this.snackBar.open('Barcode scanning requires camera access. Please enter the code manually.', 'OK', { duration: 5000 });
+  }
+
+  // ========== LOCATION FIELD METHODS ==========
+  private gettingLocation: Record<string, boolean> = {};
+  private locationData: Record<string, { lat: number | null; lng: number | null }> = {};
+
+  getLocationLat(field: any): number | null {
+    const value = this.form.get(field.name)?.value;
+    if (value && typeof value === 'string') {
+      const parts = value.split(',');
+      if (parts.length >= 2) {
+        return parseFloat(parts[0]) || null;
+      }
+    }
+    return this.locationData[field.name]?.lat || null;
+  }
+
+  getLocationLng(field: any): number | null {
+    const value = this.form.get(field.name)?.value;
+    if (value && typeof value === 'string') {
+      const parts = value.split(',');
+      if (parts.length >= 2) {
+        return parseFloat(parts[1]) || null;
+      }
+    }
+    return this.locationData[field.name]?.lng || null;
+  }
+
+  onLocationLatChange(event: Event, field: any): void {
+    const input = event.target as HTMLInputElement;
+    const lat = parseFloat(input.value) || null;
+    if (!this.locationData[field.name]) {
+      this.locationData[field.name] = { lat: null, lng: null };
+    }
+    this.locationData[field.name].lat = lat;
+    this.updateLocationValue(field);
+  }
+
+  onLocationLngChange(event: Event, field: any): void {
+    const input = event.target as HTMLInputElement;
+    const lng = parseFloat(input.value) || null;
+    if (!this.locationData[field.name]) {
+      this.locationData[field.name] = { lat: null, lng: null };
+    }
+    this.locationData[field.name].lng = lng;
+    this.updateLocationValue(field);
+  }
+
+  private updateLocationValue(field: any): void {
+    const data = this.locationData[field.name];
+    if (data && data.lat !== null && data.lng !== null) {
+      this.form.get(field.name)?.setValue(`${data.lat},${data.lng}`);
+    } else {
+      this.form.get(field.name)?.setValue('');
+    }
+    this.form.get(field.name)?.markAsTouched();
+  }
+
+  getCurrentLocation(field: any): void {
+    if (this.isFieldReadonly(field)) return;
+    if (!navigator.geolocation) {
+      this.snackBar.open('Geolocation is not supported by your browser', 'OK', { duration: 3000 });
+      return;
+    }
+
+    this.gettingLocation[field.name] = true;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        this.locationData[field.name] = { lat, lng };
+        this.form.get(field.name)?.setValue(`${lat},${lng}`);
+        this.form.get(field.name)?.markAsTouched();
+        this.gettingLocation[field.name] = false;
+        this.cdr.detectChanges();
+      },
+      (error) => {
+        this.gettingLocation[field.name] = false;
+        let message = 'Could not get location';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            message = 'Location permission denied';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            message = 'Location information unavailable';
+            break;
+          case error.TIMEOUT:
+            message = 'Location request timed out';
+            break;
+        }
+        this.snackBar.open(message, 'OK', { duration: 3000 });
+        this.cdr.detectChanges();
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
+  isGettingLocation(field: any): boolean {
+    return this.gettingLocation[field.name] || false;
+  }
+
+  getLocationDisplay(field: any): string {
+    const lat = this.getLocationLat(field);
+    const lng = this.getLocationLng(field);
+    if (lat !== null && lng !== null) {
+      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    }
+    return 'No location set';
+  }
+
+  // ========== TABLE/GRID FIELD METHODS ==========
+  private tableData: Record<string, any[]> = {};
+
+  getTableColumns(field: any): { name: string; label: string; type: string }[] {
+    // Parse columns from field options or use default
+    if (field.options && typeof field.options === 'string') {
+      try {
+        const parsed = JSON.parse(field.options);
+        if (Array.isArray(parsed)) {
+          return parsed.map((col: any) => ({
+            name: col.name || col.value || 'column',
+            label: col.label || col.name || 'Column',
+            type: col.type || 'text'
+          }));
+        }
+      } catch (e) {
+        // Fall through to default columns
+      }
+    }
+    // Default columns if not specified
+    return [
+      { name: 'col1', label: 'Column 1', type: 'text' },
+      { name: 'col2', label: 'Column 2', type: 'text' },
+      { name: 'col3', label: 'Column 3', type: 'text' }
+    ];
+  }
+
+  getTableRows(field: any): any[] {
+    if (!this.tableData[field.name]) {
+      // Initialize from form value or empty
+      const value = this.form.get(field.name)?.value;
+      if (value && typeof value === 'string') {
+        try {
+          this.tableData[field.name] = JSON.parse(value);
+        } catch (e) {
+          this.tableData[field.name] = [];
+        }
+      } else if (Array.isArray(value)) {
+        this.tableData[field.name] = value;
+      } else {
+        this.tableData[field.name] = [];
+      }
+    }
+    return this.tableData[field.name];
+  }
+
+  addTableRow(field: any): void {
+    if (this.isFieldReadonly(field)) return;
+    if (!this.tableData[field.name]) {
+      this.tableData[field.name] = [];
+    }
+    const columns = this.getTableColumns(field);
+    const newRow: Record<string, string> = {};
+    columns.forEach(col => {
+      newRow[col.name] = '';
+    });
+    this.tableData[field.name].push(newRow);
+    this.updateTableValue(field);
+  }
+
+  removeTableRow(field: any, index: number): void {
+    if (this.isFieldReadonly(field)) return;
+    if (this.tableData[field.name]) {
+      this.tableData[field.name].splice(index, 1);
+      this.updateTableValue(field);
+    }
+  }
+
+  onTableCellChange(event: Event, field: any, rowIndex: number, columnName: string): void {
+    if (this.isFieldReadonly(field)) return;
+    const input = event.target as HTMLInputElement;
+    if (this.tableData[field.name] && this.tableData[field.name][rowIndex]) {
+      this.tableData[field.name][rowIndex][columnName] = input.value;
+      this.updateTableValue(field);
+    }
+  }
+
+  private updateTableValue(field: any): void {
+    const value = JSON.stringify(this.tableData[field.name] || []);
+    this.form.get(field.name)?.setValue(value);
+    this.form.get(field.name)?.markAsTouched();
   }
 }

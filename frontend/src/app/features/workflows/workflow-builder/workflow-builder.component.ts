@@ -1585,116 +1585,214 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
       text-decoration: underline;
     }
 
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
-      .workflow-builder-container {
-        background: #1e1e1e;
-        color: #e0e0e0;
-      }
+    /* Dark mode support - using class-based approach */
+    :host-context(.dark-mode) .workflow-builder-container {
+      background: #1e1e1e;
+      color: #e0e0e0;
+    }
 
-      mat-card {
-        background: #2d2d2d !important;
-        color: #e0e0e0;
-      }
+    :host-context(.dark-mode) mat-card {
+      background: #2d2d2d !important;
+      color: #e0e0e0;
+    }
 
-      .field-type-item {
-        border-color: #444;
-        background: #2d2d2d;
-        color: #e0e0e0;
-      }
+    :host-context(.dark-mode) mat-card-title,
+    :host-context(.dark-mode) mat-card-subtitle,
+    :host-context(.dark-mode) .section-title,
+    :host-context(.dark-mode) .access-summary h4 {
+      color: #e0e0e0 !important;
+    }
 
-      .field-type-item:hover {
-        background: #3d5a80;
-        border-color: #5c8dc9;
-      }
+    :host-context(.dark-mode) .section-hint,
+    :host-context(.dark-mode) .empty-canvas,
+    :host-context(.dark-mode) .empty-state {
+      color: #aaa;
+    }
 
-      .field-panel, .group-panel {
-        background: #333 !important;
-      }
+    :host-context(.dark-mode) .field-type-item {
+      border-color: #444;
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
 
-      .screen-tabs {
-        background: #2d2d2d;
-      }
+    :host-context(.dark-mode) .field-type-item:hover {
+      background: #3d5a80;
+      border-color: #5c8dc9;
+    }
 
-      .screen-tabs button {
-        background: #3d3d3d;
-        border-color: #555;
-        color: #e0e0e0;
-      }
+    :host-context(.dark-mode) .field-panel,
+    :host-context(.dark-mode) .group-panel,
+    :host-context(.dark-mode) .approver-panel,
+    :host-context(.dark-mode) .screen-panel {
+      background: #333 !important;
+    }
 
-      .screen-tabs button.active {
-        background: #1976d2;
-        color: white;
-        border-color: #1976d2;
-      }
+    :host-context(.dark-mode) .validation-panel {
+      background: #2d2d2d !important;
+    }
 
-      .palette-section {
-        border-top-color: #444;
-      }
+    :host-context(.dark-mode) .screen-tabs {
+      background: #2d2d2d;
+    }
 
-      .palette-section h4 {
-        color: #aaa;
-      }
+    :host-context(.dark-mode) .screen-tabs button {
+      background: #3d3d3d;
+      border-color: #555;
+      color: #e0e0e0;
+    }
 
-      .function-item:hover {
-        background: #3d5a80;
-        border-color: #5c8dc9;
-      }
+    :host-context(.dark-mode) .screen-tabs button.active {
+      background: #1976d2;
+      color: white;
+      border-color: #1976d2;
+    }
 
-      .function-name {
-        color: #82b1ff;
-      }
+    :host-context(.dark-mode) .palette-section {
+      border-top-color: #444;
+    }
 
-      .function-desc, .user-option small, .sql-obj-hint, .sql-hint {
-        color: #aaa;
-      }
+    :host-context(.dark-mode) .palette-section h4 {
+      color: #aaa;
+    }
 
-      .empty-canvas {
-        background: #2d2d2d;
-        color: #888;
-      }
+    :host-context(.dark-mode) .function-category h4 {
+      color: #82b1ff;
+      border-bottom-color: #444;
+    }
 
-      .screen-info {
-        background: #2d3a4a;
-        color: #b3c7e0;
-      }
+    :host-context(.dark-mode) .function-item:hover {
+      background: #3d5a80;
+      border-color: #5c8dc9;
+    }
 
-      .function-usage-guide {
-        background: #2d3a4a;
-        border-color: #3d5a80;
-      }
+    :host-context(.dark-mode) .function-name {
+      color: #82b1ff;
+    }
 
-      .guide-content {
-        background: #1e2a3a;
-        color: #b3c7e0;
-      }
+    :host-context(.dark-mode) .function-desc,
+    :host-context(.dark-mode) .user-option small,
+    :host-context(.dark-mode) .sql-obj-hint,
+    :host-context(.dark-mode) .sql-hint {
+      color: #aaa;
+    }
 
-      .guide-content code {
-        background: #3d3d3d;
-        color: #82b1ff;
-      }
+    :host-context(.dark-mode) .empty-canvas {
+      background: #2d2d2d;
+      color: #888;
+    }
 
-      ::ng-deep .mat-mdc-form-field {
-        color: #e0e0e0;
-      }
+    :host-context(.dark-mode) .screen-info,
+    :host-context(.dark-mode) .access-info {
+      background: #2d3a4a;
+      color: #b3c7e0;
+    }
 
-      ::ng-deep .mat-mdc-input-element {
-        color: #e0e0e0 !important;
-      }
+    :host-context(.dark-mode) .screen-info p,
+    :host-context(.dark-mode) .screen-warning p,
+    :host-context(.dark-mode) .access-info p {
+      color: #b3c7e0;
+    }
 
-      ::ng-deep .mat-mdc-select-value {
-        color: #e0e0e0 !important;
-      }
+    :host-context(.dark-mode) .screen-warning {
+      background: #3d3020;
+      color: #e0c080;
+    }
 
-      ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
-      ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
-      ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
-        border-color: #555 !important;
-      }
+    :host-context(.dark-mode) .screen-info-badge {
+      background: #3d3020;
+      color: #e0c080;
+    }
 
-      ::ng-deep .mat-mdc-form-field-hint {
-        color: #888 !important;
-      }
+    :host-context(.dark-mode) .function-usage-guide {
+      background: #2d3a4a;
+      border-color: #3d5a80;
+    }
+
+    :host-context(.dark-mode) .guide-header {
+      color: #82b1ff;
+    }
+
+    :host-context(.dark-mode) .guide-header:hover {
+      background: #3d5a80;
+    }
+
+    :host-context(.dark-mode) .guide-content {
+      background: #1e2a3a;
+      color: #b3c7e0;
+    }
+
+    :host-context(.dark-mode) .guide-content code {
+      background: #3d3d3d;
+      color: #82b1ff;
+    }
+
+    :host-context(.dark-mode) .search-results-header {
+      color: #aaa;
+      border-bottom-color: #444;
+    }
+
+    :host-context(.dark-mode) .no-results {
+      color: #888;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-form-field {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-floating-label {
+      color: #aaa !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-input-element {
+      color: #e0e0e0 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-select-value {
+      color: #e0e0e0 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+    :host-context(.dark-mode) ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+    :host-context(.dark-mode) ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+      border-color: #555 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-form-field-hint {
+      color: #888 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-expansion-panel {
+      background: #2d2d2d !important;
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-expansion-panel-header-title,
+    :host-context(.dark-mode) ::ng-deep .mat-expansion-panel-header-description {
+      color: #e0e0e0 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-tab-labels {
+      background: #2d2d2d;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-tab:not(.mat-mdc-tab-disabled) .mdc-tab__text-label {
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-tab:not(.mat-mdc-tab-disabled).mdc-tab--active .mdc-tab__text-label {
+      color: #82b1ff;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-checkbox .mdc-checkbox__background {
+      border-color: #888 !important;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-checkbox .mdc-label {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) ::ng-deep .mat-mdc-slide-toggle .mdc-label {
+      color: #e0e0e0;
     }
   `]
 })
