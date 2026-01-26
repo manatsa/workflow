@@ -2966,7 +2966,211 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return null;
     }
 
+    // MinLength(n) or MinLength(n, "message")
+    const minLengthMatch = expression.match(/^MinLength\(\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (minLengthMatch) {
+      const minLen = parseInt(minLengthMatch[1], 10);
+      const customMessage = minLengthMatch[2] || minLengthMatch[3];
+      const strValue = value ? String(value) : '';
+      if (strValue.length < minLen) {
+        return customMessage || `${fieldLabel} must be at least ${minLen} characters`;
+      }
+      return null;
+    }
+
+    // MaxLength(n) or MaxLength(n, "message")
+    const maxLengthMatch = expression.match(/^MaxLength\(\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (maxLengthMatch) {
+      const maxLen = parseInt(maxLengthMatch[1], 10);
+      const customMessage = maxLengthMatch[2] || maxLengthMatch[3];
+      const strValue = value ? String(value) : '';
+      if (strValue.length > maxLen) {
+        return customMessage || `${fieldLabel} must be at most ${maxLen} characters`;
+      }
+      return null;
+    }
+
+    // Min(n) or Min(n, "message") - minimum numeric value
+    const minMatch = expression.match(/^Min\(\s*(-?[\d.]+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (minMatch) {
+      const minVal = parseFloat(minMatch[1]);
+      const customMessage = minMatch[2] || minMatch[3];
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue < minVal) {
+        return customMessage || `${fieldLabel} must be at least ${minVal}`;
+      }
+      return null;
+    }
+
+    // Max(n) or Max(n, "message") - maximum numeric value
+    const maxMatch = expression.match(/^Max\(\s*(-?[\d.]+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (maxMatch) {
+      const maxVal = parseFloat(maxMatch[1]);
+      const customMessage = maxMatch[2] || maxMatch[3];
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue > maxVal) {
+        return customMessage || `${fieldLabel} must be at most ${maxVal}`;
+      }
+      return null;
+    }
+
+    // Pattern(regex) or Pattern(regex, "message")
+    const patternMatch = expression.match(/^Pattern\(\s*\/(.+)\/([gimsuy]*)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (patternMatch) {
+      const pattern = patternMatch[1];
+      const flags = patternMatch[2] || '';
+      const customMessage = patternMatch[3] || patternMatch[4];
+      try {
+        const regex = new RegExp(pattern, flags);
+        const strValue = value ? String(value) : '';
+        if (strValue && !regex.test(strValue)) {
+          return customMessage || `${fieldLabel} format is invalid`;
+        }
+      } catch (e) {
+        // Invalid regex, skip validation
+      }
+      return null;
+    }
+
+    // Email() or Email("message")
+    const emailMatch = expression.match(/^Email\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (emailMatch) {
+      const customMessage = emailMatch[1] || emailMatch[2];
+      const strValue = value ? String(value) : '';
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (strValue && !emailRegex.test(strValue)) {
+        return customMessage || `${fieldLabel} must be a valid email address`;
+      }
+      return null;
+    }
+
+    // Phone() or Phone("message")
+    const phoneMatch = expression.match(/^Phone\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (phoneMatch) {
+      const customMessage = phoneMatch[1] || phoneMatch[2];
+      const strValue = value ? String(value) : '';
+      // Basic phone validation - allows +, digits, spaces, dashes, parentheses
+      const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+      if (strValue && !phoneRegex.test(strValue.replace(/\s/g, ''))) {
+        return customMessage || `${fieldLabel} must be a valid phone number`;
+      }
+      return null;
+    }
+
+    // URL() or URL("message")
+    const urlMatch = expression.match(/^URL\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (urlMatch) {
+      const customMessage = urlMatch[1] || urlMatch[2];
+      const strValue = value ? String(value) : '';
+      try {
+        if (strValue) {
+          new URL(strValue);
+        }
+      } catch (e) {
+        return customMessage || `${fieldLabel} must be a valid URL`;
+      }
+      return null;
+    }
+
+    // Range(min, max) or Range(min, max, "message") - numeric range
+    const rangeMatch = expression.match(/^Range\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (rangeMatch) {
+      const minVal = parseFloat(rangeMatch[1]);
+      const maxVal = parseFloat(rangeMatch[2]);
+      const customMessage = rangeMatch[3] || rangeMatch[4];
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && (numValue < minVal || numValue > maxVal)) {
+        return customMessage || `${fieldLabel} must be between ${minVal} and ${maxVal}`;
+      }
+      return null;
+    }
+
+    // LengthRange(min, max) or LengthRange(min, max, "message") - string length range
+    const lengthRangeMatch = expression.match(/^LengthRange\(\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (lengthRangeMatch) {
+      const minLen = parseInt(lengthRangeMatch[1], 10);
+      const maxLen = parseInt(lengthRangeMatch[2], 10);
+      const customMessage = lengthRangeMatch[3] || lengthRangeMatch[4];
+      const strValue = value ? String(value) : '';
+      if (strValue.length < minLen || strValue.length > maxLen) {
+        return customMessage || `${fieldLabel} must be between ${minLen} and ${maxLen} characters`;
+      }
+      return null;
+    }
+
+    // Digits() or Digits("message") - only digits allowed
+    const digitsMatch = expression.match(/^Digits\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (digitsMatch) {
+      const customMessage = digitsMatch[1] || digitsMatch[2];
+      const strValue = value ? String(value) : '';
+      if (strValue && !/^\d+$/.test(strValue)) {
+        return customMessage || `${fieldLabel} must contain only digits`;
+      }
+      return null;
+    }
+
+    // Alpha() or Alpha("message") - only letters allowed
+    const alphaMatch = expression.match(/^Alpha\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (alphaMatch) {
+      const customMessage = alphaMatch[1] || alphaMatch[2];
+      const strValue = value ? String(value) : '';
+      if (strValue && !/^[a-zA-Z]+$/.test(strValue)) {
+        return customMessage || `${fieldLabel} must contain only letters`;
+      }
+      return null;
+    }
+
+    // AlphaNumeric() or AlphaNumeric("message") - letters and digits only
+    const alphaNumMatch = expression.match(/^AlphaNumeric\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (alphaNumMatch) {
+      const customMessage = alphaNumMatch[1] || alphaNumMatch[2];
+      const strValue = value ? String(value) : '';
+      if (strValue && !/^[a-zA-Z0-9]+$/.test(strValue)) {
+        return customMessage || `${fieldLabel} must contain only letters and numbers`;
+      }
+      return null;
+    }
+
+    // Date() or Date("message") - valid date format
+    const dateMatch = expression.match(/^Date\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (dateMatch) {
+      const customMessage = dateMatch[1] || dateMatch[2];
+      const strValue = value ? String(value) : '';
+      if (strValue && isNaN(Date.parse(strValue))) {
+        return customMessage || `${fieldLabel} must be a valid date`;
+      }
+      return null;
+    }
+
+    // CreditCard() or CreditCard("message") - basic credit card validation (Luhn algorithm)
+    const creditCardMatch = expression.match(/^CreditCard\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (creditCardMatch) {
+      const customMessage = creditCardMatch[1] || creditCardMatch[2];
+      const strValue = value ? String(value).replace(/[\s-]/g, '') : '';
+      if (strValue && !this.isValidCreditCard(strValue)) {
+        return customMessage || `${fieldLabel} must be a valid credit card number`;
+      }
+      return null;
+    }
+
     return null; // Unknown validation expression
+  }
+
+  // Luhn algorithm for credit card validation
+  private isValidCreditCard(cardNumber: string): boolean {
+    if (!/^\d{13,19}$/.test(cardNumber)) return false;
+    let sum = 0;
+    let isEven = false;
+    for (let i = cardNumber.length - 1; i >= 0; i--) {
+      let digit = parseInt(cardNumber[i], 10);
+      if (isEven) {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
+      }
+      sum += digit;
+      isEven = !isEven;
+    }
+    return sum % 10 === 0;
   }
 
   private evaluateCondition(condition: string): any {

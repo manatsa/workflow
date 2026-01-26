@@ -759,8 +759,8 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                               <mat-form-field appearance="outline" class="form-field full-width">
                                 <mat-label>Validation Expression</mat-label>
                                 <textarea matInput [(ngModel)]="field.validation" rows="2"
-                                          placeholder="e.g., Required() && MinLength(5)"></textarea>
-                                <mat-hint>Use: Required(), MinLength(n), MaxLength(n), Pattern(regex), Email(), Phone(), URL(), Min(n), Max(n)</mat-hint>
+                                          placeholder="e.g., Required() AND MinLength(5)"></textarea>
+                                <mat-hint>Required(), MinLength(n), MaxLength(n), Min(n), Max(n), Range(min,max), Email(), Phone(), URL(), Pattern(/regex/), Unique(), Digits(), Alpha(), AlphaNumeric(), CreditCard(), ValidWhen(expr), InvalidWhen(expr). Combine with AND.</mat-hint>
                               </mat-form-field>
 
                               <mat-form-field appearance="outline" class="form-field full-width">
