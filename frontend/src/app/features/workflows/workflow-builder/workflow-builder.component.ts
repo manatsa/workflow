@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MatCardModule } from '@angular/material/card';
@@ -17,10 +17,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { WorkflowService } from '@core/services/workflow.service';
 import { UserService } from '@core/services/user.service';
 import { DepartmentService } from '@core/services/department.service';
-import { Workflow, FieldType, WorkflowField, FieldGroup, WorkflowCategory } from '@core/models/workflow.model';
+import { SqlObjectService } from '@core/services/sql-object.service';
+import { Workflow, FieldType, WorkflowField, FieldGroup, WorkflowCategory, SqlObject } from '@core/models/workflow.model';
 import { User, SBU, Corporate, Branch } from '@core/models/user.model';
 import { Department } from '@core/models/department.model';
 import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.component';
@@ -46,7 +48,8 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
     MatChipsModule,
     MatSnackBarModule,
     MatDialogModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatAutocompleteModule
   ],
   template: `
     <div class="workflow-builder-container">
@@ -108,17 +111,6 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="form-field">
-                      <mat-label>Workflow Type</mat-label>
-                      <mat-select formControlName="workflowTypeId">
-                        @for (type of workflowTypes; track type.id) {
-                          <mat-option [value]="type.id">{{ type.name }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
-
-                  <div class="form-row">
-                    <mat-form-field appearance="outline" class="form-field">
                       <mat-label>Workflow Category</mat-label>
                       <mat-select formControlName="workflowCategory">
                         <mat-option value="NON_FINANCIAL">Non-Financial</mat-option>
@@ -135,6 +127,169 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                     <mat-checkbox formControlName="commentsMandatoryOnEscalate">Comments Mandatory on Escalate</mat-checkbox>
                   </div>
                 </form>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Screens Tab -->
+        <mat-tab label="Screens">
+          <div class="tab-content">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Form Screens</mat-card-title>
+                <button mat-raised-button color="primary" (click)="addScreen()">
+                  <mat-icon>add</mat-icon>
+                  Add Screen
+                </button>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="screen-info" *ngIf="screens.length === 0">
+                  <mat-icon>info</mat-icon>
+                  <p>Without screens, the form displays as a single page. Add 2+ screens to create a multi-step wizard.</p>
+                </div>
+
+                <div cdkDropList (cdkDropListDropped)="dropScreen($event)" class="screen-list">
+                  @for (screen of screens; track screen.id; let i = $index) {
+                    <mat-expansion-panel cdkDrag class="screen-panel">
+                      <mat-expansion-panel-header>
+                        <mat-panel-title>
+                          <mat-icon cdkDragHandle>drag_indicator</mat-icon>
+                          <mat-icon>{{ screen.icon || 'view_carousel' }}</mat-icon>
+                          {{ screen.title || 'Untitled Screen' }}
+                        </mat-panel-title>
+                        <mat-panel-description>
+                          {{ getFieldsInScreen(screen.id).length }} fields, {{ getFieldGroupsInScreen(screen.id).length }} groups
+                        </mat-panel-description>
+                      </mat-expansion-panel-header>
+
+                      <div class="screen-config">
+                        <div class="form-row">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Title</mat-label>
+                            <input matInput [(ngModel)]="screen.title">
+                          </mat-form-field>
+
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Display Order</mat-label>
+                            <input matInput type="number" [(ngModel)]="screen.displayOrder">
+                          </mat-form-field>
+                        </div>
+
+                        <mat-form-field appearance="outline" class="form-field full-width">
+                          <mat-label>Description</mat-label>
+                          <input matInput [(ngModel)]="screen.description">
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Icon</mat-label>
+                          <mat-select [(ngModel)]="screen.icon">
+                            <mat-option value="view_carousel">view_carousel</mat-option>
+                            <mat-option value="article">article</mat-option>
+                            <mat-option value="assignment">assignment</mat-option>
+                            <mat-option value="description">description</mat-option>
+                            <mat-option value="info">info</mat-option>
+                            <mat-option value="checklist">checklist</mat-option>
+                            <mat-option value="fact_check">fact_check</mat-option>
+                            <mat-option value="summarize">summarize</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+
+                        <div class="screen-actions">
+                          <button mat-button color="warn" (click)="removeScreen(i)">
+                            <mat-icon>delete</mat-icon>
+                            Remove Screen
+                          </button>
+                        </div>
+                      </div>
+                    </mat-expansion-panel>
+                  }
+                </div>
+
+                @if (screens.length === 1) {
+                  <div class="screen-warning">
+                    <mat-icon>warning</mat-icon>
+                    <p>Add at least one more screen to enable multi-step navigation.</p>
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Field Groups Tab -->
+        <mat-tab label="Field Groups">
+          <div class="tab-content">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Field Groups</mat-card-title>
+                <button mat-raised-button color="primary" (click)="addFieldGroup()">
+                  <mat-icon>add</mat-icon>
+                  Add Group
+                </button>
+              </mat-card-header>
+              <mat-card-content>
+                @for (group of fieldGroups; track group.id; let i = $index) {
+                  <mat-expansion-panel class="group-panel">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>{{ group.title || 'Untitled Group' }}</mat-panel-title>
+                      <mat-panel-description>
+                        {{ getFieldsInGroup(group.id).length }} fields
+                      </mat-panel-description>
+                    </mat-expansion-panel-header>
+
+                    <div class="group-config">
+                      <div class="form-row">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Title</mat-label>
+                          <input matInput [(ngModel)]="group.title">
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Display Order</mat-label>
+                          <input matInput type="number" [(ngModel)]="group.displayOrder">
+                        </mat-form-field>
+                      </div>
+
+                      <mat-form-field appearance="outline" class="form-field full-width">
+                        <mat-label>Description</mat-label>
+                        <input matInput [(ngModel)]="group.description">
+                      </mat-form-field>
+
+                      @if (screens.length > 0) {
+                        <mat-form-field appearance="outline" class="form-field full-width">
+                          <mat-label>Screen</mat-label>
+                          <mat-select [(ngModel)]="group.screenId">
+                            <mat-option [value]="null">None</mat-option>
+                            @for (screen of screens; track screen.id) {
+                              <mat-option [value]="screen.id">{{ screen.title || 'Untitled Screen' }}</mat-option>
+                            }
+                          </mat-select>
+                          <mat-hint>Assign this group to a screen</mat-hint>
+                        </mat-form-field>
+                      }
+
+                      <div class="checkbox-row">
+                        <mat-checkbox [(ngModel)]="group.collapsible">Collapsible</mat-checkbox>
+                        <mat-checkbox [(ngModel)]="group.collapsed">Start Collapsed</mat-checkbox>
+                      </div>
+
+                      <div class="group-actions">
+                        <button mat-button color="warn" (click)="removeFieldGroup(i)">
+                          <mat-icon>delete</mat-icon>
+                          Remove Group
+                        </button>
+                      </div>
+                    </div>
+                  </mat-expansion-panel>
+                }
+
+                @if (fieldGroups.length === 0) {
+                  <div class="empty-state">
+                    <mat-icon>dashboard</mat-icon>
+                    <p>No field groups defined. Groups help organize fields into titled sections.</p>
+                  </div>
+                }
               </mat-card-content>
             </mat-card>
           </div>
@@ -222,6 +377,20 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                             </div>
                           } @else {
                             <mat-accordion class="function-accordion" multi>
+                              <mat-expansion-panel [expanded]="expandedCategories['validation']" (opened)="expandedCategories['validation']=true" (closed)="expandedCategories['validation']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>rule</mat-icon> Validation Functions ({{ validationFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of validationFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-name">{{ fn.name }}</div>
+                                      <div class="function-desc">{{ fn.description }}</div>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
+
                               <mat-expansion-panel [expanded]="expandedCategories['string']" (opened)="expandedCategories['string']=true" (closed)="expandedCategories['string']=false">
                                 <mat-expansion-panel-header>
                                   <mat-panel-title><mat-icon>text_fields</mat-icon> String Functions ({{ stringFunctions.length }})</mat-panel-title>
@@ -318,10 +487,34 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                 <mat-card>
                   <mat-card-header>
                     <mat-card-title>Form Layout</mat-card-title>
+                    @if (screens.length > 0) {
+                      <span class="screen-info-badge">
+                        <mat-icon>info</mat-icon>
+                        Fields added will be assigned to the active screen tab
+                      </span>
+                    }
                   </mat-card-header>
                   <mat-card-content>
+                    @if (screens.length > 0) {
+                      <div class="screen-tabs">
+                        <button mat-button
+                                [class.active]="activeScreenId === null"
+                                (click)="setActiveScreen(null)">
+                          <mat-icon>apps</mat-icon>
+                          All Fields ({{ fields.length }})
+                        </button>
+                        @for (screen of screens; track screen.id) {
+                          <button mat-button
+                                  [class.active]="activeScreenId === screen.id"
+                                  (click)="setActiveScreen(screen.id)">
+                            <mat-icon>{{ screen.icon || 'view_carousel' }}</mat-icon>
+                            {{ screen.title || 'Untitled' }} ({{ getFieldsInScreen(screen.id).length }})
+                          </button>
+                        }
+                      </div>
+                    }
                     <div cdkDropList (cdkDropListDropped)="dropField($event)" class="field-list">
-                      @for (field of fields; track field.id; let i = $index) {
+                      @for (field of getFilteredFields(); track field.id; let i = $index) {
                         <mat-expansion-panel cdkDrag class="field-panel">
                           <mat-expansion-panel-header>
                             <mat-panel-title>
@@ -362,10 +555,53 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                             </mat-form-field>
 
                             @if (field.type === 'SELECT' || field.type === 'MULTISELECT' || field.type === 'RADIO' || field.type === 'CHECKBOX_GROUP') {
-                              <mat-form-field appearance="outline" class="form-field full-width">
-                                <mat-label>Options (one per line)</mat-label>
-                                <textarea matInput [(ngModel)]="field.optionsText" rows="4"
-                                          placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+                              <mat-form-field appearance="outline" class="form-field">
+                                <mat-label>Options Source</mat-label>
+                                <mat-select [(ngModel)]="field.optionsSource" (selectionChange)="onOptionsSourceChange(field)">
+                                  <mat-option value="STATIC">Static Options</mat-option>
+                                  <mat-option value="SQL">SQL Object</mat-option>
+                                </mat-select>
+                                <mat-hint>Choose where to get options from</mat-hint>
+                              </mat-form-field>
+
+                              @if (field.optionsSource !== 'SQL') {
+                                <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-label>Options (one per line)</mat-label>
+                                  <textarea matInput [(ngModel)]="field.optionsText" rows="4"
+                                            placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+                                </mat-form-field>
+                              }
+
+                              @if (field.optionsSource === 'SQL') {
+                                <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-label>SQL Object</mat-label>
+                                  <mat-select [(ngModel)]="field.sqlObjectId">
+                                    <mat-option [value]="null">-- Select SQL Object --</mat-option>
+                                    @for (sqlObj of sqlObjects; track sqlObj.id) {
+                                      <mat-option [value]="sqlObj.id">
+                                        {{ sqlObj.displayName }}
+                                        @if (sqlObj.valueColumn && sqlObj.labelColumn) {
+                                          <span class="sql-obj-hint">({{ sqlObj.labelColumn }})</span>
+                                        }
+                                      </mat-option>
+                                    }
+                                  </mat-select>
+                                  <mat-hint>Select an SQL Object to populate options dynamically</mat-hint>
+                                </mat-form-field>
+                                @if (sqlObjects.length === 0) {
+                                  <p class="sql-hint">No SQL Objects available. <a routerLink="/sql-objects">Create one</a></p>
+                                }
+                              }
+                            }
+
+                            @if (field.type === 'RADIO' || field.type === 'CHECKBOX_GROUP') {
+                              <mat-form-field appearance="outline" class="form-field">
+                                <mat-label>Options Layout</mat-label>
+                                <mat-select [(ngModel)]="field.optionsLayout">
+                                  <mat-option value="vertical">Vertical</mat-option>
+                                  <mat-option value="horizontal">Horizontal</mat-option>
+                                </mat-select>
+                                <mat-hint>How to display the options</mat-hint>
                               </mat-form-field>
                             }
 
@@ -389,10 +625,13 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                                 <mat-label>Field Group</mat-label>
                                 <mat-select [(ngModel)]="field.fieldGroupId">
                                   <mat-option [value]="null">None</mat-option>
-                                  @for (group of fieldGroups; track group.id) {
+                                  @for (group of getAvailableFieldGroups(field); track group.id) {
                                     <mat-option [value]="group.id">{{ group.title }}</mat-option>
                                   }
                                 </mat-select>
+                                @if (screens.length > 0 && activeScreenId) {
+                                  <mat-hint>Only showing groups for this screen</mat-hint>
+                                }
                               </mat-form-field>
 
                               <mat-form-field appearance="outline" class="form-field">
@@ -423,6 +662,128 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                               }
                             </div>
 
+                            <!-- RATING field specific config -->
+                            @if (field.type === 'RATING') {
+                              <div class="form-row">
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>Max Rating</mat-label>
+                                  <mat-select [(ngModel)]="field.ratingMax">
+                                    <mat-option [value]="3">3 Stars</mat-option>
+                                    <mat-option [value]="5">5 Stars</mat-option>
+                                    <mat-option [value]="10">10 Stars</mat-option>
+                                  </mat-select>
+                                </mat-form-field>
+                              </div>
+                            }
+
+                            <!-- SLIDER field specific config -->
+                            @if (field.type === 'SLIDER') {
+                              <div class="form-row">
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>Min Value</mat-label>
+                                  <input matInput type="number" [(ngModel)]="field.sliderMin">
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>Max Value</mat-label>
+                                  <input matInput type="number" [(ngModel)]="field.sliderMax">
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>Step</mat-label>
+                                  <input matInput type="number" [(ngModel)]="field.sliderStep">
+                                </mat-form-field>
+                              </div>
+                            }
+
+                            <!-- SQL_OBJECT field specific config -->
+                            @if (field.type === 'SQL_OBJECT') {
+                              <div class="sql-object-config">
+                                <div class="form-row">
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>SQL Object</mat-label>
+                                    <mat-select [(ngModel)]="field.sqlObjectId" required>
+                                      <mat-option [value]="null">-- Select SQL Object --</mat-option>
+                                      @for (sqlObj of sqlObjects; track sqlObj.id) {
+                                        <mat-option [value]="sqlObj.id">
+                                          {{ sqlObj.displayName }}
+                                          @if (sqlObj.valueColumn && sqlObj.labelColumn) {
+                                            <span class="sql-obj-hint">({{ sqlObj.labelColumn }})</span>
+                                          }
+                                        </mat-option>
+                                      }
+                                    </mat-select>
+                                    <mat-hint>Select the SQL Object to fetch options from</mat-hint>
+                                  </mat-form-field>
+
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>View Type</mat-label>
+                                    <mat-select [(ngModel)]="field.viewType" required>
+                                      @for (vt of viewTypes; track vt.value) {
+                                        <mat-option [value]="vt.value">
+                                          <mat-icon>{{ vt.icon }}</mat-icon>
+                                          {{ vt.label }}
+                                        </mat-option>
+                                      }
+                                    </mat-select>
+                                    <mat-hint>How to display the options</mat-hint>
+                                  </mat-form-field>
+                                </div>
+
+                                @if (sqlObjects.length === 0) {
+                                  <div class="sql-hint warning">
+                                    <mat-icon>warning</mat-icon>
+                                    No SQL Objects available. <a routerLink="/sql-objects">Create one first</a>
+                                  </div>
+                                }
+
+                                @if (field.viewType === 'RADIO' || field.viewType === 'CHECKBOX_GROUP') {
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Options Layout</mat-label>
+                                    <mat-select [(ngModel)]="field.optionsLayout">
+                                      <mat-option value="vertical">Vertical</mat-option>
+                                      <mat-option value="horizontal">Horizontal</mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+                                }
+                              </div>
+                            }
+
+                            <!-- Validation & Transformation Section -->
+                            <mat-expansion-panel class="validation-panel">
+                              <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                  <mat-icon>rule</mat-icon>
+                                  Validation & Transformation
+                                </mat-panel-title>
+                              </mat-expansion-panel-header>
+
+                              <mat-form-field appearance="outline" class="form-field full-width">
+                                <mat-label>Validation Expression</mat-label>
+                                <textarea matInput [(ngModel)]="field.validation" rows="2"
+                                          placeholder="e.g., Required() && MinLength(5)"></textarea>
+                                <mat-hint>Use: Required(), MinLength(n), MaxLength(n), Pattern(regex), Email(), Phone(), URL(), Min(n), Max(n)</mat-hint>
+                              </mat-form-field>
+
+                              <mat-form-field appearance="outline" class="form-field full-width">
+                                <mat-label>Transform Expression</mat-label>
+                                <textarea matInput [(ngModel)]="field.customValidationRule" rows="2"
+                                          placeholder="e.g., UPPER() or TRIM()"></textarea>
+                                <mat-hint>Transform value: UPPER(), LOWER(), TRIM(), ROUND(decimals), PAD_LEFT(len, char), SUBSTRING(start, end)</mat-hint>
+                              </mat-form-field>
+
+                              <mat-form-field appearance="outline" class="form-field full-width">
+                                <mat-label>Custom Error Message</mat-label>
+                                <input matInput [(ngModel)]="field.validationMessage"
+                                       placeholder="Custom message when validation fails">
+                              </mat-form-field>
+
+                              <mat-form-field appearance="outline" class="form-field full-width">
+                                <mat-label>Visibility Expression</mat-label>
+                                <textarea matInput [(ngModel)]="field.visibilityExpression" rows="2"
+                                          placeholder="e.g., true or &#64;{otherField} == 'Yes'"></textarea>
+                                <mat-hint>Expression to control visibility. Use &#64;{{ '{' }}fieldName{{ '}' }} to reference other fields. Default: true</mat-hint>
+                              </mat-form-field>
+                            </mat-expansion-panel>
+
                             <div class="field-actions">
                               <button mat-button color="warn" (click)="removeField(i)">
                                 <mat-icon>delete</mat-icon>
@@ -433,10 +794,14 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                         </mat-expansion-panel>
                       }
 
-                      @if (fields.length === 0) {
+                      @if (getFilteredFields().length === 0) {
                         <div class="empty-canvas">
                           <mat-icon>touch_app</mat-icon>
-                          <p>Click on field types to add them to your form</p>
+                          @if (activeScreenId) {
+                            <p>No fields in this screen. Click on field types to add fields to "{{ getScreenTitle(activeScreenId) }}"</p>
+                          } @else {
+                            <p>Click on field types to add them to your form</p>
+                          }
                         </div>
                       }
                     </div>
@@ -444,169 +809,6 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                 </mat-card>
               </div>
             </div>
-          </div>
-        </mat-tab>
-
-        <!-- Field Groups Tab -->
-        <mat-tab label="Field Groups">
-          <div class="tab-content">
-            <mat-card>
-              <mat-card-header>
-                <mat-card-title>Field Groups</mat-card-title>
-                <button mat-raised-button color="primary" (click)="addFieldGroup()">
-                  <mat-icon>add</mat-icon>
-                  Add Group
-                </button>
-              </mat-card-header>
-              <mat-card-content>
-                @for (group of fieldGroups; track group.id; let i = $index) {
-                  <mat-expansion-panel class="group-panel">
-                    <mat-expansion-panel-header>
-                      <mat-panel-title>{{ group.title || 'Untitled Group' }}</mat-panel-title>
-                      <mat-panel-description>
-                        {{ getFieldsInGroup(group.id).length }} fields
-                      </mat-panel-description>
-                    </mat-expansion-panel-header>
-
-                    <div class="group-config">
-                      <div class="form-row">
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>Title</mat-label>
-                          <input matInput [(ngModel)]="group.title">
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>Display Order</mat-label>
-                          <input matInput type="number" [(ngModel)]="group.displayOrder">
-                        </mat-form-field>
-                      </div>
-
-                      <mat-form-field appearance="outline" class="form-field full-width">
-                        <mat-label>Description</mat-label>
-                        <input matInput [(ngModel)]="group.description">
-                      </mat-form-field>
-
-                      @if (screens.length > 0) {
-                        <mat-form-field appearance="outline" class="form-field full-width">
-                          <mat-label>Screen</mat-label>
-                          <mat-select [(ngModel)]="group.screenId">
-                            <mat-option [value]="null">None</mat-option>
-                            @for (screen of screens; track screen.id) {
-                              <mat-option [value]="screen.id">{{ screen.title || 'Untitled Screen' }}</mat-option>
-                            }
-                          </mat-select>
-                          <mat-hint>Assign this group to a screen</mat-hint>
-                        </mat-form-field>
-                      }
-
-                      <div class="checkbox-row">
-                        <mat-checkbox [(ngModel)]="group.collapsible">Collapsible</mat-checkbox>
-                        <mat-checkbox [(ngModel)]="group.collapsed">Start Collapsed</mat-checkbox>
-                      </div>
-
-                      <div class="group-actions">
-                        <button mat-button color="warn" (click)="removeFieldGroup(i)">
-                          <mat-icon>delete</mat-icon>
-                          Remove Group
-                        </button>
-                      </div>
-                    </div>
-                  </mat-expansion-panel>
-                }
-
-                @if (fieldGroups.length === 0) {
-                  <div class="empty-state">
-                    <mat-icon>dashboard</mat-icon>
-                    <p>No field groups defined. Groups help organize fields into titled sections.</p>
-                  </div>
-                }
-              </mat-card-content>
-            </mat-card>
-          </div>
-        </mat-tab>
-
-        <!-- Screens Tab -->
-        <mat-tab label="Screens">
-          <div class="tab-content">
-            <mat-card>
-              <mat-card-header>
-                <mat-card-title>Form Screens</mat-card-title>
-                <button mat-raised-button color="primary" (click)="addScreen()">
-                  <mat-icon>add</mat-icon>
-                  Add Screen
-                </button>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="screen-info" *ngIf="screens.length === 0">
-                  <mat-icon>info</mat-icon>
-                  <p>Without screens, the form displays as a single page. Add 2+ screens to create a multi-step wizard.</p>
-                </div>
-
-                <div cdkDropList (cdkDropListDropped)="dropScreen($event)" class="screen-list">
-                  @for (screen of screens; track screen.id; let i = $index) {
-                    <mat-expansion-panel cdkDrag class="screen-panel">
-                      <mat-expansion-panel-header>
-                        <mat-panel-title>
-                          <mat-icon cdkDragHandle>drag_indicator</mat-icon>
-                          <mat-icon>{{ screen.icon || 'view_carousel' }}</mat-icon>
-                          {{ screen.title || 'Untitled Screen' }}
-                        </mat-panel-title>
-                        <mat-panel-description>
-                          {{ getFieldsInScreen(screen.id).length }} fields, {{ getFieldGroupsInScreen(screen.id).length }} groups
-                        </mat-panel-description>
-                      </mat-expansion-panel-header>
-
-                      <div class="screen-config">
-                        <div class="form-row">
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Title</mat-label>
-                            <input matInput [(ngModel)]="screen.title">
-                          </mat-form-field>
-
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Display Order</mat-label>
-                            <input matInput type="number" [(ngModel)]="screen.displayOrder">
-                          </mat-form-field>
-                        </div>
-
-                        <mat-form-field appearance="outline" class="form-field full-width">
-                          <mat-label>Description</mat-label>
-                          <input matInput [(ngModel)]="screen.description">
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>Icon</mat-label>
-                          <mat-select [(ngModel)]="screen.icon">
-                            <mat-option value="view_carousel">view_carousel</mat-option>
-                            <mat-option value="article">article</mat-option>
-                            <mat-option value="assignment">assignment</mat-option>
-                            <mat-option value="description">description</mat-option>
-                            <mat-option value="info">info</mat-option>
-                            <mat-option value="checklist">checklist</mat-option>
-                            <mat-option value="fact_check">fact_check</mat-option>
-                            <mat-option value="summarize">summarize</mat-option>
-                          </mat-select>
-                        </mat-form-field>
-
-                        <div class="screen-actions">
-                          <button mat-button color="warn" (click)="removeScreen(i)">
-                            <mat-icon>delete</mat-icon>
-                            Remove Screen
-                          </button>
-                        </div>
-                      </div>
-                    </mat-expansion-panel>
-                  }
-                </div>
-
-                @if (screens.length === 1) {
-                  <div class="screen-warning">
-                    <mat-icon>warning</mat-icon>
-                    <p>Add at least one more screen to enable multi-step navigation.</p>
-                  </div>
-                }
-              </mat-card-content>
-            </mat-card>
           </div>
         </mat-tab>
 
@@ -658,12 +860,29 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                         @if (approver.approverType === 'USER') {
                           <mat-form-field appearance="outline" class="form-field full-width">
                             <mat-label>Select User</mat-label>
-                            <mat-select [(ngModel)]="approver.approverId" (selectionChange)="onUserSelected(approver)">
-                              @for (user of users; track user.id) {
-                                <mat-option [value]="user.id">{{ user.fullName }} ({{ user.email }})</mat-option>
+                            <input matInput
+                                   type="text"
+                                   [matAutocomplete]="userAuto"
+                                   [(ngModel)]="approver.userSearchText"
+                                   (ngModelChange)="filterUsers(approver, $event)"
+                                   placeholder="Search by name or email...">
+                            <mat-autocomplete #userAuto="matAutocomplete"
+                                              (optionSelected)="onUserAutoSelected(approver, $event)"
+                                              [displayWith]="displayUserFn.bind(this)">
+                              @for (user of approver.filteredUsers || users; track user.id) {
+                                <mat-option [value]="user.id">
+                                  <span class="user-option">
+                                    <strong>{{ user.fullName }}</strong>
+                                    <small>{{ user.email }}</small>
+                                  </span>
+                                </mat-option>
                               }
-                            </mat-select>
-                            <mat-hint>Select the approver for this level</mat-hint>
+                              @if ((approver.filteredUsers || users).length === 0) {
+                                <mat-option disabled>No users found</mat-option>
+                              }
+                            </mat-autocomplete>
+                            <mat-icon matSuffix>search</mat-icon>
+                            <mat-hint>Type to search for a user</mat-hint>
                           </mat-form-field>
                         }
 
@@ -1115,6 +1334,58 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
       font-size: 0.8rem;
     }
 
+    .screen-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+
+    .screen-tabs button {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      background: white;
+      border: 1px solid #e0e0e0;
+    }
+
+    .screen-tabs button.active {
+      background: #1976d2;
+      color: white;
+      border-color: #1976d2;
+    }
+
+    .screen-tabs button mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .screen-info-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      color: #666;
+      margin-left: auto;
+      padding: 0.25rem 0.5rem;
+      background: #fff3e0;
+      border-radius: 4px;
+    }
+
+    .screen-info-badge mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #ff9800;
+    }
+
     .field-list {
       min-height: 200px;
     }
@@ -1125,6 +1396,25 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
 
     .field-config, .group-config, .approver-config, .screen-config {
       padding: 1rem;
+    }
+
+    .validation-panel {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      background: #fafafa;
+    }
+
+    .validation-panel mat-panel-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .validation-panel mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
     }
 
     .field-actions, .group-actions, .approver-actions, .screen-actions {
@@ -1254,6 +1544,158 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
       align-items: center;
       gap: 0.5rem;
     }
+
+    .user-option {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.3;
+    }
+
+    .user-option strong {
+      font-size: 0.9rem;
+    }
+
+    .user-option small {
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    ::ng-deep .mat-mdc-autocomplete-panel {
+      max-height: 300px;
+    }
+
+    .sql-obj-hint {
+      font-size: 0.75rem;
+      color: #666;
+      margin-left: 0.5rem;
+    }
+
+    .sql-hint {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+
+    .sql-hint a {
+      color: #3f51b5;
+      text-decoration: none;
+    }
+
+    .sql-hint a:hover {
+      text-decoration: underline;
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      .workflow-builder-container {
+        background: #1e1e1e;
+        color: #e0e0e0;
+      }
+
+      mat-card {
+        background: #2d2d2d !important;
+        color: #e0e0e0;
+      }
+
+      .field-type-item {
+        border-color: #444;
+        background: #2d2d2d;
+        color: #e0e0e0;
+      }
+
+      .field-type-item:hover {
+        background: #3d5a80;
+        border-color: #5c8dc9;
+      }
+
+      .field-panel, .group-panel {
+        background: #333 !important;
+      }
+
+      .screen-tabs {
+        background: #2d2d2d;
+      }
+
+      .screen-tabs button {
+        background: #3d3d3d;
+        border-color: #555;
+        color: #e0e0e0;
+      }
+
+      .screen-tabs button.active {
+        background: #1976d2;
+        color: white;
+        border-color: #1976d2;
+      }
+
+      .palette-section {
+        border-top-color: #444;
+      }
+
+      .palette-section h4 {
+        color: #aaa;
+      }
+
+      .function-item:hover {
+        background: #3d5a80;
+        border-color: #5c8dc9;
+      }
+
+      .function-name {
+        color: #82b1ff;
+      }
+
+      .function-desc, .user-option small, .sql-obj-hint, .sql-hint {
+        color: #aaa;
+      }
+
+      .empty-canvas {
+        background: #2d2d2d;
+        color: #888;
+      }
+
+      .screen-info {
+        background: #2d3a4a;
+        color: #b3c7e0;
+      }
+
+      .function-usage-guide {
+        background: #2d3a4a;
+        border-color: #3d5a80;
+      }
+
+      .guide-content {
+        background: #1e2a3a;
+        color: #b3c7e0;
+      }
+
+      .guide-content code {
+        background: #3d3d3d;
+        color: #82b1ff;
+      }
+
+      ::ng-deep .mat-mdc-form-field {
+        color: #e0e0e0;
+      }
+
+      ::ng-deep .mat-mdc-input-element {
+        color: #e0e0e0 !important;
+      }
+
+      ::ng-deep .mat-mdc-select-value {
+        color: #e0e0e0 !important;
+      }
+
+      ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+      ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+      ::ng-deep .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: #555 !important;
+      }
+
+      ::ng-deep .mat-mdc-form-field-hint {
+        color: #888 !important;
+      }
+    }
   `]
 })
 export class WorkflowBuilderComponent implements OnInit, OnDestroy {
@@ -1280,6 +1722,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   filteredBranches: Branch[] = [];
   departments: Department[] = [];
   filteredDepartments: Department[] = [];
+  sqlObjects: SqlObject[] = [];
+  activeScreenId: string | null = null;
 
   functionSearch = '';
   showUsageGuide = false;
@@ -1299,29 +1743,64 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { value: 'PASSWORD', label: 'Password', icon: 'password' },
     { value: 'DATE', label: 'Date', icon: 'calendar_today' },
     { value: 'DATETIME', label: 'Date & Time', icon: 'schedule' },
+    { value: 'TIME', label: 'Time', icon: 'access_time' },
     { value: 'SELECT', label: 'Dropdown', icon: 'arrow_drop_down_circle' },
     { value: 'MULTISELECT', label: 'Multi-Select', icon: 'checklist_rtl' },
     { value: 'RADIO', label: 'Radio Buttons', icon: 'radio_button_checked' },
     { value: 'CHECKBOX', label: 'Checkbox', icon: 'check_box' },
     { value: 'CHECKBOX_GROUP', label: 'Checkbox Group', icon: 'checklist' },
+    { value: 'TOGGLE', label: 'Toggle Switch', icon: 'toggle_on' },
+    { value: 'YES_NO', label: 'Yes/No', icon: 'thumbs_up_down' },
     { value: 'FILE', label: 'File Upload', icon: 'attach_file' },
+    { value: 'IMAGE', label: 'Image Upload', icon: 'image' },
     { value: 'CURRENCY', label: 'Currency', icon: 'attach_money' },
     { value: 'URL', label: 'URL', icon: 'link' },
+    { value: 'COLOR', label: 'Color Picker', icon: 'palette' },
+    { value: 'RATING', label: 'Star Rating', icon: 'star' },
+    { value: 'SLIDER', label: 'Slider', icon: 'linear_scale' },
+    { value: 'SIGNATURE', label: 'Signature', icon: 'draw' },
+    { value: 'RICH_TEXT', label: 'Rich Text', icon: 'format_quote' },
+    { value: 'ICON', label: 'Icon Picker', icon: 'emoji_symbols' },
+    { value: 'BARCODE', label: 'Barcode/QR', icon: 'qr_code_scanner' },
+    { value: 'LOCATION', label: 'Location', icon: 'location_on' },
+    { value: 'TABLE', label: 'Table/Grid', icon: 'table_chart' },
     { value: 'USER', label: 'User Select', icon: 'person_search' },
+    { value: 'SQL_OBJECT', label: 'SQL Object', icon: 'storage', description: 'Dynamic options from SQL Object tables' },
     { value: 'HIDDEN', label: 'Hidden Field', icon: 'visibility_off' },
     { value: 'LABEL', label: 'Label/Text', icon: 'label' },
     { value: 'DIVIDER', label: 'Divider', icon: 'horizontal_rule' }
   ];
 
+  // View types for SQL_OBJECT field
+  viewTypes = [
+    { value: 'SELECT', label: 'Dropdown', icon: 'arrow_drop_down_circle' },
+    { value: 'MULTISELECT', label: 'Multi-Select', icon: 'checklist_rtl' },
+    { value: 'RADIO', label: 'Radio Buttons', icon: 'radio_button_checked' },
+    { value: 'CHECKBOX_GROUP', label: 'Checkbox Group', icon: 'checklist' }
+  ];
+
   // Track expanded state of function categories
   expandedCategories: Record<string, boolean> = {
-    string: true,
+    validation: true,
+    string: false,
     number: false,
     date: false,
     boolean: false,
     utility: false,
     other: false
   };
+
+  // Validation Functions
+  validationFunctions = [
+    { name: 'ValidWhen(condition, message?)', description: 'Field is valid when condition is true', syntax: 'ValidWhen(@{amount} > 0, "Amount must be positive")' },
+    { name: 'InvalidWhen(condition, message?)', description: 'Field is invalid when condition is true', syntax: 'InvalidWhen(@{status} == "CLOSED", "Cannot modify closed items")' },
+    { name: 'CheckValid(condition, message?)', description: 'Validate field value against condition', syntax: 'CheckValid(LENGTH(@{code}) == 6, "Code must be 6 characters")' },
+    { name: 'VisibleWhen(condition)', description: 'Show field when condition is true, hide otherwise', syntax: 'VisibleWhen(@{showDetails} == true)' },
+    { name: 'MandatoryWhen(condition, message?)', description: 'Field is required when condition is true', syntax: 'MandatoryWhen(@{type} == "EXTERNAL", "Required for external requests")' },
+    { name: 'ReadOnlyWhen(condition)', description: 'Field is readonly when condition is true', syntax: 'ReadOnlyWhen(@{status} != "DRAFT")' },
+    { name: 'HiddenWhen(condition)', description: 'Hide field when condition is true', syntax: 'HiddenWhen(@{userType} == "GUEST")' },
+    { name: 'RegexWhen(condition, pattern, message?)', description: 'Validate against regex when condition is true', syntax: 'RegexWhen(@{country} == "US", "^\\d{5}$", "Invalid US ZIP code")' }
+  ];
 
   // String Functions
   stringFunctions = [
@@ -1493,6 +1972,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     private workflowService: WorkflowService,
     private userService: UserService,
     private departmentService: DepartmentService,
+    private sqlObjectService: SqlObjectService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
@@ -1524,6 +2004,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     this.loadSbus();
     this.loadBranches();
     this.loadDepartments();
+    this.loadSqlObjects();
 
     // Subscribe to route params to detect navigation changes (same pattern as workflow-instances)
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -1587,6 +2068,17 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     this.userService.getUsers().subscribe(res => {
       if (res.success) {
         this.users = res.data;
+        // Update filtered users for existing approvers
+        this.approvers.forEach(approver => {
+          approver.filteredUsers = this.users;
+          // Set display text for existing user selections
+          if (approver.approverType === 'USER' && approver.approverId) {
+            const user = this.users.find(u => u.id === approver.approverId);
+            if (user) {
+              approver.userSearchText = user.fullName;
+            }
+          }
+        });
       }
     });
   }
@@ -1634,12 +2126,30 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadSqlObjects() {
+    this.sqlObjectService.getActiveSqlObjects().subscribe(sqlObjects => {
+      this.sqlObjects = sqlObjects;
+    });
+  }
+
+  onOptionsSourceChange(field: any) {
+    if (field.optionsSource === 'STATIC') {
+      field.sqlObjectId = null;
+    } else {
+      // Clear static options when switching to SQL
+      if (!field.options || field.options.length === 0) {
+        field.options = [];
+      }
+    }
+  }
+
   onCorporateChange() {
     const corporateIds: string[] = this.basicForm.get('corporateIds')?.value || [];
 
     if (corporateIds.length > 0) {
-      this.filteredSbus = this.sbus.filter(sbu => corporateIds.includes(sbu.corporateId || ''));
-      this.filteredDepartments = this.departments.filter(dept => corporateIds.includes(dept.corporateId || ''));
+      // Include entities that have NO corporate (available to all) OR belong to selected corporates
+      this.filteredSbus = this.sbus.filter(sbu => !sbu.corporateId || corporateIds.includes(sbu.corporateId));
+      this.filteredDepartments = this.departments.filter(dept => !dept.corporateId || corporateIds.includes(dept.corporateId));
     } else {
       this.filteredSbus = [...this.sbus];
       this.filteredDepartments = [...this.departments];
@@ -1666,12 +2176,18 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     const sbuIds: string[] = this.basicForm.get('sbuIds')?.value || [];
     const corporateIds: string[] = this.basicForm.get('corporateIds')?.value || [];
 
+    // Get SBU IDs that have no corporate association (available to all)
+    const sbuIdsWithNoCorporate = this.sbus.filter(s => !s.corporateId).map(s => s.id);
+
     if (sbuIds.length > 0) {
-      this.filteredBranches = this.branches.filter(branch => sbuIds.includes(branch.sbuId));
+      // Include branches from selected SBUs OR branches from SBUs with no corporate
+      this.filteredBranches = this.branches.filter(branch =>
+        sbuIds.includes(branch.sbuId) || sbuIdsWithNoCorporate.includes(branch.sbuId)
+      );
     } else if (corporateIds.length > 0) {
-      // If corporates selected but no SBUs, show branches for all SBUs in selected corporates
+      // If corporates selected but no SBUs, show branches for SBUs in selected corporates OR SBUs with no corporate
       const sbuIdsForCorporates = this.sbus
-        .filter(s => corporateIds.includes(s.corporateId || ''))
+        .filter(s => !s.corporateId || corporateIds.includes(s.corporateId))
         .map(s => s.id);
       this.filteredBranches = this.branches.filter(branch => sbuIdsForCorporates.includes(branch.sbuId));
     } else {
@@ -1728,7 +2244,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
             isTitle: f.isTitle ?? false,
             isLimited: f.isLimited ?? false,
             inSummary: f.inSummary ?? false,
-            optionsText: f.options?.map((o: any) => o.value).join('\n') || ''
+            optionsText: f.options?.map((o: any) => o.value).join('\n') || '',
+            optionsLayout: f.optionsLayout || 'vertical'
           })) || [];
           this.fieldGroups = workflow.forms[0].fieldGroups || [];
           this.screens = workflow.forms[0].screens || [];
@@ -1750,7 +2267,16 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   }
 
   addField(type: string) {
-    const field = {
+    // Determine the screen to assign the field to:
+    // - If a specific screen is active, use that screen
+    // - If "All Fields" is active (null) and screens exist, use the first screen
+    // - Otherwise, use null (no screen assignment)
+    let targetScreenId = this.activeScreenId;
+    if (targetScreenId === null && this.screens.length > 0) {
+      targetScreenId = this.screens[0].id;
+    }
+
+    const field: any = {
       id: 'temp_' + Date.now(),
       type,
       name: '',
@@ -1763,10 +2289,26 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       isUnique: false,
       isTitle: false,
       isLimited: false,
+      inSummary: false,
       columnSpan: 2,
       displayOrder: this.fields.length,
       fieldGroupId: null,
-      optionsText: ''
+      screenId: targetScreenId,  // Assign to active screen or first screen
+      optionsText: '',
+      optionsLayout: 'vertical',
+      validation: '',
+      validationMessage: '',
+      customValidationRule: '',
+      visibilityExpression: 'true',
+      // Field-type specific defaults
+      ratingMax: type === 'RATING' ? 5 : undefined,
+      sliderMin: type === 'SLIDER' ? 0 : undefined,
+      sliderMax: type === 'SLIDER' ? 100 : undefined,
+      sliderStep: type === 'SLIDER' ? 1 : undefined,
+      // SQL_OBJECT specific defaults
+      sqlObjectId: type === 'SQL_OBJECT' ? null : undefined,
+      viewType: type === 'SQL_OBJECT' ? 'SELECT' : undefined,
+      optionsSource: type === 'SQL_OBJECT' ? 'SQL' : 'STATIC'
     };
     this.fields.push(field);
   }
@@ -1847,6 +2389,37 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     return this.fieldGroups.filter(g => g.screenId === screenId);
   }
 
+  setActiveScreen(screenId: string | null) {
+    this.activeScreenId = screenId;
+  }
+
+  getFilteredFields(): any[] {
+    if (this.activeScreenId === null) {
+      return this.fields;
+    }
+    return this.fields.filter(f => f.screenId === this.activeScreenId);
+  }
+
+  getAvailableFieldGroups(field: any): any[] {
+    // If no screens, show all groups
+    if (this.screens.length === 0) {
+      return this.fieldGroups;
+    }
+    // Get the screen context - use field's screenId or activeScreenId
+    const contextScreenId = field.screenId || this.activeScreenId;
+    // If no context, show all groups
+    if (!contextScreenId) {
+      return this.fieldGroups;
+    }
+    // Filter groups: show groups with no screen or matching context screen
+    return this.fieldGroups.filter(g => !g.screenId || g.screenId === contextScreenId);
+  }
+
+  getScreenTitle(screenId: string): string {
+    const screen = this.screens.find(s => s.id === screenId);
+    return screen?.title || 'Untitled Screen';
+  }
+
   insertFunction(fn: any) {
     // Copy the function syntax to clipboard and show a snackbar message
     navigator.clipboard.writeText(fn.syntax).then(() => {
@@ -1861,6 +2434,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
 
     const search = this.functionSearch.toLowerCase();
     const allFunctions = [
+      ...this.validationFunctions.map(f => ({ ...f, category: 'Validation' })),
       ...this.stringFunctions.map(f => ({ ...f, category: 'String' })),
       ...this.numberFunctions.map(f => ({ ...f, category: 'Number' })),
       ...this.dateFunctions.map(f => ({ ...f, category: 'Date' })),
@@ -1943,7 +2517,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       amountLimit: null,
       canEscalate: true,
       requireComment: false,
-      emailNotification: true
+      emailNotification: true,
+      userSearchText: '',
+      filteredUsers: this.users
     };
     this.approvers.push(approver);
   }
@@ -1952,6 +2528,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     // Clear user-specific fields when changing type
     approver.approverId = null;
     approver.roleId = null;
+    approver.userSearchText = '';
+    approver.filteredUsers = this.users;
     if (approver.approverType !== 'USER') {
       approver.email = '';
     }
@@ -1966,6 +2544,34 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     } else {
       approver.email = '';
     }
+  }
+
+  filterUsers(approver: any, searchText: string) {
+    if (!searchText || typeof searchText !== 'string') {
+      approver.filteredUsers = this.users;
+      return;
+    }
+    const search = searchText.toLowerCase();
+    approver.filteredUsers = this.users.filter(user =>
+      user.fullName?.toLowerCase().includes(search) ||
+      user.email?.toLowerCase().includes(search)
+    );
+  }
+
+  onUserAutoSelected(approver: any, event: any) {
+    const userId = event.option.value;
+    approver.approverId = userId;
+    const selectedUser = this.users.find(u => u.id === userId);
+    if (selectedUser) {
+      approver.email = selectedUser.email || '';
+      approver.userSearchText = selectedUser.fullName;
+    }
+  }
+
+  displayUserFn(userId: any): string {
+    if (!userId) return '';
+    const user = this.users.find(u => u.id === userId);
+    return user ? (user.fullName || '') : '';
   }
 
   getApproverDisplayName(approver: any): string {
@@ -2007,7 +2613,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
 
   preview() {
     this.dialog.open(WorkflowPreviewDialogComponent, {
-      width: '900px',
+      width: '1100px',
+      maxWidth: '95vw',
       maxHeight: '90vh',
       panelClass: 'preview-dialog-container',
       data: {

@@ -140,6 +140,10 @@ interface ReportCategory {
                 <span>Workflow Admin</span>
               </mat-expansion-panel-header>
               <div class="submenu">
+                <a class="menu-item" routerLink="/sql-objects" routerLinkActive="active">
+                  <mat-icon>storage</mat-icon>
+                  <span>SQL Objects</span>
+                </a>
                 <a class="menu-item" routerLink="/workflows" routerLinkActive="active">
                   <mat-icon>list</mat-icon>
                   <span>Manage Workflows</span>
