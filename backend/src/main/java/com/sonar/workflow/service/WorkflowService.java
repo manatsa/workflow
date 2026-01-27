@@ -332,6 +332,7 @@ public class WorkflowService {
                 .commentsMandatory(dto.getCommentsMandatory() != null ? dto.getCommentsMandatory() : false)
                 .commentsMandatoryOnReject(dto.getCommentsMandatoryOnReject() != null ? dto.getCommentsMandatoryOnReject() : true)
                 .commentsMandatoryOnEscalate(dto.getCommentsMandatoryOnEscalate() != null ? dto.getCommentsMandatoryOnEscalate() : true)
+                .showSummary(dto.getShowSummary() != null ? dto.getShowSummary() : false)
                 .workflowCategory(dto.getWorkflowCategory() != null ? dto.getWorkflowCategory() : Workflow.WorkflowCategory.NON_FINANCIAL)
                 .build();
 
@@ -409,6 +410,7 @@ public class WorkflowService {
         workflow.setCommentsMandatory(dto.getCommentsMandatory());
         workflow.setCommentsMandatoryOnReject(dto.getCommentsMandatoryOnReject());
         workflow.setCommentsMandatoryOnEscalate(dto.getCommentsMandatoryOnEscalate());
+        workflow.setShowSummary(dto.getShowSummary() != null ? dto.getShowSummary() : false);
         if (dto.getWorkflowCategory() != null) {
             workflow.setWorkflowCategory(dto.getWorkflowCategory());
         }
@@ -601,6 +603,11 @@ public class WorkflowService {
         field.setSliderMin(dto.getSliderMin() != null ? dto.getSliderMin() : 0.0);
         field.setSliderMax(dto.getSliderMax() != null ? dto.getSliderMax() : 100.0);
         field.setSliderStep(dto.getSliderStep() != null ? dto.getSliderStep() : 1.0);
+        field.setTableColumns(dto.getTableColumns());
+        field.setTableMinRows(dto.getTableMinRows() != null ? dto.getTableMinRows() : 0);
+        field.setTableMaxRows(dto.getTableMaxRows());
+        field.setTableStriped(dto.getTableStriped() != null ? dto.getTableStriped() : true);
+        field.setTableBordered(dto.getTableBordered() != null ? dto.getTableBordered() : true);
 
         WorkflowField saved = workflowFieldRepository.save(field);
 
@@ -799,6 +806,7 @@ public class WorkflowService {
                     screen.setDescription(screenDto.getDescription());
                     screen.setDisplayOrder(screenDto.getDisplayOrder() != null ? screenDto.getDisplayOrder() : 0);
                     screen.setIcon(screenDto.getIcon());
+                    screen.setIsSummaryScreen(screenDto.getIsSummaryScreen() != null ? screenDto.getIsSummaryScreen() : false);
 
                     Screen savedScreen = screenRepository.save(screen);
                     screenIdsToKeepByForm.get(savedForm.getId()).add(savedScreen.getId());
@@ -807,6 +815,40 @@ public class WorkflowService {
                     if (screenDto.getId() != null && screenDto.getId().startsWith("temp_")) {
                         screenIdMap.put(screenDto.getId(), savedScreen.getId());
                     }
+                }
+            }
+
+            // Manage Summary screen based on workflow.showSummary setting
+            Boolean showSummary = workflow.getShowSummary();
+            List<Screen> existingScreens = screenRepository.findByFormId(savedForm.getId());
+            Screen existingSummaryScreen = existingScreens.stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getIsSummaryScreen()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (Boolean.TRUE.equals(showSummary)) {
+                // Calculate max display order from non-summary screens
+                int maxDisplayOrder = existingScreens.stream()
+                        .filter(s -> !Boolean.TRUE.equals(s.getIsSummaryScreen()))
+                        .mapToInt(s -> s.getDisplayOrder() != null ? s.getDisplayOrder() : 0)
+                        .max()
+                        .orElse(0);
+
+                // Create or update Summary screen
+                Screen summaryScreen = existingSummaryScreen != null ? existingSummaryScreen : new Screen();
+                summaryScreen.setForm(savedForm);
+                summaryScreen.setTitle("Summary");
+                summaryScreen.setDescription("Review your submission before submitting");
+                summaryScreen.setDisplayOrder(maxDisplayOrder + 1);
+                summaryScreen.setIcon("summarize");
+                summaryScreen.setIsSummaryScreen(true);
+
+                Screen savedSummaryScreen = screenRepository.save(summaryScreen);
+                screenIdsToKeepByForm.get(savedForm.getId()).add(savedSummaryScreen.getId());
+            } else {
+                // Remove existing Summary screen if showSummary is false
+                if (existingSummaryScreen != null) {
+                    screenRepository.delete(existingSummaryScreen);
                 }
             }
 
@@ -959,6 +1001,11 @@ public class WorkflowService {
                     field.setSliderMin(fieldDto.getSliderMin() != null ? fieldDto.getSliderMin() : 0.0);
                     field.setSliderMax(fieldDto.getSliderMax() != null ? fieldDto.getSliderMax() : 100.0);
                     field.setSliderStep(fieldDto.getSliderStep() != null ? fieldDto.getSliderStep() : 1.0);
+                    field.setTableColumns(fieldDto.getTableColumns());
+                    field.setTableMinRows(fieldDto.getTableMinRows() != null ? fieldDto.getTableMinRows() : 0);
+                    field.setTableMaxRows(fieldDto.getTableMaxRows());
+                    field.setTableStriped(fieldDto.getTableStriped() != null ? fieldDto.getTableStriped() : true);
+                    field.setTableBordered(fieldDto.getTableBordered() != null ? fieldDto.getTableBordered() : true);
                     field.setValidation(fieldDto.getValidation());
                     field.setCustomValidationRule(fieldDto.getCustomValidationRule());
                     field.setVisibilityExpression(fieldDto.getVisibilityExpression() != null ? fieldDto.getVisibilityExpression() : "true");
@@ -1148,6 +1195,7 @@ public class WorkflowService {
                 .commentsMandatory(workflow.getCommentsMandatory())
                 .commentsMandatoryOnReject(workflow.getCommentsMandatoryOnReject())
                 .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
+                .showSummary(workflow.getShowSummary())
                 .workflowCategory(workflow.getWorkflowCategory())
                 .corporateIds(workflow.getCorporates().stream().map(Corporate::getId).collect(Collectors.toSet()))
                 .sbuIds(workflow.getSbus().stream().map(SBU::getId).collect(Collectors.toSet()))
@@ -1187,6 +1235,7 @@ public class WorkflowService {
                 .description(screen.getDescription())
                 .displayOrder(screen.getDisplayOrder())
                 .icon(screen.getIcon())
+                .isSummaryScreen(screen.getIsSummaryScreen())
                 .build();
     }
 
@@ -1268,6 +1317,11 @@ public class WorkflowService {
                 .sliderMin(field.getSliderMin())
                 .sliderMax(field.getSliderMax())
                 .sliderStep(field.getSliderStep())
+                .tableColumns(field.getTableColumns())
+                .tableMinRows(field.getTableMinRows())
+                .tableMaxRows(field.getTableMaxRows())
+                .tableStriped(field.getTableStriped())
+                .tableBordered(field.getTableBordered())
                 .build();
     }
 
@@ -1389,6 +1443,7 @@ public class WorkflowService {
                 .commentsMandatory(workflow.getCommentsMandatory())
                 .commentsMandatoryOnReject(workflow.getCommentsMandatoryOnReject())
                 .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
+                .showSummary(workflow.getShowSummary())
                 .workflowCategory(workflow.getWorkflowCategory())
                 .build();
 

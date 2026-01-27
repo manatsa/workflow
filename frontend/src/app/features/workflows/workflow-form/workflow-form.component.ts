@@ -111,8 +111,44 @@ import { User } from '@core/models/user.model';
             }
           }
 
-          <!-- Ungrouped Fields -->
-          @if (isMultiStep ? getUngroupedFieldsOnScreen().length > 0 : getUngroupedFields().length > 0) {
+          <!-- Summary Screen Content -->
+          @if (isSummaryScreen && hasSummaryFields()) {
+            <mat-card class="form-card summary-card">
+              <mat-card-content>
+                <table class="summary-table">
+                  <thead>
+                    <tr>
+                      <th class="screen-col">Screen</th>
+                      <th class="label-col">Field</th>
+                      <th class="value-col">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (field of getSummaryFields(); track field.id) {
+                      <tr>
+                        <td class="screen-col">{{ getFieldScreenName(field) }}</td>
+                        <td class="label-col">{{ field.label }}</td>
+                        <td class="value-col">{{ getFieldDisplayValue(field) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </mat-card-content>
+            </mat-card>
+          } @else if (isSummaryScreen && !hasSummaryFields()) {
+            <mat-card class="form-card summary-card">
+              <mat-card-content>
+                <div class="no-summary-fields">
+                  <mat-icon>info</mat-icon>
+                  <p>No fields have been marked for summary display.</p>
+                  <p class="hint">To include fields in the summary, enable "In Summary" option in the field configuration.</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+
+          <!-- Ungrouped Fields (not shown on Summary screen) -->
+          @if (!isSummaryScreen && (isMultiStep ? getUngroupedFieldsOnScreen().length > 0 : getUngroupedFields().length > 0)) {
             <mat-card class="form-card">
               <mat-card-content>
                 <div class="fields-grid">
@@ -600,45 +636,73 @@ import { User } from '@core/models/user.model';
                           </div>
                         }
                         @case ('TABLE') {
-                          <div class="table-field" [class.has-error]="hasFieldError(field)">
+                          <div class="table-field" [class.has-error]="hasFieldError(field)" [class.readonly-table]="isFieldReadonly(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
                             <div class="table-input">
-                              <table class="data-table">
+                              <table class="data-table" [class.table-striped]="field.tableStriped !== false" [class.table-bordered]="field.tableBordered !== false">
                                 <thead>
                                   <tr>
                                     @for (col of getTableColumns(field); track col.name) {
-                                      <th>{{ col.label }}</th>
+                                      <th [style.width]="col.width ? col.width + 'px' : 'auto'">{{ col.label }}</th>
                                     }
-                                    <th class="actions-col">Actions</th>
+                                    @if (!isTableFullyReadonly(field)) {
+                                      <th class="actions-col">Actions</th>
+                                    }
                                   </tr>
                                 </thead>
                                 <tbody>
                                   @for (row of getTableRows(field); track $index; let rowIndex = $index) {
                                     <tr>
                                       @for (col of getTableColumns(field); track col.name) {
-                                        <td>
-                                          <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isFieldReadonly(field)" class="table-cell-input">
+                                        <td [style.width]="col.width ? col.width + 'px' : 'auto'">
+                                          @switch (col.type) {
+                                            @case ('NUMBER') {
+                                              <input type="number" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                            }
+                                            @case ('DATE') {
+                                              <input type="date" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                            }
+                                            @case ('CHECKBOX') {
+                                              <mat-checkbox [checked]="row[col.name] === 'true' || row[col.name] === true" (change)="onTableCheckboxChange($event, field, rowIndex, col.name)" [disabled]="isColumnReadonly(field, col)"></mat-checkbox>
+                                            }
+                                            @default {
+                                              <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                            }
+                                          }
                                         </td>
                                       }
-                                      <td class="actions-col">
-                                        <button mat-icon-button type="button" (click)="removeTableRow(field, rowIndex)" [disabled]="isFieldReadonly(field)" matTooltip="Remove row">
-                                          <mat-icon>delete</mat-icon>
-                                        </button>
-                                      </td>
+                                      @if (!isTableFullyReadonly(field)) {
+                                        <td class="actions-col">
+                                          <button mat-icon-button type="button" (click)="removeTableRow(field, rowIndex)" [disabled]="!canRemoveTableRow(field)" matTooltip="Remove row">
+                                            <mat-icon>delete</mat-icon>
+                                          </button>
+                                        </td>
+                                      }
                                     </tr>
                                   }
                                   @if (getTableRows(field).length === 0) {
                                     <tr>
-                                      <td [attr.colspan]="getTableColumns(field).length + 1" class="empty-table">
-                                        No rows added. Click "Add Row" to add data.
+                                      <td [attr.colspan]="isTableFullyReadonly(field) ? getTableColumns(field).length : getTableColumns(field).length + 1" class="empty-table">
+                                        @if (isTableFullyReadonly(field)) {
+                                          No data available.
+                                        } @else {
+                                          No rows added. Click "Add Row" to add data.
+                                        }
                                       </td>
                                     </tr>
                                   }
                                 </tbody>
                               </table>
-                              <button mat-stroked-button type="button" (click)="addTableRow(field)" [disabled]="isFieldReadonly(field)" class="add-row-btn">
-                                <mat-icon>add</mat-icon> Add Row
-                              </button>
+                              @if (!isTableFullyReadonly(field)) {
+                                <div class="table-actions">
+                                  <button mat-stroked-button type="button" (click)="addTableRow(field)" [disabled]="!canAddTableRow(field)" class="add-row-btn">
+                                    <mat-icon>add</mat-icon> Add Row
+                                  </button>
+                                  @if (field.tableMaxRows) {
+                                    <span class="row-count">{{ getTableRows(field).length }} / {{ field.tableMaxRows }} rows</span>
+                                  }
+                                </div>
+                              }
                             </div>
                             @if (hasFieldError(field)) {
                               <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
@@ -743,7 +807,8 @@ import { User } from '@core/models/user.model';
             </mat-card>
           }
 
-          <!-- Grouped Fields -->
+          <!-- Grouped Fields (not shown on Summary screen) -->
+          @if (!isSummaryScreen) {
           @for (group of (isMultiStep ? getFieldGroupsOnScreen() : fieldGroups); track group.id) {
             <mat-card class="form-card group-card">
               <mat-expansion-panel [expanded]="!group.collapsed" [hideToggle]="!group.collapsible">
@@ -1232,45 +1297,73 @@ import { User } from '@core/models/user.model';
                           </div>
                         }
                         @case ('TABLE') {
-                          <div class="table-field" [class.has-error]="hasFieldError(field)">
+                          <div class="table-field" [class.has-error]="hasFieldError(field)" [class.readonly-table]="isFieldReadonly(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
                             <div class="table-input">
-                              <table class="data-table">
+                              <table class="data-table" [class.table-striped]="field.tableStriped !== false" [class.table-bordered]="field.tableBordered !== false">
                                 <thead>
                                   <tr>
                                     @for (col of getTableColumns(field); track col.name) {
-                                      <th>{{ col.label }}</th>
+                                      <th [style.width]="col.width ? col.width + 'px' : 'auto'">{{ col.label }}</th>
                                     }
-                                    <th class="actions-col">Actions</th>
+                                    @if (!isTableFullyReadonly(field)) {
+                                      <th class="actions-col">Actions</th>
+                                    }
                                   </tr>
                                 </thead>
                                 <tbody>
                                   @for (row of getTableRows(field); track $index; let rowIndex = $index) {
                                     <tr>
                                       @for (col of getTableColumns(field); track col.name) {
-                                        <td>
-                                          <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isFieldReadonly(field)" class="table-cell-input">
+                                        <td [style.width]="col.width ? col.width + 'px' : 'auto'">
+                                          @switch (col.type) {
+                                            @case ('NUMBER') {
+                                              <input type="number" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                            }
+                                            @case ('DATE') {
+                                              <input type="date" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                            }
+                                            @case ('CHECKBOX') {
+                                              <mat-checkbox [checked]="row[col.name] === 'true' || row[col.name] === true" (change)="onTableCheckboxChange($event, field, rowIndex, col.name)" [disabled]="isColumnReadonly(field, col)"></mat-checkbox>
+                                            }
+                                            @default {
+                                              <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                            }
+                                          }
                                         </td>
                                       }
-                                      <td class="actions-col">
-                                        <button mat-icon-button type="button" (click)="removeTableRow(field, rowIndex)" [disabled]="isFieldReadonly(field)" matTooltip="Remove row">
-                                          <mat-icon>delete</mat-icon>
-                                        </button>
-                                      </td>
+                                      @if (!isTableFullyReadonly(field)) {
+                                        <td class="actions-col">
+                                          <button mat-icon-button type="button" (click)="removeTableRow(field, rowIndex)" [disabled]="!canRemoveTableRow(field)" matTooltip="Remove row">
+                                            <mat-icon>delete</mat-icon>
+                                          </button>
+                                        </td>
+                                      }
                                     </tr>
                                   }
                                   @if (getTableRows(field).length === 0) {
                                     <tr>
-                                      <td [attr.colspan]="getTableColumns(field).length + 1" class="empty-table">
-                                        No rows added. Click "Add Row" to add data.
+                                      <td [attr.colspan]="isTableFullyReadonly(field) ? getTableColumns(field).length : getTableColumns(field).length + 1" class="empty-table">
+                                        @if (isTableFullyReadonly(field)) {
+                                          No data available.
+                                        } @else {
+                                          No rows added. Click "Add Row" to add data.
+                                        }
                                       </td>
                                     </tr>
                                   }
                                 </tbody>
                               </table>
-                              <button mat-stroked-button type="button" (click)="addTableRow(field)" [disabled]="isFieldReadonly(field)" class="add-row-btn">
-                                <mat-icon>add</mat-icon> Add Row
-                              </button>
+                              @if (!isTableFullyReadonly(field)) {
+                                <div class="table-actions">
+                                  <button mat-stroked-button type="button" (click)="addTableRow(field)" [disabled]="!canAddTableRow(field)" class="add-row-btn">
+                                    <mat-icon>add</mat-icon> Add Row
+                                  </button>
+                                  @if (field.tableMaxRows) {
+                                    <span class="row-count">{{ getTableRows(field).length }} / {{ field.tableMaxRows }} rows</span>
+                                  }
+                                </div>
+                              }
                             </div>
                             @if (hasFieldError(field)) {
                               <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
@@ -1377,9 +1470,10 @@ import { User } from '@core/models/user.model';
               </mat-expansion-panel>
             </mat-card>
           }
+          }
 
-          <!-- Attachments -->
-          @if (workflow.requireAttachments) {
+          <!-- Attachments (not shown on Summary screen) -->
+          @if (!isSummaryScreen && workflow.requireAttachments) {
             <mat-card class="form-card">
               <mat-card-header>
                 <mat-card-title>Attachments</mat-card-title>
@@ -1407,6 +1501,42 @@ import { User } from '@core/models/user.model';
                     </div>
                   }
                 </div>
+              </mat-card-content>
+            </mat-card>
+          }
+
+          <!-- Summary Section for Single-Page Forms - Shows fields with inSummary=true -->
+          @if (!isMultiStep && workflow?.showSummary && hasSummaryFields()) {
+            <mat-card class="form-card summary-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>summarize</mat-icon>
+                  Summary
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <table class="summary-table">
+                  <thead>
+                    <tr>
+                      @if (isMultiStep) {
+                        <th class="screen-col">Screen</th>
+                      }
+                      <th class="label-col">Field</th>
+                      <th class="value-col">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (field of getSummaryFields(); track field.id) {
+                      <tr>
+                        @if (isMultiStep) {
+                          <td class="screen-col">{{ getFieldScreenName(field) }}</td>
+                        }
+                        <td class="label-col">{{ field.label }}</td>
+                        <td class="value-col">{{ getFieldDisplayValue(field) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
               </mat-card-content>
             </mat-card>
           }
@@ -2029,6 +2159,31 @@ import { User } from '@core/models/user.model';
       text-align: center;
       padding: 1rem;
       color: #999;
+    }
+
+    .data-table.table-striped tbody tr:nth-child(odd) {
+      background: #fafafa;
+    }
+
+    .data-table.table-bordered {
+      border: 1px solid #ddd;
+    }
+
+    .data-table.table-bordered th,
+    .data-table.table-bordered td {
+      border: 1px solid #ddd;
+    }
+
+    .table-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .row-count {
+      font-size: 0.85rem;
+      color: #666;
       font-style: italic;
     }
 
@@ -2088,6 +2243,148 @@ import { User } from '@core/models/user.model';
 
     .form-actions .spacer {
       flex: 1;
+    }
+
+    /* Summary Section Styles */
+    .summary-card {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .summary-card mat-card-header {
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 1rem;
+    }
+
+    .summary-card mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .summary-card mat-card-title mat-icon {
+      color: #1976d2;
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .summary-table th,
+    .summary-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .summary-table th {
+      background: #f5f5f5;
+      font-weight: 500;
+      color: #666;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-table tbody tr:hover {
+      background: #f9f9f9;
+    }
+
+    .summary-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .summary-table .screen-col {
+      width: 20%;
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    .summary-table .label-col {
+      width: 35%;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .summary-table .value-col {
+      width: 45%;
+      color: #666;
+    }
+
+    /* Dark mode support for summary */
+    :host-context(.dark-mode) .summary-card mat-card-header {
+      border-bottom-color: #424242;
+    }
+
+    :host-context(.dark-mode) .summary-card mat-card-title {
+      color: #fff;
+    }
+
+    :host-context(.dark-mode) .summary-table th {
+      background: #333;
+      color: #bbb;
+    }
+
+    :host-context(.dark-mode) .summary-table td {
+      border-bottom-color: #424242;
+    }
+
+    :host-context(.dark-mode) .summary-table tbody tr:hover {
+      background: #2a2a2a;
+    }
+
+    :host-context(.dark-mode) .summary-table .label-col {
+      color: #fff;
+    }
+
+    :host-context(.dark-mode) .summary-table .value-col,
+    :host-context(.dark-mode) .summary-table .screen-col {
+      color: #bbb;
+    }
+
+    /* No Summary Fields Message */
+    .no-summary-fields {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+      color: #666;
+    }
+
+    .no-summary-fields mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: #999;
+      margin-bottom: 1rem;
+    }
+
+    .no-summary-fields p {
+      margin: 0.25rem 0;
+    }
+
+    .no-summary-fields .hint {
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    :host-context(.dark-mode) .no-summary-fields {
+      color: #bbb;
+    }
+
+    :host-context(.dark-mode) .no-summary-fields mat-icon {
+      color: #666;
+    }
+
+    :host-context(.dark-mode) .no-summary-fields .hint {
+      color: #666;
     }
 
     /* Step Indicator Styles */
@@ -2348,6 +2645,23 @@ import { User } from '@core/models/user.model';
       border-color: #444;
     }
 
+    :host-context(.dark-mode) .data-table.table-striped tbody tr:nth-child(odd) {
+      background: #2d2d2d;
+    }
+
+    :host-context(.dark-mode) .data-table.table-bordered {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .data-table.table-bordered th,
+    :host-context(.dark-mode) .data-table.table-bordered td {
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .row-count {
+      color: #aaa;
+    }
+
     :host-context(.dark-mode) .icon-display {
       border-color: #444;
       background: #2d2d2d;
@@ -2494,6 +2808,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   private calculatedFields: Map<string, { expression: string; fieldType: string; dependencies: string[] }> = new Map();
   private subscriptions: Subscription[] = [];
 
+  // Track fields with time-based default values (NOW, TODAY, etc.) that should be evaluated at submit time
+  private timeBasedFields: Map<string, { expression: string; fieldType: string }> = new Map();
+
   // Track custom validation errors from validation expressions
   validationErrors: Record<string, string | null> = {};
 
@@ -2593,6 +2910,10 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Clear tracking maps
+    this.calculatedFields.clear();
+    this.timeBasedFields.clear();
+
     const mainForm = this.workflow.forms[0];
     const fieldGroups = mainForm.fieldGroups || [];
 
@@ -2678,7 +2999,17 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         } else if (field.type === 'NUMBER' || field.type === 'CURRENCY') {
           defaultValue = Number(defaultValue) || null;
         } else if (field.type === 'DATE' || field.type === 'DATETIME') {
-          defaultValue = defaultValue ? new Date(defaultValue) : null;
+          // Convert to proper format for datetime-local/date inputs
+          if (defaultValue) {
+            const dateVal = defaultValue instanceof Date ? defaultValue : new Date(defaultValue);
+            if (!isNaN(dateVal.getTime())) {
+              defaultValue = field.type === 'DATETIME' ? this.formatDateTime(dateVal) : this.formatDate(dateVal);
+            } else {
+              defaultValue = null;
+            }
+          } else {
+            defaultValue = null;
+          }
         }
       } else if (field.defaultValue) {
         // Check if this is a function expression that references other fields
@@ -2694,16 +3025,55 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
           // Set empty initial value - will be calculated after form is created
           defaultValue = '';
         } else {
-          // No field dependencies - evaluate immediately
-          defaultValue = this.evaluateDefaultValue(field.defaultValue, field.type);
+          // Check if this is a time-based function that should be evaluated at submit time
+          const isTimeBasedFunction = this.isTimeBasedFunction(field.defaultValue);
 
-          // Type-specific conversions for evaluated defaults
-          if (field.type === 'CHECKBOX') {
-            defaultValue = defaultValue === 'true' || defaultValue === true || false;
-          } else if (field.type === 'NUMBER' || field.type === 'CURRENCY') {
-            defaultValue = defaultValue ? Number(defaultValue) : null;
-          } else if ((field.type === 'DATE' || field.type === 'DATETIME') && !(defaultValue instanceof Date)) {
-            defaultValue = defaultValue ? new Date(defaultValue) : null;
+          if (isTimeBasedFunction && !this.isEditMode) {
+            // Track for evaluation at submit time, set placeholder for now
+            this.timeBasedFields.set(field.name, {
+              expression: field.defaultValue,
+              fieldType: field.type
+            });
+            // Show current time as preview, but it will be refreshed at submit
+            defaultValue = this.evaluateDefaultValue(field.defaultValue, field.type);
+
+            // Convert Date objects to proper format for datetime-local/date inputs
+            if (defaultValue instanceof Date) {
+              if (field.type === 'DATETIME') {
+                // datetime-local input requires YYYY-MM-DDTHH:MM format
+                defaultValue = this.formatDateTime(defaultValue);
+              } else if (field.type === 'DATE') {
+                // date input requires YYYY-MM-DD format
+                defaultValue = this.formatDate(defaultValue);
+              }
+            } else if ((field.type === 'DATE' || field.type === 'DATETIME') && defaultValue) {
+              // If it's a string that looks like a date, convert it
+              const dateVal = new Date(defaultValue);
+              if (!isNaN(dateVal.getTime())) {
+                defaultValue = field.type === 'DATETIME' ? this.formatDateTime(dateVal) : this.formatDate(dateVal);
+              }
+            }
+          } else {
+            // No field dependencies - evaluate immediately
+            defaultValue = this.evaluateDefaultValue(field.defaultValue, field.type);
+
+            // Type-specific conversions for evaluated defaults
+            if (field.type === 'CHECKBOX') {
+              defaultValue = defaultValue === 'true' || defaultValue === true || false;
+            } else if (field.type === 'NUMBER' || field.type === 'CURRENCY') {
+              defaultValue = defaultValue ? Number(defaultValue) : null;
+            } else if (field.type === 'DATE' || field.type === 'DATETIME') {
+              // Convert Date objects to proper format for datetime-local/date inputs
+              if (defaultValue instanceof Date) {
+                defaultValue = field.type === 'DATETIME' ? this.formatDateTime(defaultValue) : this.formatDate(defaultValue);
+              } else if (defaultValue) {
+                // If it's a string that looks like a date, convert it to proper format
+                const dateVal = new Date(defaultValue);
+                if (!isNaN(dateVal.getTime())) {
+                  defaultValue = field.type === 'DATETIME' ? this.formatDateTime(dateVal) : this.formatDate(dateVal);
+                }
+              }
+            }
           }
         }
       }
@@ -3401,8 +3771,16 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       newValue = newValue === 'true' || newValue === true || false;
     } else if (config.fieldType === 'NUMBER' || config.fieldType === 'CURRENCY') {
       newValue = newValue ? Number(newValue) : null;
-    } else if ((config.fieldType === 'DATE' || config.fieldType === 'DATETIME') && !(newValue instanceof Date)) {
-      newValue = newValue ? new Date(newValue) : null;
+    } else if (config.fieldType === 'DATE' || config.fieldType === 'DATETIME') {
+      // Convert to proper format for datetime-local/date inputs
+      if (newValue instanceof Date) {
+        newValue = config.fieldType === 'DATETIME' ? this.formatDateTime(newValue) : this.formatDate(newValue);
+      } else if (newValue) {
+        const dateVal = new Date(newValue);
+        if (!isNaN(dateVal.getTime())) {
+          newValue = config.fieldType === 'DATETIME' ? this.formatDateTime(dateVal) : this.formatDate(dateVal);
+        }
+      }
     }
 
     // Update the form control value without emitting to avoid loops
@@ -3454,6 +3832,10 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     return this.screens[this.currentScreenIndex] || null;
   }
 
+  get isSummaryScreen(): boolean {
+    return this.currentScreen?.isSummaryScreen === true;
+  }
+
   getUngroupedFieldsOnScreen(): WorkflowField[] {
     if (!this.isMultiStep) {
       return this.getUngroupedFields();
@@ -3480,6 +3862,168 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       const groupScreenId = g.screenId?.toString();
       return groupScreenId === screenId || (isFirstScreen && !groupScreenId);
     });
+  }
+
+  // Get all fields marked for summary (inSummary: true) from all screens
+  getSummaryFields(): WorkflowField[] {
+    return this.fields.filter(f => f.inSummary === true && !(f.hidden || f.isHidden));
+  }
+
+  // Check if there are any summary fields to display
+  hasSummaryFields(): boolean {
+    return this.getSummaryFields().length > 0;
+  }
+
+  // Get the display value for a field (human-readable format)
+  getFieldDisplayValue(field: WorkflowField): string {
+    const value = this.form.get(field.name)?.value;
+
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+
+    switch (field.type || field.fieldType) {
+      case 'SELECT':
+      case 'RADIO':
+        // Find the label for the selected value
+        const option = field.options?.find(o => o.value === value);
+        return option?.label || value;
+
+      case 'MULTISELECT':
+      case 'CHECKBOX_GROUP':
+        // Handle array of values
+        if (Array.isArray(value)) {
+          const labels = value.map(v => {
+            const opt = field.options?.find(o => o.value === v);
+            return opt?.label || v;
+          });
+          return labels.join(', ') || '-';
+        }
+        // Handle comma-separated string
+        if (typeof value === 'string' && value.includes(',')) {
+          const vals = value.split(',').map(v => v.trim());
+          const labels = vals.map(v => {
+            const opt = field.options?.find(o => o.value === v);
+            return opt?.label || v;
+          });
+          return labels.join(', ') || '-';
+        }
+        return value;
+
+      case 'CHECKBOX':
+      case 'TOGGLE':
+        return value === true || value === 'true' ? 'Yes' : 'No';
+
+      case 'YES_NO':
+        return value === true || value === 'true' || value === 'yes' ? 'Yes' : 'No';
+
+      case 'DATE':
+        if (value instanceof Date) {
+          return value.toLocaleDateString();
+        }
+        // Try to parse and format the date string
+        try {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            return date.toLocaleDateString();
+          }
+        } catch (e) {}
+        return value;
+
+      case 'DATETIME':
+        if (value instanceof Date) {
+          return value.toLocaleString();
+        }
+        // Try to parse and format the datetime string
+        try {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            return date.toLocaleString();
+          }
+        } catch (e) {}
+        return value;
+
+      case 'TIME':
+        return value;
+
+      case 'CURRENCY':
+        const num = parseFloat(value);
+        if (!isNaN(num)) {
+          return '$' + num.toFixed(2);
+        }
+        return value;
+
+      case 'FILE':
+      case 'IMAGE':
+        if (this.selectedFiles[field.name]?.length > 0) {
+          return this.selectedFiles[field.name].map(f => f.name).join(', ');
+        }
+        return '-';
+
+      case 'USER':
+        if (this.selectedUsers[field.name]) {
+          const user = this.selectedUsers[field.name];
+          return `${user.firstName} ${user.lastName}`;
+        }
+        return value;
+
+      case 'RATING':
+        return `${value} / ${field.ratingMax || 5}`;
+
+      case 'SLIDER':
+        return String(value);
+
+      case 'TABLE':
+        // For table fields, show row count
+        const rows = this.getTableRows(field);
+        return `${rows.length} row${rows.length !== 1 ? 's' : ''}`;
+
+      case 'SQL_OBJECT':
+        // Find label from field options
+        if (field.options) {
+          if (Array.isArray(value)) {
+            const labels = value.map(v => {
+              const opt = field.options?.find(o => o.value === v);
+              return opt?.label || v;
+            });
+            return labels.join(', ') || '-';
+          }
+          const opt = field.options.find(o => o.value === value);
+          return opt?.label || value;
+        }
+        return value;
+
+      case 'COLOR':
+        return value;
+
+      case 'LOCATION':
+        return value;
+
+      case 'BARCODE':
+        return value;
+
+      case 'RICH_TEXT':
+        // Strip HTML tags for display
+        const stripped = String(value).replace(/<[^>]*>/g, '');
+        return stripped.length > 100 ? stripped.substring(0, 100) + '...' : stripped;
+
+      case 'HIDDEN':
+      case 'DIVIDER':
+      case 'LABEL':
+        return '-';
+
+      default:
+        return String(value);
+    }
+  }
+
+  // Get the screen name for a field (for multi-step forms)
+  getFieldScreenName(field: WorkflowField): string {
+    if (!this.isMultiStep || !field.screenId) {
+      return '';
+    }
+    const screen = this.screens.find(s => s.id?.toString() === field.screenId?.toString());
+    return screen?.title || '';
   }
 
   goToNextScreen(): void {
@@ -3538,6 +4082,34 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   isFieldReadonly(field: WorkflowField): boolean {
     return field.readOnly || field.isReadonly || false;
+  }
+
+  /**
+   * Check if a specific table column is readonly.
+   * A column is readonly if the table-wide readonly is set OR the column's own readonly is set.
+   */
+  isColumnReadonly(field: WorkflowField, col: any): boolean {
+    // If the entire table is readonly, all columns are readonly
+    if (this.isFieldReadonly(field)) {
+      return true;
+    }
+    // Otherwise, check the column's own readonly property
+    return col.readOnly === true;
+  }
+
+  /**
+   * Check if all columns in a table are readonly (either table-wide or all individual columns).
+   * Used to determine if the actions column should be hidden.
+   */
+  isTableFullyReadonly(field: any): boolean {
+    // If table-wide readonly is set, return true
+    if (this.isFieldReadonly(field)) {
+      return true;
+    }
+    // Check if all individual columns are readonly
+    const columns = this.getTableColumns(field);
+    if (columns.length === 0) return false;
+    return columns.every(col => col.readOnly === true);
   }
 
   /**
@@ -3809,11 +4381,27 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
                                'CURRENT_USER_STAFFID', 'CURRENT_USER_ROLE', 'CURRENT_USER_SBU',
                                'CURRENT_USER_BRANCH', 'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_DATETIME',
                                'CURRENT_YEAR', 'CURRENT_MONTH', 'UUID', 'SHORT_UUID', 'TIMESTAMP',
-                               'PI', 'E', 'RANDOM', 'WORKFLOW_ID', 'WORKFLOW_NAME', 'INSTANCE_ID',
+                               'PI', 'E', 'RANDOM', 'ROW', 'WORKFLOW_ID', 'WORKFLOW_NAME', 'INSTANCE_ID',
                                'INSTANCE_STATUS', 'SUBMISSION_DATE', 'SUBMITTER_NAME', 'SUBMITTER_EMAIL',
                                'APPROVAL_LEVEL', 'APPROVER_NAME', 'ENVIRONMENT', 'VERSION', 'LOCALE',
                                'TIMEZONE', 'BROWSER', 'PLATFORM', 'IS_MOBILE', 'SCREEN_WIDTH', 'SCREEN_HEIGHT'];
     return functionPattern.test(value) || noParenFunctions.includes(value.toUpperCase());
+  }
+
+  private isTimeBasedFunction(value: string): boolean {
+    // Check if the value is a time-based function that should be evaluated at submit time
+    if (!value) return false;
+    const upperValue = value.toUpperCase().trim();
+    const timeBasedFunctions = [
+      'NOW', 'NOW()',
+      'TODAY', 'TODAY()',
+      'CURRENT_DATE', 'CURRENT_DATE()',
+      'CURRENT_TIME', 'CURRENT_TIME()',
+      'CURRENT_DATETIME', 'CURRENT_DATETIME()',
+      'TIMESTAMP', 'TIMESTAMP()',
+      'SUBMISSION_DATE', 'SUBMISSION_DATE()'
+    ];
+    return timeBasedFunctions.includes(upperValue);
   }
 
   private evaluateFunction(expression: string, fieldType: string): any {
@@ -4127,18 +4715,18 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
       // ==================== DATE FUNCTIONS ====================
       case 'TODAY':
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? new Date() : this.formatDate(new Date());
+        return this.formatDateForField(new Date(), upperFieldType || 'DATE');
       case 'NOW':
-        return upperFieldType === 'DATETIME' ? new Date() : this.formatDateTime(new Date());
+        return this.formatDateForField(new Date(), upperFieldType || 'DATETIME');
       case 'TIMESTAMP':
         return Date.now().toString();
       case 'DATE': {
         const d = new Date(toInt(args[0]), toInt(args[1]) - 1, toInt(args[2]));
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'DATETIME': {
         const d = new Date(toInt(args[0]), toInt(args[1]) - 1, toInt(args[2]), toInt(args[3]), toInt(args[4]), toInt(args[5]));
-        return upperFieldType === 'DATETIME' ? d : this.formatDateTime(d);
+        return this.formatDateForField(d, upperFieldType || 'DATETIME');
       }
       case 'DATE_FORMAT': {
         const d = toDate(args[0]), fmt = toStr(args[1]);
@@ -4148,11 +4736,11 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         return new Date(toStr(args[0])).toISOString();
       case 'DATE_ADD': {
         const d = toDate(args[0]), n = toInt(args[1]), unit = toStr(args[2]).toLowerCase();
-        return this.addToDate(d, n, unit);
+        return this.addToDate(d, n, unit, upperFieldType);
       }
       case 'DATE_SUBTRACT': {
         const d = toDate(args[0]), n = toInt(args[1]), unit = toStr(args[2]).toLowerCase();
-        return this.addToDate(d, -n, unit);
+        return this.addToDate(d, -n, unit, upperFieldType);
       }
       case 'DATE_DIFF': {
         const a = toDate(args[0]), b = toDate(args[1]), unit = toStr(args[2]).toLowerCase();
@@ -4237,54 +4825,54 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'START_OF_DAY': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         d.setHours(0, 0, 0, 0);
-        return upperFieldType === 'DATETIME' ? d : this.formatDateTime(d);
+        return this.formatDateForField(d, upperFieldType || 'DATETIME');
       }
       case 'END_OF_DAY': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         d.setHours(23, 59, 59, 999);
-        return upperFieldType === 'DATETIME' ? d : this.formatDateTime(d);
+        return this.formatDateForField(d, upperFieldType || 'DATETIME');
       }
       case 'START_OF_WEEK': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         const day = d.getDay() || 7;
         d.setDate(d.getDate() - day + 1);
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'END_OF_WEEK': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         const day = d.getDay() || 7;
         d.setDate(d.getDate() + (7 - day));
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'START_OF_MONTH': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         d.setDate(1);
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'END_OF_MONTH': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         d.setMonth(d.getMonth() + 1, 0);
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'START_OF_QUARTER': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         d.setMonth(Math.floor(d.getMonth() / 3) * 3, 1);
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'END_OF_QUARTER': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         d.setMonth(Math.floor(d.getMonth() / 3) * 3 + 3, 0);
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'START_OF_YEAR': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         d.setMonth(0, 1);
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'END_OF_YEAR': {
         const d = new Date(args[0] ? toDate(args[0]) : new Date());
         d.setMonth(11, 31);
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'IS_WEEKEND': {
         const day = (args[0] ? toDate(args[0]) : new Date()).getDay();
@@ -4353,7 +4941,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
           d.setDate(d.getDate() + 1);
           if (d.getDay() !== 0 && d.getDay() !== 6) remaining--;
         }
-        return upperFieldType === 'DATE' || upperFieldType === 'DATETIME' ? d : this.formatDate(d);
+        return this.formatDateForField(d, upperFieldType || 'DATE');
       }
       case 'RELATIVE_TIME': {
         const d = args[0] ? toDate(args[0]) : new Date();
@@ -4552,6 +5140,275 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         for (let i = 0; i < len; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
         return result;
       }
+      // ==================== TABLE FUNCTIONS ====================
+      case 'ROW':
+        // Returns 1-based row number for table context
+        return (this.currentTableRowIndex + 1).toString();
+
+      case 'ROW_COUNT': {
+        // Get total number of rows in a table
+        const tableName = this.resolveTableName(args[0]);
+        const tableData = this.tableData[tableName];
+        return tableData ? tableData.length.toString() : '0';
+      }
+
+      case 'COLUMN_COUNT': {
+        // Get total number of columns in a table
+        const tableName = this.resolveTableName(args[0]);
+        const tableField = this.fields.find(f => f.name === tableName && f.fieldType === 'TABLE');
+        if (tableField) {
+          const columns = this.getTableColumns(tableField);
+          return columns.length.toString();
+        }
+        return '0';
+      }
+
+      case 'GET_CELL': {
+        // Get value of a specific cell: GET_CELL(tableName, rowIndex, columnName)
+        const tableName = this.resolveTableName(args[0]);
+        const rowIndex = toNum(args[1]) - 1; // Convert to 0-based
+        const columnName = toStr(args[2]);
+        const tableData = this.tableData[tableName];
+        if (tableData && rowIndex >= 0 && rowIndex < tableData.length) {
+          return tableData[rowIndex][columnName] || '';
+        }
+        return '';
+      }
+
+      case 'SET_CELL': {
+        // Set value of a specific cell: SET_CELL(tableName, rowIndex, columnName, value)
+        const tableName = this.resolveTableName(args[0]);
+        const rowIndex = toNum(args[1]) - 1; // Convert to 0-based
+        const columnName = toStr(args[2]);
+        const value = toStr(args[3]);
+        const tableData = this.tableData[tableName];
+        if (tableData && rowIndex >= 0 && rowIndex < tableData.length) {
+          tableData[rowIndex][columnName] = value;
+          return value;
+        }
+        return '';
+      }
+
+      case 'GET_ROW': {
+        // Get entire row as JSON: GET_ROW(tableName, rowIndex)
+        const tableName = this.resolveTableName(args[0]);
+        const rowIndex = toNum(args[1]) - 1; // Convert to 0-based
+        const tableData = this.tableData[tableName];
+        if (tableData && rowIndex >= 0 && rowIndex < tableData.length) {
+          return JSON.stringify(tableData[rowIndex]);
+        }
+        return '{}';
+      }
+
+      case 'SET_ROW': {
+        // Set entire row values from JSON: SET_ROW(tableName, rowIndex, valuesJson)
+        const tableName = this.resolveTableName(args[0]);
+        const rowIndex = toNum(args[1]) - 1; // Convert to 0-based
+        const valuesJson = toStr(args[2]);
+        const tableData = this.tableData[tableName];
+        if (tableData && rowIndex >= 0 && rowIndex < tableData.length) {
+          try {
+            const values = JSON.parse(valuesJson);
+            Object.keys(values).forEach(key => {
+              tableData[rowIndex][key] = values[key];
+            });
+            return 'true';
+          } catch { return 'false'; }
+        }
+        return 'false';
+      }
+
+      case 'GET_COLUMN': {
+        // Get all values from a column as JSON array: GET_COLUMN(tableName, columnName)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const tableData = this.tableData[tableName];
+        if (tableData) {
+          const values = tableData.map(row => row[columnName] || '');
+          return JSON.stringify(values);
+        }
+        return '[]';
+      }
+
+      case 'SUM_COLUMN': {
+        // Sum all numeric values in a column: SUM_COLUMN(tableName, columnName)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const tableData = this.tableData[tableName];
+        if (tableData) {
+          const sum = tableData.reduce((acc, row) => {
+            const val = parseFloat(row[columnName]);
+            return acc + (isNaN(val) ? 0 : val);
+          }, 0);
+          return sum.toString();
+        }
+        return '0';
+      }
+
+      case 'AVG_COLUMN': {
+        // Calculate average of numeric values in a column: AVG_COLUMN(tableName, columnName)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const tableData = this.tableData[tableName];
+        if (tableData && tableData.length > 0) {
+          const numericValues = tableData
+            .map(row => parseFloat(row[columnName]))
+            .filter(val => !isNaN(val));
+          if (numericValues.length > 0) {
+            const avg = numericValues.reduce((a, b) => a + b, 0) / numericValues.length;
+            return avg.toString();
+          }
+        }
+        return '0';
+      }
+
+      case 'MIN_COLUMN': {
+        // Get minimum value in a column: MIN_COLUMN(tableName, columnName)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const tableData = this.tableData[tableName];
+        if (tableData && tableData.length > 0) {
+          const numericValues = tableData
+            .map(row => parseFloat(row[columnName]))
+            .filter(val => !isNaN(val));
+          if (numericValues.length > 0) {
+            return Math.min(...numericValues).toString();
+          }
+        }
+        return '';
+      }
+
+      case 'MAX_COLUMN': {
+        // Get maximum value in a column: MAX_COLUMN(tableName, columnName)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const tableData = this.tableData[tableName];
+        if (tableData && tableData.length > 0) {
+          const numericValues = tableData
+            .map(row => parseFloat(row[columnName]))
+            .filter(val => !isNaN(val));
+          if (numericValues.length > 0) {
+            return Math.max(...numericValues).toString();
+          }
+        }
+        return '';
+      }
+
+      case 'COUNT_COLUMN': {
+        // Count non-empty values in a column: COUNT_COLUMN(tableName, columnName)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const tableData = this.tableData[tableName];
+        if (tableData) {
+          const count = tableData.filter(row => {
+            const val = row[columnName];
+            return val !== undefined && val !== null && val !== '';
+          }).length;
+          return count.toString();
+        }
+        return '0';
+      }
+
+      case 'FIND_ROW': {
+        // Find row index where column matches value: FIND_ROW(tableName, columnName, searchValue)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const searchValue = toStr(args[2]);
+        const tableData = this.tableData[tableName];
+        if (tableData) {
+          const index = tableData.findIndex(row => row[columnName] === searchValue);
+          return (index + 1).toString(); // 1-based, 0 if not found
+        }
+        return '0';
+      }
+
+      case 'CLEAR_ROW': {
+        // Clear all values in a row: CLEAR_ROW(tableName, rowIndex)
+        const tableName = this.resolveTableName(args[0]);
+        const rowIndex = toNum(args[1]) - 1; // Convert to 0-based
+        const tableData = this.tableData[tableName];
+        if (tableData && rowIndex >= 0 && rowIndex < tableData.length) {
+          Object.keys(tableData[rowIndex]).forEach(key => {
+            tableData[rowIndex][key] = '';
+          });
+          return 'true';
+        }
+        return 'false';
+      }
+
+      case 'DELETE_ROW': {
+        // Delete a row from the table: DELETE_ROW(tableName, rowIndex)
+        const tableName = this.resolveTableName(args[0]);
+        const rowIndex = toNum(args[1]) - 1; // Convert to 0-based
+        const tableData = this.tableData[tableName];
+        if (tableData && rowIndex >= 0 && rowIndex < tableData.length) {
+          tableData.splice(rowIndex, 1);
+          return 'true';
+        }
+        return 'false';
+      }
+
+      case 'ADD_ROW': {
+        // Add a new row to the table: ADD_ROW(tableName, valuesJson?)
+        const tableName = this.resolveTableName(args[0]);
+        const valuesJson = args[1] ? toStr(args[1]) : null;
+        const tableField = this.fields.find(f => f.name === tableName && f.fieldType === 'TABLE');
+        if (tableField) {
+          if (!this.tableData[tableName]) {
+            this.tableData[tableName] = [];
+          }
+          const columns = this.getTableColumns(tableField);
+          const newRow: Record<string, string> = {};
+          columns.forEach(col => {
+            newRow[col.name] = col.defaultValue || (col.type === 'CHECKBOX' ? 'false' : '');
+          });
+          // Apply values from JSON if provided
+          if (valuesJson) {
+            try {
+              const values = JSON.parse(valuesJson);
+              Object.keys(values).forEach(key => {
+                newRow[key] = values[key];
+              });
+            } catch { /* ignore parse errors */ }
+          }
+          this.tableData[tableName].push(newRow);
+          return (this.tableData[tableName].length).toString(); // Return new row count
+        }
+        return '0';
+      }
+
+      case 'COPY_ROW': {
+        // Copy row values to another row or new row: COPY_ROW(tableName, sourceRowIndex, targetRowIndex?)
+        const tableName = this.resolveTableName(args[0]);
+        const sourceIndex = toNum(args[1]) - 1; // Convert to 0-based
+        const targetIndex = args[2] ? toNum(args[2]) - 1 : -1; // -1 means add new row
+        const tableData = this.tableData[tableName];
+        if (tableData && sourceIndex >= 0 && sourceIndex < tableData.length) {
+          const copiedRow = { ...tableData[sourceIndex] };
+          if (targetIndex >= 0 && targetIndex < tableData.length) {
+            // Copy to existing row
+            Object.keys(copiedRow).forEach(key => {
+              tableData[targetIndex][key] = copiedRow[key];
+            });
+          } else {
+            // Add as new row
+            tableData.push(copiedRow);
+          }
+          return 'true';
+        }
+        return 'false';
+      }
+
+      case 'TABLE_JSON': {
+        // Get entire table data as JSON array: TABLE_JSON(tableName)
+        const tableName = this.resolveTableName(args[0]);
+        const tableData = this.tableData[tableName];
+        if (tableData) {
+          return JSON.stringify(tableData);
+        }
+        return '[]';
+      }
+
       case 'COALESCE':
       case 'DEFAULT':
         return args.find(a => a && toStr(a).trim() !== '') || '';
@@ -4709,7 +5566,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     return result;
   }
 
-  private addToDate(date: Date, amount: number, unit: string): string {
+  private addToDate(date: Date, amount: number, unit: string, fieldType?: string): string {
     const d = new Date(date);
     switch (unit) {
       case 'years': d.setFullYear(d.getFullYear() + amount); break;
@@ -4720,7 +5577,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'minutes': d.setMinutes(d.getMinutes() + amount); break;
       case 'seconds': d.setSeconds(d.getSeconds() + amount); break;
     }
-    return this.formatDate(d);
+    return this.formatDateForField(d, fieldType || 'DATE');
   }
 
   private dateDiff(a: Date, b: Date, unit: string): string {
@@ -4813,6 +5670,19 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  /**
+   * Resolve table name from @{tableName} syntax or plain name
+   */
+  private resolveTableName(value: any): string {
+    const str = String(value || '');
+    // Remove @{...} wrapper if present
+    const match = str.match(/@\{([^}]+)\}/);
+    if (match) {
+      return match[1];
+    }
+    return str;
+  }
+
   private generateUUID(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = Math.random() * 16 | 0;
@@ -4826,7 +5696,29 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   }
 
   private formatDateTime(date: Date): string {
-    return date.toISOString().slice(0, 16);
+    // Format for datetime-local input: YYYY-MM-DDTHH:MM
+    // Use local time instead of UTC to match user expectations
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  /**
+   * Formats a Date object for the appropriate field type
+   * Returns formatted string for DATE/DATETIME fields, or the formatted string representation otherwise
+   */
+  private formatDateForField(date: Date, fieldType: string): string {
+    const upperFieldType = (fieldType || '').toUpperCase();
+    if (upperFieldType === 'DATETIME') {
+      return this.formatDateTime(date);
+    } else if (upperFieldType === 'DATE') {
+      return this.formatDate(date);
+    }
+    // For non-date fields, return ISO string
+    return date.toISOString();
   }
 
   onFileSelect(event: Event, fieldName: string) {
@@ -4969,6 +5861,17 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     const fieldValues: Record<string, any> = {};
     this.fields.forEach(field => {
       let value = this.form.value[field.name];
+
+      // Re-evaluate time-based fields at submit time (only for new submissions, not edits)
+      if (!this.isEditMode && this.timeBasedFields.has(field.name)) {
+        const config = this.timeBasedFields.get(field.name)!;
+        value = this.evaluateDefaultValue(config.expression, config.fieldType);
+        // Convert to proper format for DATE/DATETIME fields
+        if ((field.type === 'DATE' || field.type === 'DATETIME') && value instanceof Date) {
+          value = value.toISOString();
+        }
+      }
+
       // For USER fields, extract the user ID if value is a User object
       if (field.type === 'USER' && value && typeof value === 'object' && value.id) {
         value = value.id;
@@ -5016,10 +5919,25 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       next: (res) => {
         if (res.success && res.data) {
           this.allUsers = res.data;
+          console.log('Loaded', this.allUsers.length, 'users for USER field');
         }
       },
-      error: () => {
-        console.error('Failed to load users');
+      error: (err) => {
+        console.error('Failed to load users:', err?.status, err?.message || err);
+        // Retry once after a short delay in case token wasn't ready
+        setTimeout(() => {
+          this.userService.getUsers().subscribe({
+            next: (res) => {
+              if (res.success && res.data) {
+                this.allUsers = res.data;
+                console.log('Loaded', this.allUsers.length, 'users on retry');
+              }
+            },
+            error: (retryErr) => {
+              console.error('Retry failed to load users:', retryErr?.status);
+            }
+          });
+        }, 1000);
       }
     });
   }
@@ -5383,9 +6301,41 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   // ========== TABLE/GRID FIELD METHODS ==========
   private tableData: Record<string, any[]> = {};
+  private currentTableRowIndex: number = 0; // 0-based index for ROW() function
 
-  getTableColumns(field: any): { name: string; label: string; type: string }[] {
-    // Parse columns from field options or use default
+  getTableColumns(field: any): { name: string; label: string; type: string; width?: number; defaultValue?: string; readOnly?: boolean }[] {
+    // First check the new tableColumns property
+    if (field.tableColumns && Array.isArray(field.tableColumns) && field.tableColumns.length > 0) {
+      return field.tableColumns.map((col: any) => ({
+        name: col.name || 'column',
+        label: col.label || col.name || 'Column',
+        type: col.type || 'TEXT',
+        width: col.width,
+        defaultValue: col.defaultValue,
+        readOnly: col.readOnly || false
+      }));
+    }
+
+    // Legacy: parse columns from JSON string in tableColumns
+    if (field.tableColumns && typeof field.tableColumns === 'string') {
+      try {
+        const parsed = JSON.parse(field.tableColumns);
+        if (Array.isArray(parsed)) {
+          return parsed.map((col: any) => ({
+            name: col.name || 'column',
+            label: col.label || col.name || 'Column',
+            type: col.type || 'TEXT',
+            width: col.width,
+            defaultValue: col.defaultValue,
+            readOnly: col.readOnly || false
+          }));
+        }
+      } catch (e) {
+        // Fall through to default columns
+      }
+    }
+
+    // Legacy: parse columns from field options
     if (field.options && typeof field.options === 'string') {
       try {
         const parsed = JSON.parse(field.options);
@@ -5393,18 +6343,21 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
           return parsed.map((col: any) => ({
             name: col.name || col.value || 'column',
             label: col.label || col.name || 'Column',
-            type: col.type || 'text'
+            type: col.type || 'TEXT',
+            width: col.width,
+            defaultValue: col.defaultValue
           }));
         }
       } catch (e) {
         // Fall through to default columns
       }
     }
+
     // Default columns if not specified
     return [
-      { name: 'col1', label: 'Column 1', type: 'text' },
-      { name: 'col2', label: 'Column 2', type: 'text' },
-      { name: 'col3', label: 'Column 3', type: 'text' }
+      { name: 'col1', label: 'Column 1', type: 'TEXT' },
+      { name: 'col2', label: 'Column 2', type: 'TEXT' },
+      { name: 'col3', label: 'Column 3', type: 'TEXT' }
     ];
   }
 
@@ -5423,6 +6376,38 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       } else {
         this.tableData[field.name] = [];
       }
+
+      // If table is empty and we're creating a new submission, initialize with minimum rows
+      if (this.tableData[field.name].length === 0 && !this.isEditMode) {
+        const minRows = field.tableMinRows || 1; // Default to at least 1 row
+        const columns = this.getTableColumns(field);
+
+        for (let rowIndex = 0; rowIndex < minRows; rowIndex++) {
+          // Set current row index for ROW() function
+          this.currentTableRowIndex = rowIndex;
+
+          const newRow: Record<string, string> = {};
+          columns.forEach(col => {
+            // Use default value if specified, otherwise empty/false for checkbox
+            if (col.defaultValue !== undefined && col.defaultValue !== null && col.defaultValue !== '') {
+              // Check if default value contains a function expression and evaluate it
+              if (this.isFunctionExpression(col.defaultValue)) {
+                newRow[col.name] = String(this.evaluateFunction(col.defaultValue, col.type));
+              } else {
+                newRow[col.name] = col.defaultValue;
+              }
+            } else {
+              newRow[col.name] = col.type === 'CHECKBOX' ? 'false' : '';
+            }
+          });
+          this.tableData[field.name].push(newRow);
+        }
+
+        // Update the form value with the initialized rows
+        if (this.tableData[field.name].length > 0) {
+          this.updateTableValue(field);
+        }
+      }
     }
     return this.tableData[field.name];
   }
@@ -5432,13 +6417,44 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     if (!this.tableData[field.name]) {
       this.tableData[field.name] = [];
     }
+
+    // Check max rows limit
+    if (field.tableMaxRows && this.tableData[field.name].length >= field.tableMaxRows) {
+      return; // Don't add more rows
+    }
+
+    // Set current row index for ROW() function (0-based, will be converted to 1-based in function)
+    this.currentTableRowIndex = this.tableData[field.name].length;
+
     const columns = this.getTableColumns(field);
     const newRow: Record<string, string> = {};
     columns.forEach(col => {
-      newRow[col.name] = '';
+      // Use default value if specified, otherwise empty/false for checkbox
+      if (col.defaultValue !== undefined && col.defaultValue !== null && col.defaultValue !== '') {
+        // Check if default value contains a function expression and evaluate it
+        if (this.isFunctionExpression(col.defaultValue)) {
+          newRow[col.name] = String(this.evaluateFunction(col.defaultValue, col.type));
+        } else {
+          newRow[col.name] = col.defaultValue;
+        }
+      } else {
+        newRow[col.name] = col.type === 'CHECKBOX' ? 'false' : '';
+      }
     });
     this.tableData[field.name].push(newRow);
     this.updateTableValue(field);
+  }
+
+  canAddTableRow(field: any): boolean {
+    if (!field.tableMaxRows) return true;
+    const rows = this.getTableRows(field);
+    return rows.length < field.tableMaxRows;
+  }
+
+  canRemoveTableRow(field: any): boolean {
+    const rows = this.getTableRows(field);
+    const minRows = field.tableMinRows || 0;
+    return rows.length > minRows;
   }
 
   removeTableRow(field: any, index: number): void {
@@ -5454,6 +6470,14 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (this.tableData[field.name] && this.tableData[field.name][rowIndex]) {
       this.tableData[field.name][rowIndex][columnName] = input.value;
+      this.updateTableValue(field);
+    }
+  }
+
+  onTableCheckboxChange(event: any, field: any, rowIndex: number, columnName: string): void {
+    if (this.isFieldReadonly(field)) return;
+    if (this.tableData[field.name] && this.tableData[field.name][rowIndex]) {
+      this.tableData[field.name][rowIndex][columnName] = event.checked ? 'true' : 'false';
       this.updateTableValue(field);
     }
   }

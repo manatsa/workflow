@@ -22,6 +22,7 @@ public class ScreenDTO {
     private String description;
     private Integer displayOrder;
     private String icon;
+    private Boolean isSummaryScreen;
 
     private List<FieldGroupDTO> fieldGroups;
     private List<WorkflowFieldDTO> fields;

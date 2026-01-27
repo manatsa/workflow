@@ -31,6 +31,9 @@ public class Screen extends BaseEntity {
     @Column
     private String icon;
 
+    @Column(name = "is_summary_screen")
+    private Boolean isSummaryScreen = false;
+
     @OneToMany(mappedBy = "screen", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("displayOrder ASC")
     @Builder.Default

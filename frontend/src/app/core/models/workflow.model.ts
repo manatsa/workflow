@@ -19,6 +19,7 @@ export interface Workflow {
   workflowCategory?: WorkflowCategory;
   requireAttachments: boolean;
   requireComments: boolean;
+  showSummary: boolean;
   forms?: WorkflowForm[];
   approvers?: WorkflowApprover[];
   corporateIds?: string[];
@@ -58,6 +59,7 @@ export interface Screen {
   description?: string;
   displayOrder: number;
   icon?: string;
+  isSummaryScreen?: boolean;
   fieldGroups?: FieldGroup[];
   fields?: WorkflowField[];
 }
@@ -112,17 +114,52 @@ export interface WorkflowField {
   validationMessage?: string;
   customValidationRule?: string;
   customValidationMessage?: string;
+  visibilityExpression?: string;
   width?: number;
   cssClass?: string;
   options?: FieldOption[];
+  optionsLayout?: 'vertical' | 'horizontal';
   dropdownSource?: string;
   dropdownDisplayField?: string;
   dropdownValueField?: string;
+  // SQL Object based options
+  sqlObjectId?: string;
+  optionsSource?: 'STATIC' | 'SQL';
+  viewType?: 'SELECT' | 'MULTISELECT' | 'RADIO' | 'CHECKBOX_GROUP';
   isAttachment: boolean;
   allowedFileTypes?: string;
   maxFileSize?: number;
   maxFiles?: number;
   multiple?: boolean;
+  inSummary?: boolean;
+  // New field type specific configurations
+  ratingMax?: number;
+  sliderMin?: number;
+  sliderMax?: number;
+  sliderStep?: number;
+  // TABLE field specific configurations
+  tableColumns?: TableColumn[];
+  tableMinRows?: number;
+  tableMaxRows?: number;
+  tableStriped?: boolean;
+  tableBordered?: boolean;
+}
+
+export interface TableColumn {
+  name: string;
+  label: string;
+  type: TableColumnType;
+  width?: number;
+  defaultValue?: string;
+  readOnly?: boolean;
+}
+
+export enum TableColumnType {
+  TEXT = 'TEXT',
+  NUMBER = 'NUMBER',
+  DATE = 'DATE',
+  SELECT = 'SELECT',
+  CHECKBOX = 'CHECKBOX'
 }
 
 export enum FieldType {
@@ -145,7 +182,31 @@ export enum FieldType {
   HIDDEN = 'HIDDEN',
   LABEL = 'LABEL',
   DIVIDER = 'DIVIDER',
-  COLOR = 'COLOR'
+  COLOR = 'COLOR',
+  USER = 'USER',
+  // New field types
+  TOGGLE = 'TOGGLE',
+  YES_NO = 'YES_NO',
+  IMAGE = 'IMAGE',
+  ICON = 'ICON',
+  RATING = 'RATING',
+  SIGNATURE = 'SIGNATURE',
+  RICH_TEXT = 'RICH_TEXT',
+  TIME = 'TIME',
+  SLIDER = 'SLIDER',
+  BARCODE = 'BARCODE',
+  LOCATION = 'LOCATION',
+  TABLE = 'TABLE',
+  // SQL Object field type - dynamic options from SQL Object tables
+  SQL_OBJECT = 'SQL_OBJECT'
+}
+
+// View type for SQL_OBJECT field - how to display the options
+export enum ViewType {
+  SELECT = 'SELECT',
+  MULTISELECT = 'MULTISELECT',
+  RADIO = 'RADIO',
+  CHECKBOX_GROUP = 'CHECKBOX_GROUP'
 }
 
 export enum DataType {
@@ -298,4 +359,42 @@ export interface ApprovalRequest {
 export enum WorkflowCategory {
   FINANCIAL = 'FINANCIAL',
   NON_FINANCIAL = 'NON_FINANCIAL'
+}
+
+// SQL Object models
+export interface SqlObject {
+  id: string;
+  tableName: string;
+  displayName: string;
+  description?: string;
+  valueColumn?: string;
+  labelColumn?: string;
+  columns: SqlColumn[];
+  isActive: boolean;
+  isSystem: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SqlColumn {
+  id?: string;
+  columnName: string;
+  displayName: string;
+  dataType: SqlColumnDataType;
+  columnLength?: number;
+  isNullable: boolean;
+  isPrimaryKey: boolean;
+  defaultValue?: string;
+  displayOrder: number;
+}
+
+export enum SqlColumnDataType {
+  VARCHAR = 'VARCHAR',
+  TEXT = 'TEXT',
+  INTEGER = 'INTEGER',
+  BIGINT = 'BIGINT',
+  DECIMAL = 'DECIMAL',
+  BOOLEAN = 'BOOLEAN',
+  DATE = 'DATE',
+  TIMESTAMP = 'TIMESTAMP'
 }

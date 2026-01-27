@@ -124,6 +124,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
 
                   <div class="checkbox-row">
                     <mat-checkbox formControlName="isActive">Active</mat-checkbox>
+                    <mat-checkbox formControlName="showSummary">Show Summary</mat-checkbox>
                     <mat-checkbox formControlName="commentsMandatory">Comments Mandatory on Approval</mat-checkbox>
                     <mat-checkbox formControlName="commentsMandatoryOnReject">Comments Mandatory on Reject</mat-checkbox>
                     <mat-checkbox formControlName="commentsMandatoryOnEscalate">Comments Mandatory on Escalate</mat-checkbox>
@@ -498,6 +499,25 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 </div>
                               </mat-expansion-panel>
 
+                              <mat-expansion-panel [expanded]="expandedCategories['table']" (opened)="expandedCategories['table']=true" (closed)="expandedCategories['table']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>table_chart</mat-icon> Table Functions ({{ tableFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of tableFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
+
                               <mat-expansion-panel [expanded]="expandedCategories['other']" (opened)="expandedCategories['other']=true" (closed)="expandedCategories['other']=false">
                                 <mat-expansion-panel-header>
                                   <mat-panel-title><mat-icon>more_horiz</mat-icon> Other Functions ({{ otherFunctions.length }})</mat-panel-title>
@@ -585,16 +605,18 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                               </mat-form-field>
                             </div>
 
-                            <mat-form-field appearance="outline" class="form-field full-width">
-                              <mat-label>Placeholder</mat-label>
-                              <input matInput [(ngModel)]="field.placeholder">
-                            </mat-form-field>
+                            @if (field.type !== 'TABLE') {
+                              <mat-form-field appearance="outline" class="form-field full-width">
+                                <mat-label>Placeholder</mat-label>
+                                <input matInput [(ngModel)]="field.placeholder">
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="form-field full-width">
-                              <mat-label>Value</mat-label>
-                              <input matInput [(ngModel)]="field.value" placeholder="Static value or function e.g. TODAY(), CURRENT_USER()">
-                              <mat-hint>Enter a preset value or use a function (click Functions tab to copy syntax)</mat-hint>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="form-field full-width">
+                                <mat-label>Value</mat-label>
+                                <input matInput [(ngModel)]="field.value" placeholder="Static value or function e.g. TODAY(), CURRENT_USER()">
+                                <mat-hint>Enter a preset value or use a function (click Functions tab to copy syntax)</mat-hint>
+                              </mat-form-field>
+                            }
 
                             @if (field.type === 'SELECT' || field.type === 'MULTISELECT' || field.type === 'RADIO' || field.type === 'CHECKBOX_GROUP') {
                               <mat-form-field appearance="outline" class="form-field">
@@ -689,7 +711,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
 
                             <div class="checkbox-row">
                               <mat-checkbox [(ngModel)]="field.required">Required</mat-checkbox>
-                              <mat-checkbox [(ngModel)]="field.readOnly">Read Only</mat-checkbox>
+                              <mat-checkbox [(ngModel)]="field.readOnly" (change)="onTableReadOnlyChange(field)">Read Only</mat-checkbox>
                               <mat-checkbox [(ngModel)]="field.hidden">Hidden</mat-checkbox>
                               <mat-checkbox [(ngModel)]="field.isUnique">Unique</mat-checkbox>
                               <mat-checkbox [(ngModel)]="field.isTitle">Make Title</mat-checkbox>
@@ -786,6 +808,101 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                     </mat-select>
                                   </mat-form-field>
                                 }
+                              </div>
+                            }
+
+                            <!-- TABLE field specific config -->
+                            @if (field.type === 'TABLE') {
+                              <div class="table-config">
+                                <h4 class="config-section-title">
+                                  <mat-icon>table_chart</mat-icon>
+                                  Table Configuration
+                                </h4>
+
+                                <!-- Column definitions -->
+                                <div class="columns-section">
+                                  <div class="columns-header">
+                                    <span class="columns-title">Columns</span>
+                                    <button mat-stroked-button type="button" (click)="addTableColumn(field)" class="add-column-btn">
+                                      <mat-icon>add</mat-icon> Add Column
+                                    </button>
+                                  </div>
+
+                                  @if (!field.tableColumns || field.tableColumns.length === 0) {
+                                    <div class="no-columns-hint">
+                                      <mat-icon>info</mat-icon>
+                                      No columns defined. Click "Add Column" to define table columns.
+                                    </div>
+                                  }
+
+                                  @for (col of field.tableColumns || []; track $index; let colIndex = $index) {
+                                    <div class="column-row">
+                                      <mat-form-field appearance="outline" class="col-name-field">
+                                        <mat-label>Column Name</mat-label>
+                                        <input matInput [(ngModel)]="col.name" placeholder="e.g., item_name" required>
+                                      </mat-form-field>
+
+                                      <mat-form-field appearance="outline" class="col-label-field">
+                                        <mat-label>Column Label</mat-label>
+                                        <input matInput [(ngModel)]="col.label" placeholder="e.g., Item Name" required>
+                                      </mat-form-field>
+
+                                      <mat-form-field appearance="outline" class="col-type-field">
+                                        <mat-label>Type</mat-label>
+                                        <mat-select [(ngModel)]="col.type">
+                                          <mat-option value="TEXT">Text</mat-option>
+                                          <mat-option value="NUMBER">Number</mat-option>
+                                          <mat-option value="DATE">Date</mat-option>
+                                          <mat-option value="CHECKBOX">Checkbox</mat-option>
+                                        </mat-select>
+                                      </mat-form-field>
+
+                                      <mat-form-field appearance="outline" class="col-width-field">
+                                        <mat-label>Width</mat-label>
+                                        <input matInput type="number" [(ngModel)]="col.width" placeholder="Auto">
+                                        <span matSuffix>px</span>
+                                      </mat-form-field>
+
+                                      <mat-form-field appearance="outline" class="col-default-field">
+                                        <mat-label>Default</mat-label>
+                                        <input matInput [(ngModel)]="col.defaultValue" placeholder="Default value">
+                                      </mat-form-field>
+
+                                      <mat-checkbox [(ngModel)]="col.readOnly" (change)="onColumnReadOnlyChange(field)" class="col-readonly-checkbox" matTooltip="Make this column read-only">
+                                        <mat-icon class="readonly-icon">lock</mat-icon>
+                                      </mat-checkbox>
+
+                                      <button mat-icon-button color="warn" type="button" (click)="removeTableColumn(field, colIndex)" matTooltip="Remove column">
+                                        <mat-icon>delete</mat-icon>
+                                      </button>
+                                    </div>
+                                  }
+                                </div>
+
+                                <!-- Row configuration -->
+                                <div class="form-row">
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Min Rows</mat-label>
+                                    <input matInput type="number" [(ngModel)]="field.tableMinRows" min="0">
+                                    <mat-hint>Minimum number of rows required</mat-hint>
+                                  </mat-form-field>
+
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Max Rows</mat-label>
+                                    <input matInput type="number" [(ngModel)]="field.tableMaxRows" min="1">
+                                    <mat-hint>Maximum rows allowed (empty = unlimited)</mat-hint>
+                                  </mat-form-field>
+                                </div>
+
+                                <!-- Styling options -->
+                                <div class="table-styling">
+                                  <mat-checkbox [(ngModel)]="field.tableStriped">
+                                    Striped rows (alternating background)
+                                  </mat-checkbox>
+                                  <mat-checkbox [(ngModel)]="field.tableBordered">
+                                    Show cell borders
+                                  </mat-checkbox>
+                                </div>
                               </div>
                             }
 
@@ -1650,6 +1767,117 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       text-decoration: underline;
     }
 
+    /* TABLE field configuration styles */
+    .table-config {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .config-section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 1rem 0;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .config-section-title mat-icon {
+      color: #1976d2;
+    }
+
+    .columns-section {
+      margin-bottom: 1rem;
+    }
+
+    .columns-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .columns-title {
+      font-weight: 500;
+      color: #555;
+    }
+
+    .add-column-btn {
+      font-size: 0.85rem;
+    }
+
+    .no-columns-hint {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: #fff3cd;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 0.9rem;
+    }
+
+    .column-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      background: white;
+      border-radius: 4px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .col-name-field {
+      flex: 0.8;
+      min-width: 96px;
+    }
+
+    .col-label-field {
+      flex: 0.9;
+      min-width: 90px;
+    }
+
+    .col-type-field {
+      width: 120px;
+    }
+
+    .col-width-field {
+      width: 90px;
+    }
+
+    .col-default-field {
+      width: 120px;
+    }
+
+    .col-readonly-checkbox {
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .col-readonly-checkbox .readonly-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .table-styling {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .table-styling mat-checkbox {
+      font-size: 0.9rem;
+    }
+
     /* Dark mode support - using class-based approach */
     :host-context(.dark-mode) .workflow-builder-container {
       background: #1e1e1e;
@@ -1747,6 +1975,33 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
     :host-context(.dark-mode) .sql-obj-hint,
     :host-context(.dark-mode) .sql-hint {
       color: #aaa;
+    }
+
+    :host-context(.dark-mode) .table-config {
+      background: #2d2d2d;
+      border-color: #444;
+    }
+
+    :host-context(.dark-mode) .config-section-title {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) .columns-title {
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) .no-columns-hint {
+      background: #3d3020;
+      color: #e0c080;
+    }
+
+    :host-context(.dark-mode) .column-row {
+      background: #3d3d3d;
+      border-color: #555;
+    }
+
+    :host-context(.dark-mode) .table-styling {
+      border-top-color: #444;
     }
 
     :host-context(.dark-mode) .empty-canvas {
@@ -1958,6 +2213,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     date: false,
     boolean: false,
     utility: false,
+    table: false,
     other: false
   };
 
@@ -2094,6 +2350,35 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { name: 'IS_VALID_URL(field)', description: 'Validate URL format', syntax: 'IS_VALID_URL(urlField)' }
   ];
 
+  // Table Functions
+  tableFunctions = [
+    // Row number and counting
+    { name: 'ROW()', description: 'Get current table row number (1-based)', syntax: 'ROW()' },
+    { name: 'ROW_COUNT(table)', description: 'Get total number of rows in table', syntax: 'ROW_COUNT(@{tableName})' },
+    { name: 'COLUMN_COUNT(table)', description: 'Get total number of columns', syntax: 'COLUMN_COUNT(@{tableName})' },
+    // Get/Set cell values
+    { name: 'GET_CELL(table, row, col)', description: 'Get value of a specific cell', syntax: 'GET_CELL(@{tableName}, 1, "columnName")' },
+    { name: 'SET_CELL(table, row, col, val)', description: 'Set value of a specific cell', syntax: 'SET_CELL(@{tableName}, 1, "columnName", "value")' },
+    // Get/Set row values
+    { name: 'GET_ROW(table, row)', description: 'Get entire row as JSON string', syntax: 'GET_ROW(@{tableName}, 1)' },
+    { name: 'SET_ROW(table, row, json)', description: 'Set entire row values from JSON', syntax: 'SET_ROW(@{tableName}, 1, \'{"col1":"val1"}\')' },
+    // Column operations
+    { name: 'GET_COLUMN(table, col)', description: 'Get all values from a column as array', syntax: 'GET_COLUMN(@{tableName}, "columnName")' },
+    { name: 'SUM_COLUMN(table, col)', description: 'Sum all numeric values in a column', syntax: 'SUM_COLUMN(@{tableName}, "amount")' },
+    { name: 'AVG_COLUMN(table, col)', description: 'Calculate average of column values', syntax: 'AVG_COLUMN(@{tableName}, "score")' },
+    { name: 'MIN_COLUMN(table, col)', description: 'Get minimum value in a column', syntax: 'MIN_COLUMN(@{tableName}, "price")' },
+    { name: 'MAX_COLUMN(table, col)', description: 'Get maximum value in a column', syntax: 'MAX_COLUMN(@{tableName}, "price")' },
+    { name: 'COUNT_COLUMN(table, col)', description: 'Count non-empty values in column', syntax: 'COUNT_COLUMN(@{tableName}, "notes")' },
+    // Row manipulation
+    { name: 'ADD_ROW(table, json?)', description: 'Add a new row to the table', syntax: 'ADD_ROW(@{tableName})' },
+    { name: 'DELETE_ROW(table, row)', description: 'Delete a row from the table', syntax: 'DELETE_ROW(@{tableName}, 1)' },
+    { name: 'CLEAR_ROW(table, row)', description: 'Clear all values in a row', syntax: 'CLEAR_ROW(@{tableName}, 1)' },
+    { name: 'COPY_ROW(table, src, tgt?)', description: 'Copy row values to another row', syntax: 'COPY_ROW(@{tableName}, 1)' },
+    // Search and export
+    { name: 'FIND_ROW(table, col, val)', description: 'Find row index where column matches value', syntax: 'FIND_ROW(@{tableName}, "sku", "ABC123")' },
+    { name: 'TABLE_JSON(table)', description: 'Get entire table data as JSON array', syntax: 'TABLE_JSON(@{tableName})' }
+  ];
+
   // Utility Functions
   utilityFunctions = [
     { name: 'COALESCE(a, b, ...)', description: 'Return first non-empty value', syntax: 'COALESCE(field1, field2, "default")' },
@@ -2157,6 +2442,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       workflowTypeId: [null],
       workflowCategory: ['NON_FINANCIAL'],
       isActive: [true],
+      showSummary: [false],
       commentsMandatory: [false],
       commentsMandatoryOnReject: [true],
       commentsMandatoryOnEscalate: [true],
@@ -2386,6 +2672,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           icon: workflow.icon,
           workflowTypeId: workflow.workflowTypeId || workflow.workflowType?.id,
           isActive: workflow.active ?? workflow.isActive ?? true,
+          showSummary: workflow.showSummary ?? false,
           commentsMandatory: workflow.commentsMandatory ?? false,
           commentsMandatoryOnReject: workflow.commentsMandatoryOnReject ?? true,
           commentsMandatoryOnEscalate: workflow.commentsMandatoryOnEscalate ?? true,
@@ -2416,7 +2703,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
             isLimited: f.isLimited ?? false,
             inSummary: f.inSummary ?? false,
             optionsText: f.options?.map((o: any) => o.value).join('\n') || '',
-            optionsLayout: f.optionsLayout || 'vertical'
+            optionsLayout: f.optionsLayout || 'vertical',
+            // Parse tableColumns JSON string back to array
+            tableColumns: f.tableColumns ? (typeof f.tableColumns === 'string' ? JSON.parse(f.tableColumns) : f.tableColumns) : []
           })) || [];
           this.fieldGroups = workflow.forms[0].fieldGroups || [];
           this.screens = workflow.forms[0].screens || [];
@@ -2479,7 +2768,17 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       // SQL_OBJECT specific defaults
       sqlObjectId: type === 'SQL_OBJECT' ? null : undefined,
       viewType: type === 'SQL_OBJECT' ? 'SELECT' : undefined,
-      optionsSource: type === 'SQL_OBJECT' ? 'SQL' : 'STATIC'
+      optionsSource: type === 'SQL_OBJECT' ? 'SQL' : 'STATIC',
+      // TABLE specific defaults
+      tableColumns: type === 'TABLE' ? [
+        { name: 'col1', label: 'Column 1', type: 'TEXT', width: null },
+        { name: 'col2', label: 'Column 2', type: 'TEXT', width: null },
+        { name: 'col3', label: 'Column 3', type: 'TEXT', width: null }
+      ] : undefined,
+      tableMinRows: type === 'TABLE' ? 0 : undefined,
+      tableMaxRows: type === 'TABLE' ? null : undefined,
+      tableStriped: type === 'TABLE' ? true : undefined,
+      tableBordered: type === 'TABLE' ? true : undefined
     };
     this.fields.push(field);
   }
@@ -2508,6 +2807,66 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  // TABLE field column management
+  addTableColumn(field: any): void {
+    if (!field.tableColumns) {
+      field.tableColumns = [];
+    }
+    const colNum = field.tableColumns.length + 1;
+    field.tableColumns.push({
+      name: `col${colNum}`,
+      label: `Column ${colNum}`,
+      type: 'TEXT',
+      width: null
+    });
+  }
+
+  removeTableColumn(field: any, index: number): void {
+    if (field.tableColumns && field.tableColumns.length > 1) {
+      field.tableColumns.splice(index, 1);
+      // Re-sync table-wide readonly after column removal
+      this.syncTableReadOnlyFromColumns(field);
+    } else {
+      this.snackBar.open('Table must have at least one column', 'Close', {
+        duration: 3000,
+        panelClass: ['warning-snackbar']
+      });
+    }
+  }
+
+  /**
+   * Called when the table-wide readonly checkbox changes.
+   * If checked, all column readonly checkboxes are set to true.
+   * If unchecked, all column readonly checkboxes are set to false.
+   */
+  onTableReadOnlyChange(field: any): void {
+    if (field.type !== 'TABLE' || !field.tableColumns) return;
+
+    const isReadOnly = field.readOnly;
+    field.tableColumns.forEach((col: any) => {
+      col.readOnly = isReadOnly;
+    });
+  }
+
+  /**
+   * Called when an individual column's readonly checkbox changes.
+   * Syncs the table-wide readonly based on whether all columns are readonly.
+   */
+  onColumnReadOnlyChange(field: any): void {
+    this.syncTableReadOnlyFromColumns(field);
+  }
+
+  /**
+   * Syncs the table-wide readonly checkbox based on column readonly states.
+   * Table-wide readonly is checked only if ALL columns are readonly.
+   */
+  private syncTableReadOnlyFromColumns(field: any): void {
+    if (field.type !== 'TABLE' || !field.tableColumns || field.tableColumns.length === 0) return;
+
+    const allColumnsReadOnly = field.tableColumns.every((col: any) => col.readOnly === true);
+    field.readOnly = allColumnsReadOnly;
   }
 
   dropField(event: CdkDragDrop<any[]>) {
@@ -2670,6 +3029,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       ...this.dateFunctions.map(f => ({ ...f, category: 'Date' })),
       ...this.booleanFunctions.map(f => ({ ...f, category: 'Boolean/Logic' })),
       ...this.utilityFunctions.map(f => ({ ...f, category: 'Utility' })),
+      ...this.tableFunctions.map(f => ({ ...f, category: 'Table' })),
       ...this.otherFunctions.map(f => ({ ...f, category: 'Other' }))
     ];
 
@@ -2878,6 +3238,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       isTitle: f.isTitle ?? false,
       isLimited: f.isLimited ?? false,
       inSummary: f.inSummary ?? false,
+      // Convert tableColumns array to JSON string for backend storage
+      tableColumns: f.tableColumns ? JSON.stringify(f.tableColumns) : null,
       options: f.optionsText?.split('\n').filter((o: string) => o.trim()).map((value: string, index: number) => ({
         value: value.trim(),
         label: value.trim(),

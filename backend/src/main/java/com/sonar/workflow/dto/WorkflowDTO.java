@@ -38,6 +38,7 @@ public class WorkflowDTO {
     private Boolean commentsMandatory;
     private Boolean commentsMandatoryOnReject;
     private Boolean commentsMandatoryOnEscalate;
+    private Boolean showSummary;
     private Workflow.WorkflowCategory workflowCategory;
     private List<WorkflowFormDTO> forms;
     private List<WorkflowApproverDTO> approvers;
