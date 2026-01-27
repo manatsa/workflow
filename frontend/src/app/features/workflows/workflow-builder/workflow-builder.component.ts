@@ -26,6 +26,8 @@ import { Workflow, FieldType, WorkflowField, FieldGroup, WorkflowCategory, SqlOb
 import { User, SBU, Corporate, Branch } from '@core/models/user.model';
 import { Department } from '@core/models/department.model';
 import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { FunctionHelpDialogComponent } from '@shared/components/function-help-dialog/function-help-dialog.component';
 
 @Component({
   selector: 'app-workflow-builder',
@@ -363,9 +365,14 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                               </div>
                               @for (fn of getFilteredFunctions(); track fn.name) {
                                 <div class="function-item" (click)="insertFunction(fn)">
-                                  <div class="function-name">{{ fn.name }}</div>
-                                  <div class="function-desc">{{ fn.description }}</div>
-                                  <div class="function-category-tag">{{ fn.category }}</div>
+                                  <div class="function-main">
+                                    <div class="function-name">{{ fn.name }}</div>
+                                    <div class="function-desc">{{ fn.description }}</div>
+                                    <div class="function-category-tag">{{ fn.category }}</div>
+                                  </div>
+                                  <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                    <mat-icon>help_outline</mat-icon>
+                                  </button>
                                 </div>
                               }
                               @if (getFilteredFunctions().length === 0) {
@@ -384,8 +391,13 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                                 <div class="function-list">
                                   @for (fn of validationFunctions; track fn.name) {
                                     <div class="function-item" (click)="insertFunction(fn)">
-                                      <div class="function-name">{{ fn.name }}</div>
-                                      <div class="function-desc">{{ fn.description }}</div>
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
                                     </div>
                                   }
                                 </div>
@@ -398,8 +410,13 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                                 <div class="function-list">
                                   @for (fn of stringFunctions; track fn.name) {
                                     <div class="function-item" (click)="insertFunction(fn)">
-                                      <div class="function-name">{{ fn.name }}</div>
-                                      <div class="function-desc">{{ fn.description }}</div>
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
                                     </div>
                                   }
                                 </div>
@@ -412,8 +429,13 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                                 <div class="function-list">
                                   @for (fn of numberFunctions; track fn.name) {
                                     <div class="function-item" (click)="insertFunction(fn)">
-                                      <div class="function-name">{{ fn.name }}</div>
-                                      <div class="function-desc">{{ fn.description }}</div>
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
                                     </div>
                                   }
                                 </div>
@@ -426,8 +448,13 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                                 <div class="function-list">
                                   @for (fn of dateFunctions; track fn.name) {
                                     <div class="function-item" (click)="insertFunction(fn)">
-                                      <div class="function-name">{{ fn.name }}</div>
-                                      <div class="function-desc">{{ fn.description }}</div>
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
                                     </div>
                                   }
                                 </div>
@@ -440,8 +467,13 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                                 <div class="function-list">
                                   @for (fn of booleanFunctions; track fn.name) {
                                     <div class="function-item" (click)="insertFunction(fn)">
-                                      <div class="function-name">{{ fn.name }}</div>
-                                      <div class="function-desc">{{ fn.description }}</div>
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
                                     </div>
                                   }
                                 </div>
@@ -454,8 +486,13 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                                 <div class="function-list">
                                   @for (fn of utilityFunctions; track fn.name) {
                                     <div class="function-item" (click)="insertFunction(fn)">
-                                      <div class="function-name">{{ fn.name }}</div>
-                                      <div class="function-desc">{{ fn.description }}</div>
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
                                     </div>
                                   }
                                 </div>
@@ -468,8 +505,13 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
                                 <div class="function-list">
                                   @for (fn of otherFunctions; track fn.name) {
                                     <div class="function-item" (click)="insertFunction(fn)">
-                                      <div class="function-name">{{ fn.name }}</div>
-                                      <div class="function-desc">{{ fn.description }}</div>
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
                                     </div>
                                   }
                                 </div>
@@ -1184,11 +1226,34 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
     }
 
     .function-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 0.375rem 0.5rem;
       border-radius: 4px;
       cursor: pointer;
       transition: background 0.2s;
       border: 1px solid transparent;
+    }
+
+    .function-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .function-help-btn {
+      opacity: 0;
+      transition: opacity 0.2s;
+      transform: scale(0.8);
+      color: #666;
+    }
+
+    .function-item:hover .function-help-btn {
+      opacity: 1;
+    }
+
+    .function-help-btn:hover {
+      color: #1976d2;
     }
 
     .function-item:hover {
@@ -1663,6 +1728,14 @@ import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.compon
     :host-context(.dark-mode) .function-item:hover {
       background: #3d5a80;
       border-color: #5c8dc9;
+    }
+
+    :host-context(.dark-mode) .function-help-btn {
+      color: #888;
+    }
+
+    :host-context(.dark-mode) .function-help-btn:hover {
+      color: #64b5f6;
     }
 
     :host-context(.dark-mode) .function-name {
@@ -2412,7 +2485,29 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   }
 
   removeField(index: number) {
-    this.fields.splice(index, 1);
+    const field = this.fields[index];
+    const fieldName = field.label || field.name || 'this field';
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Field',
+        message: `Are you sure you want to delete "${fieldName}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        confirmColor: 'warn'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.fields.splice(index, 1);
+        this.snackBar.open(`Field "${fieldName}" has been removed. Save the workflow to apply changes.`, 'Close', {
+          duration: 4000,
+          panelClass: ['info-snackbar']
+        });
+      }
+    });
   }
 
   dropField(event: CdkDragDrop<any[]>) {
@@ -2433,13 +2528,40 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   }
 
   removeFieldGroup(index: number) {
-    const groupId = this.fieldGroups[index].id;
-    this.fields.forEach(f => {
-      if (f.fieldGroupId === groupId) {
-        f.fieldGroupId = null;
+    const group = this.fieldGroups[index];
+    const groupName = group.title || group.name || 'this group';
+    const fieldsInGroup = this.fields.filter(f => f.fieldGroupId === group.id).length;
+
+    const message = fieldsInGroup > 0
+      ? `Are you sure you want to delete "${groupName}"? ${fieldsInGroup} field(s) will be moved out of the group.`
+      : `Are you sure you want to delete "${groupName}"?`;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Field Group',
+        message: message,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        confirmColor: 'warn'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        const groupId = group.id;
+        this.fields.forEach(f => {
+          if (f.fieldGroupId === groupId) {
+            f.fieldGroupId = null;
+          }
+        });
+        this.fieldGroups.splice(index, 1);
+        this.snackBar.open(`Group "${groupName}" has been removed. Save the workflow to apply changes.`, 'Close', {
+          duration: 4000,
+          panelClass: ['info-snackbar']
+        });
       }
     });
-    this.fieldGroups.splice(index, 1);
   }
 
   getFieldsInGroup(groupId: string): any[] {
@@ -2516,6 +2638,16 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   getScreenTitle(screenId: string): string {
     const screen = this.screens.find(s => s.id === screenId);
     return screen?.title || 'Untitled Screen';
+  }
+
+  showFunctionHelp(fn: any, event: Event) {
+    event.stopPropagation(); // Prevent insertFunction from firing
+    this.dialog.open(FunctionHelpDialogComponent, {
+      width: '720px',
+      maxHeight: '85vh',
+      panelClass: 'function-help-dialog-panel',
+      data: { functionName: fn.name }
+    });
   }
 
   insertFunction(fn: any) {
