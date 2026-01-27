@@ -11,14 +11,14 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.sonarworks</groupId>
+    <groupId>com.sonar</groupId>
     <artifactId>workflow-system</artifactId>
     <version>1.0.0</version>
-    <name>Sonarworks Workflow System</name>
+    <name>Sonar Workflow System</name>
     <description>Enterprise Workflow Management System</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <jjwt.version>0.12.5</jjwt.version>
         <apache-poi.version>5.2.5</apache-poi.version>
         <frontend.dir>${project.basedir}/../frontend</frontend.dir>
@@ -237,7 +237,24 @@
                             <overwrite>true</overwrite>
                             <resources>
                                 <resource>
-                                    <directory>${frontend.dir}/dist/sonarworks-workflow/browser</directory>
+                                    <directory>${frontend.dir}/dist/sonar-workflow/browser</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-frontend-to-target</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>${frontend.dir}/dist/sonar-workflow/browser</directory>
                                     <filtering>false</filtering>
                                 </resource>
                             </resources>
@@ -257,7 +274,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                    <mainClass>com.sonarworks.workflow.WorkflowApplication</mainClass>
+                    <mainClass>com.sonar.workflow.WorkflowApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

@@ -146,7 +146,7 @@ def create_quality_test_document():
         ('Application Server', 'Spring Boot 3.x with embedded Tomcat'),
         ('Frontend', 'Angular 19'),
         ('Browser Support', 'Chrome 120+, Firefox 120+, Edge 120+'),
-        ('Java Version', 'Java 21 (Temurin)')
+        ('Java Version', 'Java 25 (Temurin)')
     ]
     for i, (col1, col2) in enumerate(env_data):
         env_table.rows[i].cells[0].text = col1
