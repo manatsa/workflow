@@ -54,7 +54,7 @@ add_section(doc, "2. Accessing My Submissions")
 
 add_section(doc, "2.1 From Navigation Menu", level=2)
 add_step_by_step(doc, [
-    "Log in to the Sonarworks Workflow System",
+    "Log in to the Sonar Workflow System",
     "Click 'My Submissions' in the navigation sidebar",
     "The My Submissions list page displays"
 ])

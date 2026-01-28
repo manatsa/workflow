@@ -31,7 +31,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """The Organization Structure module allows administrators to define and manage the organizational hierarchy within the Sonarworks Workflow System. This structure controls user access, workflow routing, and reporting capabilities.""")
+add_paragraph(doc, """The Organization Structure module allows administrators to define and manage the organizational hierarchy within the Sonar Workflow System. This structure controls user access, workflow routing, and reporting capabilities.""")
 
 add_paragraph(doc, "Key Functions:", bold=True)
 add_bullet_list(doc, [

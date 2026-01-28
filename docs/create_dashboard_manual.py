@@ -31,7 +31,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """The Dashboard is the central hub of the Sonarworks Workflow System. After logging in, users are immediately directed to the Dashboard, which provides a comprehensive overview of their workflow activities, pending tasks, and quick access to frequently used features.""")
+add_paragraph(doc, """The Dashboard is the central hub of the Sonar Workflow System. After logging in, users are immediately directed to the Dashboard, which provides a comprehensive overview of their workflow activities, pending tasks, and quick access to frequently used features.""")
 
 add_paragraph(doc, "Purpose of the Dashboard:", bold=True)
 add_bullet_list(doc, [

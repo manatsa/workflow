@@ -31,7 +31,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """The Audit Log module provides a comprehensive record of all significant actions performed in the Sonarworks Workflow System. It serves as an essential tool for security monitoring, compliance, troubleshooting, and accountability.""")
+add_paragraph(doc, """The Audit Log module provides a comprehensive record of all significant actions performed in the Sonar Workflow System. It serves as an essential tool for security monitoring, compliance, troubleshooting, and accountability.""")
 
 add_paragraph(doc, "What is Audited:", bold=True)
 add_bullet_list(doc, [

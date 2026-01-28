@@ -31,7 +31,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """The Authentication Module is the gateway to the Sonarworks Workflow System. It provides secure access control to ensure only authorized users can access the system and its features. This module handles user login, password management, and session security.""")
+add_paragraph(doc, """The Authentication Module is the gateway to the Sonar Workflow System. It provides secure access control to ensure only authorized users can access the system and its features. This module handles user login, password management, and session security.""")
 
 add_paragraph(doc, "Key Features:", bold=True)
 add_bullet_list(doc, [
@@ -51,7 +51,7 @@ add_image_placeholder(doc, "Login Page Overview")
 add_section(doc, "2. System Access Requirements")
 
 add_section(doc, "2.1 Browser Requirements", level=2)
-add_paragraph(doc, "The Sonarworks Workflow System is a web-based application accessible through modern web browsers:")
+add_paragraph(doc, "The Sonar Workflow System is a web-based application accessible through modern web browsers:")
 
 add_table(doc,
     ["Browser", "Minimum Version", "Recommended"],
@@ -81,7 +81,7 @@ add_note(doc, "Contact your system administrator if you don't have login credent
 add_section(doc, "3. Login Process")
 
 add_section(doc, "3.1 Accessing the Login Page", level=2)
-add_paragraph(doc, "Open your web browser and navigate to the Sonarworks Workflow System URL provided by your organization. The login page will be displayed automatically.")
+add_paragraph(doc, "Open your web browser and navigate to the Sonar Workflow System URL provided by your organization. The login page will be displayed automatically.")
 
 add_image_placeholder(doc, "Login Page with Username and Password Fields")
 

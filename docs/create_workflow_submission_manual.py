@@ -20,7 +20,7 @@ sections = [
     "Filling Out the Form",
     "Working with Different Field Types",
     "File Attachments",
-    "Multi-Step Forms",
+    "Multi-Step Forms and Summary",
     "Saving as Draft",
     "Submitting for Approval",
     "Editing Submissions",
@@ -55,7 +55,7 @@ add_section(doc, "2. Accessing Workflows")
 
 add_section(doc, "2.1 From the Dashboard", level=2)
 add_step_by_step(doc, [
-    "Log in to the Sonarworks Workflow System",
+    "Log in to the Sonar Workflow System",
     "From the Dashboard, locate the 'Available Workflows' section",
     "Click on any workflow card to start a new submission",
     "Or click 'View All' to see the complete list"
@@ -241,6 +241,34 @@ add_step_by_step(doc, [
     "The selected user's name appears in the field"
 ])
 
+add_section(doc, "5.6 Accordion and Collapsible Sections", level=2)
+add_paragraph(doc, """Some forms organize fields into expandable/collapsible sections to make long forms easier to navigate. These sections help group related information together.""")
+
+add_paragraph(doc, "Accordion Sections:", bold=True)
+add_bullet_list(doc, [
+    "An Accordion contains multiple collapsible sections",
+    "Click on a section header to expand it",
+    "Only one section within an Accordion can be expanded at a time",
+    "Expanding a new section automatically closes the previously open one"
+])
+
+add_paragraph(doc, "Standalone Collapsible Sections:", bold=True)
+add_bullet_list(doc, [
+    "A standalone Collapsible can be expanded independently",
+    "Multiple standalone Collapsibles can be open simultaneously",
+    "Click the section header to expand or collapse"
+])
+
+add_step_by_step(doc, [
+    "Locate the collapsible section header (shows arrow indicator)",
+    "Click on the header to expand the section",
+    "Fill out the fields within the expanded section",
+    "Click the header again to collapse (optional)",
+    "Move to the next section or proceed with form submission"
+], title="Working with Collapsible Sections:")
+
+add_image_placeholder(doc, "Accordion with Expanded Section")
+
 # ============================================================================
 # 6. FILE ATTACHMENTS
 # ============================================================================
@@ -310,7 +338,20 @@ add_bullet_list(doc, [
 
 add_image_placeholder(doc, "Multi-Step Form with Step Indicator")
 
-add_section(doc, "7.3 Validation Between Steps", level=2)
+add_section(doc, "7.3 Summary Screens", level=2)
+add_paragraph(doc, """Some workflows include a Summary screen as the final step. This screen displays all the information you've entered across all previous steps in read-only format, allowing you to review before final submission.""")
+
+add_paragraph(doc, "On a Summary Screen:", bold=True)
+add_bullet_list(doc, [
+    "All fields are displayed in read-only mode",
+    "Data is organized by the screens/sections it was entered in",
+    "You can navigate back to previous steps to make corrections",
+    "Click 'Submit' only when satisfied with all information"
+])
+
+add_image_placeholder(doc, "Summary Screen Review")
+
+add_section(doc, "7.4 Validation Between Steps", level=2)
 add_paragraph(doc, """When clicking 'Next':""")
 add_numbered_list(doc, [
     "System validates all fields on current step",

@@ -31,7 +31,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """The Role Management module allows administrators to define and manage roles, which are collections of privileges (permissions) that control what users can do in the Sonarworks Workflow System. Effective role management is crucial for system security and proper access control.""")
+add_paragraph(doc, """The Role Management module allows administrators to define and manage roles, which are collections of privileges (permissions) that control what users can do in the Sonar Workflow System. Effective role management is crucial for system security and proper access control.""")
 
 add_paragraph(doc, "Key Functions:", bold=True)
 add_bullet_list(doc, [

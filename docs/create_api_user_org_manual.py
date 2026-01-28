@@ -32,7 +32,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """This manual documents the User and Organization API functions for the Sonarworks Workflow System. These APIs enable programmatic management of users, roles, and organizational structures.""")
+add_paragraph(doc, """This manual documents the User and Organization API functions for the Sonar Workflow System. These APIs enable programmatic management of users, roles, and organizational structures.""")
 
 add_paragraph(doc, "API Scope:", bold=True)
 add_bullet_list(doc, [

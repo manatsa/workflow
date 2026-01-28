@@ -23,7 +23,7 @@ sections = [
     "SQL Object Fields",
     "Validation Functions",
     "Field Groups",
-    "Multi-Step Screens",
+    "Multi-Step Screens and Summary",
     "Approver Configuration",
     "Access Restrictions",
     "Publishing Workflows",
@@ -44,12 +44,14 @@ add_paragraph(doc, "Key Capabilities:", bold=True)
 add_bullet_list(doc, [
     "Visual drag-and-drop form design",
     "30+ field types including text, numbers, dates, files, ratings, signatures, and more",
+    "Accordion and Collapsible container fields for organized form sections",
     "SQL Object fields for dynamic dropdown data from database tables",
     "Field grouping with collapsible sections",
-    "Multi-form and multi-screen workflow support",
+    "Multi-form and multi-screen workflow support with Summary screens",
     "Validation functions for conditional field behavior",
     "Configurable approval hierarchies with amount-based routing",
-    "Organization-based access restrictions",
+    "Organization-based access restrictions (Corporate, SBU, Branch, Department)",
+    "Role and Privilege-based access restrictions",
     "Workflow versioning and publishing control",
     "Dark mode support for comfortable viewing"
 ])
@@ -292,6 +294,65 @@ add_table(doc,
     [1.5, 2.5, 2.5]
 )
 
+add_section(doc, "6.7 Container Fields (Accordion & Collapsible)", level=2)
+
+add_paragraph(doc, """Container fields allow you to organize form fields into expandable and collapsible sections, improving usability for complex forms with many fields.""")
+
+add_table(doc,
+    ["Field Type", "Description", "Use Case"],
+    [
+        ["Accordion", "Container that holds multiple collapsible sections", "Group related sections together, multi-section forms"],
+        ["Collapsible", "Single expandable/collapsible section within an accordion or standalone", "Hide/show related fields, organize complex forms"]
+    ],
+    [1.5, 2.5, 2.5]
+)
+
+add_paragraph(doc, "Accordion and Collapsible Hierarchy:", bold=True)
+add_bullet_list(doc, [
+    "An Accordion can contain multiple Collapsible sections",
+    "Each Collapsible can contain any number of form fields",
+    "Collapsibles can also be used standalone (without an Accordion parent)",
+    "When inside an Accordion, only one Collapsible is expanded at a time",
+    "Standalone Collapsibles can be expanded/collapsed independently"
+])
+
+add_section(doc, "6.7.1 Creating an Accordion", level=3)
+add_step_by_step(doc, [
+    "Drag 'Accordion' field type onto the form canvas",
+    "Configure the Accordion title/label",
+    "Optionally assign the Accordion to a specific screen (for multi-step forms)",
+    "Save the Accordion configuration",
+    "Add Collapsible sections to the Accordion"
+])
+
+add_section(doc, "6.7.2 Creating Collapsible Sections", level=3)
+add_step_by_step(doc, [
+    "Drag 'Collapsible' field type onto the form canvas",
+    "If an Accordion exists, select it as the Parent Accordion (optional)",
+    "Configure the Collapsible title/label",
+    "If standalone (no parent), optionally assign to a specific screen",
+    "Save the Collapsible configuration",
+    "Add form fields to the Collapsible section"
+])
+
+add_section(doc, "6.7.3 Accordion/Collapsible Properties", level=3)
+
+add_table(doc,
+    ["Property", "Applies To", "Description"],
+    [
+        ["Title/Label", "Both", "Display title shown in the expandable header"],
+        ["Parent Accordion", "Collapsible", "Link to parent Accordion (if not standalone)"],
+        ["Screen", "Both", "Assign to specific screen in multi-step workflows"],
+        ["Expanded by Default", "Both", "Whether section is expanded when form loads"],
+        ["Description", "Both", "Optional help text or instructions"]
+    ],
+    [2, 1.5, 3]
+)
+
+add_note(doc, "When a Collapsible is inside an Accordion, it inherits the Accordion's screen assignment. Standalone Collapsibles have their own screen assignment option.", "NOTE")
+
+add_image_placeholder(doc, "Accordion with Multiple Collapsible Sections")
+
 add_note(doc, "Some advanced field types (Barcode, Location, Signature) may require additional device capabilities.", "NOTE")
 
 add_section(doc, "6.7 Common Field Properties", level=2)
@@ -481,19 +542,55 @@ add_table(doc,
     [
         ["Screen Title", "Name displayed in the step indicator"],
         ["Screen Order", "Sequence in which screens appear"],
-        ["Description", "Instructions for the screen (optional)"]
+        ["Description", "Instructions for the screen (optional)"],
+        ["Is Summary", "Mark as summary screen (read-only review)"]
     ],
     [2, 4.5]
 )
 
-add_section(doc, "10.3 User Experience", level=2)
+add_section(doc, "10.3 Summary Screens", level=2)
+add_paragraph(doc, """A Summary Screen is a special screen type that displays a read-only overview of all previously entered data. It allows users to review their submission before final submit.""")
+
+add_paragraph(doc, "Summary Screen Characteristics:", bold=True)
+add_bullet_list(doc, [
+    "All fields displayed in read-only mode",
+    "Shows data from all previous screens in the workflow",
+    "Users can review before submitting",
+    "Typically placed as the last screen before submission",
+    "Navigation back to previous screens still allowed for corrections"
+])
+
+add_step_by_step(doc, [
+    "Create a new screen for the summary",
+    "Enable the 'Is Summary' toggle in screen configuration",
+    "Optionally customize the summary title (e.g., 'Review Your Submission')",
+    "The system automatically displays all filled fields"
+], title="Creating a Summary Screen:")
+
+add_image_placeholder(doc, "Summary Screen Showing Review Data")
+
+add_section(doc, "10.4 Assigning Fields to Screens", level=2)
+add_paragraph(doc, """Fields, field groups, accordions, and collapsibles can be assigned to specific screens:""")
+
+add_bullet_list(doc, [
+    "Regular fields: Set 'Screen' property in field configuration",
+    "Field Groups: Set 'Screen' property in group configuration",
+    "Accordions: Set 'Screen' property to display entire accordion on that screen",
+    "Collapsibles inside Accordions: Inherit the parent Accordion's screen",
+    "Standalone Collapsibles: Set 'Screen' property independently"
+])
+
+add_note(doc, "Fields without a screen assignment appear on all screens or the default first screen.", "NOTE")
+
+add_section(doc, "10.5 User Experience", level=2)
 add_paragraph(doc, "When users fill out a multi-screen workflow:")
 add_bullet_list(doc, [
     "A step indicator shows current position (Step 1 of 3)",
     "Navigation buttons: Previous, Next, Submit (on last screen)",
     "Validation occurs before moving to next screen",
     "Users can navigate back to previous screens",
-    "Data is preserved when navigating between screens"
+    "Data is preserved when navigating between screens",
+    "Summary screen (if configured) shows all data for final review"
 ])
 
 add_image_placeholder(doc, "Multi-Step Form with Step Indicator")
@@ -572,9 +669,9 @@ add_bullet_list(doc, [
 # ============================================================================
 add_section(doc, "12. Access Restrictions")
 
-add_paragraph(doc, """Access Restrictions control who can see and submit the workflow. You can restrict access by organizational unit.""")
+add_paragraph(doc, """Access Restrictions control who can see and submit the workflow. You can restrict access by organizational unit, user roles, and specific privileges.""")
 
-add_section(doc, "12.1 Restriction Types", level=2)
+add_section(doc, "12.1 Organizational Restrictions", level=2)
 
 add_table(doc,
     ["Restriction By", "Description", "Example"],
@@ -587,17 +684,59 @@ add_table(doc,
     [2, 2.5, 2]
 )
 
-add_section(doc, "12.2 Setting Access Restrictions", level=2)
-add_step_by_step(doc, [
-    "Navigate to the 'Access' tab in Workflow Builder",
-    "Check 'Restrict by Corporate' if needed, then select corporates",
-    "Check 'Restrict by SBU' if needed, then select SBUs",
-    "Check 'Restrict by Branch' if needed, then select branches",
-    "Check 'Restrict by Department' if needed, then select departments",
-    "Users must belong to at least one selected unit to access"
+add_section(doc, "12.2 Permission-Based Restrictions", level=2)
+
+add_paragraph(doc, """In addition to organizational restrictions, you can restrict workflow access based on user roles and privileges:""")
+
+add_table(doc,
+    ["Restriction By", "Description", "Example"],
+    [
+        ["Roles", "Limit to users with specific roles", "Only users with 'Manager' or 'Finance' role"],
+        ["Privileges", "Limit to users with specific privileges", "Only users with 'APPROVE_EXPENSES' privilege"]
+    ],
+    [2, 2.5, 2]
+)
+
+add_paragraph(doc, "Role and Privilege Restriction Behavior:", bold=True)
+add_bullet_list(doc, [
+    "Users matching ANY selected role can access the workflow (OR logic)",
+    "Users matching ANY selected privilege can access the workflow (OR logic)",
+    "Role/privilege restrictions combine with organizational restrictions",
+    "Admin users bypass all restrictions and can access all workflows",
+    "If no restrictions are set, workflow is available to all users"
 ])
 
-add_note(doc, "If no restrictions are set, the workflow is available to all users.", "NOTE")
+add_section(doc, "12.3 Setting Access Restrictions", level=2)
+add_step_by_step(doc, [
+    "Navigate to the 'Access' tab in Workflow Builder",
+    "For Organizational Restrictions:",
+    "  - Select specific Corporates, SBUs, Branches, or Departments",
+    "For Permission-Based Restrictions:",
+    "  - Select specific Roles from the Roles dropdown",
+    "  - Select specific Privileges from the Privileges dropdown",
+    "Users must match at least one criteria to access the workflow"
+])
+
+add_section(doc, "12.4 Access Restriction Examples", level=2)
+
+add_example(doc, "Example 1: Department-Only Workflow",
+"""Restriction: Department = 'Human Resources'
+Result: Only HR department employees can see and submit this workflow.
+""")
+
+add_example(doc, "Example 2: Role-Based Workflow",
+"""Restriction: Roles = 'Manager', 'Director'
+Result: Only users with Manager OR Director role can access.
+""")
+
+add_example(doc, "Example 3: Combined Restrictions",
+"""Restriction:
+  - SBU = 'Finance'
+  - Privilege = 'MANAGE_BUDGETS'
+Result: Finance SBU users OR users with MANAGE_BUDGETS privilege can access.
+""")
+
+add_note(doc, "Admin users always have access to all workflows regardless of restrictions.", "NOTE")
 
 add_image_placeholder(doc, "Access Restrictions Configuration")
 

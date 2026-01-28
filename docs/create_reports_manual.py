@@ -31,7 +31,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """The Reports Module provides comprehensive reporting capabilities for the Sonarworks Workflow System. It enables users to generate insights on workflow performance, approval trends, user activity, and organizational metrics.""")
+add_paragraph(doc, """The Reports Module provides comprehensive reporting capabilities for the Sonar Workflow System. It enables users to generate insights on workflow performance, approval trends, user activity, and organizational metrics.""")
 
 add_paragraph(doc, "Key Capabilities:", bold=True)
 add_bullet_list(doc, [

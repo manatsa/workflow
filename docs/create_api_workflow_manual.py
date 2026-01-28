@@ -34,7 +34,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """This manual documents the Workflow API functions for the Sonarworks Workflow System. These APIs enable programmatic management of workflow templates and workflow instances (submissions).""")
+add_paragraph(doc, """This manual documents the Workflow API functions for the Sonar Workflow System. These APIs enable programmatic management of workflow templates and workflow instances (submissions).""")
 
 add_paragraph(doc, "API Capabilities:", bold=True)
 add_bullet_list(doc, [

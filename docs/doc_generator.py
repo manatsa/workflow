@@ -1,5 +1,5 @@
 """
-Sonarworks Workflow System - User Manual Document Generator
+Sonar Workflow System - User Manual Document Generator
 Utility functions for creating consistent, professional .docx documents
 """
 
@@ -93,7 +93,7 @@ def add_title_page(doc, title, subtitle=""):
     doc.add_paragraph()
     info_para = doc.add_paragraph()
     info_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    info_run = info_para.add_run("Version 1.0")
+    info_run = info_para.add_run("Version 1.1")
     info_run.font.size = Pt(11)
     info_run.font.color.rgb = RGBColor(128, 128, 128)
 

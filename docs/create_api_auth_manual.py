@@ -32,7 +32,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """This manual documents the Authentication API functions for the Sonarworks Workflow System. These APIs enable client applications to authenticate users, manage sessions, and handle password operations.""")
+add_paragraph(doc, """This manual documents the Authentication API functions for the Sonar Workflow System. These APIs enable client applications to authenticate users, manage sessions, and handle password operations.""")
 
 add_paragraph(doc, "API Characteristics:", bold=True)
 add_bullet_list(doc, [

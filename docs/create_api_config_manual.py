@@ -32,7 +32,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """This manual documents the System Configuration API functions for the Sonarworks Workflow System. These APIs enable programmatic management of system settings, email configuration, audit logs, and other administrative functions.""")
+add_paragraph(doc, """This manual documents the System Configuration API functions for the Sonar Workflow System. These APIs enable programmatic management of system settings, email configuration, audit logs, and other administrative functions.""")
 
 add_paragraph(doc, "API Scope:", bold=True)
 add_bullet_list(doc, [
@@ -79,7 +79,7 @@ add_code_block(doc, """{
     {
       "id": "setting-uuid-1",
       "key": "system.name",
-      "value": "Sonarworks Workflow System",
+      "value": "Sonar Workflow System",
       "type": "STRING",
       "module": "SYSTEM",
       "description": "System display name"
@@ -114,7 +114,7 @@ add_code_block(doc, """{
   "success": true,
   "data": {
     "key": "system.name",
-    "value": "Sonarworks Workflow System",
+    "value": "Sonar Workflow System",
     "type": "STRING"
   }
 }""", "JSON")

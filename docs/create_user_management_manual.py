@@ -33,7 +33,7 @@ add_table_of_contents(doc, sections)
 # ============================================================================
 add_section(doc, "1. Introduction")
 
-add_paragraph(doc, """The User Management module enables administrators to manage user accounts, assign roles and permissions, and control access to the Sonarworks Workflow System. Proper user management is essential for system security and effective workflow operations.""")
+add_paragraph(doc, """The User Management module enables administrators to manage user accounts, assign roles and permissions, and control access to the Sonar Workflow System. Proper user management is essential for system security and effective workflow operations.""")
 
 add_paragraph(doc, "Key Functions:", bold=True)
 add_bullet_list(doc, [
