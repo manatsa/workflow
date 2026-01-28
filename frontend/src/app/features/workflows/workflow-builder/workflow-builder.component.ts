@@ -23,7 +23,7 @@ import { UserService } from '@core/services/user.service';
 import { DepartmentService } from '@core/services/department.service';
 import { SqlObjectService } from '@core/services/sql-object.service';
 import { Workflow, FieldType, WorkflowField, FieldGroup, WorkflowCategory, SqlObject } from '@core/models/workflow.model';
-import { User, SBU, Corporate, Branch } from '@core/models/user.model';
+import { User, SBU, Corporate, Branch, Role, Privilege } from '@core/models/user.model';
 import { Department } from '@core/models/department.model';
 import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -197,6 +197,31 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                             <mat-option value="summarize">summarize</mat-option>
                           </mat-select>
                         </mat-form-field>
+
+                        <!-- Screen Access Restrictions -->
+                        <div class="form-row" style="margin-top: 16px;">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Restrict by Roles</mat-label>
+                            <mat-select [(ngModel)]="screen.roleIds" multiple (selectionChange)="onScreenRolesChange(screen)">
+                              @for (role of roles; track role.id) {
+                                <mat-option [value]="role.id">{{ role.name }}</mat-option>
+                              }
+                            </mat-select>
+                            <mat-hint>Select roles to filter available privileges</mat-hint>
+                          </mat-form-field>
+
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Restrict by Privileges</mat-label>
+                            <mat-select [(ngModel)]="screen.privilegeIds" multiple [disabled]="getFilteredPrivilegesForScreen(screen).length === 0">
+                              @for (privilege of getFilteredPrivilegesForScreen(screen); track privilege.id) {
+                                <mat-option [value]="privilege.id">
+                                  {{ privilege.name }} @if (privilege.category) { ({{ privilege.category }}) }
+                                </mat-option>
+                              }
+                            </mat-select>
+                            <mat-hint>@if (getFilteredPrivilegesForScreen(screen).length === 0) { Select roles first } @else { If selected, overrides role restrictions }</mat-hint>
+                          </mat-form-field>
+                        </div>
 
                         <div class="screen-actions">
                           <button mat-button color="warn" (click)="removeScreen(i)">
@@ -605,12 +630,14 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                               </mat-form-field>
                             </div>
 
-                            @if (field.type !== 'TABLE') {
+                            @if (hasPlaceholderOption(field.type)) {
                               <mat-form-field appearance="outline" class="form-field full-width">
                                 <mat-label>Placeholder</mat-label>
                                 <input matInput [(ngModel)]="field.placeholder">
                               </mat-form-field>
+                            }
 
+                            @if (hasValueOption(field.type)) {
                               <mat-form-field appearance="outline" class="form-field full-width">
                                 <mat-label>Value</mat-label>
                                 <input matInput [(ngModel)]="field.value" placeholder="Static value or function e.g. TODAY(), CURRENT_USER()">
@@ -709,22 +736,24 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                               </mat-form-field>
                             </div>
 
-                            <div class="checkbox-row">
-                              <mat-checkbox [(ngModel)]="field.required">Required</mat-checkbox>
-                              <mat-checkbox [(ngModel)]="field.readOnly" (change)="onTableReadOnlyChange(field)">Read Only</mat-checkbox>
-                              <mat-checkbox [(ngModel)]="field.hidden">Hidden</mat-checkbox>
-                              <mat-checkbox [(ngModel)]="field.isUnique">Unique</mat-checkbox>
-                              <mat-checkbox [(ngModel)]="field.isTitle">Make Title</mat-checkbox>
-                              <mat-checkbox [(ngModel)]="field.inSummary" matTooltip="Include this field in approval email summary">Summary</mat-checkbox>
-                              @if (isFinancialWorkflow() && isAmountField(field.type)) {
-                                <mat-checkbox [(ngModel)]="field.isLimited"
-                                              [disabled]="!field.isLimited && hasLimitedField()"
-                                              (change)="onLimitedChange(field)"
-                                              matTooltip="Mark this field as the amount to check against approver limits for auto-escalation">
-                                  Limited
-                                </mat-checkbox>
-                              }
-                            </div>
+                            @if (field.type !== 'ACCORDION' && field.type !== 'COLLAPSIBLE') {
+                              <div class="checkbox-row">
+                                <mat-checkbox [(ngModel)]="field.required">Required</mat-checkbox>
+                                <mat-checkbox [(ngModel)]="field.readOnly" (change)="onTableReadOnlyChange(field)">Read Only</mat-checkbox>
+                                <mat-checkbox [(ngModel)]="field.hidden">Hidden</mat-checkbox>
+                                <mat-checkbox [(ngModel)]="field.isUnique">Unique</mat-checkbox>
+                                <mat-checkbox [(ngModel)]="field.isTitle">Make Title</mat-checkbox>
+                                <mat-checkbox [(ngModel)]="field.inSummary" matTooltip="Include this field in approval email summary">Summary</mat-checkbox>
+                                @if (isFinancialWorkflow() && isAmountField(field.type)) {
+                                  <mat-checkbox [(ngModel)]="field.isLimited"
+                                                [disabled]="!field.isLimited && hasLimitedField()"
+                                                (change)="onLimitedChange(field)"
+                                                matTooltip="Mark this field as the amount to check against approver limits for auto-escalation">
+                                    Limited
+                                  </mat-checkbox>
+                                }
+                              </div>
+                            }
 
                             <!-- RATING field specific config -->
                             @if (field.type === 'RATING') {
@@ -906,42 +935,180 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                               </div>
                             }
 
-                            <!-- Validation & Transformation Section -->
-                            <mat-expansion-panel class="validation-panel">
-                              <mat-expansion-panel-header>
-                                <mat-panel-title>
-                                  <mat-icon>rule</mat-icon>
-                                  Validation & Transformation
-                                </mat-panel-title>
-                              </mat-expansion-panel-header>
+                            <!-- ACCORDION field specific config -->
+                            @if (field.type === 'ACCORDION') {
+                              <div class="accordion-config">
+                                <h4 class="config-section-title">
+                                  <mat-icon>view_agenda</mat-icon>
+                                  Accordion Configuration
+                                </h4>
 
-                              <mat-form-field appearance="outline" class="form-field full-width">
-                                <mat-label>Validation Expression</mat-label>
-                                <textarea matInput [(ngModel)]="field.validation" rows="2"
-                                          placeholder="e.g., Required() AND MinLength(5)"></textarea>
-                                <mat-hint>Required(), MinLength(n), MaxLength(n), Min(n), Max(n), Range(min,max), Email(), Phone(), URL(), Pattern(/regex/), Unique(), Digits(), Alpha(), AlphaNumeric(), CreditCard(), ValidWhen(expr), InvalidWhen(expr). Combine with AND.</mat-hint>
-                              </mat-form-field>
+                                @if (screens.length > 0) {
+                                  <div class="form-row">
+                                    <mat-form-field appearance="outline" class="form-field full-width">
+                                      <mat-label>Screen</mat-label>
+                                      <mat-select [(ngModel)]="field.screenId">
+                                        <mat-option [value]="null">None (All Screens)</mat-option>
+                                        @for (screen of screens; track screen.id) {
+                                          <mat-option [value]="screen.id">{{ screen.title || 'Untitled Screen' }}</mat-option>
+                                        }
+                                      </mat-select>
+                                      <mat-hint>Assign this accordion to a specific screen</mat-hint>
+                                    </mat-form-field>
+                                  </div>
+                                }
 
-                              <mat-form-field appearance="outline" class="form-field full-width">
-                                <mat-label>Transform Expression</mat-label>
-                                <textarea matInput [(ngModel)]="field.customValidationRule" rows="2"
-                                          placeholder="e.g., UPPER() or TRIM()"></textarea>
-                                <mat-hint>Transform value: UPPER(), LOWER(), TRIM(), ROUND(decimals), PAD_LEFT(len, char), SUBSTRING(start, end)</mat-hint>
-                              </mat-form-field>
+                                <div class="form-row">
+                                  <mat-checkbox [(ngModel)]="field.accordionAllowMultiple">
+                                    Allow multiple panels open at once
+                                  </mat-checkbox>
+                                </div>
 
-                              <mat-form-field appearance="outline" class="form-field full-width">
-                                <mat-label>Custom Error Message</mat-label>
-                                <input matInput [(ngModel)]="field.validationMessage"
-                                       placeholder="Custom message when validation fails">
-                              </mat-form-field>
+                                <div class="form-row">
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Default Open Panel Index</mat-label>
+                                    <input matInput type="number" [(ngModel)]="field.accordionDefaultOpenIndex" min="-1">
+                                    <mat-hint>0 = first panel, -1 = none open by default</mat-hint>
+                                  </mat-form-field>
 
-                              <mat-form-field appearance="outline" class="form-field full-width">
-                                <mat-label>Visibility Expression</mat-label>
-                                <textarea matInput [(ngModel)]="field.visibilityExpression" rows="2"
-                                          placeholder="e.g., true or &#64;{otherField} == 'Yes'"></textarea>
-                                <mat-hint>Expression to control visibility. Use &#64;{{ '{' }}fieldName{{ '}' }} to reference other fields. Default: true</mat-hint>
-                              </mat-form-field>
-                            </mat-expansion-panel>
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Animation Type</mat-label>
+                                    <mat-select [(ngModel)]="field.accordionAnimationType">
+                                      <mat-option value="smooth">Smooth</mat-option>
+                                      <mat-option value="none">None</mat-option>
+                                      <mat-option value="bounce">Bounce</mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+                                </div>
+
+                                <div class="form-row">
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Animation Duration (ms)</mat-label>
+                                    <input matInput type="number" [(ngModel)]="field.accordionAnimationDuration" min="0" max="2000">
+                                    <mat-hint>Duration in milliseconds (0-2000)</mat-hint>
+                                  </mat-form-field>
+                                </div>
+
+                                <div class="accordion-info">
+                                  <mat-icon>info</mat-icon>
+                                  <span>Add Collapsible fields after this accordion to create nested panels. Collapsibles will be assigned to this accordion automatically.</span>
+                                </div>
+                              </div>
+                            }
+
+                            <!-- COLLAPSIBLE field specific config -->
+                            @if (field.type === 'COLLAPSIBLE') {
+                              <div class="collapsible-config">
+                                <h4 class="config-section-title">
+                                  <mat-icon>expand_more</mat-icon>
+                                  Collapsible Configuration
+                                </h4>
+
+                                <div class="form-row">
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Panel Title</mat-label>
+                                    <input matInput [(ngModel)]="field.collapsibleTitle" placeholder="e.g., Personal Details">
+                                    <mat-hint>Title displayed in the collapsible header</mat-hint>
+                                  </mat-form-field>
+
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Icon</mat-label>
+                                    <mat-select [(ngModel)]="field.collapsibleIcon">
+                                      <mat-option value="">None</mat-option>
+                                      <mat-option value="person">person</mat-option>
+                                      <mat-option value="info">info</mat-option>
+                                      <mat-option value="description">description</mat-option>
+                                      <mat-option value="assignment">assignment</mat-option>
+                                      <mat-option value="folder">folder</mat-option>
+                                      <mat-option value="settings">settings</mat-option>
+                                      <mat-option value="attach_money">attach_money</mat-option>
+                                      <mat-option value="calendar_today">calendar_today</mat-option>
+                                      <mat-option value="work">work</mat-option>
+                                      <mat-option value="home">home</mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+                                </div>
+
+                                <div class="form-row">
+                                  <mat-checkbox [(ngModel)]="field.collapsibleDefaultExpanded">
+                                    Expanded by default
+                                  </mat-checkbox>
+                                </div>
+
+                                <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-label>Parent Accordion</mat-label>
+                                  <mat-select [(ngModel)]="field.parentFieldId" (selectionChange)="onCollapsibleParentChange(field)">
+                                    <mat-option [value]="null">None (Standalone)</mat-option>
+                                    @for (accordion of getAccordionFields(); track accordion.id) {
+                                      <mat-option [value]="accordion.id">{{ accordion.label || accordion.name || 'Untitled Accordion' }}</mat-option>
+                                    }
+                                  </mat-select>
+                                  <mat-hint>Assign this collapsible to an accordion, or leave standalone</mat-hint>
+                                </mat-form-field>
+
+                                <!-- Show screen selection only for standalone collapsibles -->
+                                @if (!field.parentFieldId && screens.length > 0) {
+                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                    <mat-label>Screen</mat-label>
+                                    <mat-select [(ngModel)]="field.screenId">
+                                      <mat-option [value]="null">None (All Screens)</mat-option>
+                                      @for (screen of screens; track screen.id) {
+                                        <mat-option [value]="screen.id">{{ screen.title || 'Untitled Screen' }}</mat-option>
+                                      }
+                                    </mat-select>
+                                    <mat-hint>Assign this standalone collapsible to a specific screen</mat-hint>
+                                  </mat-form-field>
+                                }
+
+                                <div class="collapsible-info">
+                                  <mat-icon>info</mat-icon>
+                                  @if (field.parentFieldId) {
+                                    <span>This collapsible belongs to an accordion. Fields placed after it will be contained within this panel.</span>
+                                  } @else {
+                                    <span>This is a standalone collapsible. Fields placed after it (until the next collapsible or accordion) will be contained within this panel.</span>
+                                  }
+                                </div>
+                              </div>
+                            }
+
+                            <!-- Validation & Transformation Section (not for container fields) -->
+                            @if (field.type !== 'ACCORDION' && field.type !== 'COLLAPSIBLE') {
+                              <mat-expansion-panel class="validation-panel">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title>
+                                    <mat-icon>rule</mat-icon>
+                                    Validation & Transformation
+                                  </mat-panel-title>
+                                </mat-expansion-panel-header>
+
+                                <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-label>Validation Expression</mat-label>
+                                  <textarea matInput [(ngModel)]="field.validation" rows="2"
+                                            placeholder="e.g., Required() AND MinLength(5)"></textarea>
+                                  <mat-hint>Required(), MinLength(n), MaxLength(n), Min(n), Max(n), Range(min,max), Email(), Phone(), URL(), Pattern(/regex/), Unique(), Digits(), Alpha(), AlphaNumeric(), CreditCard(), ValidWhen(expr), InvalidWhen(expr). Combine with AND.</mat-hint>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-label>Transform Expression</mat-label>
+                                  <textarea matInput [(ngModel)]="field.customValidationRule" rows="2"
+                                            placeholder="e.g., UPPER() or TRIM()"></textarea>
+                                  <mat-hint>Transform value: UPPER(), LOWER(), TRIM(), ROUND(decimals), PAD_LEFT(len, char), SUBSTRING(start, end)</mat-hint>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-label>Custom Error Message</mat-label>
+                                  <input matInput [(ngModel)]="field.validationMessage"
+                                         placeholder="Custom message when validation fails">
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-label>Visibility Expression</mat-label>
+                                  <textarea matInput [(ngModel)]="field.visibilityExpression" rows="2"
+                                            placeholder="e.g., true or &#64;{otherField} == 'Yes'"></textarea>
+                                  <mat-hint>Expression to control visibility. Use &#64;{{ '{' }}fieldName{{ '}' }} to reference other fields. Default: true</mat-hint>
+                                </mat-form-field>
+                              </mat-expansion-panel>
+                            }
 
                             <div class="field-actions">
                               <button mat-button color="warn" (click)="removeField(i)">
@@ -1156,6 +1323,31 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                         }
                       </mat-select>
                       <mat-hint>Filter by corporate first for relevant departments</mat-hint>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Permission-Based Restrictions -->
+                  <div class="form-row" style="margin-top: 20px;">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Roles</mat-label>
+                      <mat-select formControlName="roleIds" multiple (selectionChange)="onWorkflowRolesChange()">
+                        @for (role of roles; track role.id) {
+                          <mat-option [value]="role.id">{{ role.name }}</mat-option>
+                        }
+                      </mat-select>
+                      <mat-hint>Select roles to filter available privileges</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Privileges</mat-label>
+                      <mat-select formControlName="privilegeIds" multiple [disabled]="filteredPrivilegesForWorkflow.length === 0">
+                        @for (privilege of filteredPrivilegesForWorkflow; track privilege.id) {
+                          <mat-option [value]="privilege.id">
+                            {{ privilege.name }} @if (privilege.category) { ({{ privilege.category }}) }
+                          </mat-option>
+                        }
+                      </mat-select>
+                      <mat-hint>@if (filteredPrivilegesForWorkflow.length === 0) { Select roles first to see privileges } @else { If selected, privileges override role restrictions }</mat-hint>
                     </mat-form-field>
                   </div>
                 </form>
@@ -1878,6 +2070,62 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       font-size: 0.9rem;
     }
 
+    /* ACCORDION field configuration styles */
+    .accordion-config {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f3e5f5;
+      border-radius: 8px;
+      border: 1px solid #ce93d8;
+    }
+
+    .accordion-info {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #ede7f6;
+      border-radius: 4px;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #5e35b1;
+    }
+
+    .accordion-info mat-icon {
+      color: #7e57c2;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    /* COLLAPSIBLE field configuration styles */
+    .collapsible-config {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #e8f5e9;
+      border-radius: 8px;
+      border: 1px solid #81c784;
+    }
+
+    .collapsible-info {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #c8e6c9;
+      border-radius: 4px;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #2e7d32;
+    }
+
+    .collapsible-info mat-icon {
+      color: #43a047;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
     /* Dark mode support - using class-based approach */
     :host-context(.dark-mode) .workflow-builder-container {
       background: #1e1e1e;
@@ -1980,6 +2228,26 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
     :host-context(.dark-mode) .table-config {
       background: #2d2d2d;
       border-color: #444;
+    }
+
+    :host-context(.dark-mode) .accordion-config {
+      background: #3d2d4d;
+      border-color: #6d4d7d;
+    }
+
+    :host-context(.dark-mode) .accordion-info {
+      background: #4d3d5d;
+      color: #d1c4e9;
+    }
+
+    :host-context(.dark-mode) .collapsible-config {
+      background: #2d3d2d;
+      border-color: #4d6d4d;
+    }
+
+    :host-context(.dark-mode) .collapsible-info {
+      background: #3d4d3d;
+      color: #a5d6a7;
     }
 
     :host-context(.dark-mode) .config-section-title {
@@ -2140,7 +2408,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
 
   workflowTypes: any[] = [];
   users: User[] = [];
-  roles: any[] = [];
+  roles: Role[] = [];
+  privileges: Privilege[] = [];
+  filteredPrivilegesForWorkflow: Privilege[] = [];
   corporates: Corporate[] = [];
   sbus: SBU[] = [];
   filteredSbus: SBU[] = [];
@@ -2192,6 +2462,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { value: 'TABLE', label: 'Table/Grid', icon: 'table_chart' },
     { value: 'USER', label: 'User Select', icon: 'person_search' },
     { value: 'SQL_OBJECT', label: 'SQL Object', icon: 'storage', description: 'Dynamic options from SQL Object tables' },
+    { value: 'ACCORDION', label: 'Accordion', icon: 'view_agenda', description: 'Container for collapsible panels' },
+    { value: 'COLLAPSIBLE', label: 'Collapsible', icon: 'expand_more', description: 'Collapsible panel for grouping fields' },
     { value: 'HIDDEN', label: 'Hidden Field', icon: 'visibility_off' },
     { value: 'LABEL', label: 'Label/Text', icon: 'label' },
     { value: 'DIVIDER', label: 'Divider', icon: 'horizontal_rule' }
@@ -2449,7 +2721,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       corporateIds: [[]],
       sbuIds: [[]],
       branchIds: [[]],
-      departmentIds: [[]]
+      departmentIds: [[]],
+      roleIds: [[]],
+      privilegeIds: [[]]
     });
   }
 
@@ -2457,6 +2731,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     this.loadWorkflowTypes();
     this.loadUsers();
     this.loadRoles();
+    this.loadPrivileges();
     this.loadCorporates();
     this.loadSbus();
     this.loadBranches();
@@ -2506,7 +2781,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       corporateIds: [],
       sbuIds: [],
       branchIds: [],
-      departmentIds: []
+      departmentIds: [],
+      roleIds: [],
+      privilegeIds: []
     });
     this.filteredSbus = [...this.sbus];
     this.filteredBranches = [...this.branches];
@@ -2546,6 +2823,75 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         this.roles = res.data;
       }
     });
+  }
+
+  loadPrivileges() {
+    this.userService.getPrivileges().subscribe(res => {
+      if (res.success) {
+        this.privileges = res.data;
+      }
+    });
+  }
+
+  /**
+   * Filter privileges based on selected roles for workflow-level restrictions.
+   * Called when workflow role selection changes.
+   */
+  onWorkflowRolesChange() {
+    const selectedRoleIds: string[] = this.basicForm.get('roleIds')?.value || [];
+    this.filteredPrivilegesForWorkflow = this.getPrivilegesForRoles(selectedRoleIds);
+
+    // Clear selected privileges that are no longer in the filtered list
+    const currentPrivilegeIds: string[] = this.basicForm.get('privilegeIds')?.value || [];
+    const validPrivilegeIds = currentPrivilegeIds.filter(id =>
+      this.filteredPrivilegesForWorkflow.some(p => p.id === id)
+    );
+    if (validPrivilegeIds.length !== currentPrivilegeIds.length) {
+      this.basicForm.patchValue({ privilegeIds: validPrivilegeIds });
+    }
+  }
+
+  /**
+   * Handle screen role selection change.
+   * Clears privileges that are no longer valid for the selected roles.
+   */
+  onScreenRolesChange(screen: any) {
+    const filteredPrivs = this.getFilteredPrivilegesForScreen(screen);
+    // Clear selected privileges that are no longer in the filtered list
+    if (screen.privilegeIds && screen.privilegeIds.length > 0) {
+      screen.privilegeIds = screen.privilegeIds.filter((id: string) =>
+        filteredPrivs.some(p => p.id === id)
+      );
+    }
+  }
+
+  /**
+   * Get filtered privileges for a specific screen based on its selected roles.
+   */
+  getFilteredPrivilegesForScreen(screen: any): Privilege[] {
+    const selectedRoleIds: string[] = screen.roleIds || [];
+    return this.getPrivilegesForRoles(selectedRoleIds);
+  }
+
+  /**
+   * Get all privileges that belong to the specified roles.
+   */
+  getPrivilegesForRoles(roleIds: string[]): Privilege[] {
+    if (!roleIds || roleIds.length === 0) {
+      return [];
+    }
+
+    // Get all privilege IDs from selected roles
+    const privilegeIds = new Set<string>();
+    roleIds.forEach(roleId => {
+      const role = this.roles.find(r => r.id === roleId);
+      if (role && role.privilegeIds) {
+        role.privilegeIds.forEach(privId => privilegeIds.add(privId));
+      }
+    });
+
+    // Filter privileges to only those in the selected roles
+    return this.privileges.filter(p => privilegeIds.has(p.id));
   }
 
   loadCorporates() {
@@ -2680,12 +3026,15 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           corporateIds: workflow.corporateIds || [],
           sbuIds: workflow.sbuIds || [],
           branchIds: workflow.branchIds || [],
-          departmentIds: workflow.departmentIds || []
+          departmentIds: workflow.departmentIds || [],
+          roleIds: workflow.roleIds || [],
+          privilegeIds: workflow.privilegeIds || []
         });
 
         // Apply cascading filters after loading workflow data
         setTimeout(() => {
           this.onCorporateChange();
+          this.onWorkflowRolesChange();
         }, 100);
 
         if (workflow.forms?.[0]) {
@@ -2778,7 +3127,17 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       tableMinRows: type === 'TABLE' ? 0 : undefined,
       tableMaxRows: type === 'TABLE' ? null : undefined,
       tableStriped: type === 'TABLE' ? true : undefined,
-      tableBordered: type === 'TABLE' ? true : undefined
+      tableBordered: type === 'TABLE' ? true : undefined,
+      // ACCORDION specific defaults
+      accordionAllowMultiple: type === 'ACCORDION' ? false : undefined,
+      accordionDefaultOpenIndex: type === 'ACCORDION' ? 0 : undefined,
+      accordionAnimationType: type === 'ACCORDION' ? 'smooth' : undefined,
+      accordionAnimationDuration: type === 'ACCORDION' ? 300 : undefined,
+      // COLLAPSIBLE specific defaults
+      collapsibleTitle: type === 'COLLAPSIBLE' ? '' : undefined,
+      collapsibleIcon: type === 'COLLAPSIBLE' ? '' : undefined,
+      collapsibleDefaultExpanded: type === 'COLLAPSIBLE' ? false : undefined,
+      parentFieldId: type === 'COLLAPSIBLE' ? null : undefined
     };
     this.fields.push(field);
   }
@@ -2927,13 +3286,76 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     return this.fields.filter(f => f.fieldGroupId === groupId);
   }
 
+  getAccordionFields(): any[] {
+    return this.fields.filter(f => f.type === 'ACCORDION');
+  }
+
+  getCollapsiblesForAccordion(accordionId: string): any[] {
+    return this.fields.filter(f => f.type === 'COLLAPSIBLE' && f.parentFieldId === accordionId);
+  }
+
+  /**
+   * Handle collapsible parent accordion change.
+   * When assigned to an accordion, clear the screenId (inherits from accordion).
+   * When standalone, allow setting screenId.
+   */
+  onCollapsibleParentChange(field: any): void {
+    if (field.parentFieldId) {
+      // Assigned to accordion - inherit screen from accordion, clear own screenId
+      const parentAccordion = this.fields.find(f => f.id === field.parentFieldId);
+      if (parentAccordion) {
+        field.screenId = parentAccordion.screenId || null;
+      }
+    }
+    // If standalone (parentFieldId is null), screenId can be set independently
+  }
+
+  /**
+   * Compute parentFieldId for all fields based on their position.
+   * Fields after a COLLAPSIBLE (until the next COLLAPSIBLE or ACCORDION) belong to that collapsible.
+   * COLLAPSIBLE fields should already have parentFieldId set to their parent ACCORDION.
+   */
+  computeFieldParentIds(): any[] {
+    const result: any[] = [];
+    let currentCollapsibleId: string | null = null;
+    let currentAccordionId: string | null = null;
+
+    for (const field of this.fields) {
+      const fieldCopy = { ...field };
+
+      if (field.type === 'ACCORDION') {
+        // ACCORDION is a top-level container - no parent
+        fieldCopy.parentFieldId = null;
+        currentAccordionId = field.id;
+        currentCollapsibleId = null; // Reset collapsible context
+      } else if (field.type === 'COLLAPSIBLE') {
+        // COLLAPSIBLE belongs to its parent accordion
+        if (currentAccordionId) {
+          fieldCopy.parentFieldId = currentAccordionId;
+        }
+        currentCollapsibleId = field.id;
+      } else {
+        // Regular field - belongs to the current collapsible if one is active
+        if (currentCollapsibleId) {
+          fieldCopy.parentFieldId = currentCollapsibleId;
+        }
+      }
+
+      result.push(fieldCopy);
+    }
+
+    return result;
+  }
+
   addScreen() {
     const screen = {
       id: 'temp_' + Date.now(),
       title: '',
       description: '',
       displayOrder: this.screens.length,
-      icon: 'view_carousel'
+      icon: 'view_carousel',
+      roleIds: [],
+      privilegeIds: []
     };
     this.screens.push(screen);
   }
@@ -3046,6 +3468,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     const sbuIds: string[] = this.basicForm.get('sbuIds')?.value || [];
     const branchIds: string[] = this.basicForm.get('branchIds')?.value || [];
     const departmentIds: string[] = this.basicForm.get('departmentIds')?.value || [];
+    const roleIds: string[] = this.basicForm.get('roleIds')?.value || [];
+    const privilegeIds: string[] = this.basicForm.get('privilegeIds')?.value || [];
 
     corporateIds.forEach(id => {
       const corp = this.corporates.find(c => c.id === id);
@@ -3067,6 +3491,16 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       if (dept) summary.push(`Department: ${dept.name}`);
     });
 
+    roleIds.forEach(id => {
+      const role = this.roles.find(r => r.id === id);
+      if (role) summary.push(`Role: ${role.name}`);
+    });
+
+    privilegeIds.forEach(id => {
+      const privilege = this.privileges.find(p => p.id === id);
+      if (privilege) summary.push(`Privilege: ${privilege.name}`);
+    });
+
     return summary;
   }
 
@@ -3077,6 +3511,32 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   isAmountField(type: string): boolean {
     // Only field types that can represent currency/monetary values
     return type === 'NUMBER' || type === 'CURRENCY';
+  }
+
+  /**
+   * Check if a field type supports placeholder text
+   */
+  hasPlaceholderOption(type: string): boolean {
+    // Field types that support placeholder text (TEXT excluded - view-only field)
+    const placeholderTypes = [
+      'TEXTAREA', 'NUMBER', 'CURRENCY', 'EMAIL', 'PHONE', 'URL', 'PASSWORD',
+      'SELECT', 'MULTISELECT', 'USER', 'BARCODE', 'RICH_TEXT'
+    ];
+    return placeholderTypes.includes(type);
+  }
+
+  /**
+   * Check if a field type supports default value
+   */
+  hasValueOption(type: string): boolean {
+    // Field types that support default/preset values
+    const valueTypes = [
+      'TEXT', 'TEXTAREA', 'NUMBER', 'CURRENCY', 'EMAIL', 'PHONE', 'URL', 'PASSWORD',
+      'DATE', 'DATETIME', 'TIME', 'SELECT', 'MULTISELECT', 'RADIO', 'CHECKBOX',
+      'CHECKBOX_GROUP', 'TOGGLE', 'YES_NO', 'SLIDER', 'RATING', 'COLOR', 'HIDDEN',
+      'USER', 'BARCODE', 'LOCATION'
+    ];
+    return valueTypes.includes(type);
   }
 
   hasLimitedField(): boolean {
@@ -3202,6 +3662,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   }
 
   preview() {
+    // Compute parentFieldId for accordion/collapsible fields for preview
+    const fieldsWithParent = this.computeFieldParentIds();
+
     this.dialog.open(WorkflowPreviewDialogComponent, {
       width: '1100px',
       maxWidth: '95vw',
@@ -3211,7 +3674,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         workflowName: this.basicForm.get('name')?.value || 'Untitled Workflow',
         workflowDescription: this.basicForm.get('description')?.value || '',
         workflowIcon: this.basicForm.get('icon')?.value || 'description',
-        fields: this.fields,
+        fields: fieldsWithParent,
         fieldGroups: this.fieldGroups,
         screens: this.screens
       }
@@ -3226,7 +3689,10 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
 
     this.loading = true;
 
-    const processedFields = this.fields.map(f => ({
+    // Compute parentFieldId for fields based on their position relative to collapsibles/accordions
+    const fieldsWithParent = this.computeFieldParentIds();
+
+    const processedFields = fieldsWithParent.map(f => ({
       ...f,
       // Map frontend property names to backend property names
       fieldType: f.type || f.fieldType,
@@ -3238,6 +3704,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       isTitle: f.isTitle ?? false,
       isLimited: f.isLimited ?? false,
       inSummary: f.inSummary ?? false,
+      // Explicitly include parentFieldId for nested fields
+      parentFieldId: f.parentFieldId || null,
       // Convert tableColumns array to JSON string for backend storage
       tableColumns: f.tableColumns ? JSON.stringify(f.tableColumns) : null,
       options: f.optionsText?.split('\n').filter((o: string) => o.trim()).map((value: string, index: number) => ({

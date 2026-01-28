@@ -280,7 +280,7 @@ export interface PreviewDialogData {
         @case ('TEXT') {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
+            <input matInput [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -289,7 +289,7 @@ export interface PreviewDialogData {
         @case ('TEXTAREA') {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <textarea matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" rows="4" [readonly]="isFieldReadonly(field)"></textarea>
+            <textarea matInput [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || ''" rows="4" [readonly]="isFieldReadonly(field)"></textarea>
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -298,7 +298,7 @@ export interface PreviewDialogData {
         @case ('NUMBER') {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
+            <input matInput type="number" [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -308,7 +308,7 @@ export interface PreviewDialogData {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
             <span matPrefix>$&nbsp;</span>
-            <input matInput type="number" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
+            <input matInput type="number" [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -317,7 +317,7 @@ export interface PreviewDialogData {
         @case ('EMAIL') {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <input matInput type="email" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
+            <input matInput type="email" [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -326,7 +326,7 @@ export interface PreviewDialogData {
         @case ('PHONE') {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <input matInput type="tel" [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
+            <input matInput type="tel" [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -335,7 +335,7 @@ export interface PreviewDialogData {
         @case ('DATE') {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <input matInput [matDatepicker]="picker" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+            <input matInput [matDatepicker]="picker" [formControl]="getFormControl(field.name)" [readonly]="isFieldReadonly(field)">
             <mat-datepicker-toggle matIconSuffix [for]="picker" [disabled]="isFieldReadonly(field)"></mat-datepicker-toggle>
             <mat-datepicker #picker [disabled]="isFieldReadonly(field)"></mat-datepicker>
             @if (field.helpText) {
@@ -346,7 +346,7 @@ export interface PreviewDialogData {
         @case ('SELECT') {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || 'Select an option'" [disabled]="isFieldReadonly(field)">
+            <mat-select [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || 'Select an option'" [disabled]="isFieldReadonly(field)">
               @for (option of getFieldOptions(field); track option.value) {
                 <mat-option [value]="option.value">{{ option.label }}</mat-option>
               }
@@ -359,7 +359,7 @@ export interface PreviewDialogData {
         @case ('RADIO') {
           <div class="radio-field" [class.readonly-field]="isFieldReadonly(field)">
             <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> } @if (isFieldReadonly(field)) { <span class="readonly-badge">(Read Only)</span> }</label>
-            <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
+            <mat-radio-group [formControl]="getFormControl(field.name)" [disabled]="isFieldReadonly(field)" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
               @for (option of getFieldOptions(field); track option.value) {
                 <mat-radio-button [value]="option.value" [disabled]="isFieldReadonly(field)">{{ option.label }}</mat-radio-button>
               }
@@ -371,7 +371,7 @@ export interface PreviewDialogData {
         }
         @case ('CHECKBOX') {
           <div class="checkbox-field" [class.readonly-field]="isFieldReadonly(field)">
-            <mat-checkbox [formControlName]="field.name" [disabled]="isFieldReadonly(field)">{{ field.label }} @if (isFieldReadonly(field)) { (Read Only) }</mat-checkbox>
+            <mat-checkbox [formControl]="getFormControl(field.name)" [disabled]="isFieldReadonly(field)">{{ field.label }} @if (isFieldReadonly(field)) { (Read Only) }</mat-checkbox>
             @if (field.helpText) {
               <p class="hint-text">{{ field.helpText }}</p>
             }
@@ -408,7 +408,7 @@ export interface PreviewDialogData {
         @case ('URL') {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <input matInput type="url" [formControlName]="field.name" [placeholder]="field.placeholder || 'https://'" [readonly]="isFieldReadonly(field)">
+            <input matInput type="url" [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || 'https://'" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -416,7 +416,7 @@ export interface PreviewDialogData {
         }
         @case ('TOGGLE') {
           <div class="toggle-field">
-            <mat-slide-toggle [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+            <mat-slide-toggle [formControl]="getFormControl(field.name)" [disabled]="isFieldReadonly(field)">
               {{ field.label }} @if (field.isMandatory) { <span class="required">*</span> }
             </mat-slide-toggle>
             @if (field.helpText) {
@@ -427,7 +427,7 @@ export interface PreviewDialogData {
         @case ('YES_NO') {
           <div class="yes-no-field" [class.readonly-field]="isFieldReadonly(field)">
             <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> }</label>
-            <mat-button-toggle-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+            <mat-button-toggle-group [formControl]="getFormControl(field.name)" [disabled]="isFieldReadonly(field)">
               <mat-button-toggle value="yes">Yes</mat-button-toggle>
               <mat-button-toggle value="no">No</mat-button-toggle>
             </mat-button-toggle-group>
@@ -454,7 +454,7 @@ export interface PreviewDialogData {
         @case ('TIME') {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <input matInput type="time" [formControlName]="field.name" [readonly]="isFieldReadonly(field)">
+            <input matInput type="time" [formControl]="getFormControl(field.name)" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -464,7 +464,7 @@ export interface PreviewDialogData {
           <div class="slider-field" [class.readonly-field]="isFieldReadonly(field)">
             <label class="field-label">{{ field.label }}: {{ previewForm.get(field.name)?.value || 0 }} @if (field.isMandatory) { <span class="required">*</span> }</label>
             <mat-slider [min]="field.sliderMin || 0" [max]="field.sliderMax || 100" [step]="field.sliderStep || 1" [discrete]="true" [disabled]="isFieldReadonly(field)">
-              <input matSliderThumb [formControlName]="field.name">
+              <input matSliderThumb [formControl]="getFormControl(field.name)">
             </mat-slider>
             @if (field.helpText) {
               <p class="hint-text">{{ field.helpText }}</p>
@@ -474,7 +474,7 @@ export interface PreviewDialogData {
         @case ('COLOR') {
           <div class="color-field" [class.readonly-field]="isFieldReadonly(field)">
             <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> }</label>
-            <input type="color" [formControlName]="field.name" class="color-input" [disabled]="isFieldReadonly(field)">
+            <input type="color" [formControl]="getFormControl(field.name)" class="color-input" [disabled]="isFieldReadonly(field)">
             @if (field.helpText) {
               <p class="hint-text">{{ field.helpText }}</p>
             }
@@ -549,7 +549,7 @@ export interface PreviewDialogData {
             <div class="barcode-input-preview">
               <mat-form-field appearance="outline" class="barcode-form-field">
                 <mat-label>Barcode/QR Code</mat-label>
-                <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || 'Enter or scan code'" [readonly]="isFieldReadonly(field)">
+                <input matInput [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || 'Enter or scan code'" [readonly]="isFieldReadonly(field)">
                 <button mat-icon-button matSuffix type="button" [disabled]="isFieldReadonly(field)">
                   <mat-icon>qr_code_scanner</mat-icon>
                 </button>
@@ -585,24 +585,29 @@ export interface PreviewDialogData {
           <div class="table-field" [class.readonly-field]="isFieldReadonly(field)">
             <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> }</label>
             <div class="table-preview">
-              <table class="data-table-preview">
+              <table class="data-table-preview" [class.table-striped]="field.tableStriped !== false" [class.table-bordered]="field.tableBordered !== false">
                 <thead>
                   <tr>
-                    <th>Column 1</th>
-                    <th>Column 2</th>
-                    <th>Column 3</th>
-                    <th></th>
+                    @for (col of getPreviewTableColumns(field); track col.name) {
+                      <th [style.width]="col.width ? col.width + 'px' : 'auto'">{{ col.label }}</th>
+                    }
+                    <th class="actions-col"></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td colspan="4" class="empty-table-preview">Click "Add Row" to add data</td>
+                    <td [attr.colspan]="getPreviewTableColumns(field).length + 1" class="empty-table-preview">Click "Add Row" to add data</td>
                   </tr>
                 </tbody>
               </table>
-              <button mat-stroked-button type="button" class="add-row-btn" [disabled]="isFieldReadonly(field)">
-                <mat-icon>add</mat-icon> Add Row
-              </button>
+              <div class="table-actions-preview">
+                <button mat-stroked-button type="button" class="add-row-btn" [disabled]="isFieldReadonly(field)">
+                  <mat-icon>add</mat-icon> Add Row
+                </button>
+                @if (field.tableMaxRows) {
+                  <span class="row-count-preview">0 / {{ field.tableMaxRows }} rows</span>
+                }
+              </div>
             </div>
             @if (field.helpText) {
               <p class="hint-text">{{ field.helpText }}</p>
@@ -615,7 +620,7 @@ export interface PreviewDialogData {
             @case ('SELECT') {
               <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
                 <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-                <mat-select [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+                <mat-select [formControl]="getFormControl(field.name)" [disabled]="isFieldReadonly(field)">
                   @for (option of field.options || []; track option.value) {
                     <mat-option [value]="option.value">{{ option.label }}</mat-option>
                   }
@@ -628,7 +633,7 @@ export interface PreviewDialogData {
             @case ('MULTISELECT') {
               <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
                 <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-                <mat-select [formControlName]="field.name" [disabled]="isFieldReadonly(field)" multiple>
+                <mat-select [formControl]="getFormControl(field.name)" [disabled]="isFieldReadonly(field)" multiple>
                   @for (option of field.options || []; track option.value) {
                     <mat-option [value]="option.value">{{ option.label }}</mat-option>
                   }
@@ -641,7 +646,7 @@ export interface PreviewDialogData {
             @case ('RADIO') {
               <div class="radio-field" [class.readonly-field]="isFieldReadonly(field)">
                 <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> }</label>
-                <mat-radio-group [formControlName]="field.name" [disabled]="isFieldReadonly(field)" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
+                <mat-radio-group [formControl]="getFormControl(field.name)" [disabled]="isFieldReadonly(field)" [class.horizontal-layout]="field.optionsLayout === 'horizontal'">
                   @for (option of field.options || []; track option.value) {
                     <mat-radio-button [value]="option.value">{{ option.label }}</mat-radio-button>
                   }
@@ -661,7 +666,7 @@ export interface PreviewDialogData {
             @default {
               <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
                 <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-                <mat-select [formControlName]="field.name" [disabled]="isFieldReadonly(field)">
+                <mat-select [formControl]="getFormControl(field.name)" [disabled]="isFieldReadonly(field)">
                   @for (option of field.options || []; track option.value) {
                     <mat-option [value]="option.value">{{ option.label }}</mat-option>
                   }
@@ -673,10 +678,68 @@ export interface PreviewDialogData {
             }
           }
         }
+        @case ('ACCORDION') {
+          <mat-accordion [multi]="field.accordionAllowMultiple ?? false" class="preview-accordion">
+            @for (collapsible of field._collapsibles; track collapsible.id; let idx = $index) {
+              <mat-expansion-panel [expanded]="idx === (field.accordionDefaultOpenIndex ?? 0)">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    @if (collapsible.collapsibleIcon) {
+                      <mat-icon class="collapsible-icon">{{ collapsible.collapsibleIcon }}</mat-icon>
+                    }
+                    <span class="panel-title-text">{{ collapsible.collapsibleTitle || collapsible.label || 'Section ' + (idx + 1) }}</span>
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div class="collapsible-content fields-grid">
+                  @for (nestedField of collapsible._nestedFields; track nestedField.name) {
+                    <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                      <ng-container [ngTemplateOutlet]="fieldTemplate"
+                                    [ngTemplateOutletContext]="{field: nestedField}">
+                      </ng-container>
+                    </div>
+                  }
+                  @if (!collapsible._nestedFields || collapsible._nestedFields.length === 0) {
+                    <p class="empty-collapsible">No fields in this section</p>
+                  }
+                </div>
+              </mat-expansion-panel>
+            }
+            @if (!field._collapsibles || field._collapsibles.length === 0) {
+              <div class="empty-accordion">
+                <mat-icon>info</mat-icon>
+                <span>No collapsible sections added to this accordion</span>
+              </div>
+            }
+          </mat-accordion>
+        }
+        @case ('COLLAPSIBLE') {
+          <!-- Standalone collapsible (not inside an accordion) -->
+          @if (!field.parentFieldId) {
+            <mat-expansion-panel [expanded]="field.collapsibleDefaultExpanded ?? false" class="standalone-collapsible">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  @if (field.collapsibleIcon) {
+                    <mat-icon class="collapsible-icon">{{ field.collapsibleIcon }}</mat-icon>
+                  }
+                  <span class="panel-title-text">{{ field.collapsibleTitle || field.label }}</span>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="collapsible-content fields-grid">
+                @for (nestedField of field._nestedFields; track nestedField.name) {
+                  <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                    <ng-container [ngTemplateOutlet]="fieldTemplate"
+                                  [ngTemplateOutletContext]="{field: nestedField}">
+                    </ng-container>
+                  </div>
+                }
+              </div>
+            </mat-expansion-panel>
+          }
+        }
         @default {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
             <mat-label>{{ field.label }} @if (field.isMandatory) { * } @if (isFieldReadonly(field)) { (Read Only) }</mat-label>
-            <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
+            <input matInput [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
             @if (field.helpText) {
               <mat-hint>{{ field.helpText }}</mat-hint>
             }
@@ -1120,6 +1183,35 @@ export interface PreviewDialogData {
       font-style: italic;
     }
 
+    .data-table-preview.table-striped tbody tr:nth-child(odd) {
+      background: #fafafa;
+    }
+
+    .data-table-preview.table-bordered {
+      border: 1px solid #ddd;
+    }
+
+    .data-table-preview.table-bordered th,
+    .data-table-preview.table-bordered td {
+      border: 1px solid #ddd;
+    }
+
+    .data-table-preview .actions-col {
+      width: 50px;
+    }
+
+    .table-actions-preview {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.5rem;
+    }
+
+    .row-count-preview {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
     .add-row-btn {
       margin: 0.5rem;
     }
@@ -1512,6 +1604,114 @@ export interface PreviewDialogData {
       background: #1976d2;
       color: white;
     }
+
+    /* Accordion and Collapsible Styles */
+    .preview-accordion {
+      display: block;
+      width: 100%;
+    }
+
+    .preview-accordion mat-expansion-panel {
+      margin-bottom: 8px;
+      border-radius: 8px !important;
+      overflow: hidden;
+    }
+
+    .preview-accordion mat-expansion-panel-header {
+      font-weight: 500;
+    }
+
+    .collapsible-icon {
+      margin-right: 8px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+    }
+
+    .collapsible-content {
+      padding: 16px 0;
+    }
+
+    .collapsible-content.fields-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .empty-collapsible {
+      color: #999;
+      font-style: italic;
+      text-align: center;
+      padding: 1rem;
+      margin: 0;
+    }
+
+    .empty-accordion {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 1rem;
+      background: #f5f5f5;
+      border-radius: 8px;
+      color: #666;
+    }
+
+    .empty-accordion mat-icon {
+      color: #999;
+    }
+
+    .standalone-collapsible {
+      margin-bottom: 16px;
+      border-radius: 8px !important;
+    }
+
+    .standalone-collapsible mat-expansion-panel-header {
+      font-weight: 500;
+    }
+
+    :host-context(.dark-mode) .preview-accordion mat-expansion-panel,
+    :host-context(.dark-mode) .standalone-collapsible {
+      background: #2d2d2d !important;
+    }
+
+    :host-context(.dark-mode) .empty-accordion {
+      background: #333;
+      color: #aaa;
+    }
+
+    :host-context(.dark-mode) .empty-collapsible {
+      color: #888;
+    }
+
+    /* Force panel title text to be visible immediately */
+    .panel-title-text {
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    ::ng-deep .preview-accordion .mat-expansion-panel-header-title,
+    ::ng-deep .standalone-collapsible .mat-expansion-panel-header-title {
+      display: flex !important;
+      align-items: center !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    ::ng-deep .preview-accordion .mat-expansion-panel-header,
+    ::ng-deep .standalone-collapsible .mat-expansion-panel-header {
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    ::ng-deep .preview-accordion .mat-content,
+    ::ng-deep .standalone-collapsible .mat-content {
+      visibility: visible !important;
+      opacity: 1 !important;
+      display: flex !important;
+    }
   `]
 })
 export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
@@ -1521,6 +1721,10 @@ export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
   currentScreenIndex = 0;
   sortedScreens: any[] = [];
   panelExpandedState: Map<string, boolean> = new Map();
+
+  // Pre-computed maps for accordion/collapsible data
+  private _collapsiblesMap: Map<string, any[]> = new Map();
+  private _fieldsInCollapsibleMap: Map<string, any[]> = new Map();
 
   constructor(
     private fb: FormBuilder,
@@ -1538,6 +1742,10 @@ export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
     this.processedFields = this.processFields(this.data.fields || []);
     this.previewForm = this.buildForm();
 
+    // Pre-compute accordion/collapsible relationships and attach directly to fields
+    this.precomputeAccordionData();
+    this.attachComputedDataToFields();
+
     // Process screens - sort by displayOrder
     this.sortedScreens = [...(this.data.screens || [])].sort((a, b) =>
       (a.displayOrder || 0) - (b.displayOrder || 0)
@@ -1551,6 +1759,63 @@ export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
 
     // Force immediate change detection
     this.cdr.detectChanges();
+  }
+
+  /**
+   * Attach pre-computed collapsibles and nested fields directly to field objects
+   * This ensures data is available immediately in templates without method calls
+   */
+  private attachComputedDataToFields(): void {
+    this.processedFields.forEach(field => {
+      const type = field.type || field.fieldType;
+      const fieldId = field.id?.toString();
+
+      if (type === 'ACCORDION' && fieldId) {
+        field._collapsibles = this._collapsiblesMap.get(fieldId) || [];
+      }
+
+      if (type === 'COLLAPSIBLE' && fieldId) {
+        field._nestedFields = this._fieldsInCollapsibleMap.get(fieldId) || [];
+      }
+    });
+
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Pre-compute accordion/collapsible relationships for faster template rendering
+   */
+  private precomputeAccordionData(): void {
+    const accordions = this.processedFields.filter(f =>
+      f.type === 'ACCORDION' || f.fieldType === 'ACCORDION'
+    );
+    const collapsibles = this.processedFields.filter(f =>
+      f.type === 'COLLAPSIBLE' || f.fieldType === 'COLLAPSIBLE'
+    );
+
+    // Map collapsibles to their parent accordions
+    accordions.forEach(accordion => {
+      const accordionId = accordion.id?.toString();
+      if (accordionId) {
+        const childCollapsibles = collapsibles.filter(c =>
+          c.parentFieldId?.toString() === accordionId
+        );
+        this._collapsiblesMap.set(accordionId, childCollapsibles);
+      }
+    });
+
+    // Map fields to their parent collapsibles
+    collapsibles.forEach(collapsible => {
+      const collapsibleId = collapsible.id?.toString();
+      if (collapsibleId) {
+        const nestedFields = this.processedFields.filter(f => {
+          const type = f.type || f.fieldType;
+          if (type === 'ACCORDION' || type === 'COLLAPSIBLE') return false;
+          return f.parentFieldId?.toString() === collapsibleId;
+        });
+        this._fieldsInCollapsibleMap.set(collapsibleId, nestedFields);
+      }
+    });
   }
 
   // Check if a panel is expanded
@@ -1603,7 +1868,8 @@ export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
   }
 
   getUngroupedFieldsOnScreen(screenId: string): any[] {
-    return this.processedFields.filter(f => !f.fieldGroupId && f.screenId === screenId);
+    // Exclude fields with fieldGroupId or parentFieldId (nested in accordion/collapsible)
+    return this.processedFields.filter(f => !f.fieldGroupId && !f.parentFieldId && f.screenId === screenId);
   }
 
   getGroupsOnScreen(screenId: string): any[] {
@@ -1646,7 +1912,7 @@ export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
   }
 
   processFields(fields: any[]): any[] {
-    return fields.map(f => {
+    return fields.map((f, index) => {
       const options = f.optionsText?.split('\n')
         .filter((o: string) => o.trim())
         .map((value: string, index: number) => ({
@@ -1655,8 +1921,12 @@ export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
           displayOrder: index
         })) || f.options || [];
 
+      // Ensure field has a valid name for form control binding
+      const fieldName = f.name || `field_${f.id || index}`;
+
       return {
         ...f,
+        name: fieldName,
         options
       };
     });
@@ -1665,11 +1935,23 @@ export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
   buildForm(): FormGroup {
     const group: any = {};
     this.processedFields.forEach(field => {
+      // Skip ACCORDION and COLLAPSIBLE - they don't need form controls
+      const fieldType = field.type || field.fieldType;
+      if (fieldType === 'ACCORDION' || fieldType === 'COLLAPSIBLE') {
+        return;
+      }
+
+      // Skip fields without a valid name
+      if (!field.name) {
+        console.warn('PREVIEW: Field without name:', field);
+        return;
+      }
+
       const validators = [];
       if (field.isMandatory) {
         validators.push(Validators.required);
       }
-      if (field.fieldType === 'EMAIL' || field.type === 'EMAIL') {
+      if (fieldType === 'EMAIL') {
         validators.push(Validators.email);
       }
       group[field.name] = ['', validators];
@@ -1677,12 +1959,48 @@ export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
     return this.fb.group(group);
   }
 
+  /**
+   * Check if a field has a valid form control
+   */
+  hasFormControl(fieldName: string): boolean {
+    return !!fieldName && this.previewForm.contains(fieldName);
+  }
+
+  /**
+   * Get form control for a field - used with [formControl] binding
+   * This works even when ngTemplateOutlet breaks the formGroup context
+   */
+  getFormControl(fieldName: string): any {
+    if (!fieldName || !this.previewForm.contains(fieldName)) {
+      return null;
+    }
+    return this.previewForm.get(fieldName);
+  }
+
   getUngroupedFields(): any[] {
-    return this.processedFields.filter(f => !f.fieldGroupId);
+    // Exclude fields that belong to a group OR have a parentFieldId (nested in accordion/collapsible)
+    return this.processedFields.filter(f => !f.fieldGroupId && !f.parentFieldId);
   }
 
   getFieldsInGroup(groupId: string): any[] {
-    return this.processedFields.filter(f => f.fieldGroupId === groupId);
+    // Exclude fields with parentFieldId (nested in accordion/collapsible)
+    return this.processedFields.filter(f => f.fieldGroupId === groupId && !f.parentFieldId);
+  }
+
+  /**
+   * Get collapsible fields that belong to a specific accordion (uses pre-computed map)
+   */
+  getCollapsiblesForAccordion(accordionId: string): any[] {
+    const id = accordionId?.toString();
+    return this._collapsiblesMap.get(id) || [];
+  }
+
+  /**
+   * Get regular fields that belong to a specific collapsible (uses pre-computed map)
+   */
+  getFieldsInCollapsible(collapsibleId: string): any[] {
+    const id = collapsibleId?.toString();
+    return this._fieldsInCollapsibleMap.get(id) || [];
   }
 
   getFieldOptions(field: any): any[] {
@@ -1716,6 +2034,24 @@ export class WorkflowPreviewDialogComponent implements OnInit, AfterViewInit {
     if (!this.isFieldReadonly(field)) {
       this.previewForm.get(field.name)?.setValue(rating);
     }
+  }
+
+  getPreviewTableColumns(field: any): { name: string; label: string; type: string; width?: number }[] {
+    // Use configured tableColumns if available
+    if (field.tableColumns && Array.isArray(field.tableColumns) && field.tableColumns.length > 0) {
+      return field.tableColumns.map((col: any) => ({
+        name: col.name || 'column',
+        label: col.label || col.name || 'Column',
+        type: col.type || 'TEXT',
+        width: col.width
+      }));
+    }
+    // Default columns
+    return [
+      { name: 'col1', label: 'Column 1', type: 'TEXT' },
+      { name: 'col2', label: 'Column 2', type: 'TEXT' },
+      { name: 'col3', label: 'Column 3', type: 'TEXT' }
+    ];
   }
 
   close() {
