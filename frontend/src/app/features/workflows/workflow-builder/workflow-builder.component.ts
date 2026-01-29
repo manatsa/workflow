@@ -166,70 +166,142 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                         </mat-panel-description>
                       </mat-expansion-panel-header>
 
-                      <div class="screen-config">
-                        <div class="form-row">
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Title</mat-label>
-                            <input matInput [(ngModel)]="screen.title">
-                          </mat-form-field>
+                      <mat-tab-group>
+                        <mat-tab label="Settings">
+                          <div class="screen-config" style="padding-top: 16px;">
+                            <div class="form-row">
+                              <mat-form-field appearance="outline" class="form-field">
+                                <mat-label>Title</mat-label>
+                                <input matInput [(ngModel)]="screen.title">
+                              </mat-form-field>
 
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Display Order</mat-label>
-                            <input matInput type="number" [(ngModel)]="screen.displayOrder">
-                          </mat-form-field>
-                        </div>
+                              <mat-form-field appearance="outline" class="form-field">
+                                <mat-label>Display Order</mat-label>
+                                <input matInput type="number" [(ngModel)]="screen.displayOrder">
+                              </mat-form-field>
+                            </div>
 
-                        <mat-form-field appearance="outline" class="form-field full-width">
-                          <mat-label>Description</mat-label>
-                          <input matInput [(ngModel)]="screen.description">
-                        </mat-form-field>
+                            <mat-form-field appearance="outline" class="form-field full-width">
+                              <mat-label>Description</mat-label>
+                              <input matInput [(ngModel)]="screen.description">
+                            </mat-form-field>
 
-                        <mat-form-field appearance="outline" class="form-field">
-                          <mat-label>Icon</mat-label>
-                          <mat-select [(ngModel)]="screen.icon">
-                            <mat-option value="view_carousel">view_carousel</mat-option>
-                            <mat-option value="article">article</mat-option>
-                            <mat-option value="assignment">assignment</mat-option>
-                            <mat-option value="description">description</mat-option>
-                            <mat-option value="info">info</mat-option>
-                            <mat-option value="checklist">checklist</mat-option>
-                            <mat-option value="fact_check">fact_check</mat-option>
-                            <mat-option value="summarize">summarize</mat-option>
-                          </mat-select>
-                        </mat-form-field>
+                            <mat-form-field appearance="outline" class="form-field">
+                              <mat-label>Icon</mat-label>
+                              <mat-select [(ngModel)]="screen.icon">
+                                <mat-option value="view_carousel">view_carousel</mat-option>
+                                <mat-option value="article">article</mat-option>
+                                <mat-option value="assignment">assignment</mat-option>
+                                <mat-option value="description">description</mat-option>
+                                <mat-option value="info">info</mat-option>
+                                <mat-option value="checklist">checklist</mat-option>
+                                <mat-option value="fact_check">fact_check</mat-option>
+                                <mat-option value="summarize">summarize</mat-option>
+                              </mat-select>
+                            </mat-form-field>
 
-                        <!-- Screen Access Restrictions -->
-                        <div class="form-row" style="margin-top: 16px;">
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Restrict by Roles</mat-label>
-                            <mat-select [(ngModel)]="screen.roleIds" multiple (selectionChange)="onScreenRolesChange(screen)">
-                              @for (role of roles; track role.id) {
-                                <mat-option [value]="role.id">{{ role.name }}</mat-option>
+                            <!-- Screen Access Restrictions -->
+                            <div class="form-row" style="margin-top: 16px;">
+                              <mat-form-field appearance="outline" class="form-field">
+                                <mat-label>Restrict by Roles</mat-label>
+                                <mat-select [(ngModel)]="screen.roleIds" multiple (selectionChange)="onScreenRolesChange(screen)">
+                                  @for (role of roles; track role.id) {
+                                    <mat-option [value]="role.id">{{ role.name }}</mat-option>
+                                  }
+                                </mat-select>
+                                <mat-hint>Select roles to filter available privileges</mat-hint>
+                              </mat-form-field>
+
+                              <mat-form-field appearance="outline" class="form-field">
+                                <mat-label>Restrict by Privileges</mat-label>
+                                <mat-select [(ngModel)]="screen.privilegeIds" multiple [disabled]="getFilteredPrivilegesForScreen(screen).length === 0">
+                                  @for (privilege of getFilteredPrivilegesForScreen(screen); track privilege.id) {
+                                    <mat-option [value]="privilege.id">
+                                      {{ privilege.name }} @if (privilege.category) { ({{ privilege.category }}) }
+                                    </mat-option>
+                                  }
+                                </mat-select>
+                                <mat-hint>@if (getFilteredPrivilegesForScreen(screen).length === 0) { Select roles first } @else { If selected, overrides role restrictions }</mat-hint>
+                              </mat-form-field>
+                            </div>
+
+                            <div class="screen-actions">
+                              <button mat-button color="warn" (click)="removeScreen(i)">
+                                <mat-icon>delete</mat-icon>
+                                Remove Screen
+                              </button>
+                            </div>
+                          </div>
+                        </mat-tab>
+
+                        <mat-tab>
+                          <ng-template mat-tab-label>
+                            <mat-icon style="margin-right: 4px; font-size: 18px;">notifications</mat-icon>
+                            Notifications
+                            @if (screen.notifiers?.length) {
+                              <span style="margin-left: 6px; background: #1976d2; color: white; border-radius: 10px; padding: 1px 7px; font-size: 11px;">{{ screen.notifiers.length }}</span>
+                            }
+                          </ng-template>
+                          <div class="screen-config" style="padding-top: 16px;">
+                            <p style="color: #666; font-size: 13px; margin-bottom: 12px;">
+                              Configure recipients to be notified when this screen is completed.
+                            </p>
+
+                            @if (screen.notifiers?.length) {
+                              @for (notifier of screen.notifiers; track notifier; let ni = $index) {
+                                <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
+                                  <mat-form-field appearance="outline" style="width: 140px;">
+                                    <mat-label>Type</mat-label>
+                                    <mat-select [(ngModel)]="notifier.notifierType" (selectionChange)="onNotifierTypeChange(notifier)">
+                                      <mat-option value="EMAIL">Email</mat-option>
+                                      <mat-option value="USER">User</mat-option>
+                                      <mat-option value="ROLE">Role</mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+
+                                  @if (notifier.notifierType === 'EMAIL') {
+                                    <mat-form-field appearance="outline" style="flex: 1;">
+                                      <mat-label>Email Address</mat-label>
+                                      <input matInput type="email" [(ngModel)]="notifier.email" placeholder="user@example.com">
+                                    </mat-form-field>
+                                  }
+
+                                  @if (notifier.notifierType === 'USER') {
+                                    <mat-form-field appearance="outline" style="flex: 1;">
+                                      <mat-label>User</mat-label>
+                                      <mat-select [(ngModel)]="notifier.userId" (selectionChange)="onNotifierUserSelected(notifier, $event)">
+                                        @for (user of users; track user.id) {
+                                          <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }} ({{ user.username }})</mat-option>
+                                        }
+                                      </mat-select>
+                                    </mat-form-field>
+                                  }
+
+                                  @if (notifier.notifierType === 'ROLE') {
+                                    <mat-form-field appearance="outline" style="flex: 1;">
+                                      <mat-label>Role</mat-label>
+                                      <mat-select [(ngModel)]="notifier.roleId" (selectionChange)="onNotifierRoleSelected(notifier, $event)">
+                                        @for (role of roles; track role.id) {
+                                          <mat-option [value]="role.id">{{ role.name }}</mat-option>
+                                        }
+                                      </mat-select>
+                                    </mat-form-field>
+                                  }
+
+                                  <button mat-icon-button color="warn" (click)="removeScreenNotifier(screen, ni)" style="margin-top: 8px;">
+                                    <mat-icon>close</mat-icon>
+                                  </button>
+                                </div>
                               }
-                            </mat-select>
-                            <mat-hint>Select roles to filter available privileges</mat-hint>
-                          </mat-form-field>
+                            }
 
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Restrict by Privileges</mat-label>
-                            <mat-select [(ngModel)]="screen.privilegeIds" multiple [disabled]="getFilteredPrivilegesForScreen(screen).length === 0">
-                              @for (privilege of getFilteredPrivilegesForScreen(screen); track privilege.id) {
-                                <mat-option [value]="privilege.id">
-                                  {{ privilege.name }} @if (privilege.category) { ({{ privilege.category }}) }
-                                </mat-option>
-                              }
-                            </mat-select>
-                            <mat-hint>@if (getFilteredPrivilegesForScreen(screen).length === 0) { Select roles first } @else { If selected, overrides role restrictions }</mat-hint>
-                          </mat-form-field>
-                        </div>
-
-                        <div class="screen-actions">
-                          <button mat-button color="warn" (click)="removeScreen(i)">
-                            <mat-icon>delete</mat-icon>
-                            Remove Screen
-                          </button>
-                        </div>
-                      </div>
+                            <button mat-stroked-button color="primary" (click)="addScreenNotifier(screen)">
+                              <mat-icon>add</mat-icon>
+                              Add Notification Recipient
+                            </button>
+                          </div>
+                        </mat-tab>
+                      </mat-tab-group>
                     </mat-expansion-panel>
                   }
                 </div>
@@ -3355,9 +3427,52 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       displayOrder: this.screens.length,
       icon: 'view_carousel',
       roleIds: [],
-      privilegeIds: []
+      privilegeIds: [],
+      notifiers: []
     };
     this.screens.push(screen);
+  }
+
+  addScreenNotifier(screen: any) {
+    if (!screen.notifiers) {
+      screen.notifiers = [];
+    }
+    screen.notifiers.push({
+      id: 'temp_' + Date.now(),
+      notifierType: 'EMAIL',
+      email: '',
+      userId: null,
+      userName: null,
+      roleId: null,
+      roleName: null,
+      displayOrder: screen.notifiers.length
+    });
+  }
+
+  removeScreenNotifier(screen: any, index: number) {
+    screen.notifiers.splice(index, 1);
+  }
+
+  onNotifierTypeChange(notifier: any) {
+    notifier.email = '';
+    notifier.userId = null;
+    notifier.userName = null;
+    notifier.roleId = null;
+    notifier.roleName = null;
+  }
+
+  onNotifierUserSelected(notifier: any, event: any) {
+    const user = this.users.find(u => u.id === event.value);
+    if (user) {
+      notifier.userName = (user.firstName || '') + ' ' + (user.lastName || '');
+    }
+  }
+
+  onNotifierRoleSelected(notifier: any, event: any) {
+    const role = this.roles.find(r => r.id === event.value);
+    if (role) {
+      notifier.roleName = role.name;
+    }
   }
 
   removeScreen(index: number) {

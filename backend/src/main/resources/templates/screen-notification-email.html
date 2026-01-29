@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Screen Completed</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f0f2f5; }
+        .container { max-width: 650px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #1976d2, #1565c0); color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .header p { margin: 5px 0 0; opacity: 0.9; font-size: 14px; }
+        .content { padding: 30px; }
+        .greeting { font-size: 16px; margin-bottom: 20px; }
+        .info-box { background: #f8f9fa; padding: 20px; border-left: 4px solid #1976d2; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .info-box p { margin: 8px 0; }
+        .info-box strong { color: #555; min-width: 120px; display: inline-block; }
+        .fields-section { background: #e3f2fd; padding: 15px 20px; border-radius: 8px; margin: 20px 0; }
+        .fields-section h3 { margin: 0 0 10px; color: #1565c0; font-size: 14px; text-transform: uppercase; }
+        .field-row { margin: 8px 0; font-size: 14px; }
+        .field-row strong { color: #555; }
+        .divider { border-top: 1px solid #e0e0e0; margin: 25px 0; }
+        .signature { margin-top: 25px; color: #666; }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Screen Completed</h1>
+            <p th:text="${workflowName}">Workflow Name</p>
+        </div>
+        <div class="content">
+            <p class="greeting">Hello,</p>
+            <p>A screen has been completed in a workflow submission. Please review the details below.</p>
+
+            <div class="info-box">
+                <p><strong>Workflow:</strong> <span th:text="${workflowName}">Workflow Name</span></p>
+                <p><strong>Screen:</strong> <span th:text="${screenTitle}">Screen Title</span></p>
+                <p><strong>Filled by:</strong> <span th:text="${filledByName}">User Name</span></p>
+            </div>
+
+            <div th:if="${fieldValues != null and !fieldValues.isEmpty()}" class="fields-section">
+                <h3>Field Values</h3>
+                <div th:each="field : ${fieldValues}" class="field-row">
+                    <strong th:text="${field.label} + ':'">Field:</strong>
+                    <span th:text="${field.value}">Value</span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="signature">
+                <p>Best regards,<br><strong>Sonar Workflow System</strong></p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

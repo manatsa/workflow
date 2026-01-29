@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import {
   Workflow, WorkflowType, WorkflowForm, WorkflowField, FieldGroup,
-  WorkflowApprover, WorkflowInstance, ApprovalRequest, Attachment
+  WorkflowApprover, WorkflowInstance, ApprovalRequest, Attachment, ScreenNotifier
 } from '../models/workflow.model';
 import { ApiResponse, PageResponse } from '../models/setting.model';
 
@@ -231,6 +231,16 @@ export class WorkflowService {
 
   submitApproval(data: { instanceId: string; action: string; comments?: string }): Observable<ApiResponse<WorkflowInstance>> {
     return this.api.post<WorkflowInstance>('/workflow-instances/approval', data);
+  }
+
+  // Screen Notifications
+  sendScreenNotification(request: {
+    screenId: string;
+    workflowName: string;
+    screenTitle: string;
+    fieldValues: { label: string; value: string }[];
+  }): Observable<ApiResponse<void>> {
+    return this.api.post<void>('/screen-notifications/notify', request);
   }
 
   // Validation

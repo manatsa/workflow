@@ -84,6 +84,7 @@ public class WorkflowService {
     private final FieldGroupRepository fieldGroupRepository;
     private final FieldOptionRepository fieldOptionRepository;
     private final ScreenRepository screenRepository;
+    private final ScreenNotifierRepository screenNotifierRepository;
     private final WorkflowApproverRepository workflowApproverRepository;
     private final SBURepository sbuRepository;
     private final DepartmentRepository departmentRepository;
@@ -91,6 +92,7 @@ public class WorkflowService {
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PrivilegeRepository privilegeRepository;
     private final AuditService auditService;
     private final SettingService settingService;
     private final SqlObjectService sqlObjectService;
@@ -120,7 +122,9 @@ public class WorkflowService {
         if (workflow.getCorporates().isEmpty() &&
             workflow.getSbus().isEmpty() &&
             workflow.getBranches().isEmpty() &&
-            workflow.getDepartments().isEmpty()) {
+            workflow.getDepartments().isEmpty() &&
+            workflow.getRoles().isEmpty() &&
+            workflow.getPrivileges().isEmpty()) {
             return true;
         }
 
@@ -135,7 +139,7 @@ public class WorkflowService {
             return true;
         }
 
-        // Check if user matches any of the workflow's access restrictions
+        // Check if user matches any of the workflow's access restrictions (OR logic)
         // Check corporates
         if (!workflow.getCorporates().isEmpty() && user.getCorporates() != null) {
             if (workflow.getCorporates().stream()
@@ -168,6 +172,31 @@ public class WorkflowService {
             if (workflow.getDepartments().stream()
                     .anyMatch(wfDept -> user.getDepartments().stream()
                             .anyMatch(userDept -> userDept.getId().equals(wfDept.getId())))) {
+                return true;
+            }
+        }
+
+        // Check privileges first - if privileges are specified, they take precedence over roles
+        // (user privileges come from their roles)
+        if (!workflow.getPrivileges().isEmpty() && user.getRoles() != null) {
+            Set<UUID> userPrivilegeIds = user.getRoles().stream()
+                    .flatMap(role -> role.getPrivileges().stream())
+                    .map(Privilege::getId)
+                    .collect(Collectors.toSet());
+            if (workflow.getPrivileges().stream()
+                    .anyMatch(wfPriv -> userPrivilegeIds.contains(wfPriv.getId()))) {
+                return true;
+            }
+            // If privileges are specified but user doesn't have any, deny access
+            // (don't fall through to role check)
+            return false;
+        }
+
+        // Check roles only if no privileges are specified
+        if (!workflow.getRoles().isEmpty() && user.getRoles() != null) {
+            if (workflow.getRoles().stream()
+                    .anyMatch(wfRole -> user.getRoles().stream()
+                            .anyMatch(userRole -> userRole.getId().equals(wfRole.getId())))) {
                 return true;
             }
         }
@@ -230,7 +259,9 @@ public class WorkflowService {
         if (workflow.getCorporates().isEmpty() &&
             workflow.getSbus().isEmpty() &&
             workflow.getBranches().isEmpty() &&
-            workflow.getDepartments().isEmpty()) {
+            workflow.getDepartments().isEmpty() &&
+            workflow.getRoles().isEmpty() &&
+            workflow.getPrivileges().isEmpty()) {
             return;
         }
 
@@ -246,7 +277,7 @@ public class WorkflowService {
             return;
         }
 
-        // Check if user matches any of the workflow's access restrictions
+        // Check if user matches any of the workflow's access restrictions (OR logic)
         boolean hasAccess = false;
 
         // Check corporates
@@ -275,6 +306,29 @@ public class WorkflowService {
             hasAccess = workflow.getDepartments().stream()
                     .anyMatch(wfDept -> currentUser.getDepartments().stream()
                             .anyMatch(userDept -> userDept.getId().equals(wfDept.getId())));
+        }
+
+        // Check privileges first - if privileges are specified, they take precedence over roles
+        // (user privileges come from their roles)
+        if (!hasAccess && !workflow.getPrivileges().isEmpty() && currentUser.getRoles() != null) {
+            Set<UUID> userPrivilegeIds = currentUser.getRoles().stream()
+                    .flatMap(role -> role.getPrivileges().stream())
+                    .map(Privilege::getId)
+                    .collect(Collectors.toSet());
+            hasAccess = workflow.getPrivileges().stream()
+                    .anyMatch(wfPriv -> userPrivilegeIds.contains(wfPriv.getId()));
+            // If privileges are specified, don't check roles - privileges take precedence
+            if (!hasAccess) {
+                throw new BusinessException("This workflow is restricted. Please consult your system administrator.");
+            }
+            return;
+        }
+
+        // Check roles only if no privileges are specified
+        if (!hasAccess && !workflow.getRoles().isEmpty() && currentUser.getRoles() != null) {
+            hasAccess = workflow.getRoles().stream()
+                    .anyMatch(wfRole -> currentUser.getRoles().stream()
+                            .anyMatch(userRole -> userRole.getId().equals(wfRole.getId())));
         }
 
         if (!hasAccess) {
@@ -365,6 +419,16 @@ public class WorkflowService {
             workflow.setBranches(branches);
         }
 
+        if (dto.getRoleIds() != null && !dto.getRoleIds().isEmpty()) {
+            Set<Role> roles = new HashSet<>(roleRepository.findAllById(dto.getRoleIds()));
+            workflow.setRoles(roles);
+        }
+
+        if (dto.getPrivilegeIds() != null && !dto.getPrivilegeIds().isEmpty()) {
+            Set<Privilege> privileges = new HashSet<>(privilegeRepository.findAllById(dto.getPrivilegeIds()));
+            workflow.setPrivileges(privileges);
+        }
+
         Workflow saved = workflowRepository.save(workflow);
 
         // Process forms, fields, groups from DTO
@@ -439,6 +503,16 @@ public class WorkflowService {
         if (dto.getBranchIds() != null) {
             Set<Branch> branches = new HashSet<>(branchRepository.findAllById(dto.getBranchIds()));
             workflow.setBranches(branches);
+        }
+
+        if (dto.getRoleIds() != null) {
+            Set<Role> roles = new HashSet<>(roleRepository.findAllById(dto.getRoleIds()));
+            workflow.setRoles(roles);
+        }
+
+        if (dto.getPrivilegeIds() != null) {
+            Set<Privilege> privileges = new HashSet<>(privilegeRepository.findAllById(dto.getPrivilegeIds()));
+            workflow.setPrivileges(privileges);
         }
 
         Workflow saved = workflowRepository.save(workflow);
@@ -608,6 +682,20 @@ public class WorkflowService {
         field.setTableMaxRows(dto.getTableMaxRows());
         field.setTableStriped(dto.getTableStriped() != null ? dto.getTableStriped() : true);
         field.setTableBordered(dto.getTableBordered() != null ? dto.getTableBordered() : true);
+        field.setAccordionAllowMultiple(dto.getAccordionAllowMultiple() != null ? dto.getAccordionAllowMultiple() : false);
+        field.setAccordionDefaultOpenIndex(dto.getAccordionDefaultOpenIndex() != null ? dto.getAccordionDefaultOpenIndex() : 0);
+        field.setAccordionAnimationType(dto.getAccordionAnimationType() != null ? dto.getAccordionAnimationType() : "smooth");
+        field.setAccordionAnimationDuration(dto.getAccordionAnimationDuration() != null ? dto.getAccordionAnimationDuration() : 300);
+        field.setCollapsibleTitle(dto.getCollapsibleTitle());
+        field.setCollapsibleIcon(dto.getCollapsibleIcon());
+        field.setCollapsibleDefaultExpanded(dto.getCollapsibleDefaultExpanded() != null ? dto.getCollapsibleDefaultExpanded() : false);
+        // Parse parentFieldId from String to UUID
+        if (dto.getParentFieldId() != null && !dto.getParentFieldId().isBlank()) {
+            UUID parentId = parseUuid(dto.getParentFieldId());
+            field.setParentFieldId(parentId);
+        } else {
+            field.setParentFieldId(null);
+        }
 
         WorkflowField saved = workflowFieldRepository.save(field);
 
@@ -743,6 +831,10 @@ public class WorkflowService {
         // Map to track temp IDs to real IDs for field groups and screens
         Map<String, UUID> groupIdMap = new HashMap<>();
         Map<String, UUID> screenIdMap = new HashMap<>();
+        Map<String, UUID> fieldIdMap = new HashMap<>(); // Track field temp/original IDs to saved IDs
+
+        // Track fields that need parentFieldId update (key: saved field ID, value: original parentFieldId string)
+        Map<UUID, String> fieldsNeedingParentUpdate = new HashMap<>();
 
         // Collect IDs that should be kept
         Set<UUID> formIdsToKeep = new HashSet<>();
@@ -808,6 +900,22 @@ public class WorkflowService {
                     screen.setIcon(screenDto.getIcon());
                     screen.setIsSummaryScreen(screenDto.getIsSummaryScreen() != null ? screenDto.getIsSummaryScreen() : false);
 
+                    // Handle screen role restrictions
+                    if (screenDto.getRoleIds() != null) {
+                        Set<Role> roles = new HashSet<>(roleRepository.findAllById(screenDto.getRoleIds()));
+                        screen.setRoles(roles);
+                    } else {
+                        screen.setRoles(new HashSet<>());
+                    }
+
+                    // Handle screen privilege restrictions
+                    if (screenDto.getPrivilegeIds() != null) {
+                        Set<Privilege> privileges = new HashSet<>(privilegeRepository.findAllById(screenDto.getPrivilegeIds()));
+                        screen.setPrivileges(privileges);
+                    } else {
+                        screen.setPrivileges(new HashSet<>());
+                    }
+
                     Screen savedScreen = screenRepository.save(screen);
                     screenIdsToKeepByForm.get(savedForm.getId()).add(savedScreen.getId());
 
@@ -815,6 +923,9 @@ public class WorkflowService {
                     if (screenDto.getId() != null && screenDto.getId().startsWith("temp_")) {
                         screenIdMap.put(screenDto.getId(), savedScreen.getId());
                     }
+
+                    // Process screen notifiers
+                    processScreenNotifiers(savedScreen, screenDto.getNotifiers());
                 }
             }
 
@@ -1006,12 +1117,33 @@ public class WorkflowService {
                     field.setTableMaxRows(fieldDto.getTableMaxRows());
                     field.setTableStriped(fieldDto.getTableStriped() != null ? fieldDto.getTableStriped() : true);
                     field.setTableBordered(fieldDto.getTableBordered() != null ? fieldDto.getTableBordered() : true);
+                    field.setAccordionAllowMultiple(fieldDto.getAccordionAllowMultiple() != null ? fieldDto.getAccordionAllowMultiple() : false);
+                    field.setAccordionDefaultOpenIndex(fieldDto.getAccordionDefaultOpenIndex() != null ? fieldDto.getAccordionDefaultOpenIndex() : 0);
+                    field.setAccordionAnimationType(fieldDto.getAccordionAnimationType() != null ? fieldDto.getAccordionAnimationType() : "smooth");
+                    field.setAccordionAnimationDuration(fieldDto.getAccordionAnimationDuration() != null ? fieldDto.getAccordionAnimationDuration() : 300);
+                    field.setCollapsibleTitle(fieldDto.getCollapsibleTitle());
+                    field.setCollapsibleIcon(fieldDto.getCollapsibleIcon());
+                    field.setCollapsibleDefaultExpanded(fieldDto.getCollapsibleDefaultExpanded() != null ? fieldDto.getCollapsibleDefaultExpanded() : false);
+                    // Don't set parentFieldId yet - save it for second pass after all fields are saved
+                    field.setParentFieldId(null);
                     field.setValidation(fieldDto.getValidation());
                     field.setCustomValidationRule(fieldDto.getCustomValidationRule());
                     field.setVisibilityExpression(fieldDto.getVisibilityExpression() != null ? fieldDto.getVisibilityExpression() : "true");
 
                     WorkflowField savedField = workflowFieldRepository.save(field);
                     fieldIdsToKeepByForm.get(savedForm.getId()).add(savedField.getId());
+
+                    // Track field ID mapping (original/temp ID -> saved ID)
+                    String originalFieldId = fieldDto.getId();
+                    if (originalFieldId != null && !originalFieldId.isBlank()) {
+                        fieldIdMap.put(originalFieldId, savedField.getId());
+                    }
+
+                    // Track if this field needs parentFieldId update
+                    String parentIdStr = fieldDto.getParentFieldId();
+                    if (parentIdStr != null && !parentIdStr.isBlank()) {
+                        fieldsNeedingParentUpdate.put(savedField.getId(), parentIdStr);
+                    }
 
                     // Process options for select/radio fields
                     if (fieldDto.getOptions() != null && !fieldDto.getOptions().isEmpty()) {
@@ -1035,6 +1167,34 @@ public class WorkflowService {
                             fieldOptionRepository.save(option);
                         }
                     }
+                }
+            }
+        }
+
+        // Second pass: Update parentFieldId for collapsible fields
+        for (Map.Entry<UUID, String> entry : fieldsNeedingParentUpdate.entrySet()) {
+            UUID fieldId = entry.getKey();
+            String parentIdStr = entry.getValue();
+
+            // Resolve the parent field ID (could be temp ID or real UUID)
+            UUID parentFieldId = null;
+            if (parentIdStr.startsWith("temp_") || parentIdStr.startsWith("field_")) {
+                // It's a temp ID - look up the real ID from the map
+                parentFieldId = fieldIdMap.get(parentIdStr);
+            } else {
+                // Try to parse as UUID directly
+                parentFieldId = parseUuid(parentIdStr);
+                // If not found directly, check if it's in the map (in case frontend sent a string version of existing UUID)
+                if (parentFieldId == null) {
+                    parentFieldId = fieldIdMap.get(parentIdStr);
+                }
+            }
+
+            if (parentFieldId != null) {
+                WorkflowField field = workflowFieldRepository.findById(fieldId).orElse(null);
+                if (field != null) {
+                    field.setParentFieldId(parentFieldId);
+                    workflowFieldRepository.save(field);
                 }
             }
         }
@@ -1201,6 +1361,8 @@ public class WorkflowService {
                 .sbuIds(workflow.getSbus().stream().map(SBU::getId).collect(Collectors.toSet()))
                 .branchIds(workflow.getBranches().stream().map(Branch::getId).collect(Collectors.toSet()))
                 .departmentIds(workflow.getDepartments().stream().map(Department::getId).collect(Collectors.toSet()))
+                .roleIds(workflow.getRoles().stream().map(Role::getId).collect(Collectors.toSet()))
+                .privilegeIds(workflow.getPrivileges().stream().map(Privilege::getId).collect(Collectors.toSet()))
                 .createdBy(workflow.getCreatedBy())
                 .build();
     }
@@ -1236,7 +1398,101 @@ public class WorkflowService {
                 .displayOrder(screen.getDisplayOrder())
                 .icon(screen.getIcon())
                 .isSummaryScreen(screen.getIsSummaryScreen())
+                .roleIds(screen.getRoles().stream().map(Role::getId).collect(Collectors.toSet()))
+                .privilegeIds(screen.getPrivileges().stream().map(Privilege::getId).collect(Collectors.toSet()))
+                .roleNames(screen.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
+                .privilegeNames(screen.getPrivileges().stream().map(Privilege::getName).collect(Collectors.toSet()))
+                .notifiers(screen.getNotifiers() != null ? screen.getNotifiers().stream()
+                        .map(this::toScreenNotifierDTO).collect(Collectors.toList()) : new ArrayList<>())
                 .build();
+    }
+
+    private ScreenNotifierDTO toScreenNotifierDTO(ScreenNotifier notifier) {
+        return ScreenNotifierDTO.builder()
+                .id(notifier.getId() != null ? notifier.getId().toString() : null)
+                .screenId(notifier.getScreen() != null && notifier.getScreen().getId() != null
+                        ? notifier.getScreen().getId().toString() : null)
+                .notifierType(notifier.getNotifierType() != null ? notifier.getNotifierType().name() : null)
+                .email(notifier.getEmail())
+                .userId(notifier.getUser() != null ? notifier.getUser().getId().toString() : null)
+                .userName(notifier.getUser() != null ? notifier.getUser().getFullName() : null)
+                .roleId(notifier.getRole() != null ? notifier.getRole().getId().toString() : null)
+                .roleName(notifier.getRole() != null ? notifier.getRole().getName() : null)
+                .notifierName(notifier.getNotifierName())
+                .displayOrder(notifier.getDisplayOrder())
+                .build();
+    }
+
+    private void processScreenNotifiers(Screen screen, List<ScreenNotifierDTO> notifierDtos) {
+        if (notifierDtos == null) {
+            return;
+        }
+
+        List<ScreenNotifier> currentNotifiers = screen.getNotifiers();
+        if (currentNotifiers == null) {
+            currentNotifiers = new ArrayList<>();
+            screen.setNotifiers(currentNotifiers);
+        }
+
+        // Build map of existing notifiers by ID
+        Map<UUID, ScreenNotifier> existingById = new HashMap<>();
+        for (ScreenNotifier n : currentNotifiers) {
+            if (n.getId() != null) {
+                existingById.put(n.getId(), n);
+            }
+        }
+
+        // Track which existing IDs are still wanted
+        Set<UUID> keptIds = new HashSet<>();
+        List<ScreenNotifier> toAdd = new ArrayList<>();
+
+        for (ScreenNotifierDTO dto : notifierDtos) {
+            UUID notifierId = parseUuid(dto.getId());
+            ScreenNotifier notifier;
+
+            if (notifierId != null && existingById.containsKey(notifierId)) {
+                notifier = existingById.get(notifierId);
+                keptIds.add(notifierId);
+            } else {
+                notifier = new ScreenNotifier();
+                notifier.setScreen(screen);
+                toAdd.add(notifier);
+            }
+
+            if (dto.getNotifierType() != null) {
+                notifier.setNotifierType(ScreenNotifier.NotifierType.valueOf(dto.getNotifierType()));
+            }
+
+            notifier.setEmail(dto.getEmail());
+            notifier.setNotifierName(dto.getNotifierName());
+            notifier.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0);
+
+            if (dto.getUserId() != null && !dto.getUserId().isBlank()) {
+                UUID userId = parseUuid(dto.getUserId());
+                if (userId != null) {
+                    userRepository.findById(userId).ifPresent(notifier::setUser);
+                }
+            } else {
+                notifier.setUser(null);
+            }
+
+            if (dto.getRoleId() != null && !dto.getRoleId().isBlank()) {
+                UUID roleId = parseUuid(dto.getRoleId());
+                if (roleId != null) {
+                    roleRepository.findById(roleId).ifPresent(notifier::setRole);
+                }
+            } else {
+                notifier.setRole(null);
+            }
+        }
+
+        // Remove unwanted notifiers from collection (orphanRemoval deletes from DB)
+        currentNotifiers.removeIf(n -> n.getId() != null && !keptIds.contains(n.getId()));
+
+        // Add new notifiers to collection (cascade persists to DB)
+        currentNotifiers.addAll(toAdd);
+
+        screenRepository.save(screen);
     }
 
     private FieldGroupDTO toFieldGroupDTO(FieldGroup group) {
@@ -1322,6 +1578,14 @@ public class WorkflowService {
                 .tableMaxRows(field.getTableMaxRows())
                 .tableStriped(field.getTableStriped())
                 .tableBordered(field.getTableBordered())
+                .accordionAllowMultiple(field.getAccordionAllowMultiple())
+                .accordionDefaultOpenIndex(field.getAccordionDefaultOpenIndex())
+                .accordionAnimationType(field.getAccordionAnimationType())
+                .accordionAnimationDuration(field.getAccordionAnimationDuration())
+                .collapsibleTitle(field.getCollapsibleTitle())
+                .collapsibleIcon(field.getCollapsibleIcon())
+                .collapsibleDefaultExpanded(field.getCollapsibleDefaultExpanded())
+                .parentFieldId(field.getParentFieldId() != null ? field.getParentFieldId().toString() : null)
                 .build();
     }
 

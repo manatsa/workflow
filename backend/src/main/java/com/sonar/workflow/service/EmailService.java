@@ -170,6 +170,23 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendScreenNotificationEmail(String toEmail, String workflowName, String screenTitle,
+                                             String filledByName, List<Map<String, String>> fieldValues) {
+        try {
+            Context context = new Context();
+            context.setVariable("workflowName", workflowName);
+            context.setVariable("screenTitle", screenTitle);
+            context.setVariable("filledByName", filledByName);
+            context.setVariable("fieldValues", fieldValues);
+
+            String htmlContent = templateEngine.process("screen-notification-email", context);
+            sendHtmlEmail(toEmail, "Screen Completed: " + workflowName + " - " + screenTitle, htmlContent);
+        } catch (Exception e) {
+            log.error("Failed to send screen notification email to {}", toEmail, e);
+        }
+    }
+
     public void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
         if (to == null || to.isBlank() || !to.contains("@")) {
             throw new MessagingException("Invalid recipient email address: " + to);

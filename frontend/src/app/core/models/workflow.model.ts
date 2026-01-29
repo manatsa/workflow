@@ -26,6 +26,8 @@ export interface Workflow {
   sbuIds: string[];
   branchIds?: string[];
   departmentIds?: string[];
+  roleIds?: string[];
+  privilegeIds?: string[];
 }
 
 export interface WorkflowType {
@@ -60,8 +62,26 @@ export interface Screen {
   displayOrder: number;
   icon?: string;
   isSummaryScreen?: boolean;
+  roleIds?: string[];
+  privilegeIds?: string[];
+  roleNames?: string[];
+  privilegeNames?: string[];
   fieldGroups?: FieldGroup[];
   fields?: WorkflowField[];
+  notifiers?: ScreenNotifier[];
+}
+
+export interface ScreenNotifier {
+  id?: string;
+  screenId?: string;
+  notifierType: 'EMAIL' | 'USER' | 'ROLE';
+  email?: string;
+  userId?: string;
+  userName?: string;
+  roleId?: string;
+  roleName?: string;
+  notifierName?: string;
+  displayOrder?: number;
 }
 
 export interface FieldGroup {
@@ -143,6 +163,17 @@ export interface WorkflowField {
   tableMaxRows?: number;
   tableStriped?: boolean;
   tableBordered?: boolean;
+  // ACCORDION field specific configurations
+  accordionAllowMultiple?: boolean;
+  accordionDefaultOpenIndex?: number;
+  accordionAnimationType?: 'smooth' | 'none' | 'bounce';
+  accordionAnimationDuration?: number;
+  // COLLAPSIBLE field specific configurations
+  collapsibleTitle?: string;
+  collapsibleIcon?: string;
+  collapsibleDefaultExpanded?: boolean;
+  // Parent field ID for nested fields (collapsibles belong to accordions)
+  parentFieldId?: string;
 }
 
 export interface TableColumn {
@@ -198,7 +229,10 @@ export enum FieldType {
   LOCATION = 'LOCATION',
   TABLE = 'TABLE',
   // SQL Object field type - dynamic options from SQL Object tables
-  SQL_OBJECT = 'SQL_OBJECT'
+  SQL_OBJECT = 'SQL_OBJECT',
+  // Container field types
+  ACCORDION = 'ACCORDION',
+  COLLAPSIBLE = 'COLLAPSIBLE'
 }
 
 // View type for SQL_OBJECT field - how to display the options

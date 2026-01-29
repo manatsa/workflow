@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "screens")
@@ -34,6 +36,24 @@ public class Screen extends BaseEntity {
     @Column(name = "is_summary_screen")
     private Boolean isSummaryScreen = false;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "screen_roles",
+            joinColumns = @JoinColumn(name = "screen_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "screen_privileges",
+            joinColumns = @JoinColumn(name = "screen_id"),
+            inverseJoinColumns = @JoinColumn(name = "privilege_id")
+    )
+    @Builder.Default
+    private Set<Privilege> privileges = new HashSet<>();
+
     @OneToMany(mappedBy = "screen", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("displayOrder ASC")
     @Builder.Default
@@ -43,4 +63,9 @@ public class Screen extends BaseEntity {
     @OrderBy("displayOrder ASC")
     @Builder.Default
     private List<WorkflowField> fields = new ArrayList<>();
+
+    @OneToMany(mappedBy = "screen", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderBy("displayOrder ASC")
+    @Builder.Default
+    private List<ScreenNotifier> notifiers = new ArrayList<>();
 }

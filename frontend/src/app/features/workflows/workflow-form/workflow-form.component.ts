@@ -790,6 +790,210 @@ import { User } from '@core/models/user.model';
                             }
                           }
                         }
+                        @case ('ACCORDION') {
+                          <div class="accordion-field" [class.has-error]="hasFieldError(field)">
+                            @if (field.label) {
+                              <label class="field-label accordion-label">{{ field.label }}</label>
+                            }
+                            <mat-accordion [multi]="field.accordionAllowMultiple ?? false" class="workflow-accordion {{ getAccordionAnimationClass(field) }}">
+                              @for (collapsible of getCollapsiblesForAccordion(field.id); track collapsible.id; let idx = $index) {
+                                {{ initAccordionState(field) }}
+                                <mat-expansion-panel [expanded]="isCollapsibleExpanded(field.id, idx)" (opened)="openCollapsible(field, idx)" (closed)="closeCollapsible(field, idx)">
+                                  <mat-expansion-panel-header>
+                                    <mat-panel-title>
+                                      @if (collapsible.collapsibleIcon) {
+                                        <mat-icon class="collapsible-icon">{{ collapsible.collapsibleIcon }}</mat-icon>
+                                      }
+                                      {{ collapsible.collapsibleTitle || collapsible.label }}
+                                    </mat-panel-title>
+                                  </mat-expansion-panel-header>
+                                  <div class="collapsible-content fields-grid">
+                                    @for (nestedField of getFieldsInCollapsible(collapsible.id); track nestedField.id) {
+                                      @if (isFieldVisible(nestedField)) {
+                                        <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                                          <!-- Render nested field - simplified for common types -->
+                                          @switch (nestedField.type) {
+                                            @case ('TEXT') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <input matInput [formControlName]="nestedField.name" [placeholder]="nestedField.placeholder || ''" [readonly]="isFieldReadonly(nestedField)">
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('TEXTAREA') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <textarea matInput [formControlName]="nestedField.name" rows="4" [readonly]="isFieldReadonly(nestedField)"></textarea>
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('NUMBER') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <input matInput type="number" [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('SELECT') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <mat-select [formControlName]="nestedField.name" [disabled]="isFieldReadonly(nestedField)">
+                                                    @for (option of nestedField.options; track option.value) {
+                                                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                                    }
+                                                  </mat-select>
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('DATE') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <input matInput [matDatepicker]="nestedPicker" [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                                  <mat-datepicker-toggle matIconSuffix [for]="nestedPicker" [disabled]="isFieldReadonly(nestedField)"></mat-datepicker-toggle>
+                                                  <mat-datepicker #nestedPicker [disabled]="isFieldReadonly(nestedField)"></mat-datepicker>
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('CHECKBOX') {
+                                              <div class="field-container">
+                                                <mat-checkbox [formControlName]="nestedField.name" [disabled]="isFieldReadonly(nestedField)">{{ nestedField.label }}</mat-checkbox>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('RADIO') {
+                                              <div class="radio-field" [class.has-error]="hasFieldError(nestedField)">
+                                                <label class="field-label">{{ nestedField.label }} @if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</label>
+                                                <mat-radio-group [formControlName]="nestedField.name" [disabled]="isFieldReadonly(nestedField)">
+                                                  @for (option of nestedField.options; track option.value) {
+                                                    <mat-radio-button [value]="option.value">{{ option.label }}</mat-radio-button>
+                                                  }
+                                                </mat-radio-group>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @default {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width">
+                                                  <mat-label>{{ nestedField.label }}</mat-label>
+                                                  <input matInput [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                                </mat-form-field>
+                                              </div>
+                                            }
+                                          }
+                                        </div>
+                                      }
+                                    }
+                                  </div>
+                                </mat-expansion-panel>
+                              }
+                            </mat-accordion>
+                          </div>
+                        }
+                        @case ('COLLAPSIBLE') {
+                          <!-- Standalone collapsible (not inside accordion) -->
+                          <div class="standalone-collapsible">
+                            <mat-expansion-panel [expanded]="field.collapsibleDefaultExpanded ?? false">
+                              <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                  @if (field.collapsibleIcon) {
+                                    <mat-icon class="collapsible-icon">{{ field.collapsibleIcon }}</mat-icon>
+                                  }
+                                  {{ field.collapsibleTitle || field.label }}
+                                </mat-panel-title>
+                              </mat-expansion-panel-header>
+                              <div class="collapsible-content fields-grid">
+                                @for (nestedField of getFieldsInCollapsible(field.id); track nestedField.id) {
+                                  @if (isFieldVisible(nestedField)) {
+                                    <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                                      @switch (nestedField.type) {
+                                        @case ('TEXT') {
+                                          <div class="field-container">
+                                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                              <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                              <input matInput [formControlName]="nestedField.name" [placeholder]="nestedField.placeholder || ''" [readonly]="isFieldReadonly(nestedField)">
+                                            </mat-form-field>
+                                            @if (hasFieldError(nestedField)) {
+                                              <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                            }
+                                          </div>
+                                        }
+                                        @case ('TEXTAREA') {
+                                          <div class="field-container">
+                                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                              <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                              <textarea matInput [formControlName]="nestedField.name" rows="4" [readonly]="isFieldReadonly(nestedField)"></textarea>
+                                            </mat-form-field>
+                                            @if (hasFieldError(nestedField)) {
+                                              <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                            }
+                                          </div>
+                                        }
+                                        @case ('NUMBER') {
+                                          <div class="field-container">
+                                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                              <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                              <input matInput type="number" [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                            </mat-form-field>
+                                            @if (hasFieldError(nestedField)) {
+                                              <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                            }
+                                          </div>
+                                        }
+                                        @case ('SELECT') {
+                                          <div class="field-container">
+                                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                              <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                              <mat-select [formControlName]="nestedField.name" [disabled]="isFieldReadonly(nestedField)">
+                                                @for (option of nestedField.options; track option.value) {
+                                                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                                }
+                                              </mat-select>
+                                            </mat-form-field>
+                                            @if (hasFieldError(nestedField)) {
+                                              <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                            }
+                                          </div>
+                                        }
+                                        @default {
+                                          <div class="field-container">
+                                            <mat-form-field appearance="outline" class="full-width">
+                                              <mat-label>{{ nestedField.label }}</mat-label>
+                                              <input matInput [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                            </mat-form-field>
+                                          </div>
+                                        }
+                                      }
+                                    </div>
+                                  }
+                                }
+                              </div>
+                            </mat-expansion-panel>
+                          </div>
+                        }
                         @default {
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width">
@@ -1450,6 +1654,184 @@ import { User } from '@core/models/user.model';
                               </div>
                             }
                           }
+                        }
+                        @case ('ACCORDION') {
+                          <div class="accordion-field" [class.has-error]="hasFieldError(field)">
+                            @if (field.label) {
+                              <label class="field-label accordion-label">{{ field.label }}</label>
+                            }
+                            <mat-accordion [multi]="field.accordionAllowMultiple ?? false" class="workflow-accordion {{ getAccordionAnimationClass(field) }}">
+                              @for (collapsible of getCollapsiblesForAccordion(field.id); track collapsible.id; let idx = $index) {
+                                {{ initAccordionState(field) }}
+                                <mat-expansion-panel [expanded]="isCollapsibleExpanded(field.id, idx)" (opened)="openCollapsible(field, idx)" (closed)="closeCollapsible(field, idx)">
+                                  <mat-expansion-panel-header>
+                                    <mat-panel-title>
+                                      @if (collapsible.collapsibleIcon) {
+                                        <mat-icon class="collapsible-icon">{{ collapsible.collapsibleIcon }}</mat-icon>
+                                      }
+                                      {{ collapsible.collapsibleTitle || collapsible.label }}
+                                    </mat-panel-title>
+                                  </mat-expansion-panel-header>
+                                  <div class="collapsible-content fields-grid">
+                                    @for (nestedField of getFieldsInCollapsible(collapsible.id); track nestedField.id) {
+                                      @if (isFieldVisible(nestedField)) {
+                                        <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                                          @switch (nestedField.type) {
+                                            @case ('TEXT') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <input matInput [formControlName]="nestedField.name" [placeholder]="nestedField.placeholder || ''" [readonly]="isFieldReadonly(nestedField)">
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('TEXTAREA') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <textarea matInput [formControlName]="nestedField.name" rows="4" [readonly]="isFieldReadonly(nestedField)"></textarea>
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('NUMBER') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <input matInput type="number" [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('SELECT') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <mat-select [formControlName]="nestedField.name" [disabled]="isFieldReadonly(nestedField)">
+                                                    @for (option of nestedField.options; track option.value) {
+                                                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                                    }
+                                                  </mat-select>
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('DATE') {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                                  <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                                  <input matInput [matDatepicker]="groupNestedPicker" [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                                  <mat-datepicker-toggle matIconSuffix [for]="groupNestedPicker" [disabled]="isFieldReadonly(nestedField)"></mat-datepicker-toggle>
+                                                  <mat-datepicker #groupNestedPicker [disabled]="isFieldReadonly(nestedField)"></mat-datepicker>
+                                                </mat-form-field>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @case ('CHECKBOX') {
+                                              <div class="field-container">
+                                                <mat-checkbox [formControlName]="nestedField.name" [disabled]="isFieldReadonly(nestedField)">{{ nestedField.label }}</mat-checkbox>
+                                                @if (hasFieldError(nestedField)) {
+                                                  <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                                }
+                                              </div>
+                                            }
+                                            @default {
+                                              <div class="field-container">
+                                                <mat-form-field appearance="outline" class="full-width">
+                                                  <mat-label>{{ nestedField.label }}</mat-label>
+                                                  <input matInput [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                                </mat-form-field>
+                                              </div>
+                                            }
+                                          }
+                                        </div>
+                                      }
+                                    }
+                                  </div>
+                                </mat-expansion-panel>
+                              }
+                            </mat-accordion>
+                          </div>
+                        }
+                        @case ('COLLAPSIBLE') {
+                          <div class="standalone-collapsible">
+                            <mat-expansion-panel [expanded]="field.collapsibleDefaultExpanded ?? false">
+                              <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                  @if (field.collapsibleIcon) {
+                                    <mat-icon class="collapsible-icon">{{ field.collapsibleIcon }}</mat-icon>
+                                  }
+                                  {{ field.collapsibleTitle || field.label }}
+                                </mat-panel-title>
+                              </mat-expansion-panel-header>
+                              <div class="collapsible-content fields-grid">
+                                @for (nestedField of getFieldsInCollapsible(field.id); track nestedField.id) {
+                                  @if (isFieldVisible(nestedField)) {
+                                    <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                                      @switch (nestedField.type) {
+                                        @case ('TEXT') {
+                                          <div class="field-container">
+                                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                              <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                              <input matInput [formControlName]="nestedField.name" [placeholder]="nestedField.placeholder || ''" [readonly]="isFieldReadonly(nestedField)">
+                                            </mat-form-field>
+                                            @if (hasFieldError(nestedField)) {
+                                              <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                            }
+                                          </div>
+                                        }
+                                        @case ('NUMBER') {
+                                          <div class="field-container">
+                                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                              <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                              <input matInput type="number" [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                            </mat-form-field>
+                                            @if (hasFieldError(nestedField)) {
+                                              <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                            }
+                                          </div>
+                                        }
+                                        @case ('SELECT') {
+                                          <div class="field-container">
+                                            <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(nestedField)">
+                                              <mat-label>{{ nestedField.label }}@if (isFieldRequired(nestedField)) { <span class="required-asterisk">*</span> }</mat-label>
+                                              <mat-select [formControlName]="nestedField.name" [disabled]="isFieldReadonly(nestedField)">
+                                                @for (option of nestedField.options; track option.value) {
+                                                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                                }
+                                              </mat-select>
+                                            </mat-form-field>
+                                            @if (hasFieldError(nestedField)) {
+                                              <div class="validation-error">{{ getFieldErrorMessage(nestedField) }}</div>
+                                            }
+                                          </div>
+                                        }
+                                        @default {
+                                          <div class="field-container">
+                                            <mat-form-field appearance="outline" class="full-width">
+                                              <mat-label>{{ nestedField.label }}</mat-label>
+                                              <input matInput [formControlName]="nestedField.name" [readonly]="isFieldReadonly(nestedField)">
+                                            </mat-form-field>
+                                          </div>
+                                        }
+                                      }
+                                    </div>
+                                  }
+                                }
+                              </div>
+                            </mat-expansion-panel>
+                          </div>
                         }
                         @default {
                           <div class="field-container">
@@ -2784,6 +3166,113 @@ import { User } from '@core/models/user.model';
       background: #2d2d2d !important;
       color: #e0e0e0;
     }
+
+    /* Accordion and Collapsible Styles */
+    .accordion-field {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .accordion-label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 500;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .workflow-accordion {
+      width: 100%;
+    }
+
+    .workflow-accordion .collapsible-icon {
+      margin-right: 8px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .workflow-accordion ::ng-deep .mat-expansion-panel {
+      margin-bottom: 8px;
+      border-radius: 8px !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .workflow-accordion ::ng-deep .mat-expansion-panel-header {
+      font-weight: 500;
+    }
+
+    .workflow-accordion ::ng-deep .mat-expansion-panel-header-title {
+      display: flex;
+      align-items: center;
+    }
+
+    .collapsible-content {
+      padding: 16px 0;
+    }
+
+    .collapsible-content.fields-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .standalone-collapsible {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .standalone-collapsible ::ng-deep .mat-expansion-panel {
+      border-radius: 8px !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .standalone-collapsible .collapsible-icon {
+      margin-right: 8px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Accordion Animation Classes */
+    .workflow-accordion.smooth-animation ::ng-deep .mat-expansion-panel-body {
+      transition: all 0.3s ease-in-out;
+    }
+
+    .workflow-accordion.bounce-animation ::ng-deep .mat-expansion-panel-body {
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .workflow-accordion.no-animation ::ng-deep .mat-expansion-panel-body {
+      transition: none;
+    }
+
+    /* Dark mode styles for accordion/collapsible */
+    :host-context(.dark-mode) .accordion-label {
+      color: #e0e0e0;
+    }
+
+    :host-context(.dark-mode) .workflow-accordion ::ng-deep .mat-expansion-panel {
+      background: #333 !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    :host-context(.dark-mode) .workflow-accordion ::ng-deep .mat-expansion-panel-header {
+      background: #333 !important;
+    }
+
+    :host-context(.dark-mode) .workflow-accordion ::ng-deep .mat-expansion-panel-header-title {
+      color: #e0e0e0 !important;
+    }
+
+    :host-context(.dark-mode) .standalone-collapsible ::ng-deep .mat-expansion-panel {
+      background: #333 !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    :host-context(.dark-mode) .collapsible-icon {
+      color: #aaa;
+    }
   `]
 })
 export class WorkflowFormComponent implements OnInit, OnDestroy {
@@ -2794,6 +3283,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   workflowCode = '';
 
   fields: WorkflowField[] = [];
+  // Pre-computed arrays for different field categories (set once during initialization)
+  private _ungroupedFields: WorkflowField[] = [];
+  private _nestedFieldIds: Set<string> = new Set(); // IDs of fields that have a parentFieldId
   fieldGroups: FieldGroup[] = [];
   screens: Screen[] = [];
   currentScreenIndex = 0;
@@ -2826,6 +3318,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   filteredUsersMap: Record<string, User[]> = {};
   userSearchTerms: Record<string, string> = {};
   selectedUsers: Record<string, User> = {};
+
+  // Accordion expansion state: accordionFieldId -> array of expanded collapsible indices
+  accordionExpandedState: Record<string, Set<number>> = {};
 
   constructor(
     private fb: FormBuilder,
@@ -2939,7 +3434,12 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       if (fieldId) {
         // Check if this field belongs to a group
         const groupId = f.fieldGroupId?.toString() || fieldIdToGroupId.get(fieldId) || null;
-        allFieldsMap.set(fieldId, { ...f, fieldGroupId: groupId });
+        // Explicitly preserve parentFieldId for accordion/collapsible nesting
+        allFieldsMap.set(fieldId, {
+          ...f,
+          fieldGroupId: groupId,
+          parentFieldId: f.parentFieldId || null
+        });
       }
     });
 
@@ -2949,27 +3449,63 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         group.fields.forEach((f: any) => {
           const fieldId = f.id?.toString();
           if (fieldId && !allFieldsMap.has(fieldId)) {
-            allFieldsMap.set(fieldId, { ...f, fieldGroupId: group.id?.toString() });
+            allFieldsMap.set(fieldId, {
+              ...f,
+              fieldGroupId: group.id?.toString(),
+              parentFieldId: f.parentFieldId || null
+            });
           }
         });
       }
     });
 
     // Convert map to array and normalize fields
+    console.log('=== FIELD MAPPING DEBUG ===');
+    console.log('Raw fields from allFieldsMap:', Array.from(allFieldsMap.values()).map(f => ({ id: f.id, name: f.name, type: f.type, fieldType: f.fieldType, parentFieldId: f.parentFieldId })));
     this.fields = Array.from(allFieldsMap.values()).map(f => {
       const fieldType = (f.type || f.fieldType || 'TEXT').toString().toUpperCase();
-      return {
+      const mapped = {
         ...f,
         type: fieldType,
         fieldType: fieldType,
         required: f.required ?? f.isMandatory ?? false,
         hidden: f.hidden ?? f.isHidden ?? false,
-        readOnly: f.readOnly ?? f.isReadonly ?? false
+        readOnly: f.readOnly ?? f.isReadonly ?? false,
+        // Explicitly preserve parentFieldId for accordion/collapsible nesting
+        parentFieldId: f.parentFieldId || null
       };
+      if (f.parentFieldId) {
+        console.log(`Field "${f.name}" mapped with parentFieldId: ${mapped.parentFieldId}`);
+      }
+      return mapped;
+    });
+    console.log('Mapped fields:', this.fields.map(f => ({ id: f.id, name: f.name, type: f.type, parentFieldId: f.parentFieldId })));
+
+    // Pre-compute nested field IDs and ungrouped fields ONCE during initialization
+    this._nestedFieldIds = new Set<string>();
+    this.fields.forEach(f => {
+      if (f.parentFieldId) {
+        this._nestedFieldIds.add(f.id);
+        console.log(`NESTED FIELD REGISTERED: "${f.name}" (id=${f.id}) -> parent=${f.parentFieldId}`);
+      }
     });
 
+    // Pre-compute ungrouped fields (excluding nested fields)
+    this._ungroupedFields = this.fields.filter(f => {
+      const isNested = this._nestedFieldIds.has(f.id);
+      const hasGroup = !!f.fieldGroupId;
+      const isHidden = f.hidden || f.isHidden;
+      if (isNested) {
+        console.log(`EXCLUDING FROM UNGROUPED: "${f.name}" - is nested field`);
+      }
+      return !isNested && !hasGroup && !isHidden;
+    });
+    console.log('PRE-COMPUTED UNGROUPED FIELDS:', this._ungroupedFields.map(f => f.name));
+
     this.fieldGroups = fieldGroups;
-    this.screens = (mainForm.screens || []).sort((a: Screen, b: Screen) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    // Filter screens based on user's role and privilege access
+    const allScreens = (mainForm.screens || []).sort((a: Screen, b: Screen) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    this.screens = allScreens.filter(screen => this.hasScreenAccess(screen));
     this.currentScreenIndex = 0;
 
     // Get all field names for dependency tracking
@@ -3791,7 +4327,16 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   }
 
   getUngroupedFields(): WorkflowField[] {
-    return this.fields.filter(f => !f.fieldGroupId && !(f.hidden || f.isHidden));
+    // Return pre-computed ungrouped fields (computed once during initialization)
+    // This ensures nested fields (with parentFieldId) are NEVER included
+    return this._ungroupedFields;
+  }
+
+  /**
+   * Check if a field is a nested field (has a parentFieldId)
+   */
+  isNestedField(fieldId: string): boolean {
+    return this._nestedFieldIds.has(fieldId);
   }
 
   getFieldsInGroup(groupId: string): WorkflowField[] {
@@ -3803,16 +4348,64 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       const isFirstScreen = this.currentScreenIndex === 0;
 
       return this.fields.filter(f => {
-        if (f.fieldGroupId?.toString() !== gid || f.hidden || f.isHidden) {
+        // Exclude nested fields (pre-computed), group mismatch, and hidden
+        if (f.fieldGroupId?.toString() !== gid || this._nestedFieldIds.has(f.id) || f.hidden || f.isHidden) {
           return false;
         }
         const fieldScreenId = f.screenId?.toString();
-        // Field matches if: its screenId matches current screen OR (first screen AND field has no screenId)
         return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
       });
     }
 
-    return this.fields.filter(f => f.fieldGroupId?.toString() === gid && !(f.hidden || f.isHidden));
+    // Exclude nested fields (pre-computed)
+    return this.fields.filter(f => f.fieldGroupId?.toString() === gid && !this._nestedFieldIds.has(f.id) && !(f.hidden || f.isHidden));
+  }
+
+  /**
+   * Check if the current user has access to a screen based on role and privilege restrictions.
+   * Returns true if:
+   * - Screen has no restrictions (no roleNames and no privilegeNames)
+   * - User is ADMIN
+   * - If privileges are specified: user has any of the required privileges (roles ignored)
+   * - If only roles are specified: user has any of the required roles
+   */
+  hasScreenAccess(screen: Screen): boolean {
+    // If no restrictions, everyone has access
+    const hasRoleRestrictions = screen.roleNames && screen.roleNames.length > 0;
+    const hasPrivilegeRestrictions = screen.privilegeNames && screen.privilegeNames.length > 0;
+
+    if (!hasRoleRestrictions && !hasPrivilegeRestrictions) {
+      return true;
+    }
+
+    const currentUser = this.authService.currentUser;
+    if (!currentUser) {
+      return false;
+    }
+
+    // ADMIN users bypass all restrictions
+    if (currentUser.roles?.includes('ADMIN') || currentUser.roles?.includes('ROLE_ADMIN')) {
+      return true;
+    }
+
+    // If privileges are specified, they take precedence over roles
+    if (hasPrivilegeRestrictions) {
+      const hasMatchingPrivilege = screen.privilegeNames!.some(privName =>
+        currentUser.privileges?.includes(privName)
+      );
+      // Return the result - don't fall through to role check
+      return hasMatchingPrivilege;
+    }
+
+    // Check role restrictions only if no privileges are specified
+    if (hasRoleRestrictions) {
+      const hasMatchingRole = screen.roleNames!.some(roleName =>
+        currentUser.roles?.includes(roleName)
+      );
+      return hasMatchingRole;
+    }
+
+    return false;
   }
 
   // Multi-step screen navigation
@@ -3838,14 +4431,12 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   getUngroupedFieldsOnScreen(): WorkflowField[] {
     if (!this.isMultiStep) {
-      return this.getUngroupedFields();
+      return this._ungroupedFields;
     }
     const screenId = this.currentScreen?.id?.toString();
     const isFirstScreen = this.currentScreenIndex === 0;
-    return this.fields.filter(f => {
-      if (f.fieldGroupId || f.hidden || f.isHidden) {
-        return false;
-      }
+    // Filter pre-computed ungrouped fields by screen
+    return this._ungroupedFields.filter(f => {
       const fieldScreenId = f.screenId?.toString();
       // Field matches if: its screenId matches current screen OR (first screen AND field has no screenId)
       return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
@@ -4028,6 +4619,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   goToNextScreen(): void {
     if (this.validateCurrentScreen()) {
+      // Fire-and-forget screen notification
+      this.sendScreenNotification(this.currentScreen);
       if (this.currentScreenIndex < this.screens.length - 1) {
         this.currentScreenIndex++;
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -4379,7 +4972,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     const noParenFunctions = ['TODAY', 'NOW', 'CURRENT_USER', 'CURRENT_USER_EMAIL', 'CURRENT_USER_ID',
                                'CURRENT_USERNAME', 'CURRENT_USER_PHONE', 'CURRENT_USER_DEPARTMENT',
                                'CURRENT_USER_STAFFID', 'CURRENT_USER_ROLE', 'CURRENT_USER_SBU',
-                               'CURRENT_USER_BRANCH', 'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_DATETIME',
+                               'CURRENT_USER_BRANCH', 'CURRENT_USER_ROLES', 'CURRENT_USER_PRIVILEGES',
+                               'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_DATETIME',
                                'CURRENT_YEAR', 'CURRENT_MONTH', 'UUID', 'SHORT_UUID', 'TIMESTAMP',
                                'PI', 'E', 'RANDOM', 'ROW', 'WORKFLOW_ID', 'WORKFLOW_NAME', 'INSTANCE_ID',
                                'INSTANCE_STATUS', 'SUBMISSION_DATE', 'SUBMITTER_NAME', 'SUBMITTER_EMAIL',
@@ -5102,6 +5696,10 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         return currentUser?.sbuIds?.[0] || '';
       case 'CURRENT_USER_BRANCH':
         return currentUser?.branchIds?.[0] || '';
+      case 'CURRENT_USER_ROLES':
+        return currentUser?.roles || [];
+      case 'CURRENT_USER_PRIVILEGES':
+        return currentUser?.privileges || [];
 
       // ==================== UTILITY FUNCTIONS ====================
       case 'UUID':
@@ -5848,7 +6446,50 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Fire-and-forget screen notification for the current (last) screen
+    this.sendScreenNotification(this.currentScreen);
+
     this.submitForm(false);
+  }
+
+  private sendScreenNotification(screen: Screen | null): void {
+    if (!screen || !screen.notifiers || screen.notifiers.length === 0) {
+      return;
+    }
+    // Only send for screens with a persisted ID (not temp IDs)
+    if (!screen.id || screen.id.startsWith('temp_')) {
+      return;
+    }
+    // Collect field values for this screen
+    const screenId = screen.id?.toString();
+    const isFirstScreen = this.currentScreenIndex === 0;
+    const fieldsOnScreen = this.fields.filter(f => {
+      const fieldScreenId = f.screenId?.toString();
+      return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
+    });
+
+    const fieldValues: { label: string; value: string }[] = [];
+    for (const field of fieldsOnScreen) {
+      const control = this.form.get(field.name);
+      if (control) {
+        let value = control.value;
+        if (value instanceof Date) {
+          value = value.toLocaleDateString();
+        } else if (typeof value === 'object' && value !== null) {
+          value = JSON.stringify(value);
+        }
+        fieldValues.push({ label: field.label || field.name, value: value != null ? String(value) : '' });
+      }
+    }
+
+    this.workflowService.sendScreenNotification({
+      screenId: screen.id,
+      workflowName: this.workflow?.name || '',
+      screenTitle: screen.title || 'Untitled Screen',
+      fieldValues
+    }).subscribe({
+      error: (err: any) => console.warn('Screen notification failed (non-blocking):', err)
+    });
   }
 
   submitForm(isDraft: boolean) {
@@ -6486,5 +7127,160 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     const value = JSON.stringify(this.tableData[field.name] || []);
     this.form.get(field.name)?.setValue(value);
     this.form.get(field.name)?.markAsTouched();
+  }
+
+  // ==================== ACCORDION AND COLLAPSIBLE FIELD METHODS ====================
+
+  /**
+   * Get all ACCORDION type fields that are ungrouped on the current screen
+   */
+  getAccordionFields(): WorkflowField[] {
+    if (this.isMultiStep) {
+      const screenId = this.currentScreen?.id?.toString();
+      const isFirstScreen = this.currentScreenIndex === 0;
+      return this.fields.filter(f => {
+        if (f.type !== 'ACCORDION' || f.fieldGroupId || f.hidden || f.isHidden) {
+          return false;
+        }
+        const fieldScreenId = f.screenId?.toString();
+        return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
+      });
+    }
+    return this.fields.filter(f => f.type === 'ACCORDION' && !f.fieldGroupId && !(f.hidden || f.isHidden));
+  }
+
+  /**
+   * Get all ACCORDION type fields within a specific field group
+   */
+  getAccordionFieldsInGroup(groupId: string): WorkflowField[] {
+    const gid = groupId?.toString();
+    if (this.isMultiStep) {
+      const screenId = this.currentScreen?.id?.toString();
+      const isFirstScreen = this.currentScreenIndex === 0;
+      return this.fields.filter(f => {
+        if (f.type !== 'ACCORDION' || f.fieldGroupId?.toString() !== gid || f.hidden || f.isHidden) {
+          return false;
+        }
+        const fieldScreenId = f.screenId?.toString();
+        return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
+      });
+    }
+    return this.fields.filter(f => f.type === 'ACCORDION' && f.fieldGroupId?.toString() === gid && !(f.hidden || f.isHidden));
+  }
+
+  /**
+   * Get COLLAPSIBLE fields that belong to a specific accordion
+   */
+  getCollapsiblesForAccordion(accordionFieldId: string): WorkflowField[] {
+    const accordionId = accordionFieldId?.toString();
+    if (!accordionId) return [];
+    return this.fields
+      .filter(f => f.type === 'COLLAPSIBLE' && f.parentFieldId?.toString() === accordionId && !(f.hidden || f.isHidden))
+      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+  }
+
+  /**
+   * Get regular (non-accordion, non-collapsible) fields that belong to a collapsible
+   */
+  getFieldsInCollapsible(collapsibleFieldId: string): WorkflowField[] {
+    const collapsibleId = collapsibleFieldId?.toString();
+    if (!collapsibleId) return [];
+    return this.fields
+      .filter(f => {
+        if (f.type === 'ACCORDION' || f.type === 'COLLAPSIBLE') return false;
+        if (f.hidden || f.isHidden) return false;
+        return f.parentFieldId?.toString() === collapsibleId;
+      })
+      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+  }
+
+  /**
+   * Initialize accordion expansion state based on field configuration
+   */
+  initAccordionState(accordionField: WorkflowField): void {
+    const accordionId = accordionField.id?.toString();
+    if (!accordionId || this.accordionExpandedState[accordionId]) return;
+
+    const collapsibles = this.getCollapsiblesForAccordion(accordionId);
+    const expandedSet = new Set<number>();
+
+    // Check default open index
+    const defaultOpenIndex = accordionField.accordionDefaultOpenIndex ?? 0;
+    if (defaultOpenIndex >= 0 && defaultOpenIndex < collapsibles.length) {
+      expandedSet.add(defaultOpenIndex);
+    }
+
+    // Also check each collapsible's default expanded state
+    collapsibles.forEach((collapsible, index) => {
+      if (collapsible.collapsibleDefaultExpanded) {
+        expandedSet.add(index);
+      }
+    });
+
+    this.accordionExpandedState[accordionId] = expandedSet;
+  }
+
+  /**
+   * Check if a collapsible panel is expanded
+   */
+  isCollapsibleExpanded(accordionFieldId: string, collapsibleIndex: number): boolean {
+    const accordionId = accordionFieldId?.toString();
+    return this.accordionExpandedState[accordionId]?.has(collapsibleIndex) ?? false;
+  }
+
+  /**
+   * Open a collapsible panel
+   */
+  openCollapsible(accordionField: WorkflowField, collapsibleIndex: number): void {
+    const accordionId = accordionField.id?.toString();
+    if (!accordionId) return;
+
+    if (!this.accordionExpandedState[accordionId]) {
+      this.accordionExpandedState[accordionId] = new Set();
+    }
+
+    const allowMultiple = accordionField.accordionAllowMultiple ?? false;
+    const expandedSet = this.accordionExpandedState[accordionId];
+
+    if (!allowMultiple) {
+      // Close all other panels first
+      expandedSet.clear();
+    }
+    expandedSet.add(collapsibleIndex);
+  }
+
+  /**
+   * Close a collapsible panel
+   */
+  closeCollapsible(accordionField: WorkflowField, collapsibleIndex: number): void {
+    const accordionId = accordionField.id?.toString();
+    if (!accordionId) return;
+
+    if (this.accordionExpandedState[accordionId]) {
+      this.accordionExpandedState[accordionId].delete(collapsibleIndex);
+    }
+  }
+
+  /**
+   * Get the animation duration for an accordion in milliseconds
+   */
+  getAccordionAnimationDuration(accordionField: WorkflowField): string {
+    const duration = accordionField.accordionAnimationDuration ?? 300;
+    return `${duration}ms`;
+  }
+
+  /**
+   * Get the animation class based on accordion configuration
+   */
+  getAccordionAnimationClass(accordionField: WorkflowField): string {
+    const animationType = accordionField.accordionAnimationType ?? 'smooth';
+    switch (animationType) {
+      case 'none':
+        return 'no-animation';
+      case 'bounce':
+        return 'bounce-animation';
+      default:
+        return 'smooth-animation';
+    }
   }
 }

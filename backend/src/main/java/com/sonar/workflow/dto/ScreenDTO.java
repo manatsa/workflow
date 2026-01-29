@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -24,6 +26,12 @@ public class ScreenDTO {
     private String icon;
     private Boolean isSummaryScreen;
 
+    private Set<UUID> roleIds;
+    private Set<UUID> privilegeIds;
+    private Set<String> roleNames;
+    private Set<String> privilegeNames;
+
     private List<FieldGroupDTO> fieldGroups;
     private List<WorkflowFieldDTO> fields;
+    private List<ScreenNotifierDTO> notifiers;
 }
