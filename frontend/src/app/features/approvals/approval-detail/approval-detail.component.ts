@@ -47,6 +47,10 @@ import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
           <div class="header-info">
             <h1>{{ instance.referenceNumber }}</h1>
             <p class="subtitle">{{ instance.workflowName }} - Approval Request</p>
+            <a class="submission-link" [routerLink]="['/workflows', instance.workflowCode, 'instances', instance.id]">
+              <mat-icon>open_in_new</mat-icon>
+              View Submission
+            </a>
           </div>
           <span class="badge pending">Pending Your Approval</span>
         </div>
@@ -264,6 +268,24 @@ import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
       font-size: 0.875rem;
       color: #666;
     }
+
+    .submission-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+      color: #1976d2;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .submission-link mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+    .submission-link:hover { text-decoration: underline; }
 
     .badge {
       padding: 0.25rem 0.75rem;

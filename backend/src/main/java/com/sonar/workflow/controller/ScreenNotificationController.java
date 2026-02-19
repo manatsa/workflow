@@ -1,6 +1,7 @@
 package com.sonar.workflow.controller;
 
 import com.sonar.workflow.dto.ApiResponse;
+import com.sonar.workflow.security.CustomUserDetails;
 import com.sonar.workflow.service.ScreenNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,10 @@ public class ScreenNotificationController {
             String screenId,
             String workflowName,
             String screenTitle,
-            List<Map<String, String>> fieldValues
+            List<Map<String, String>> fieldValues,
+            String notificationMessage,
+            String instanceId,
+            String workflowCode
     ) {}
 
     @PostMapping("/notify")
@@ -33,6 +37,10 @@ public class ScreenNotificationController {
             Authentication authentication) {
 
         String filledByName = authentication != null ? authentication.getName() : "Unknown";
+        String submitterEmail = null;
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            submitterEmail = userDetails.getEmail();
+        }
 
         try {
             UUID screenId = UUID.fromString(request.screenId());
@@ -41,7 +49,11 @@ public class ScreenNotificationController {
                     request.workflowName(),
                     request.screenTitle(),
                     filledByName,
-                    request.fieldValues()
+                    request.fieldValues(),
+                    request.notificationMessage(),
+                    request.instanceId(),
+                    request.workflowCode(),
+                    submitterEmail
             );
             return ResponseEntity.ok(ApiResponse.<Void>builder()
                     .success(true)

@@ -67,7 +67,7 @@ interface ReportCategory {
     <div class="layout-container">
       <aside class="sidebar" [class.collapsed]="!sidebarOpen">
         <div class="sidebar-header">
-          <img src="assets/sonar_logo.png" alt="Sonarworks" class="brand-logo">
+          <img src="assets/sonar_logo.png" alt="Sonar" class="brand-logo">
         </div>
 
         <div class="user-profile">
@@ -231,7 +231,7 @@ interface ReportCategory {
             <mat-icon class="toggle-icon">{{ footerCollapsed ? 'expand_less' : 'expand_more' }}</mat-icon>
           </div>
           <div class="footer-content" [@footerExpand]="footerCollapsed ? 'collapsed' : 'expanded'">
-            <div class="developer">Developed By: Sonar Microsystems</div>
+            <div class="developer">Developed By: Acad Arch Solutions Pvt. Ltd.</div>
             <div class="copyright">v1.0.0 | &copy; {{ currentYear }} All Rights Reserved</div>
           </div>
         </div>

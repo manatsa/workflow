@@ -93,6 +93,11 @@ export const routes: Routes = [
         path: 'audit',
         loadComponent: () => import('./features/audit/audit-log/audit-log.component').then(m => m.AuditLogComponent)
       },
+      // SQL Objects
+      {
+        path: 'sql-objects',
+        loadComponent: () => import('./features/sql-objects/sql-objects.component').then(m => m.SqlObjectsComponent)
+      },
       // Workflows
       {
         path: 'workflows',

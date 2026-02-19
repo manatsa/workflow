@@ -168,4 +168,9 @@ public class WorkflowController {
         WorkflowDTO imported = workflowService.importWorkflow(file);
         return ResponseEntity.ok(ApiResponse.success("Workflow imported successfully", imported));
     }
+
+    @GetMapping("/{id}/children")
+    public ResponseEntity<ApiResponse<List<ChildWorkflowDTO>>> getChildWorkflows(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(workflowService.getChildWorkflows(id)));
+    }
 }

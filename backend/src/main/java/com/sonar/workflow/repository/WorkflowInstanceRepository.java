@@ -66,4 +66,7 @@ public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstan
             "(LOWER(i.referenceNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(i.title) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<WorkflowInstance> searchInstances(@Param("search") String search, Pageable pageable);
+
+    @Query("SELECT i FROM WorkflowInstance i WHERE i.parentInstance.id = :parentInstanceId AND i.isActive = true ORDER BY i.createdAt ASC")
+    List<WorkflowInstance> findChildInstances(@Param("parentInstanceId") UUID parentInstanceId);
 }

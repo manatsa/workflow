@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Screen Completed</title>
+    <title>Workflow Stage Completed</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f0f2f5; }
         .container { max-width: 650px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -33,12 +33,12 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Screen Completed</h1>
+            <h1>Workflow Stage Completed</h1>
             <p th:text="${workflowName}">Workflow Name</p>
         </div>
         <div class="content">
             <p class="greeting">Hello,</p>
-            <p>A screen has been completed in a workflow submission. Please review the details below.</p>
+            <p th:text="${notificationMessage}">A workflow stage has been completed. Please review the details below.</p>
 
             <div class="info-box">
                 <p><strong>Workflow:</strong> <span th:text="${workflowName}">Workflow Name</span></p>
@@ -52,6 +52,16 @@
                     <strong th:text="${field.label} + ':'">Field:</strong>
                     <span th:text="${field.value}">Value</span>
                 </div>
+            </div>
+
+            <div th:if="${reviewLink != null}" style="text-align: center; margin: 25px 0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                    <tr>
+                        <td style="background-color: #1976d2; border-radius: 6px;">
+                            <a th:href="${reviewLink}" style="display: inline-block; padding: 12px 28px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px;">Click to Review</a>
+                        </td>
+                    </tr>
+                </table>
             </div>
 
             <div class="divider"></div>

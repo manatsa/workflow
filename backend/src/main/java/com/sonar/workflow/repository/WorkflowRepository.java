@@ -40,4 +40,7 @@ public interface WorkflowRepository extends JpaRepository<Workflow, UUID> {
             "(LOWER(w.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(w.description) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Workflow> searchWorkflows(@Param("search") String search, Pageable pageable);
+
+    @Query("SELECT w FROM Workflow w WHERE w.parentWorkflow.id = :parentId AND w.isActive = true ORDER BY w.displayOrder ASC")
+    List<Workflow> findChildWorkflows(@Param("parentId") UUID parentId);
 }

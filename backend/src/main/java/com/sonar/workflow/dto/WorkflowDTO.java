@@ -40,11 +40,16 @@ public class WorkflowDTO {
     private Boolean commentsMandatoryOnEscalate;
     private Boolean showSummary;
     private Workflow.WorkflowCategory workflowCategory;
+    private UUID parentWorkflowId;
+    private String parentWorkflowName;
+    private List<ChildWorkflowDTO> childWorkflows;
     private List<WorkflowFormDTO> forms;
     private List<WorkflowApproverDTO> approvers;
     private Set<UUID> corporateIds;
     private Set<UUID> sbuIds;
     private Set<UUID> branchIds;
     private Set<UUID> departmentIds;
+    private Set<UUID> roleIds;
+    private Set<UUID> privilegeIds;
     private String createdBy;
 }

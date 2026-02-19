@@ -2387,7 +2387,7 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
       'Use for audit fields',
       'Use CURRENT_USER_ID() for system references'
     ],
-    relatedFunctions: ['CURRENT_USER_EMAIL', 'CURRENT_USER_ID', 'CURRENT_USER_DEPT']
+    relatedFunctions: ['CURRENT_USER_EMAIL', 'CURRENT_USER_ID', 'CURRENT_USER_DEPT', 'CURRENT_USER_ROLES', 'CURRENT_USER_PRIVILEGES']
   },
 
   'CURRENT_USER_EMAIL': {
@@ -2400,7 +2400,7 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
     examples: [
       { usage: 'CURRENT_USER_EMAIL()', result: '"john.doe@company.com"', description: 'Current user\'s email' }
     ],
-    relatedFunctions: ['CURRENT_USER', 'CURRENT_USER_ID']
+    relatedFunctions: ['CURRENT_USER', 'CURRENT_USER_ID', 'CURRENT_USER_ROLES', 'CURRENT_USER_PRIVILEGES']
   },
 
   'UUID': {
@@ -2581,6 +2581,46 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
       { usage: 'DEFAULT(@{sbu}, CURRENT_USER_SBU())', result: 'Auto-fill SBU', description: 'Default to user SBU' }
     ],
     relatedFunctions: ['CURRENT_USER', 'CURRENT_USER_DEPT', 'CURRENT_USER_ID']
+  },
+
+  'CURRENT_USER_ROLES': {
+    name: 'CURRENT_USER_ROLES',
+    syntax: 'CURRENT_USER_ROLES()',
+    category: 'Utility',
+    description: 'Get current user roles',
+    explanation: 'The CURRENT_USER_ROLES function returns an array of role names assigned to the currently logged-in user.',
+    parameters: [],
+    examples: [
+      { usage: 'CURRENT_USER_ROLES()', result: '["ROLE_ADMIN", "ROLE_MANAGER"]', description: 'List of user roles' },
+      { usage: 'CONTAINS(CURRENT_USER_ROLES(), "ROLE_ADMIN")', result: 'true/false', description: 'Check if user has admin role' },
+      { usage: 'JOIN(CURRENT_USER_ROLES(), ", ")', result: '"ROLE_ADMIN, ROLE_MANAGER"', description: 'Roles as comma-separated string' }
+    ],
+    tips: [
+      'Use with CONTAINS() to check for specific roles',
+      'Returns an array of role names',
+      'Use for role-based visibility expressions'
+    ],
+    relatedFunctions: ['CURRENT_USER', 'CURRENT_USER_PRIVILEGES', 'CONTAINS']
+  },
+
+  'CURRENT_USER_PRIVILEGES': {
+    name: 'CURRENT_USER_PRIVILEGES',
+    syntax: 'CURRENT_USER_PRIVILEGES()',
+    category: 'Utility',
+    description: 'Get current user privileges',
+    explanation: 'The CURRENT_USER_PRIVILEGES function returns an array of privilege names assigned to the currently logged-in user through their roles.',
+    parameters: [],
+    examples: [
+      { usage: 'CURRENT_USER_PRIVILEGES()', result: '["CREATE_WORKFLOW", "APPROVE_REQUESTS"]', description: 'List of user privileges' },
+      { usage: 'CONTAINS(CURRENT_USER_PRIVILEGES(), "APPROVE_REQUESTS")', result: 'true/false', description: 'Check if user has approval privilege' },
+      { usage: 'JOIN(CURRENT_USER_PRIVILEGES(), ", ")', result: '"CREATE_WORKFLOW, APPROVE_REQUESTS"', description: 'Privileges as comma-separated string' }
+    ],
+    tips: [
+      'Use with CONTAINS() to check for specific privileges',
+      'Returns an array of privilege names from all assigned roles',
+      'Use for privilege-based visibility expressions'
+    ],
+    relatedFunctions: ['CURRENT_USER', 'CURRENT_USER_ROLES', 'CONTAINS']
   },
 
   'FIELD_VALUE': {
@@ -2974,6 +3014,439 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
       'Missing variables are replaced with empty string'
     ],
     relatedFunctions: ['CONCAT', 'REPLACE']
+  },
+
+  // ==================== TABLE FUNCTIONS ====================
+  'ROW': {
+    name: 'ROW',
+    syntax: 'ROW()',
+    category: 'Table',
+    description: 'Get current table row number',
+    explanation: 'The ROW function returns the current row number (1-based) when used within a TABLE field context. This is useful for generating sequential line numbers or row identifiers in table columns.',
+    examples: [
+      { usage: 'ROW()', result: '1', description: 'Returns 1 for first row' },
+      { usage: 'ROW()', result: '2', description: 'Returns 2 for second row' },
+      { usage: 'CONCAT("Item-", ROW())', result: '"Item-1"', description: 'Generate row identifier' },
+      { usage: 'ROW() * @{unitPrice}', result: 'Row-based calculation', description: 'Use in calculations' }
+    ],
+    tips: [
+      'Row numbers are 1-based (first row is 1)',
+      'Use as default value in a table column to auto-generate row numbers',
+      'Can be combined with other functions like CONCAT() or PAD_LEFT()',
+      'Only works within TABLE field context'
+    ],
+    troubleshooting: [
+      'Returns empty if used outside of a TABLE field',
+      'Row numbers update automatically when rows are added/removed'
+    ],
+    relatedFunctions: ['ROW_COUNT', 'GET_ROW', 'GET_CELL']
+  },
+
+  'ROW_COUNT': {
+    name: 'ROW_COUNT',
+    syntax: 'ROW_COUNT(tableName)',
+    category: 'Table',
+    description: 'Get total number of rows in a table',
+    explanation: 'Returns the total number of rows currently in the specified TABLE field. Useful for validations, calculations, and conditional logic based on table size.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true }
+    ],
+    examples: [
+      { usage: 'ROW_COUNT(@{orderItems})', result: '5', description: 'Table has 5 rows' },
+      { usage: 'ROW_COUNT(@{lineItems}) > 0', result: 'true', description: 'Check if table has data' },
+      { usage: 'IF(ROW_COUNT(@{items}) == 0, "No items", "Has items")', result: '"Has items"', description: 'Conditional message' }
+    ],
+    tips: [
+      'Use to validate minimum/maximum row requirements',
+      'Combine with IF() for conditional logic',
+      'Returns 0 for empty tables'
+    ],
+    relatedFunctions: ['ROW', 'COLUMN_COUNT', 'GET_ROW']
+  },
+
+  'COLUMN_COUNT': {
+    name: 'COLUMN_COUNT',
+    syntax: 'COLUMN_COUNT(tableName)',
+    category: 'Table',
+    description: 'Get total number of columns in a table',
+    explanation: 'Returns the total number of columns defined in the specified TABLE field.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true }
+    ],
+    examples: [
+      { usage: 'COLUMN_COUNT(@{orderItems})', result: '4', description: 'Table has 4 columns' }
+    ],
+    tips: [
+      'Useful for dynamic table processing',
+      'Count is based on table definition, not data'
+    ],
+    relatedFunctions: ['ROW_COUNT', 'GET_COLUMN']
+  },
+
+  'GET_CELL': {
+    name: 'GET_CELL',
+    syntax: 'GET_CELL(tableName, rowIndex, columnName)',
+    category: 'Table',
+    description: 'Get value of a specific cell',
+    explanation: 'Retrieves the value from a specific cell in a TABLE field, identified by row index (1-based) and column name.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'rowIndex', type: 'number', description: 'Row number (1-based)', required: true },
+      { name: 'columnName', type: 'string', description: 'Name of the column', required: true }
+    ],
+    examples: [
+      { usage: 'GET_CELL(@{orderItems}, 1, "quantity")', result: '"10"', description: 'Get quantity from first row' },
+      { usage: 'GET_CELL(@{items}, ROW(), "price")', result: '"99.99"', description: 'Get price from current row' },
+      { usage: 'SUM(GET_CELL(@{items}, 1, "amount"), GET_CELL(@{items}, 2, "amount"))', result: '250', description: 'Sum specific cells' }
+    ],
+    tips: [
+      'Row index is 1-based (first row is 1)',
+      'Returns empty string if cell does not exist',
+      'Use ROW() to reference current row dynamically'
+    ],
+    troubleshooting: [
+      'Check that column name matches exactly (case-sensitive)',
+      'Verify row index is within valid range'
+    ],
+    relatedFunctions: ['SET_CELL', 'GET_ROW', 'GET_COLUMN']
+  },
+
+  'SET_CELL': {
+    name: 'SET_CELL',
+    syntax: 'SET_CELL(tableName, rowIndex, columnName, value)',
+    category: 'Table',
+    description: 'Set value of a specific cell',
+    explanation: 'Sets the value of a specific cell in a TABLE field. Use this in calculated fields or event handlers to programmatically update table data.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'rowIndex', type: 'number', description: 'Row number (1-based)', required: true },
+      { name: 'columnName', type: 'string', description: 'Name of the column', required: true },
+      { name: 'value', type: 'any', description: 'Value to set', required: true }
+    ],
+    examples: [
+      { usage: 'SET_CELL(@{orderItems}, 1, "status", "Approved")', result: 'Sets status to Approved', description: 'Set text value' },
+      { usage: 'SET_CELL(@{items}, ROW(), "total", @{qty} * @{price})', result: 'Calculates total', description: 'Set calculated value' }
+    ],
+    tips: [
+      'Use in calculated field expressions',
+      'Changes are applied immediately',
+      'Combine with GET_CELL for copy operations'
+    ],
+    relatedFunctions: ['GET_CELL', 'SET_ROW', 'CLEAR_ROW']
+  },
+
+  'GET_ROW': {
+    name: 'GET_ROW',
+    syntax: 'GET_ROW(tableName, rowIndex)',
+    category: 'Table',
+    description: 'Get entire row as JSON string',
+    explanation: 'Retrieves all values from a specific row in a TABLE field, returned as a JSON string containing column name-value pairs.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'rowIndex', type: 'number', description: 'Row number (1-based)', required: true }
+    ],
+    examples: [
+      { usage: 'GET_ROW(@{orderItems}, 1)', result: '{"item":"Widget","qty":"10","price":"9.99"}', description: 'Get first row as JSON' },
+      { usage: 'GET_ROW(@{items}, ROW_COUNT(@{items}))', result: 'Gets last row', description: 'Get the last row' }
+    ],
+    tips: [
+      'Returns JSON string representation of the row',
+      'Use JSON functions to parse if needed',
+      'Empty row returns empty object {}'
+    ],
+    relatedFunctions: ['GET_CELL', 'SET_ROW', 'ROW_COUNT']
+  },
+
+  'SET_ROW': {
+    name: 'SET_ROW',
+    syntax: 'SET_ROW(tableName, rowIndex, valuesJson)',
+    category: 'Table',
+    description: 'Set entire row values from JSON',
+    explanation: 'Sets all values for a specific row in a TABLE field using a JSON object containing column name-value pairs.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'rowIndex', type: 'number', description: 'Row number (1-based)', required: true },
+      { name: 'valuesJson', type: 'string', description: 'JSON string with column values', required: true }
+    ],
+    examples: [
+      { usage: 'SET_ROW(@{items}, 1, \'{"item":"Gadget","qty":"5"}\')', result: 'Updates row 1', description: 'Set multiple values' },
+      { usage: 'SET_ROW(@{orderItems}, ROW(), \'{"status":"Complete"}\')', result: 'Updates current row', description: 'Partial row update' }
+    ],
+    tips: [
+      'Only specified columns are updated',
+      'Unspecified columns retain their values',
+      'Use valid JSON format for values'
+    ],
+    relatedFunctions: ['GET_ROW', 'SET_CELL', 'CLEAR_ROW']
+  },
+
+  'GET_COLUMN': {
+    name: 'GET_COLUMN',
+    syntax: 'GET_COLUMN(tableName, columnName)',
+    category: 'Table',
+    description: 'Get all values from a column as array',
+    explanation: 'Retrieves all values from a specific column in a TABLE field, returned as a JSON array string.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Name of the column', required: true }
+    ],
+    examples: [
+      { usage: 'GET_COLUMN(@{orderItems}, "quantity")', result: '["10","5","3"]', description: 'Get all quantities' },
+      { usage: 'GET_COLUMN(@{items}, "price")', result: '["9.99","14.99","7.50"]', description: 'Get all prices' }
+    ],
+    tips: [
+      'Returns JSON array of values',
+      'Values are returned as strings',
+      'Use SUM_COLUMN for numeric totals'
+    ],
+    relatedFunctions: ['GET_CELL', 'SUM_COLUMN', 'GET_ROW']
+  },
+
+  'SUM_COLUMN': {
+    name: 'SUM_COLUMN',
+    syntax: 'SUM_COLUMN(tableName, columnName)',
+    category: 'Table',
+    description: 'Sum all numeric values in a column',
+    explanation: 'Calculates the sum of all numeric values in a specified column of a TABLE field. Non-numeric values are ignored.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Name of the numeric column', required: true }
+    ],
+    examples: [
+      { usage: 'SUM_COLUMN(@{orderItems}, "amount")', result: '1250.50', description: 'Total of amount column' },
+      { usage: 'SUM_COLUMN(@{items}, "quantity")', result: '25', description: 'Sum of quantities' }
+    ],
+    tips: [
+      'Use for calculating totals in order/invoice tables',
+      'Non-numeric values are treated as 0',
+      'Returns 0 for empty tables'
+    ],
+    relatedFunctions: ['AVG_COLUMN', 'MIN_COLUMN', 'MAX_COLUMN', 'COUNT_COLUMN']
+  },
+
+  'AVG_COLUMN': {
+    name: 'AVG_COLUMN',
+    syntax: 'AVG_COLUMN(tableName, columnName)',
+    category: 'Table',
+    description: 'Calculate average of numeric values in a column',
+    explanation: 'Calculates the arithmetic mean of all numeric values in a specified column of a TABLE field.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Name of the numeric column', required: true }
+    ],
+    examples: [
+      { usage: 'AVG_COLUMN(@{scores}, "score")', result: '85.5', description: 'Average score' },
+      { usage: 'ROUND(AVG_COLUMN(@{items}, "price"), 2)', result: '12.50', description: 'Rounded average price' }
+    ],
+    tips: [
+      'Non-numeric values are excluded from calculation',
+      'Returns 0 for empty tables',
+      'Combine with ROUND() for decimal control'
+    ],
+    relatedFunctions: ['SUM_COLUMN', 'MIN_COLUMN', 'MAX_COLUMN', 'COUNT_COLUMN']
+  },
+
+  'MIN_COLUMN': {
+    name: 'MIN_COLUMN',
+    syntax: 'MIN_COLUMN(tableName, columnName)',
+    category: 'Table',
+    description: 'Get minimum value in a column',
+    explanation: 'Returns the minimum numeric value from a specified column in a TABLE field.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Name of the column', required: true }
+    ],
+    examples: [
+      { usage: 'MIN_COLUMN(@{items}, "price")', result: '5.99', description: 'Lowest price' },
+      { usage: 'MIN_COLUMN(@{scores}, "score")', result: '65', description: 'Minimum score' }
+    ],
+    tips: [
+      'Works with numeric values',
+      'Returns empty for empty tables',
+      'Use for finding lowest values in datasets'
+    ],
+    relatedFunctions: ['MAX_COLUMN', 'AVG_COLUMN', 'SUM_COLUMN']
+  },
+
+  'MAX_COLUMN': {
+    name: 'MAX_COLUMN',
+    syntax: 'MAX_COLUMN(tableName, columnName)',
+    category: 'Table',
+    description: 'Get maximum value in a column',
+    explanation: 'Returns the maximum numeric value from a specified column in a TABLE field.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Name of the column', required: true }
+    ],
+    examples: [
+      { usage: 'MAX_COLUMN(@{items}, "price")', result: '199.99', description: 'Highest price' },
+      { usage: 'MAX_COLUMN(@{bids}, "amount")', result: '5000', description: 'Maximum bid' }
+    ],
+    tips: [
+      'Works with numeric values',
+      'Returns empty for empty tables',
+      'Use for finding highest values in datasets'
+    ],
+    relatedFunctions: ['MIN_COLUMN', 'AVG_COLUMN', 'SUM_COLUMN']
+  },
+
+  'COUNT_COLUMN': {
+    name: 'COUNT_COLUMN',
+    syntax: 'COUNT_COLUMN(tableName, columnName)',
+    category: 'Table',
+    description: 'Count non-empty values in a column',
+    explanation: 'Counts the number of non-empty, non-null values in a specified column of a TABLE field.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Name of the column', required: true }
+    ],
+    examples: [
+      { usage: 'COUNT_COLUMN(@{items}, "notes")', result: '3', description: '3 items have notes' },
+      { usage: 'COUNT_COLUMN(@{contacts}, "email")', result: '10', description: '10 contacts have email' }
+    ],
+    tips: [
+      'Only counts non-empty values',
+      'Use ROW_COUNT() if you need total rows regardless of empty values',
+      'Useful for validating required data'
+    ],
+    relatedFunctions: ['ROW_COUNT', 'SUM_COLUMN', 'AVG_COLUMN']
+  },
+
+  'FIND_ROW': {
+    name: 'FIND_ROW',
+    syntax: 'FIND_ROW(tableName, columnName, searchValue)',
+    category: 'Table',
+    description: 'Find row index where column matches value',
+    explanation: 'Searches a TABLE field column for a specific value and returns the 1-based row index of the first match. Returns 0 if not found.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Name of the column to search', required: true },
+      { name: 'searchValue', type: 'string', description: 'Value to search for', required: true }
+    ],
+    examples: [
+      { usage: 'FIND_ROW(@{items}, "sku", "ABC123")', result: '3', description: 'Found in row 3' },
+      { usage: 'FIND_ROW(@{users}, "email", "john@example.com")', result: '1', description: 'Found in first row' },
+      { usage: 'IF(FIND_ROW(@{items}, "name", "Widget") > 0, "Found", "Not found")', result: '"Found"', description: 'Check if exists' }
+    ],
+    tips: [
+      'Returns 1-based row index',
+      'Returns 0 if value not found',
+      'Search is case-sensitive',
+      'Only returns first match'
+    ],
+    relatedFunctions: ['GET_CELL', 'GET_ROW', 'ROW_COUNT']
+  },
+
+  'CLEAR_ROW': {
+    name: 'CLEAR_ROW',
+    syntax: 'CLEAR_ROW(tableName, rowIndex)',
+    category: 'Table',
+    description: 'Clear all values in a specific row',
+    explanation: 'Clears all cell values in a specific row of a TABLE field, setting them to empty strings. The row remains but all data is removed.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'rowIndex', type: 'number', description: 'Row number to clear (1-based)', required: true }
+    ],
+    examples: [
+      { usage: 'CLEAR_ROW(@{items}, 1)', result: 'Clears first row', description: 'Clear first row' },
+      { usage: 'CLEAR_ROW(@{entries}, ROW_COUNT(@{entries}))', result: 'Clears last row', description: 'Clear last row' }
+    ],
+    tips: [
+      'Row remains in table, only values are cleared',
+      'Use for reset functionality',
+      'Does not delete the row, use DELETE_ROW for that'
+    ],
+    relatedFunctions: ['SET_ROW', 'DELETE_ROW', 'GET_ROW']
+  },
+
+  'DELETE_ROW': {
+    name: 'DELETE_ROW',
+    syntax: 'DELETE_ROW(tableName, rowIndex)',
+    category: 'Table',
+    description: 'Delete a row from the table',
+    explanation: 'Removes a specific row from a TABLE field entirely. Row indices of subsequent rows are adjusted automatically.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'rowIndex', type: 'number', description: 'Row number to delete (1-based)', required: true }
+    ],
+    examples: [
+      { usage: 'DELETE_ROW(@{items}, 1)', result: 'Deletes first row', description: 'Delete first row' },
+      { usage: 'DELETE_ROW(@{entries}, ROW_COUNT(@{entries}))', result: 'Deletes last row', description: 'Delete last row' }
+    ],
+    tips: [
+      'Row indices shift after deletion',
+      'Use with caution in loops',
+      'Cannot be undone'
+    ],
+    troubleshooting: [
+      'If deleting multiple rows, delete from bottom to top to avoid index shifting issues'
+    ],
+    relatedFunctions: ['CLEAR_ROW', 'ADD_ROW', 'ROW_COUNT']
+  },
+
+  'ADD_ROW': {
+    name: 'ADD_ROW',
+    syntax: 'ADD_ROW(tableName, valuesJson?)',
+    category: 'Table',
+    description: 'Add a new row to the table',
+    explanation: 'Adds a new row to a TABLE field. Optionally accepts a JSON object to pre-populate the new row with values.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'valuesJson', type: 'string', description: 'Optional JSON string with initial values', required: false }
+    ],
+    examples: [
+      { usage: 'ADD_ROW(@{items})', result: 'Adds empty row', description: 'Add empty row' },
+      { usage: 'ADD_ROW(@{items}, \'{"item":"New Item","qty":"1"}\')', result: 'Adds populated row', description: 'Add row with values' }
+    ],
+    tips: [
+      'New row is added at the end of the table',
+      'Default values from column definitions are applied',
+      'Partial values JSON will only set specified columns'
+    ],
+    relatedFunctions: ['DELETE_ROW', 'SET_ROW', 'ROW_COUNT']
+  },
+
+  'TABLE_JSON': {
+    name: 'TABLE_JSON',
+    syntax: 'TABLE_JSON(tableName)',
+    category: 'Table',
+    description: 'Get entire table data as JSON array',
+    explanation: 'Returns the complete table data as a JSON array string, where each element is an object representing a row with column name-value pairs.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true }
+    ],
+    examples: [
+      { usage: 'TABLE_JSON(@{orderItems})', result: '[{"item":"A","qty":"5"},{"item":"B","qty":"3"}]', description: 'Full table as JSON' }
+    ],
+    tips: [
+      'Useful for exporting or processing table data',
+      'Returns valid JSON array string',
+      'Empty table returns "[]"'
+    ],
+    relatedFunctions: ['GET_ROW', 'GET_COLUMN', 'ROW_COUNT']
+  },
+
+  'COPY_ROW': {
+    name: 'COPY_ROW',
+    syntax: 'COPY_ROW(tableName, sourceRowIndex, targetRowIndex?)',
+    category: 'Table',
+    description: 'Copy row values to another row or new row',
+    explanation: 'Copies all values from a source row to a target row. If no target is specified, creates a new row with the copied values.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'sourceRowIndex', type: 'number', description: 'Source row number (1-based)', required: true },
+      { name: 'targetRowIndex', type: 'number', description: 'Target row number (1-based), or omit to add new row', required: false }
+    ],
+    examples: [
+      { usage: 'COPY_ROW(@{items}, 1)', result: 'Duplicates row 1', description: 'Duplicate first row' },
+      { usage: 'COPY_ROW(@{items}, 1, 3)', result: 'Copies row 1 to row 3', description: 'Copy to specific row' }
+    ],
+    tips: [
+      'Without target, adds new row at end',
+      'With target, overwrites existing row',
+      'Useful for duplicating line items'
+    ],
+    relatedFunctions: ['ADD_ROW', 'SET_ROW', 'GET_ROW']
   }
 };
 

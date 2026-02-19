@@ -105,15 +105,39 @@ export class ThemeService {
       }
     });
 
-    // Handle dark mode
-    if (settings['theme.dark.mode'] === 'true') {
+    // Handle dark mode - apply to body and html for proper cascade
+    const isDarkMode = settings['theme.dark.mode'] === 'true';
+    if (isDarkMode) {
       document.body.classList.add('dark-mode');
+      document.documentElement.classList.add('dark-mode');
+      // Also apply to CDK overlay container if it exists
+      const overlayContainer = document.querySelector('.cdk-overlay-container');
+      if (overlayContainer) {
+        overlayContainer.classList.add('dark-mode');
+      }
     } else {
       document.body.classList.remove('dark-mode');
+      document.documentElement.classList.remove('dark-mode');
+      // Remove from CDK overlay container if it exists
+      const overlayContainer = document.querySelector('.cdk-overlay-container');
+      if (overlayContainer) {
+        overlayContainer.classList.remove('dark-mode');
+      }
     }
   }
 
   refreshTheme(): void {
+    // Clear cache to ensure fresh settings are loaded
+    localStorage.removeItem('themeSettings');
+
+    // Reset dark mode classes immediately - they will be re-applied if needed by loadTheme
+    document.body.classList.remove('dark-mode');
+    document.documentElement.classList.remove('dark-mode');
+    const overlayContainer = document.querySelector('.cdk-overlay-container');
+    if (overlayContainer) {
+      overlayContainer.classList.remove('dark-mode');
+    }
+
     this.loadTheme();
   }
 

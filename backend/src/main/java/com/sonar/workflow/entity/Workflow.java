@@ -91,6 +91,24 @@ public class Workflow extends BaseEntity {
     @Builder.Default
     private Set<Department> departments = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "workflow_roles",
+            joinColumns = @JoinColumn(name = "workflow_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "workflow_privileges",
+            joinColumns = @JoinColumn(name = "workflow_id"),
+            inverseJoinColumns = @JoinColumn(name = "privilege_id")
+    )
+    @Builder.Default
+    private Set<Privilege> privileges = new HashSet<>();
+
     @Column(name = "comments_mandatory")
     private Boolean commentsMandatory = false;
 
@@ -106,6 +124,15 @@ public class Workflow extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "workflow_category")
     private WorkflowCategory workflowCategory = WorkflowCategory.NON_FINANCIAL;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_workflow_id")
+    private Workflow parentWorkflow;
+
+    @OneToMany(mappedBy = "parentWorkflow", fetch = FetchType.LAZY)
+    @OrderBy("displayOrder ASC")
+    @Builder.Default
+    private List<Workflow> childWorkflows = new ArrayList<>();
 
     public enum WorkflowCategory {
         FINANCIAL, NON_FINANCIAL

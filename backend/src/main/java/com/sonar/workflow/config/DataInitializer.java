@@ -48,6 +48,7 @@ public class DataInitializer implements CommandLineRunner {
         initializeSBUs();
         initializeWorkflowTypes();
         initializeSampleWorkflows();
+        seedSqlObjectData();
         log.info("Data initialization completed");
     }
 
@@ -521,6 +522,65 @@ public class DataInitializer implements CommandLineRunner {
             workflowFormRepository.save(mainForm);
 
             log.info("Created sample workflow: {}", name);
+        }
+    }
+
+    private void seedSqlObjectData() {
+        try {
+            // Fix Currencies SQL Object labelColumn if empty, and seed data if table is empty
+            var results = entityManager.createNativeQuery(
+                    "SELECT id, table_name, label_column FROM sql_objects WHERE LOWER(display_name) = 'currencies'")
+                    .getResultList();
+            if (!results.isEmpty()) {
+                Object[] row = (Object[]) results.get(0);
+                String labelCol = row[2] != null ? row[2].toString().trim() : "";
+                if (labelCol.isEmpty()) {
+                    entityManager.createNativeQuery(
+                            "UPDATE sql_objects SET label_column = 'description' WHERE id = ?1")
+                            .setParameter(1, row[0])
+                            .executeUpdate();
+                    log.info("Fixed Currencies SQL Object labelColumn to 'description'");
+                }
+
+                // Check if currencies table has data
+                String tableName = "sql_data_" + row[1].toString();
+                try {
+                    Long count = ((Number) entityManager.createNativeQuery(
+                            "SELECT COUNT(*) FROM " + tableName).getSingleResult()).longValue();
+                    if (count == 0) {
+                        String[][] currencies = {
+                            {"USD", "US Dollar"}, {"EUR", "Euro"}, {"GBP", "British Pound"},
+                            {"JPY", "Japanese Yen"}, {"CHF", "Swiss Franc"}, {"CAD", "Canadian Dollar"},
+                            {"AUD", "Australian Dollar"}, {"NZD", "New Zealand Dollar"},
+                            {"CNY", "Chinese Yuan"}, {"INR", "Indian Rupee"}, {"ZAR", "South African Rand"},
+                            {"BRL", "Brazilian Real"}, {"MXN", "Mexican Peso"}, {"SGD", "Singapore Dollar"},
+                            {"HKD", "Hong Kong Dollar"}, {"KRW", "South Korean Won"},
+                            {"SEK", "Swedish Krona"}, {"NOK", "Norwegian Krone"}, {"DKK", "Danish Krone"},
+                            {"AED", "UAE Dirham"}, {"SAR", "Saudi Riyal"}, {"KES", "Kenyan Shilling"},
+                            {"NGN", "Nigerian Naira"}, {"GHS", "Ghanaian Cedi"}, {"TZS", "Tanzanian Shilling"},
+                            {"UGX", "Ugandan Shilling"}, {"BWP", "Botswana Pula"}, {"MWK", "Malawian Kwacha"},
+                            {"ZMW", "Zambian Kwacha"}, {"EGP", "Egyptian Pound"}, {"MAD", "Moroccan Dirham"},
+                            {"THB", "Thai Baht"}, {"MYR", "Malaysian Ringgit"}, {"PHP", "Philippine Peso"},
+                            {"IDR", "Indonesian Rupiah"}, {"TWD", "Taiwan Dollar"}, {"PLN", "Polish Zloty"},
+                            {"CZK", "Czech Koruna"}, {"HUF", "Hungarian Forint"}, {"TRY", "Turkish Lira"},
+                            {"RUB", "Russian Ruble"}, {"ILS", "Israeli Shekel"}, {"CLP", "Chilean Peso"},
+                            {"COP", "Colombian Peso"}, {"PEN", "Peruvian Sol"}, {"ARS", "Argentine Peso"}
+                        };
+                        for (String[] c : currencies) {
+                            entityManager.createNativeQuery(
+                                    "INSERT INTO " + tableName + " (code, description) VALUES (?1, ?2)")
+                                    .setParameter(1, c[0])
+                                    .setParameter(2, c[1])
+                                    .executeUpdate();
+                        }
+                        log.info("Seeded {} currencies into {}", currencies.length, tableName);
+                    }
+                } catch (Exception e) {
+                    log.debug("Currencies table not ready yet: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.debug("SQL Object seeding skipped: {}", e.getMessage());
         }
     }
 }

@@ -93,27 +93,32 @@
                 </div>
             </div>
 
-            <!-- Action Buttons Section (shown when email approvals are enabled) -->
+            <!-- Token-based Action Buttons (when email approvals with tokens are enabled) -->
             <div th:if="${emailApprovalEnabled}" class="action-section">
-                <h3>Take Action</h3>
+                <h3>Quick Actions</h3>
                 <div class="action-buttons">
                     <a th:href="${reviewLink}" class="button button-review">Review</a>
                     <a th:href="${approveLink}" class="button button-approve">Approve</a>
                     <a th:href="${escalateLink}" class="button button-escalate">Escalate</a>
                     <a th:href="${rejectLink}" class="button button-reject">Reject</a>
                 </div>
-                <p class="note">You will be asked to log in to confirm your action.</p>
+                <p class="note">These one-click links expire after the configured token expiry period.</p>
             </div>
 
             <div class="divider"></div>
 
-            <div class="view-details">
-                <p>For full request details and documents:</p>
-                <a th:href="${approvalLink}" class="button button-view">View Full Details</a>
+            <!-- Always show action buttons linking to the web app -->
+            <div class="action-section">
+                <h3>Take Action</h3>
+                <div class="action-buttons">
+                    <a th:href="${approvalLink}" class="button button-review">Review &amp; Approve</a>
+                    <a th:href="${submissionLink}" class="button button-view">View Submission</a>
+                </div>
+                <p class="note">You will be asked to log in to take action.</p>
             </div>
 
             <div class="signature">
-                <p>Best regards,<br><strong>Sonarworks Workflow System</strong></p>
+                <p>Best regards,<br><strong>Sonar Workflow System</strong></p>
             </div>
         </div>
         <div class="footer">

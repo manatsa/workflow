@@ -36,6 +36,9 @@ public class Screen extends BaseEntity {
     @Column(name = "is_summary_screen")
     private Boolean isSummaryScreen = false;
 
+    @Column(name = "notification_message", length = 1000)
+    private String notificationMessage;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "screen_roles",

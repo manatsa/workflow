@@ -119,14 +119,15 @@ public class EmailService {
                                           String approveLink, String rejectLink, String amount,
                                           boolean emailApprovalEnabled, List<Map<String, String>> summaryFields) {
         sendApprovalRequestEmail(toEmail, approverName, workflowName, referenceNumber, initiatorName,
-                approvalLink, approveLink, rejectLink, null, null, amount, emailApprovalEnabled, summaryFields);
+                approvalLink, approveLink, rejectLink, null, null, amount, emailApprovalEnabled, summaryFields, null);
     }
 
     @Async
     public void sendApprovalRequestEmail(String toEmail, String approverName, String workflowName,
                                           String referenceNumber, String initiatorName, String approvalLink,
                                           String approveLink, String rejectLink, String escalateLink, String reviewLink,
-                                          String amount, boolean emailApprovalEnabled, List<Map<String, String>> summaryFields) {
+                                          String amount, boolean emailApprovalEnabled, List<Map<String, String>> summaryFields,
+                                          String submissionLink) {
         try {
             Context context = new Context();
             context.setVariable("approverName", approverName);
@@ -141,6 +142,7 @@ public class EmailService {
             context.setVariable("amount", amount);
             context.setVariable("emailApprovalEnabled", emailApprovalEnabled);
             context.setVariable("summaryFields", summaryFields);
+            context.setVariable("submissionLink", submissionLink);
 
             String htmlContent = templateEngine.process("approval-request-email", context);
             sendHtmlEmail(toEmail, "Approval Required: " + workflowName + " - " + referenceNumber, htmlContent);
@@ -172,7 +174,9 @@ public class EmailService {
 
     @Async
     public void sendScreenNotificationEmail(String toEmail, String workflowName, String screenTitle,
-                                             String filledByName, List<Map<String, String>> fieldValues) {
+                                             String filledByName, List<Map<String, String>> fieldValues,
+                                             String notificationMessage, String instanceId, String workflowCode,
+                                             String screenId) {
         try {
             Context context = new Context();
             context.setVariable("workflowName", workflowName);
@@ -180,8 +184,28 @@ public class EmailService {
             context.setVariable("filledByName", filledByName);
             context.setVariable("fieldValues", fieldValues);
 
+            // Custom notification message or default
+            String message = (notificationMessage != null && !notificationMessage.isBlank())
+                    ? notificationMessage
+                    : "A workflow stage has been completed. Please review the details below.";
+            context.setVariable("notificationMessage", message);
+
+            // Build review link — points to the workflow form at the specific screen
+            String reviewLink = null;
+            if (workflowCode != null && !workflowCode.isBlank()) {
+                String baseUrl = settingService.getValue("app.base.url", "http://localhost:9500");
+                String screenParam = (screenId != null && !screenId.isBlank()) ? "?screen=" + screenId : "";
+                if (instanceId != null && !instanceId.isBlank()) {
+                    reviewLink = baseUrl + "/workflows/" + workflowCode + "/edit/" + instanceId + screenParam;
+                } else {
+                    reviewLink = baseUrl + "/workflows/" + workflowCode + "/new" + screenParam;
+                }
+            }
+            context.setVariable("reviewLink", reviewLink);
+            log.info("Screen notification reviewLink={}", reviewLink);
+
             String htmlContent = templateEngine.process("screen-notification-email", context);
-            sendHtmlEmail(toEmail, "Screen Completed: " + workflowName + " - " + screenTitle, htmlContent);
+            sendHtmlEmail(toEmail, "Workflow Stage Completed: " + workflowName + " - " + screenTitle, htmlContent);
         } catch (Exception e) {
             log.error("Failed to send screen notification email to {}", toEmail, e);
         }

@@ -110,6 +110,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/password/**").permitAll()
                         .requestMatchers("/api/import-export/**").permitAll()
                         .requestMatchers("/api/email-approval/validate").permitAll()
+                        .requestMatchers("/api/users/list").authenticated()  // Allow authenticated users to list users for USER field
+                        .requestMatchers("/api/roles/list").authenticated()  // Allow authenticated users to list roles
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

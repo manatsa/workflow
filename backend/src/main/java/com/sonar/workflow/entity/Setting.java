@@ -53,6 +53,6 @@ public class Setting extends BaseEntity {
     private String options; // Comma-separated values for SELECT type
 
     public enum SettingType {
-        STRING, NUMBER, BOOLEAN, COLOR, EMAIL, URL, PASSWORD, JSON, LIST, SELECT
+        STRING, NUMBER, BOOLEAN, COLOR, EMAIL, URL, PASSWORD, JSON, LIST, SELECT, IMAGE
     }
 }

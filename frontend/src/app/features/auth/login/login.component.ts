@@ -29,7 +29,7 @@ import { AuthService } from '@core/services/auth.service';
       <mat-card class="login-card">
         <mat-card-header>
           <mat-icon mat-card-avatar>workflow</mat-icon>
-          <mat-card-title>Sonarworks Workflow</mat-card-title>
+          <mat-card-title>Sonar Workflow</mat-card-title>
           <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
         </mat-card-header>
 

@@ -94,7 +94,7 @@ export class CommandConsoleComponent implements AfterViewInit {
 
   command = '';
   output: { text: string; type: string }[] = [
-    { text: 'Sonarworks Command Console', type: 'info' },
+    { text: 'Sonar Command Console', type: 'info' },
     { text: 'Type "help" for available commands', type: 'info' },
     { text: '', type: 'output' }
   ];

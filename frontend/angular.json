@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "sonarworks-workflow": {
+    "sonar-workflow": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -18,7 +18,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/sonarworks-workflow",
+            "outputPath": "dist/sonar-workflow",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
@@ -54,10 +54,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "sonarworks-workflow:build:production"
+              "buildTarget": "sonar-workflow:build:production"
             },
             "development": {
-              "buildTarget": "sonarworks-workflow:build:development"
+              "buildTarget": "sonar-workflow:build:development"
             }
           },
           "defaultConfiguration": "development"

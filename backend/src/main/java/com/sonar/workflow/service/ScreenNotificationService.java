@@ -24,12 +24,18 @@ public class ScreenNotificationService {
     @Async
     @Transactional(readOnly = true)
     public void sendScreenNotifications(UUID screenId, String workflowName, String screenTitle,
-                                         String filledByName, List<Map<String, String>> fieldValues) {
+                                         String filledByName, List<Map<String, String>> fieldValues,
+                                         String notificationMessage, String instanceId, String workflowCode,
+                                         String submitterEmail) {
         try {
             List<ScreenNotifier> notifiers = screenNotifierRepository.findByScreenId(screenId);
             if (notifiers.isEmpty()) {
                 return;
             }
+
+            // Normalize submitter email for comparison
+            String normalizedSubmitterEmail = (submitterEmail != null && !submitterEmail.isBlank())
+                    ? submitterEmail.trim().toLowerCase() : null;
 
             // Resolve all recipient emails, deduplicating
             Set<String> recipientEmails = new LinkedHashSet<>();
@@ -66,10 +72,21 @@ public class ScreenNotificationService {
                 }
             }
 
+            // Exclude the submitter — no need to notify someone about their own action
+            if (normalizedSubmitterEmail != null && recipientEmails.remove(normalizedSubmitterEmail)) {
+                log.info("Excluded submitter {} from screen notification recipients", normalizedSubmitterEmail);
+            }
+
+            if (recipientEmails.isEmpty()) {
+                log.info("No remaining recipients after excluding submitter for screen '{}'", screenTitle);
+                return;
+            }
+
             // Send notification to each unique recipient
             for (String email : recipientEmails) {
                 try {
-                    emailService.sendScreenNotificationEmail(email, workflowName, screenTitle, filledByName, fieldValues);
+                    emailService.sendScreenNotificationEmail(email, workflowName, screenTitle, filledByName, fieldValues,
+                            notificationMessage, instanceId, workflowCode, screenId.toString());
                 } catch (Exception e) {
                     log.error("Failed to send screen notification email to {}", email, e);
                 }

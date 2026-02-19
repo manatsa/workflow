@@ -3,7 +3,8 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import {
   Workflow, WorkflowType, WorkflowForm, WorkflowField, FieldGroup,
-  WorkflowApprover, WorkflowInstance, ApprovalRequest, Attachment, ScreenNotifier
+  WorkflowApprover, WorkflowInstance, ApprovalRequest, Attachment, ScreenNotifier,
+  ChildWorkflow
 } from '../models/workflow.model';
 import { ApiResponse, PageResponse } from '../models/setting.model';
 
@@ -48,6 +49,10 @@ export class WorkflowService {
 
   deleteWorkflow(id: string): Observable<ApiResponse<void>> {
     return this.api.delete<void>(`/workflows/${id}`);
+  }
+
+  getChildWorkflows(workflowId: string): Observable<ApiResponse<ChildWorkflow[]>> {
+    return this.api.get<ChildWorkflow[]>(`/workflows/${workflowId}/children`);
   }
 
   // Forms
@@ -230,7 +235,17 @@ export class WorkflowService {
   }
 
   submitApproval(data: { instanceId: string; action: string; comments?: string }): Observable<ApiResponse<WorkflowInstance>> {
-    return this.api.post<WorkflowInstance>('/workflow-instances/approval', data);
+    const actionMap: Record<string, string> = {
+      'APPROVE': 'APPROVED',
+      'REJECT': 'REJECTED',
+      'ESCALATE': 'ESCALATED'
+    };
+    const payload = {
+      workflowInstanceId: data.instanceId,
+      action: actionMap[data.action] || data.action,
+      comments: data.comments
+    };
+    return this.api.post<WorkflowInstance>('/workflow-instances/approve', payload);
   }
 
   // Screen Notifications
@@ -239,6 +254,9 @@ export class WorkflowService {
     workflowName: string;
     screenTitle: string;
     fieldValues: { label: string; value: string }[];
+    notificationMessage?: string;
+    instanceId?: string;
+    workflowCode?: string;
   }): Observable<ApiResponse<void>> {
     return this.api.post<void>('/screen-notifications/notify', request);
   }

@@ -1,9 +1,9 @@
 #!/bin/bash
-# Sonarworks Workflow System - Start Script (Linux/Mac)
+# Sonar Workflow System - Start Script (Linux/Mac)
 # This script starts the application and logs output to console.log
 
 echo "========================================"
-echo "Sonarworks Workflow System"
+echo "Sonar Workflow System"
 echo "========================================"
 echo ""
 echo "Starting application..."

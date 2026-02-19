@@ -853,7 +853,7 @@ export class SettingsComponent implements OnInit {
   emailSettings: EmailSettings = {
     emailProtocol: EmailProtocol.SMTP,
     senderEmail: '',
-    senderName: 'Sonarworks Workflow',
+    senderName: 'Sonar Workflow',
     emailEnabled: false,
     smtpPort: 587,
     smtpSecurity: SmtpSecurity.TLS,

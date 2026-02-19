@@ -61,6 +61,15 @@ public class WorkflowInstance extends BaseEntity {
     @JoinColumn(name = "sbu_id")
     private SBU sbu;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_instance_id")
+    private WorkflowInstance parentInstance;
+
+    @OneToMany(mappedBy = "parentInstance", fetch = FetchType.LAZY)
+    @OrderBy("createdAt ASC")
+    @Builder.Default
+    private List<WorkflowInstance> childInstances = new ArrayList<>();
+
     @OneToMany(mappedBy = "workflowInstance", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<WorkflowFieldValue> fieldValues = new ArrayList<>();

@@ -25,6 +25,7 @@ public class ScreenDTO {
     private Integer displayOrder;
     private String icon;
     private Boolean isSummaryScreen;
+    private String notificationMessage;
 
     private Set<UUID> roleIds;
     private Set<UUID> privilegeIds;

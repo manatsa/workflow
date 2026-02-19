@@ -39,9 +39,18 @@ public class WorkflowInstanceDTO {
     private BigDecimal amount;
     private UUID sbuId;
     private String sbuName;
+    private UUID parentInstanceId;
+    private String parentInstanceReferenceNumber;
+    private String parentWorkflowName;
+    private String parentWorkflowCode;
+    private List<ChildInstanceDTO> childInstances;
     private Map<String, Object> fieldValues;
     private List<ApprovalHistoryDTO> approvalHistory;
     private List<AttachmentDTO> attachments;
     private LocalDateTime createdAt;
     private String createdBy;
+    private Boolean isCurrentApprover;
+    private Boolean commentsMandatory;
+    private Boolean commentsMandatoryOnReject;
+    private Boolean commentsMandatoryOnEscalate;
 }
