@@ -47,7 +47,7 @@ public class AttachmentService {
     }
 
     @Transactional
-    public AttachmentDTO uploadAttachment(UUID instanceId, MultipartFile file, String description) {
+    public AttachmentDTO uploadAttachment(UUID instanceId, MultipartFile file, String description, String fieldName) {
         WorkflowInstance instance = workflowInstanceRepository.findById(instanceId)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
 
@@ -84,6 +84,7 @@ public class AttachmentService {
                         .fileSize(file.getSize())
                         .isEncrypted(true)
                         .encryptionIv(result.iv())
+                        .fieldName(fieldName)
                         .description(description)
                         .uploadedBy(userDetails.getUsername())
                         .build();
@@ -145,6 +146,7 @@ public class AttachmentService {
                 .originalFilename(attachment.getOriginalFilename())
                 .contentType(attachment.getContentType())
                 .fileSize(attachment.getFileSize())
+                .fieldName(attachment.getFieldName())
                 .description(attachment.getDescription())
                 .uploadedBy(attachment.getUploadedBy())
                 .uploadedAt(attachment.getCreatedAt())

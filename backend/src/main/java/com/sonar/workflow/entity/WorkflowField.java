@@ -158,6 +158,9 @@ public class WorkflowField extends BaseEntity {
     @Column(name = "max_files")
     private Integer maxFiles;
 
+    @Column(name = "multiple")
+    private Boolean multiple = false;
+
     // New field type specific configurations
     @Column(name = "rating_max")
     private Integer ratingMax = 5;
@@ -171,13 +174,58 @@ public class WorkflowField extends BaseEntity {
     @Column(name = "slider_step")
     private Double sliderStep = 1.0;
 
+    // TABLE field specific configurations
+    @Column(name = "table_columns", columnDefinition = "TEXT")
+    private String tableColumns; // JSON array of column definitions: [{name, label, type, width}]
+
+    @Column(name = "table_min_rows")
+    private Integer tableMinRows = 0;
+
+    @Column(name = "table_max_rows")
+    private Integer tableMaxRows;
+
+    @Column(name = "table_striped")
+    private Boolean tableStriped = true;
+
+    @Column(name = "table_bordered")
+    private Boolean tableBordered = true;
+
+    // ACCORDION field specific configurations
+    @Column(name = "accordion_allow_multiple")
+    private Boolean accordionAllowMultiple = false;
+
+    @Column(name = "accordion_default_open_index")
+    private Integer accordionDefaultOpenIndex = 0;
+
+    @Column(name = "accordion_animation_type")
+    private String accordionAnimationType = "smooth"; // smooth, none, bounce
+
+    @Column(name = "accordion_animation_duration")
+    private Integer accordionAnimationDuration = 300; // milliseconds
+
+    // COLLAPSIBLE field specific configurations
+    @Column(name = "collapsible_title")
+    private String collapsibleTitle;
+
+    @Column(name = "collapsible_icon")
+    private String collapsibleIcon;
+
+    @Column(name = "collapsible_default_expanded")
+    private Boolean collapsibleDefaultExpanded = false;
+
+    // Parent field ID for nested fields (collapsibles belong to accordions)
+    @Column(name = "parent_field_id")
+    private UUID parentFieldId;
+
     public enum FieldType {
         TEXT, TEXTAREA, NUMBER, CURRENCY, DATE, DATETIME, CHECKBOX, CHECKBOX_GROUP, RADIO, SELECT, MULTISELECT,
         FILE, EMAIL, PHONE, URL, PASSWORD, HIDDEN, LABEL, DIVIDER, USER,
         // New field types
         TOGGLE, YES_NO, IMAGE, ICON, RATING, SIGNATURE, COLOR, RICH_TEXT, TIME, SLIDER, BARCODE, LOCATION, TABLE,
         // SQL Object field type - dynamic options from SQL Object tables
-        SQL_OBJECT
+        SQL_OBJECT,
+        // Container field types
+        ACCORDION, COLLAPSIBLE
     }
 
     // View type for SQL_OBJECT field - how to display the options

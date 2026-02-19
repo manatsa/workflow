@@ -18,6 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -112,13 +116,17 @@ public class WorkflowInstanceController {
             @RequestParam("isDraft") Boolean isDraft,
             @RequestParam(value = "comments", required = false) String comments,
             @RequestParam("fieldValues") String fieldValuesJson,
-            @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments) {
+            @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments,
+            @RequestParam(value = "parentInstanceId", required = false) UUID parentInstanceId,
+            HttpServletRequest request) {
         try {
             Map<String, Object> fieldValues = objectMapper.readValue(fieldValuesJson,
                     new TypeReference<Map<String, Object>>() {});
 
+            Map<String, List<MultipartFile>> fieldFiles = extractFieldFiles(request);
+
             WorkflowInstanceDTO instance = workflowInstanceService.createAndSubmitInstance(
-                    workflowCode, fieldValues, isDraft, comments, attachments);
+                    workflowCode, fieldValues, isDraft, comments, attachments, parentInstanceId, fieldFiles);
 
             String message = isDraft ? "Draft saved successfully" : "Submission created successfully";
             return ResponseEntity.ok(ApiResponse.success(message, instance));
@@ -136,13 +144,16 @@ public class WorkflowInstanceController {
             @RequestParam("isDraft") Boolean isDraft,
             @RequestParam(value = "comments", required = false) String comments,
             @RequestParam("fieldValues") String fieldValuesJson,
-            @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments) {
+            @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments,
+            HttpServletRequest request) {
         try {
             Map<String, Object> fieldValues = objectMapper.readValue(fieldValuesJson,
                     new TypeReference<Map<String, Object>>() {});
 
+            Map<String, List<MultipartFile>> fieldFiles = extractFieldFiles(request);
+
             WorkflowInstanceDTO instance = workflowInstanceService.updateAndSubmitInstance(
-                    id, fieldValues, isDraft, comments, attachments);
+                    id, fieldValues, isDraft, comments, attachments, fieldFiles);
 
             String message = isDraft ? "Draft updated successfully" : "Submission updated successfully";
             return ResponseEntity.ok(ApiResponse.success(message, instance));
@@ -151,6 +162,19 @@ public class WorkflowInstanceController {
         } catch (Exception e) {
             throw new RuntimeException("Failed to update submission: " + e.getMessage(), e);
         }
+    }
+
+    private Map<String, List<MultipartFile>> extractFieldFiles(HttpServletRequest request) {
+        Map<String, List<MultipartFile>> fieldFiles = new HashMap<>();
+        if (request instanceof MultipartHttpServletRequest multipartRequest) {
+            multipartRequest.getMultiFileMap().forEach((paramName, files) -> {
+                if (paramName.startsWith("files_")) {
+                    String fieldName = paramName.substring(6); // Remove "files_" prefix
+                    fieldFiles.put(fieldName, files);
+                }
+            });
+        }
+        return fieldFiles;
     }
 
     @PostMapping("/approve")
@@ -203,7 +227,7 @@ public class WorkflowInstanceController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) String description) {
         return ResponseEntity.ok(ApiResponse.success("Attachment uploaded",
-                attachmentService.uploadAttachment(instanceId, file, description)));
+                attachmentService.uploadAttachment(instanceId, file, description, null)));
     }
 
     @GetMapping("/attachments/{attachmentId}/download")

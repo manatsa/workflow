@@ -399,6 +399,12 @@ public class WorkflowService {
             workflow.setWorkflowType(type);
         }
 
+        if (dto.getParentWorkflowId() != null) {
+            Workflow parent = workflowRepository.findById(dto.getParentWorkflowId())
+                    .orElseThrow(() -> new BusinessException("Parent workflow not found"));
+            workflow.setParentWorkflow(parent);
+        }
+
         if (dto.getSbuIds() != null && !dto.getSbuIds().isEmpty()) {
             Set<SBU> sbus = new HashSet<>(sbuRepository.findAllById(dto.getSbuIds()));
             workflow.setSbus(sbus);
@@ -483,6 +489,16 @@ public class WorkflowService {
             WorkflowType type = workflowTypeRepository.findById(dto.getWorkflowTypeId())
                     .orElseThrow(() -> new BusinessException("Workflow type not found"));
             workflow.setWorkflowType(type);
+        }
+
+        // Handle parent workflow
+        if (dto.getParentWorkflowId() != null) {
+            validateNoCircularReference(id, dto.getParentWorkflowId());
+            Workflow parent = workflowRepository.findById(dto.getParentWorkflowId())
+                    .orElseThrow(() -> new BusinessException("Parent workflow not found"));
+            workflow.setParentWorkflow(parent);
+        } else {
+            workflow.setParentWorkflow(null);
         }
 
         if (dto.getSbuIds() != null) {
@@ -672,6 +688,7 @@ public class WorkflowService {
         field.setAllowedFileTypes(dto.getAllowedFileTypes());
         field.setMaxFileSize(dto.getMaxFileSize());
         field.setMaxFiles(dto.getMaxFiles());
+        field.setMultiple(dto.getMultiple() != null ? dto.getMultiple() : false);
         field.setInSummary(dto.getInSummary() != null ? dto.getInSummary() : false);
         field.setRatingMax(dto.getRatingMax() != null ? dto.getRatingMax() : 5);
         field.setSliderMin(dto.getSliderMin() != null ? dto.getSliderMin() : 0.0);
@@ -899,6 +916,7 @@ public class WorkflowService {
                     screen.setDisplayOrder(screenDto.getDisplayOrder() != null ? screenDto.getDisplayOrder() : 0);
                     screen.setIcon(screenDto.getIcon());
                     screen.setIsSummaryScreen(screenDto.getIsSummaryScreen() != null ? screenDto.getIsSummaryScreen() : false);
+                    screen.setNotificationMessage(screenDto.getNotificationMessage());
 
                     // Handle screen role restrictions
                     if (screenDto.getRoleIds() != null) {
@@ -1107,6 +1125,7 @@ public class WorkflowService {
                     field.setAllowedFileTypes(fieldDto.getAllowedFileTypes());
                     field.setMaxFileSize(fieldDto.getMaxFileSize());
                     field.setMaxFiles(fieldDto.getMaxFiles());
+                    field.setMultiple(fieldDto.getMultiple() != null ? fieldDto.getMultiple() : false);
                     field.setInSummary(fieldDto.getInSummary() != null ? fieldDto.getInSummary() : false);
                     field.setRatingMax(fieldDto.getRatingMax() != null ? fieldDto.getRatingMax() : 5);
                     field.setSliderMin(fieldDto.getSliderMin() != null ? fieldDto.getSliderMin() : 0.0);
@@ -1357,6 +1376,8 @@ public class WorkflowService {
                 .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
                 .showSummary(workflow.getShowSummary())
                 .workflowCategory(workflow.getWorkflowCategory())
+                .parentWorkflowId(workflow.getParentWorkflow() != null ? workflow.getParentWorkflow().getId() : null)
+                .parentWorkflowName(workflow.getParentWorkflow() != null ? workflow.getParentWorkflow().getName() : null)
                 .corporateIds(workflow.getCorporates().stream().map(Corporate::getId).collect(Collectors.toSet()))
                 .sbuIds(workflow.getSbus().stream().map(SBU::getId).collect(Collectors.toSet()))
                 .branchIds(workflow.getBranches().stream().map(Branch::getId).collect(Collectors.toSet()))
@@ -1371,7 +1392,55 @@ public class WorkflowService {
         WorkflowDTO dto = toDTO(workflow);
         dto.setForms(workflow.getForms().stream().map(this::toFormDTO).collect(Collectors.toList()));
         dto.setApprovers(workflow.getApprovers().stream().map(this::toApproverDTO).collect(Collectors.toList()));
+        // Load child workflows
+        List<Workflow> children = workflowRepository.findChildWorkflows(workflow.getId());
+        if (!children.isEmpty()) {
+            dto.setChildWorkflows(children.stream().map(this::toChildWorkflowDTO).collect(Collectors.toList()));
+        }
         return dto;
+    }
+
+    private ChildWorkflowDTO toChildWorkflowDTO(Workflow workflow) {
+        int screenCount = workflow.getForms() != null
+                ? workflow.getForms().stream().mapToInt(f -> f.getScreens() != null ? f.getScreens().size() : 0).sum()
+                : 0;
+        return ChildWorkflowDTO.builder()
+                .id(workflow.getId())
+                .name(workflow.getName())
+                .code(workflow.getCode())
+                .description(workflow.getDescription())
+                .icon(workflow.getIcon())
+                .isPublished(workflow.getIsPublished())
+                .isActive(workflow.getIsActive())
+                .displayOrder(workflow.getDisplayOrder())
+                .screenCount(screenCount)
+                .build();
+    }
+
+    public List<ChildWorkflowDTO> getChildWorkflows(UUID workflowId) {
+        return workflowRepository.findChildWorkflows(workflowId).stream()
+                .map(this::toChildWorkflowDTO)
+                .collect(Collectors.toList());
+    }
+
+    private void validateNoCircularReference(UUID workflowId, UUID proposedParentId) {
+        if (workflowId.equals(proposedParentId)) {
+            throw new BusinessException("A workflow cannot be its own parent");
+        }
+        // Walk the ancestor chain to detect cycles
+        UUID currentId = proposedParentId;
+        Set<UUID> visited = new HashSet<>();
+        visited.add(workflowId);
+        while (currentId != null) {
+            if (!visited.add(currentId)) {
+                throw new BusinessException("Circular parent-child reference detected");
+            }
+            Workflow current = workflowRepository.findById(currentId).orElse(null);
+            if (current == null || current.getParentWorkflow() == null) {
+                break;
+            }
+            currentId = current.getParentWorkflow().getId();
+        }
     }
 
     private WorkflowFormDTO toFormDTO(WorkflowForm form) {
@@ -1398,6 +1467,7 @@ public class WorkflowService {
                 .displayOrder(screen.getDisplayOrder())
                 .icon(screen.getIcon())
                 .isSummaryScreen(screen.getIsSummaryScreen())
+                .notificationMessage(screen.getNotificationMessage())
                 .roleIds(screen.getRoles().stream().map(Role::getId).collect(Collectors.toSet()))
                 .privilegeIds(screen.getPrivileges().stream().map(Privilege::getId).collect(Collectors.toSet()))
                 .roleNames(screen.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
@@ -1568,6 +1638,7 @@ public class WorkflowService {
                 .allowedFileTypes(field.getAllowedFileTypes())
                 .maxFileSize(field.getMaxFileSize())
                 .maxFiles(field.getMaxFiles())
+                .multiple(field.getMultiple())
                 .inSummary(field.getInSummary())
                 .ratingMax(field.getRatingMax())
                 .sliderMin(field.getSliderMin())

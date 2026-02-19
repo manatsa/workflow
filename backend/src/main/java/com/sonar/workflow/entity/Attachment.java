@@ -37,6 +37,9 @@ public class Attachment extends BaseEntity {
     @Column(name = "encryption_iv")
     private String encryptionIv;
 
+    @Column(name = "field_name")
+    private String fieldName;
+
     @Column
     private String description;
 

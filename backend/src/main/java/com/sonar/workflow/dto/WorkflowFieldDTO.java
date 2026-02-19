@@ -103,10 +103,33 @@ public class WorkflowFieldDTO {
     private String allowedFileTypes;
     private Long maxFileSize;
     private Integer maxFiles;
+    private Boolean multiple;
 
     // New field type specific configurations
     private Integer ratingMax;
     private Double sliderMin;
     private Double sliderMax;
     private Double sliderStep;
+
+    // TABLE field specific configurations
+    private String tableColumns; // JSON array of column definitions
+    private Integer tableMinRows;
+    private Integer tableMaxRows;
+    private Boolean tableStriped;
+    private Boolean tableBordered;
+
+    // ACCORDION field specific configurations
+    private Boolean accordionAllowMultiple;
+    private Integer accordionDefaultOpenIndex;
+    private String accordionAnimationType;
+    private Integer accordionAnimationDuration;
+
+    // COLLAPSIBLE field specific configurations
+    private String collapsibleTitle;
+    private String collapsibleIcon;
+    private Boolean collapsibleDefaultExpanded;
+
+    // Parent field ID for nested fields (collapsibles belong to accordions)
+    // String type to support both temp IDs (e.g., "temp_xxx") and real UUIDs
+    private String parentFieldId;
 }

@@ -74,6 +74,12 @@ import { User } from '@core/models/user.model';
           <p>Loading form...</p>
         </div>
       } @else if (workflow) {
+        @if (parentInstanceId) {
+          <div class="parent-banner">
+            <mat-icon>subdirectory_arrow_right</mat-icon>
+            <span>This is a sub-submission. It will be linked to the parent submission.</span>
+          </div>
+        }
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
           <!-- Multi-Step Progress Indicator -->
           @if (isMultiStep) {
@@ -128,7 +134,26 @@ import { User } from '@core/models/user.model';
                       <tr>
                         <td class="screen-col">{{ getFieldScreenName(field) }}</td>
                         <td class="label-col">{{ field.label }}</td>
-                        <td class="value-col">{{ getFieldDisplayValue(field) }}</td>
+                        <td class="value-col">
+                          @if ((field.type || field.fieldType) === 'FILE' && (getExistingAttachments(field.name).length > 0 || getSelectedFiles(field.name).length > 0)) {
+                            <div class="summary-file-list">
+                              @for (att of getExistingAttachments(field.name); track att.id) {
+                                <mat-chip>
+                                  <mat-icon matChipAvatar>description</mat-icon>
+                                  {{ att.name }}
+                                </mat-chip>
+                              }
+                              @for (file of getSelectedFiles(field.name); track $index) {
+                                <mat-chip>
+                                  <mat-icon matChipAvatar>description</mat-icon>
+                                  {{ file.name }}
+                                </mat-chip>
+                              }
+                            </div>
+                          } @else {
+                            {{ getFieldDisplayValue(field) }}
+                          }
+                        </td>
                       </tr>
                     }
                   </tbody>
@@ -330,11 +355,24 @@ import { User } from '@core/models/user.model';
                         @case ('FILE') {
                           <div class="file-field" [class.has-error]="hasFieldError(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            <input type="file" (change)="onFileSelect($event, field.name)" [multiple]="field.multiple" [disabled]="isFieldReadonly(field)">
-                            @if (selectedFiles[field.name] && selectedFiles[field.name].length > 0) {
+                            <input type="file" (change)="onFileSelect($event, field.name)" [multiple]="field.multiple" [accept]="field.allowedFileTypes || ''" [disabled]="isFieldReadonly(field)">
+                            @if (getFileHint(field)) {
+                              <div class="file-hint">{{ getFileHint(field) }}</div>
+                            }
+                            @if (getExistingAttachments(field.name).length > 0 || getSelectedFiles(field.name).length > 0) {
                               <div class="file-list">
-                                @for (file of selectedFiles[field.name]; track file.name) {
-                                  <mat-chip>{{ file.name }}</mat-chip>
+                                @for (att of getExistingAttachments(field.name); track att.id) {
+                                  <mat-chip (removed)="removeExistingAttachment(field.name, att.id)">
+                                    <mat-icon matChipAvatar>description</mat-icon>
+                                    {{ att.name }}
+                                    <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                                  </mat-chip>
+                                }
+                                @for (file of getSelectedFiles(field.name); track $index) {
+                                  <mat-chip (removed)="removeFile(field.name, $index)">
+                                    {{ file.name }}
+                                    <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                                  </mat-chip>
                                 }
                               </div>
                             }
@@ -1202,7 +1240,27 @@ import { User } from '@core/models/user.model';
                         @case ('FILE') {
                           <div class="file-field" [class.has-error]="hasFieldError(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            <input type="file" (change)="onFileSelect($event, field.name)" [multiple]="field.multiple" [disabled]="isFieldReadonly(field)">
+                            <input type="file" (change)="onFileSelect($event, field.name)" [multiple]="field.multiple" [accept]="field.allowedFileTypes || ''" [disabled]="isFieldReadonly(field)">
+                            @if (getFileHint(field)) {
+                              <div class="file-hint">{{ getFileHint(field) }}</div>
+                            }
+                            @if (getExistingAttachments(field.name).length > 0 || getSelectedFiles(field.name).length > 0) {
+                              <div class="file-list">
+                                @for (att of getExistingAttachments(field.name); track att.id) {
+                                  <mat-chip (removed)="removeExistingAttachment(field.name, att.id)">
+                                    <mat-icon matChipAvatar>description</mat-icon>
+                                    {{ att.name }}
+                                    <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                                  </mat-chip>
+                                }
+                                @for (file of getSelectedFiles(field.name); track $index) {
+                                  <mat-chip (removed)="removeFile(field.name, $index)">
+                                    {{ file.name }}
+                                    <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                                  </mat-chip>
+                                }
+                              </div>
+                            }
                             @if (hasFieldError(field)) {
                               <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
                             }
@@ -1914,7 +1972,26 @@ import { User } from '@core/models/user.model';
                           <td class="screen-col">{{ getFieldScreenName(field) }}</td>
                         }
                         <td class="label-col">{{ field.label }}</td>
-                        <td class="value-col">{{ getFieldDisplayValue(field) }}</td>
+                        <td class="value-col">
+                          @if ((field.type || field.fieldType) === 'FILE' && (getExistingAttachments(field.name).length > 0 || getSelectedFiles(field.name).length > 0)) {
+                            <div class="summary-file-list">
+                              @for (att of getExistingAttachments(field.name); track att.id) {
+                                <mat-chip>
+                                  <mat-icon matChipAvatar>description</mat-icon>
+                                  {{ att.name }}
+                                </mat-chip>
+                              }
+                              @for (file of getSelectedFiles(field.name); track $index) {
+                                <mat-chip>
+                                  <mat-icon matChipAvatar>description</mat-icon>
+                                  {{ file.name }}
+                                </mat-chip>
+                              }
+                            </div>
+                          } @else {
+                            {{ getFieldDisplayValue(field) }}
+                          }
+                        </td>
                       </tr>
                     }
                   </tbody>
@@ -1992,6 +2069,19 @@ import { User } from '@core/models/user.model';
       padding: 1rem;
       max-width: 1000px;
       margin: 0 auto;
+    }
+
+    .parent-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      background: #e3f2fd;
+      border: 1px solid #90caf9;
+      border-radius: 8px;
+      color: #1565c0;
+      font-size: 0.9rem;
     }
 
     .header {
@@ -2580,6 +2670,12 @@ import { User } from '@core/models/user.model';
       margin-top: 0.5rem;
     }
 
+    .file-hint {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 0.25rem;
+    }
+
     .attachment-area {
       padding: 1rem;
       border: 2px dashed #ddd;
@@ -2671,6 +2767,12 @@ import { User } from '@core/models/user.model';
       font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+
+    .summary-file-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .summary-table tbody tr:hover {
@@ -3290,8 +3392,11 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   screens: Screen[] = [];
   currentScreenIndex = 0;
   selectedFiles: Record<string, File[]> = {};
+  existingAttachments: Record<string, any[]> = {}; // Already-uploaded attachments by field name
+  existingGeneralAttachments: any[] = []; // Already-uploaded general attachments (no field name)
   attachments: File[] = [];
   instanceId: string | null = null;
+  parentInstanceId: string | null = null;
   isEditMode = false;
   existingFieldValues: Record<string, any> = {};
   checkboxGroupValues: Record<string, string[]> = {};
@@ -3322,6 +3427,10 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   // Accordion expansion state: accordionFieldId -> array of expanded collapsible indices
   accordionExpandedState: Record<string, Set<number>> = {};
 
+  // Per-screen draft saving
+  private hasScreenNotifiers = false;
+  private draftInstanceId: string | null = null;
+
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
@@ -3336,6 +3445,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.workflowCode = this.route.snapshot.paramMap.get('workflowCode') || '';
     this.instanceId = this.route.snapshot.paramMap.get('instanceId') || null;
+    this.parentInstanceId = this.route.snapshot.queryParamMap.get('parentInstanceId') || null;
     this.isEditMode = !!this.instanceId;
     this.loadWorkflow();
     this.loadUsers();
@@ -3368,13 +3478,17 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   }
 
   loadInstance() {
+    console.log('[DEBUG loadInstance] Loading instance:', this.instanceId, 'isEditMode:', this.isEditMode);
     this.workflowService.getInstance(this.instanceId!).subscribe({
       next: (res) => {
+        console.log('[DEBUG loadInstance] API response:', JSON.stringify(res, null, 2).substring(0, 2000));
         if (res.success && res.data) {
           // Extract field values from instance
           // fieldValues is returned as an object/map from the backend, not an array
           if (res.data.fieldValues) {
             const fieldValues = res.data.fieldValues as any;
+            console.log('[DEBUG loadInstance] fieldValues type:', typeof fieldValues, 'isArray:', Array.isArray(fieldValues));
+            console.log('[DEBUG loadInstance] fieldValues:', JSON.stringify(fieldValues));
             if (Array.isArray(fieldValues)) {
               // Handle legacy array format
               fieldValues.forEach((fv: any) => {
@@ -3386,7 +3500,27 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
                 this.existingFieldValues[fieldName] = fieldValues[fieldName];
               });
             }
+          } else {
+            console.log('[DEBUG loadInstance] NO fieldValues in response data');
           }
+          console.log('[DEBUG loadInstance] existingFieldValues after extraction:', JSON.stringify(this.existingFieldValues));
+
+          // Load existing attachments and group by field name
+          if (res.data.attachments && res.data.attachments.length > 0) {
+            res.data.attachments.forEach((att: any) => {
+              const a = { id: att.id, name: att.originalFileName || att.originalFilename, size: att.fileSize, fieldName: att.fieldName };
+              if (att.fieldName) {
+                if (!this.existingAttachments[att.fieldName]) {
+                  this.existingAttachments[att.fieldName] = [];
+                }
+                this.existingAttachments[att.fieldName].push(a);
+              } else {
+                this.existingGeneralAttachments.push(a);
+              }
+            });
+          }
+        } else {
+          console.log('[DEBUG loadInstance] Response not successful or no data. success:', res.success, 'data:', !!res.data);
         }
         // Always initialize form after loading instance (workflow should already be loaded)
         this.loading = false;
@@ -3400,6 +3534,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   }
 
   initializeForm() {
+    console.log('[DEBUG initializeForm] Called. isEditMode:', this.isEditMode, 'existingFieldValues:', JSON.stringify(this.existingFieldValues));
     if (!this.workflow?.forms?.[0]) {
       console.warn('No workflow forms found for initialization');
       return;
@@ -3507,6 +3642,16 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     const allScreens = (mainForm.screens || []).sort((a: Screen, b: Screen) => (a.displayOrder || 0) - (b.displayOrder || 0));
     this.screens = allScreens.filter(screen => this.hasScreenAccess(screen));
     this.currentScreenIndex = 0;
+    this.hasScreenNotifiers = this.screens.some(s => s.notifiers && s.notifiers.length > 0);
+
+    // Navigate to a specific screen if ?screen=screenId is in the URL
+    const targetScreenId = this.route.snapshot.queryParamMap.get('screen');
+    if (targetScreenId) {
+      const idx = this.screens.findIndex(s => s.id === targetScreenId);
+      if (idx >= 0) {
+        this.currentScreenIndex = idx;
+      }
+    }
 
     // Get all field names for dependency tracking
     const allFieldNames = new Set(this.fields.map(f => f.name));
@@ -3528,6 +3673,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       // Use existing value if in edit mode
       if (this.isEditMode && this.existingFieldValues[field.name] !== undefined) {
         defaultValue = this.existingFieldValues[field.name];
+        console.log(`[DEBUG initializeForm] EDIT MODE - field "${field.name}" (type: ${field.type}) = "${defaultValue}"`);
 
         // Type-specific conversions for existing values
         if (field.type === 'CHECKBOX') {
@@ -3548,6 +3694,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
           }
         }
       } else if (field.defaultValue) {
+        if (this.isEditMode) {
+          console.log(`[DEBUG initializeForm] EDIT MODE - field "${field.name}" NOT in existingFieldValues. Available keys:`, Object.keys(this.existingFieldValues));
+        }
         // Check if this is a function expression that references other fields
         const dependencies = this.extractFieldDependencies(field.defaultValue, allFieldNames);
 
@@ -3619,6 +3768,37 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
     this.form = this.fb.group(formControls);
 
+    // Safety net: explicitly patch existing field values after form creation
+    // This ensures values are set even if FormBuilder initial values have issues
+    if (this.isEditMode && Object.keys(this.existingFieldValues).length > 0) {
+      const patchData: Record<string, any> = {};
+      this.fields.forEach(field => {
+        if (this.existingFieldValues[field.name] !== undefined && this.form.get(field.name)) {
+          let value = this.existingFieldValues[field.name];
+          // Apply type-specific conversions
+          if (field.type === 'CHECKBOX') {
+            value = value === 'true' || value === true;
+          } else if (field.type === 'NUMBER' || field.type === 'CURRENCY') {
+            value = Number(value) || null;
+          } else if (field.type === 'DATE' || field.type === 'DATETIME') {
+            if (value) {
+              const dateVal = value instanceof Date ? value : new Date(value);
+              if (!isNaN(dateVal.getTime())) {
+                value = field.type === 'DATETIME' ? this.formatDateTime(dateVal) : this.formatDate(dateVal);
+              } else {
+                value = null;
+              }
+            } else {
+              value = null;
+            }
+          }
+          patchData[field.name] = value;
+        }
+      });
+      console.log('[DEBUG initializeForm] Patching form with existing values:', JSON.stringify(patchData));
+      this.form.patchValue(patchData, { emitEvent: false });
+    }
+
     // Set up reactive subscriptions for calculated fields
     this.setupCalculatedFieldSubscriptions();
 
@@ -3629,6 +3809,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
     // Set up validation subscriptions for fields with validation expressions
     this.setupValidationSubscriptions();
+
+    // Force change detection to ensure view reflects form values
+    this.cdr.detectChanges();
   }
 
   private extractFieldDependencies(expression: string, allFieldNames: Set<string>): string[] {
@@ -4546,8 +4729,11 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
       case 'FILE':
       case 'IMAGE':
-        if (this.selectedFiles[field.name]?.length > 0) {
-          return this.selectedFiles[field.name].map(f => f.name).join(', ');
+        const existingNames = (this.existingAttachments[field.name] || []).map((a: any) => a.name);
+        const newNames = (this.selectedFiles[field.name] || []).map(f => f.name);
+        const allNames = [...existingNames, ...newNames];
+        if (allNames.length > 0) {
+          return allNames.join(', ');
         }
         return '-';
 
@@ -4619,12 +4805,69 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   goToNextScreen(): void {
     if (this.validateCurrentScreen()) {
-      // Fire-and-forget screen notification
-      this.sendScreenNotification(this.currentScreen);
-      if (this.currentScreenIndex < this.screens.length - 1) {
-        this.currentScreenIndex++;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (this.hasScreenNotifiers) {
+        // Save draft first so we have an instanceId for the review link
+        this.saveScreenDraft().subscribe({
+          next: (res) => {
+            if (res.success && res.data) {
+              this.draftInstanceId = res.data.id;
+            }
+            this.sendScreenNotification(this.currentScreen);
+            this.advanceScreen();
+          },
+          error: () => {
+            // Draft save failed — still advance and send notification
+            this.sendScreenNotification(this.currentScreen);
+            this.advanceScreen();
+          }
+        });
+      } else {
+        // No notifiers on any screen — original behavior
+        this.sendScreenNotification(this.currentScreen);
+        this.advanceScreen();
       }
+    }
+  }
+
+  private advanceScreen(): void {
+    if (this.currentScreenIndex < this.screens.length - 1) {
+      this.currentScreenIndex++;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  private getCurrentScreenFieldValues(): Record<string, any> {
+    const screen = this.currentScreen;
+    if (!screen) return {};
+    const screenId = screen.id?.toString();
+    const isFirstScreen = this.currentScreenIndex === 0;
+    const fieldValues: Record<string, any> = {};
+    for (const field of this.fields) {
+      const fieldScreenId = field.screenId?.toString();
+      if (fieldScreenId === screenId || (isFirstScreen && !fieldScreenId)) {
+        let value = this.form.value[field.name];
+        if (field.type === 'USER' && value && typeof value === 'object' && value.id) {
+          value = value.id;
+        }
+        fieldValues[field.name] = value;
+      }
+    }
+    return fieldValues;
+  }
+
+  private saveScreenDraft(): Observable<any> {
+    const formData = new FormData();
+    formData.append('workflowCode', this.workflowCode);
+    formData.append('isDraft', 'true');
+
+    const fieldValues = this.getCurrentScreenFieldValues();
+    formData.append('fieldValues', JSON.stringify(fieldValues));
+
+    const effectiveInstanceId = this.instanceId || this.draftInstanceId;
+    if (effectiveInstanceId) {
+      return this.workflowService.updateInstance(effectiveInstanceId, formData);
+    } else {
+      return this.workflowService.submitInstance(formData);
     }
   }
 
@@ -6322,8 +6565,112 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   onFileSelect(event: Event, fieldName: string) {
     const input = event.target as HTMLInputElement;
     if (input.files) {
-      this.selectedFiles[fieldName] = Array.from(input.files);
+      let newFiles = Array.from(input.files);
+      const field = this.fields.find((f: any) => f.name === fieldName);
+
+      if (field) {
+        // Validate allowed file types
+        if (field.allowedFileTypes) {
+          const allowedExts = field.allowedFileTypes.split(',').map((t: string) => t.trim().toLowerCase());
+          const invalid = newFiles.filter(f => {
+            const ext = '.' + f.name.split('.').pop()?.toLowerCase();
+            return !allowedExts.some((a: string) => a === ext);
+          });
+          if (invalid.length > 0) {
+            this.snackBar.open(`File type not allowed: ${invalid.map(f => f.name).join(', ')}. Allowed: ${field.allowedFileTypes}`, 'Close', { duration: 5000 });
+            input.value = '';
+            return;
+          }
+        }
+
+        // Validate file size (maxFileSize is stored in MB)
+        if (field.maxFileSize) {
+          const maxBytes = field.maxFileSize * 1024 * 1024;
+          const oversized = newFiles.filter(f => f.size > maxBytes);
+          if (oversized.length > 0) {
+            this.snackBar.open(`File too large: ${oversized.map(f => f.name).join(', ')}. Max size: ${field.maxFileSize}MB`, 'Close', { duration: 5000 });
+            input.value = '';
+            return;
+          }
+        }
+
+        // Check for duplicates against existing attachments and already-selected files
+        const existingNames = new Set<string>([
+          ...(this.existingAttachments[fieldName] || []).map((a: any) => a.name),
+          ...(this.selectedFiles[fieldName] || []).map(f => f.name)
+        ]);
+        const duplicates = newFiles.filter(f => existingNames.has(f.name));
+        if (duplicates.length > 0) {
+          this.snackBar.open(`Duplicate file(s): ${duplicates.map(f => f.name).join(', ')}`, 'Close', { duration: 5000 });
+          newFiles = newFiles.filter(f => !existingNames.has(f.name));
+          if (newFiles.length === 0) {
+            input.value = '';
+            return;
+          }
+        }
+
+        // Merge with existing files if multiple
+        const existing = field.multiple ? (this.selectedFiles[fieldName] || []) : [];
+        const combined = [...existing, ...newFiles];
+
+        // Validate max files (include already-uploaded attachments)
+        const existingAttCount = (this.existingAttachments[fieldName] || []).length;
+        if (field.maxFiles && (combined.length + existingAttCount) > field.maxFiles) {
+          this.snackBar.open(`Too many files. Maximum ${field.maxFiles} files allowed (${existingAttCount} already uploaded).`, 'Close', { duration: 5000 });
+          input.value = '';
+          return;
+        }
+
+        this.selectedFiles[fieldName] = combined;
+      } else {
+        this.selectedFiles[fieldName] = newFiles;
+      }
+      input.value = '';
     }
+  }
+
+  getSelectedFiles(fieldName: string): File[] {
+    return this.selectedFiles[fieldName] || [];
+  }
+
+  getExistingAttachments(fieldName: string): any[] {
+    return this.existingAttachments[fieldName] || [];
+  }
+
+  removeExistingAttachment(fieldName: string, attachmentId: string) {
+    this.workflowService.deleteAttachment(attachmentId).subscribe({
+      next: () => {
+        if (this.existingAttachments[fieldName]) {
+          this.existingAttachments[fieldName] = this.existingAttachments[fieldName].filter(
+            (a: any) => a.id !== attachmentId
+          );
+        }
+        this.snackBar.open('Attachment removed', 'Close', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Failed to remove attachment', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  removeFile(fieldName: string, index: number) {
+    if (this.selectedFiles[fieldName]) {
+      this.selectedFiles[fieldName].splice(index, 1);
+    }
+  }
+
+  getFileHint(field: any): string {
+    const hints: string[] = [];
+    if (field.multiple && field.maxFiles) {
+      hints.push(`Max ${field.maxFiles} files`);
+    }
+    if (field.maxFileSize) {
+      hints.push(`up to ${field.maxFileSize}MB each`);
+    }
+    if (field.allowedFileTypes) {
+      hints.push(`Accepted: ${field.allowedFileTypes}`);
+    }
+    return hints.join(', ');
   }
 
   // Checkbox group handling
@@ -6397,7 +6744,18 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   onAttachmentSelect(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files) {
-      this.attachments.push(...Array.from(input.files));
+      const existingNames = new Set<string>([
+        ...this.attachments.map(f => f.name),
+        ...this.existingGeneralAttachments.map((a: any) => a.name)
+      ]);
+      const newFiles = Array.from(input.files);
+      const duplicates = newFiles.filter(f => existingNames.has(f.name));
+      if (duplicates.length > 0) {
+        this.snackBar.open(`Duplicate file(s) skipped: ${duplicates.map(f => f.name).join(', ')}`, 'Close', { duration: 5000 });
+      }
+      const unique = newFiles.filter(f => !existingNames.has(f.name));
+      this.attachments.push(...unique);
+      input.value = '';
     }
   }
 
@@ -6460,12 +6818,12 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     if (!screen.id || screen.id.startsWith('temp_')) {
       return;
     }
-    // Collect field values for this screen
+    // Collect field values for this screen (only fields marked inSummary)
     const screenId = screen.id?.toString();
     const isFirstScreen = this.currentScreenIndex === 0;
     const fieldsOnScreen = this.fields.filter(f => {
       const fieldScreenId = f.screenId?.toString();
-      return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
+      return (fieldScreenId === screenId || (isFirstScreen && !fieldScreenId)) && f.inSummary === true;
     });
 
     const fieldValues: { label: string; value: string }[] = [];
@@ -6486,7 +6844,10 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       screenId: screen.id,
       workflowName: this.workflow?.name || '',
       screenTitle: screen.title || 'Untitled Screen',
-      fieldValues
+      fieldValues,
+      notificationMessage: screen.notificationMessage || '',
+      instanceId: this.instanceId || this.draftInstanceId || '',
+      workflowCode: this.workflowCode || ''
     }).subscribe({
       error: (err: any) => console.warn('Screen notification failed (non-blocking):', err)
     });
@@ -6498,6 +6859,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     const formData = new FormData();
     formData.append('workflowCode', this.workflowCode);
     formData.append('isDraft', isDraft.toString());
+    if (this.parentInstanceId) {
+      formData.append('parentInstanceId', this.parentInstanceId);
+    }
 
     const fieldValues: Record<string, any> = {};
     this.fields.forEach(field => {
@@ -6531,9 +6895,10 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Use update API if in edit mode
-    const apiCall = this.isEditMode && this.instanceId
-      ? this.workflowService.updateInstance(this.instanceId, formData)
+    // Use update API if in edit mode or if a draft was created during per-screen saving
+    const effectiveInstanceId = this.instanceId || this.draftInstanceId;
+    const apiCall = effectiveInstanceId
+      ? this.workflowService.updateInstance(effectiveInstanceId, formData)
       : this.workflowService.submitInstance(formData);
 
     apiCall.subscribe({

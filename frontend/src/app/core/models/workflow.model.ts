@@ -20,6 +20,9 @@ export interface Workflow {
   requireAttachments: boolean;
   requireComments: boolean;
   showSummary: boolean;
+  parentWorkflowId?: string;
+  parentWorkflowName?: string;
+  childWorkflows?: ChildWorkflow[];
   forms?: WorkflowForm[];
   approvers?: WorkflowApprover[];
   corporateIds?: string[];
@@ -62,6 +65,7 @@ export interface Screen {
   displayOrder: number;
   icon?: string;
   isSummaryScreen?: boolean;
+  notificationMessage?: string;
   roleIds?: string[];
   privilegeIds?: string[];
   roleNames?: string[];
@@ -315,6 +319,11 @@ export interface WorkflowInstance {
   amount?: number;
   sbuId?: string;
   sbuName?: string;
+  parentInstanceId?: string;
+  parentInstanceReferenceNumber?: string;
+  parentWorkflowName?: string;
+  parentWorkflowCode?: string;
+  childInstances?: ChildInstance[];
   fieldValues: WorkflowFieldValue[] | Record<string, any>;
   approvalHistory: ApprovalHistory[];
   attachments: Attachment[];
@@ -322,6 +331,32 @@ export interface WorkflowInstance {
   updatedAt?: string;
   createdBy: string;
   isCurrentApprover?: boolean;
+  commentsMandatory?: boolean;
+  commentsMandatoryOnReject?: boolean;
+  commentsMandatoryOnEscalate?: boolean;
+}
+
+export interface ChildWorkflow {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  icon?: string;
+  isPublished: boolean;
+  isActive: boolean;
+  displayOrder: number;
+  screenCount?: number;
+}
+
+export interface ChildInstance {
+  id: string;
+  workflowName: string;
+  workflowCode: string;
+  referenceNumber: string;
+  title?: string;
+  status: InstanceStatus;
+  initiatorName: string;
+  createdAt: string;
 }
 
 export interface WorkflowFieldValue {
@@ -377,6 +412,7 @@ export interface Attachment {
   originalFileName: string;
   contentType?: string;
   fileSize: number;
+  fieldName?: string;
   description?: string;
   uploadedBy?: string;
   uploadedAt?: string;

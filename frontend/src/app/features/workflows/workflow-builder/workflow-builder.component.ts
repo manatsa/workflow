@@ -122,6 +122,19 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                     </mat-form-field>
                   </div>
 
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Parent Workflow</mat-label>
+                      <mat-select formControlName="parentWorkflowId">
+                        <mat-option [value]="null">None</mat-option>
+                        @for (w of availableParentWorkflows; track w.id) {
+                          <mat-option [value]="w.id">{{ w.name }}</mat-option>
+                        }
+                      </mat-select>
+                      <mat-hint>Set a parent to make this a sub-workflow</mat-hint>
+                    </mat-form-field>
+                  </div>
+
                   <div class="checkbox-row">
                     <mat-checkbox formControlName="isActive">Active</mat-checkbox>
                     <mat-checkbox formControlName="showSummary">Show Summary</mat-checkbox>
@@ -246,6 +259,13 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                             <p style="color: #666; font-size: 13px; margin-bottom: 12px;">
                               Configure recipients to be notified when this screen is completed.
                             </p>
+
+                            <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 16px;">
+                              <mat-label>Notification Message</mat-label>
+                              <textarea matInput [(ngModel)]="screen.notificationMessage" rows="3"
+                                placeholder="A workflow stage has been completed. Please review the details below."></textarea>
+                              <mat-hint>Custom message for the notification email. Leave blank to use the default message.</mat-hint>
+                            </mat-form-field>
 
                             @if (screen.notifiers?.length) {
                               @for (notifier of screen.notifiers; track notifier; let ni = $index) {
@@ -855,6 +875,30 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 <mat-form-field appearance="outline" class="form-field">
                                   <mat-label>Step</mat-label>
                                   <input matInput type="number" [(ngModel)]="field.sliderStep">
+                                </mat-form-field>
+                              </div>
+                            }
+
+                            <!-- FILE field specific config -->
+                            @if (field.type === 'FILE') {
+                              <div class="form-row">
+                                <mat-checkbox [(ngModel)]="field.multiple" color="primary">Allow multiple files</mat-checkbox>
+                              </div>
+                              <div class="form-row">
+                                @if (field.multiple) {
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Max number of files</mat-label>
+                                    <input matInput type="number" [(ngModel)]="field.maxFiles" min="1">
+                                  </mat-form-field>
+                                }
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>Max file size (MB)</mat-label>
+                                  <input matInput type="number" [(ngModel)]="field.maxFileSize" min="1">
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>Allowed file types</mat-label>
+                                  <input matInput [(ngModel)]="field.allowedFileTypes" placeholder=".pdf,.doc,.jpg">
+                                  <mat-hint>Comma-separated extensions</mat-hint>
                                 </mat-form-field>
                               </div>
                             }
@@ -2479,6 +2523,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   approvers: any[] = [];
 
   workflowTypes: any[] = [];
+  availableParentWorkflows: Workflow[] = [];
   users: User[] = [];
   roles: Role[] = [];
   privileges: Privilege[] = [];
@@ -2785,6 +2830,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       icon: ['description'],
       workflowTypeId: [null],
       workflowCategory: ['NON_FINANCIAL'],
+      parentWorkflowId: [null],
       isActive: [true],
       showSummary: [false],
       commentsMandatory: [false],
@@ -2809,6 +2855,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     this.loadBranches();
     this.loadDepartments();
     this.loadSqlObjects();
+    this.loadAvailableParentWorkflows();
 
     // Subscribe to route params to detect navigation changes (same pattern as workflow-instances)
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -2866,6 +2913,17 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     this.workflowService.getWorkflowTypes().subscribe(res => {
       if (res.success) {
         this.workflowTypes = res.data;
+      }
+    });
+  }
+
+  loadAvailableParentWorkflows() {
+    this.workflowService.getWorkflows().subscribe(res => {
+      if (res.success) {
+        // Exclude the current workflow from the parent dropdown
+        this.availableParentWorkflows = (res.data || []).filter(
+          (w: Workflow) => w.id !== this.workflowId
+        );
       }
     });
   }
@@ -3095,6 +3153,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           commentsMandatoryOnReject: workflow.commentsMandatoryOnReject ?? true,
           commentsMandatoryOnEscalate: workflow.commentsMandatoryOnEscalate ?? true,
           workflowCategory: workflow.workflowCategory || 'NON_FINANCIAL',
+          parentWorkflowId: workflow.parentWorkflowId || null,
           corporateIds: workflow.corporateIds || [],
           sbuIds: workflow.sbuIds || [],
           branchIds: workflow.branchIds || [],

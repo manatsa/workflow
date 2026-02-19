@@ -264,6 +264,20 @@ public class WorkflowInstanceService {
     @Transactional
     public WorkflowInstanceDTO createAndSubmitInstance(String workflowCode, Map<String, Object> fieldValues,
                                                         Boolean isDraft, String comments, List<MultipartFile> attachments) {
+        return createAndSubmitInstance(workflowCode, fieldValues, isDraft, comments, attachments, null, null);
+    }
+
+    @Transactional
+    public WorkflowInstanceDTO createAndSubmitInstance(String workflowCode, Map<String, Object> fieldValues,
+                                                        Boolean isDraft, String comments, List<MultipartFile> attachments,
+                                                        UUID parentInstanceId) {
+        return createAndSubmitInstance(workflowCode, fieldValues, isDraft, comments, attachments, parentInstanceId, null);
+    }
+
+    @Transactional
+    public WorkflowInstanceDTO createAndSubmitInstance(String workflowCode, Map<String, Object> fieldValues,
+                                                        Boolean isDraft, String comments, List<MultipartFile> attachments,
+                                                        UUID parentInstanceId, Map<String, List<MultipartFile>> fieldFiles) {
         Workflow workflow = workflowRepository.findByCode(workflowCode)
                 .orElseThrow(() -> new BusinessException("Workflow not found: " + workflowCode));
 
@@ -285,6 +299,13 @@ public class WorkflowInstanceService {
                 .currentLevel(0)
                 .build();
 
+        // Set parent instance if provided
+        if (parentInstanceId != null) {
+            WorkflowInstance parentInstance = workflowInstanceRepository.findById(parentInstanceId)
+                    .orElseThrow(() -> new BusinessException("Parent instance not found"));
+            instance.setParentInstance(parentInstance);
+        }
+
         WorkflowInstance saved = workflowInstanceRepository.save(instance);
 
         // Save field values
@@ -296,9 +317,20 @@ public class WorkflowInstanceService {
         if (attachments != null && !attachments.isEmpty()) {
             for (MultipartFile file : attachments) {
                 if (!file.isEmpty()) {
-                    attachmentService.uploadAttachment(saved.getId(), file, null);
+                    attachmentService.uploadAttachment(saved.getId(), file, null, null);
                 }
             }
+        }
+
+        // Handle per-field file uploads
+        if (fieldFiles != null && !fieldFiles.isEmpty()) {
+            fieldFiles.forEach((fieldName, files) -> {
+                for (MultipartFile file : files) {
+                    if (!file.isEmpty()) {
+                        attachmentService.uploadAttachment(saved.getId(), file, null, fieldName);
+                    }
+                }
+            });
         }
 
         auditService.logWorkflowAction(AuditLog.AuditAction.CREATE, saved,
@@ -315,6 +347,13 @@ public class WorkflowInstanceService {
     @Transactional
     public WorkflowInstanceDTO updateAndSubmitInstance(UUID instanceId, Map<String, Object> fieldValues,
                                                         Boolean isDraft, String comments, List<MultipartFile> attachments) {
+        return updateAndSubmitInstance(instanceId, fieldValues, isDraft, comments, attachments, null);
+    }
+
+    @Transactional
+    public WorkflowInstanceDTO updateAndSubmitInstance(UUID instanceId, Map<String, Object> fieldValues,
+                                                        Boolean isDraft, String comments, List<MultipartFile> attachments,
+                                                        Map<String, List<MultipartFile>> fieldFiles) {
         WorkflowInstance instance = workflowInstanceRepository.findById(instanceId)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
 
@@ -331,9 +370,20 @@ public class WorkflowInstanceService {
         if (attachments != null && !attachments.isEmpty()) {
             for (MultipartFile file : attachments) {
                 if (!file.isEmpty()) {
-                    attachmentService.uploadAttachment(instance.getId(), file, null);
+                    attachmentService.uploadAttachment(instance.getId(), file, null, null);
                 }
             }
+        }
+
+        // Handle per-field file uploads
+        if (fieldFiles != null && !fieldFiles.isEmpty()) {
+            fieldFiles.forEach((fieldName, files) -> {
+                for (MultipartFile file : files) {
+                    if (!file.isEmpty()) {
+                        attachmentService.uploadAttachment(instance.getId(), file, null, fieldName);
+                    }
+                }
+            });
         }
 
         auditService.logWorkflowAction(AuditLog.AuditAction.UPDATE, instance,
@@ -999,6 +1049,29 @@ public class WorkflowInstanceService {
         return currentApprover.getApproverEmail().equalsIgnoreCase(user.getEmail());
     }
 
+    private Boolean computeIsCurrentApprover(WorkflowInstance instance) {
+        if (instance.getStatus() != WorkflowInstance.Status.PENDING) return false;
+        try {
+            CustomUserDetails userDetails = getCurrentUser();
+            WorkflowApprover currentApprover = instance.getCurrentApprover();
+            if (currentApprover == null) return false;
+
+            // Check superuser
+            if (userDetails.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_USER"))) {
+                return true;
+            }
+
+            if (currentApprover.getUser() != null) {
+                return currentApprover.getUser().getId().equals(userDetails.getId());
+            }
+            return currentApprover.getApproverEmail() != null &&
+                    currentApprover.getApproverEmail().equalsIgnoreCase(userDetails.getEmail());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private WorkflowApprover findEligibleApprover(List<WorkflowApprover> approvers, WorkflowInstance instance) {
         BigDecimal amount = instance.getAmount();
         if (amount != null) {
@@ -1048,6 +1121,9 @@ public class WorkflowInstanceService {
         // Collect summary fields (fields marked with inSummary=true)
         List<Map<String, String>> summaryFields = collectSummaryFields(instance);
 
+        // Build submission link (direct link to the workflow submission view)
+        String submissionLink = baseUrl + "/workflows/" + instance.getWorkflow().getCode() + "/instances/" + instance.getId();
+
         emailService.sendApprovalRequestEmail(
                 approver.getApproverEmail(),
                 approver.getApproverName(),
@@ -1061,7 +1137,8 @@ public class WorkflowInstanceService {
                 reviewLink,
                 amount,
                 emailApprovalEnabled,
-                summaryFields
+                summaryFields,
+                submissionLink
         );
     }
 
@@ -1148,8 +1225,16 @@ public class WorkflowInstanceService {
                 .amount(instance.getAmount())
                 .sbuId(instance.getSbu() != null ? instance.getSbu().getId() : null)
                 .sbuName(instance.getSbu() != null ? instance.getSbu().getName() : null)
+                .parentInstanceId(instance.getParentInstance() != null ? instance.getParentInstance().getId() : null)
+                .parentInstanceReferenceNumber(instance.getParentInstance() != null ? instance.getParentInstance().getReferenceNumber() : null)
+                .parentWorkflowName(instance.getParentInstance() != null ? instance.getParentInstance().getWorkflow().getName() : null)
+                .parentWorkflowCode(instance.getParentInstance() != null ? instance.getParentInstance().getWorkflow().getCode() : null)
                 .createdAt(instance.getCreatedAt())
                 .createdBy(instance.getCreatedBy())
+                .isCurrentApprover(computeIsCurrentApprover(instance))
+                .commentsMandatory(instance.getWorkflow().getCommentsMandatory())
+                .commentsMandatoryOnReject(instance.getWorkflow().getCommentsMandatoryOnReject())
+                .commentsMandatoryOnEscalate(instance.getWorkflow().getCommentsMandatoryOnEscalate())
                 .build();
     }
 
@@ -1162,7 +1247,25 @@ public class WorkflowInstanceService {
         dto.setAttachments(instance.getAttachments().stream()
                 .map(this::toAttachmentDTO)
                 .collect(Collectors.toList()));
+        // Load child instances
+        List<WorkflowInstance> children = workflowInstanceRepository.findChildInstances(instance.getId());
+        if (!children.isEmpty()) {
+            dto.setChildInstances(children.stream().map(this::toChildInstanceDTO).collect(Collectors.toList()));
+        }
         return dto;
+    }
+
+    private ChildInstanceDTO toChildInstanceDTO(WorkflowInstance instance) {
+        return ChildInstanceDTO.builder()
+                .id(instance.getId())
+                .workflowName(instance.getWorkflow().getName())
+                .workflowCode(instance.getWorkflow().getCode())
+                .referenceNumber(instance.getReferenceNumber())
+                .title(instance.getTitle())
+                .status(instance.getStatus())
+                .initiatorName(instance.getInitiator().getFullName())
+                .createdAt(instance.getCreatedAt())
+                .build();
     }
 
     private ApprovalHistoryDTO toHistoryDTO(ApprovalHistory history) {
@@ -1187,6 +1290,7 @@ public class WorkflowInstanceService {
                 .originalFilename(attachment.getOriginalFilename())
                 .contentType(attachment.getContentType())
                 .fileSize(attachment.getFileSize())
+                .fieldName(attachment.getFieldName())
                 .description(attachment.getDescription())
                 .uploadedBy(attachment.getUploadedBy())
                 .uploadedAt(attachment.getCreatedAt())
