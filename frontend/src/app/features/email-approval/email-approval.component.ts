@@ -575,6 +575,17 @@ export class LoginDialogComponent {
           </mat-form-field>
 
           <mat-form-field *ngIf="actionType === 'escalate'" appearance="outline" class="full-width comments-field">
+            <mat-label>Escalate To</mat-label>
+            <mat-select [(ngModel)]="selectedEscalateToUserId" [disabled]="loadingEscalationTargets">
+              <mat-option *ngIf="loadingEscalationTargets" disabled>Loading targets...</mat-option>
+              <mat-option *ngIf="!loadingEscalationTargets && escalationTargets.length === 0" disabled>No escalation targets available</mat-option>
+              <mat-option *ngFor="let target of escalationTargets" [value]="target.id">
+                {{ target.name }} <span *ngIf="target.email">({{ target.email }})</span>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field *ngIf="actionType === 'escalate'" appearance="outline" class="full-width comments-field">
             <mat-label>Escalation Reason (Optional)</mat-label>
             <textarea matInput [(ngModel)]="comments" rows="3"
                       placeholder="Enter reason for escalation..."></textarea>
@@ -582,7 +593,7 @@ export class LoginDialogComponent {
 
           <div class="action-buttons">
             <button mat-raised-button [color]="getActionButtonColor()" (click)="processAction()"
-                    [disabled]="actionType === 'reject' && !comments?.trim()">
+                    [disabled]="(actionType === 'reject' && !comments?.trim()) || (actionType === 'escalate' && !selectedEscalateToUserId)">
               <mat-icon>{{ getActionIcon() }}</mat-icon>
               {{ getActionButtonLabel() }}
             </button>
@@ -721,6 +732,9 @@ export class EmailApprovalComponent implements OnInit {
   showInlineLogin = false;       // Show inline login form
   autoProcessTriggered = false;  // Prevent multiple auto-process attempts
   showCommentsForm = false;      // Show comments form for reject when authenticated
+  escalationTargets: { id: string; name: string; email: string }[] = [];
+  selectedEscalateToUserId: string | null = null;
+  loadingEscalationTargets = false;
 
   private apiUrl = environment.apiUrl;
 
@@ -792,13 +806,14 @@ export class EmailApprovalComponent implements OnInit {
       return;
     }
 
-    // Escalate may need comments - show appropriate form
+    // Escalate needs target selection + optional comments
     if (this.actionType === 'escalate') {
       this.loading = false;
       if (this.authService.isAuthenticated) {
-        this.showCommentsForm = true;  // Show escalate form
+        this.showCommentsForm = true;
+        this.loadEscalationTargets();
       } else {
-        this.showInlineLogin = true;   // Show inline login
+        this.showInlineLogin = true;
       }
       return;
     }
@@ -813,11 +828,42 @@ export class EmailApprovalComponent implements OnInit {
   }
 
   /**
+   * Loads escalation targets from the backend
+   */
+  loadEscalationTargets(): void {
+    this.loadingEscalationTargets = true;
+    this.http.get<any>(`${this.apiUrl}/email-approval/escalation-targets?token=${this.token}`)
+      .subscribe({
+        next: (response) => {
+          this.loadingEscalationTargets = false;
+          if (response.success && response.data) {
+            this.escalationTargets = response.data.map((t: any) => ({
+              id: t.id,
+              name: t.name || t.fullName || `${t.firstName || ''} ${t.lastName || ''}`.trim(),
+              email: t.email || ''
+            }));
+          }
+        },
+        error: () => {
+          this.loadingEscalationTargets = false;
+        }
+      });
+  }
+
+  /**
    * Handles successful inline login - triggers action processing
    */
   onInlineLoginSuccess(result: { comments: string }): void {
     this.comments = result.comments || '';
     this.showInlineLogin = false;
+
+    // For escalate, need to show target selection after login
+    if (this.actionType === 'escalate') {
+      this.showCommentsForm = true;
+      this.loadEscalationTargets();
+      return;
+    }
+
     this.loading = true;
     this.loadingMessage = `Processing your ${this.getActionLabel()}...`;
     this.processAction(); // Auto-trigger after login
@@ -866,6 +912,9 @@ export class EmailApprovalComponent implements OnInit {
     params.set('action', this.actionType.toUpperCase());
     if (this.comments) {
       params.set('comments', this.comments);
+    }
+    if (this.actionType === 'escalate' && this.selectedEscalateToUserId) {
+      params.set('escalateToUserId', this.selectedEscalateToUserId);
     }
 
     this.http.post<any>(`${this.apiUrl}/email-approval/process?${params.toString()}`, {})

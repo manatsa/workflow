@@ -333,6 +333,7 @@ public class DataInitializer implements CommandLineRunner {
         createSettingIfNotExists("workflow.comments.mandatory.escalate", "true", "Comments Mandatory on Escalation", "Workflow", "Workflow Settings", Setting.SettingType.BOOLEAN);
         createSettingIfNotExists("workflow.skip.unauthorized.approvers", "true", "Skip Unauthorized Approvers", "Financial Workflows", "Workflow Settings", Setting.SettingType.BOOLEAN);
         createSettingIfNotExists("workflow.allow.email.approvals", "true", "Allow Approvals From Email", "Email Approvals", "Workflow Settings", Setting.SettingType.BOOLEAN);
+        createSettingIfNotExists("workflow.email.token.expiry.hours", "48", "Email Approval Token Expiry Hours", "Email Approvals", "Workflow Settings", Setting.SettingType.NUMBER);
 
         // Reporting Settings
         createSettingIfNotExists("reporting.font.size", "14", "Reporting Font Size (px)", "Display", "Reporting", Setting.SettingType.NUMBER);
