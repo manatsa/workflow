@@ -3,9 +3,9 @@ spring:
     name: sonar-workflow
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/workflow
-    username: sonar
-    password: P@88345!
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/workflow}
+    username: ${SPRING_DATASOURCE_USERNAME:sonar}
+    password: ${SPRING_DATASOURCE_PASSWORD:P@88345!}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -43,11 +43,11 @@ spring:
       max-request-size: 100MB
 
 server:
-  port: 9500
+  port: ${SERVER_PORT:9500}
 
 # Application specific configurations
 app:
-  base-url: ${APP_BASE_URL:http://localhost:9500}
+  base-url: ${APP_BASE_URL:}
 
   jwt:
     secret: ${JWT_SECRET:SonarWorkflowSystemSecretKeyForJWTTokenGenerationMustBeAtLeast256Bits}
@@ -58,7 +58,7 @@ app:
     key: ${AES_KEY:SonarAESKey12345}  # 16 bytes for AES-128
 
   storage:
-    base-path: C:/Sonar Docs/
+    base-path: ${APP_STORAGE_PATH:C:/Sonar Docs/}
     attachments-path: ${app.storage.base-path}attachments/
     templates-path: ${app.storage.base-path}templates/
     imports-path: ${app.storage.base-path}imports/
