@@ -13,6 +13,7 @@ export interface Setting {
   validationRegex?: string;
   defaultValue?: string;
   options?: string; // Comma-separated values for SELECT type
+  isSuperOnly?: boolean;
 }
 
 export enum SettingType {
@@ -51,6 +52,12 @@ export interface AuditLog {
   workflowInstanceRef?: string;
   sbuId?: string;
   sbuName?: string;
+  corporateId?: string;
+  corporateName?: string;
+  branchId?: string;
+  branchName?: string;
+  departmentId?: string;
+  departmentName?: string;
 }
 
 export enum AuditAction {

@@ -72,6 +72,18 @@ public class AuditLog extends BaseEntity {
     @JoinColumn(name = "sbu_id")
     private SBU sbu;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "corporate_id")
+    private Corporate corporate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
     public enum AuditAction {
         CREATE, READ, UPDATE, DELETE, LOGIN, LOGOUT, PASSWORD_CHANGE, PASSWORD_RESET,
         SUBMIT, APPROVE, REJECT, ESCALATE, CANCEL, LOCK, UNLOCK,

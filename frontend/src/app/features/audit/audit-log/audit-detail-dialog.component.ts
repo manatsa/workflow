@@ -2,6 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
@@ -16,15 +17,15 @@ import { AuditLog } from '@core/models/setting.model';
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
-    MatChipsModule
-  ],
+    MatChipsModule,
+    MatTooltipModule],
   template: `
     <div class="dialog-header">
       <h2 mat-dialog-title>
         <mat-icon>history</mat-icon>
         Audit Log Details
       </h2>
-      <button mat-icon-button (click)="close()">
+      <button mat-icon-button matTooltip="Close" (click)="close()">
         <mat-icon>close</mat-icon>
       </button>
     </div>
@@ -85,10 +86,28 @@ import { AuditLog } from '@core/models/setting.model';
               <span class="value">{{ data.workflowInstanceRef }}</span>
             </div>
           }
+          @if (data.corporateName) {
+            <div class="detail-item">
+              <span class="label">Corporate</span>
+              <span class="value">{{ data.corporateName }}</span>
+            </div>
+          }
           @if (data.sbuName) {
             <div class="detail-item">
               <span class="label">SBU</span>
               <span class="value">{{ data.sbuName }}</span>
+            </div>
+          }
+          @if (data.branchName) {
+            <div class="detail-item">
+              <span class="label">Branch</span>
+              <span class="value">{{ data.branchName }}</span>
+            </div>
+          }
+          @if (data.departmentName) {
+            <div class="detail-item">
+              <span class="label">Department</span>
+              <span class="value">{{ data.departmentName }}</span>
             </div>
           }
         </div>
@@ -133,7 +152,7 @@ import { AuditLog } from '@core/models/setting.model';
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
-      <button mat-button (click)="close()">Close</button>
+      <button mat-button matTooltip="Close" (click)="close()">Close</button>
     </mat-dialog-actions>
   `,
   styles: [`

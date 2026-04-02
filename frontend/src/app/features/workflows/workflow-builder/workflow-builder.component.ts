@@ -56,16 +56,16 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
   template: `
     <div class="workflow-builder-container">
       <div class="header">
-        <button mat-icon-button routerLink="/workflows">
+        <button mat-icon-button matTooltip="Go Back" routerLink="/workflows">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ isEdit ? 'Editing: ' + workflowName : 'Create Workflow' }}</h1>
         <div class="header-actions">
-          <button mat-button (click)="preview()">
+          <button mat-button matTooltip="Preview" (click)="preview()">
             <mat-icon>visibility</mat-icon>
             Preview
           </button>
-          <button mat-raised-button color="primary" (click)="saveWorkflow()" [disabled]="loading">
+          <button mat-raised-button matTooltip="{{ loading ? 'Saving...' : 'Save Workflow' }}" color="primary" (click)="saveWorkflow()" [disabled]="loading">
             <mat-icon>save</mat-icon>
             {{ loading ? 'Saving...' : 'Save Workflow' }}
           </button>
@@ -141,6 +141,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                     <mat-checkbox formControlName="commentsMandatory">Comments Mandatory on Approval</mat-checkbox>
                     <mat-checkbox formControlName="commentsMandatoryOnReject">Comments Mandatory on Reject</mat-checkbox>
                     <mat-checkbox formControlName="commentsMandatoryOnEscalate">Comments Mandatory on Escalate</mat-checkbox>
+                    <mat-checkbox formControlName="showApprovalMatrix">Show Approval Matrix in Emails</mat-checkbox>
                   </div>
                 </form>
               </mat-card-content>
@@ -154,7 +155,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
             <mat-card>
               <mat-card-header>
                 <mat-card-title>Form Screens</mat-card-title>
-                <button mat-raised-button color="primary" (click)="addScreen()">
+                <button mat-raised-button matTooltip="Add Screen" color="primary" (click)="addScreen()">
                   <mat-icon>add</mat-icon>
                   Add Screen
                 </button>
@@ -239,7 +240,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                             </div>
 
                             <div class="screen-actions">
-                              <button mat-button color="warn" (click)="removeScreen(i)">
+                              <button mat-button matTooltip="Remove Screen" color="warn" (click)="removeScreen(i)">
                                 <mat-icon>delete</mat-icon>
                                 Remove Screen
                               </button>
@@ -308,14 +309,14 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                     </mat-form-field>
                                   }
 
-                                  <button mat-icon-button color="warn" (click)="removeScreenNotifier(screen, ni)" style="margin-top: 8px;">
+                                  <button mat-icon-button matTooltip="Close" color="warn" (click)="removeScreenNotifier(screen, ni)" style="margin-top: 8px;">
                                     <mat-icon>close</mat-icon>
                                   </button>
                                 </div>
                               }
                             }
 
-                            <button mat-stroked-button color="primary" (click)="addScreenNotifier(screen)">
+                            <button mat-stroked-button matTooltip="Add Notification Recipient" color="primary" (click)="addScreenNotifier(screen)">
                               <mat-icon>add</mat-icon>
                               Add Notification Recipient
                             </button>
@@ -343,7 +344,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
             <mat-card>
               <mat-card-header>
                 <mat-card-title>Field Groups</mat-card-title>
-                <button mat-raised-button color="primary" (click)="addFieldGroup()">
+                <button mat-raised-button matTooltip="Add Group" color="primary" (click)="addFieldGroup()">
                   <mat-icon>add</mat-icon>
                   Add Group
                 </button>
@@ -395,7 +396,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                       </div>
 
                       <div class="group-actions">
-                        <button mat-button color="warn" (click)="removeFieldGroup(i)">
+                        <button mat-button matTooltip="Remove Group" color="warn" (click)="removeFieldGroup(i)">
                           <mat-icon>delete</mat-icon>
                           Remove Group
                         </button>
@@ -426,9 +427,15 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                       <!-- Field Types Tab -->
                       <mat-tab label="Field Types">
                         <div class="palette-tab-content">
-                          <div class="field-types">
+                          @if (isActiveSummaryScreen) {
+                            <div class="summary-screen-notice">
+                              <mat-icon>info</mat-icon>
+                              <p>The Summary screen is automatically populated by fields marked as "Summary" from other screens. You cannot add fields directly to this screen.</p>
+                            </div>
+                          }
+                          <div class="field-types" [class.disabled]="isActiveSummaryScreen">
                             @for (fieldType of fieldTypes; track fieldType.value) {
-                              <div class="field-type-item" (click)="addField(fieldType.value)">
+                              <div class="field-type-item" [class.disabled]="isActiveSummaryScreen" (click)="addField(fieldType.value)">
                                 <mat-icon>{{ fieldType.icon }}</mat-icon>
                                 <span>{{ fieldType.label }}</span>
                               </div>
@@ -436,7 +443,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                           </div>
                           <div class="palette-section">
                             <h4>Groups</h4>
-                            <button mat-stroked-button (click)="addFieldGroup()">
+                            <button mat-stroked-button matTooltip="Add Field Group" (click)="addFieldGroup()">
                               <mat-icon>dashboard</mat-icon>
                               Add Field Group
                             </button>
@@ -477,7 +484,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                             <div class="search-results">
                               <div class="search-results-header">
                                 <span>{{ getFilteredFunctions().length }} results</span>
-                                <button mat-icon-button (click)="functionSearch = ''">
+                                <button mat-icon-button matTooltip="Close" (click)="functionSearch = ''">
                                   <mat-icon>close</mat-icon>
                                 </button>
                               </div>
@@ -676,18 +683,22 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                   <mat-card-content>
                     @if (screens.length > 0) {
                       <div class="screen-tabs">
-                        <button mat-button
+                        <button mat-button matTooltip="All Fields ({{ fields.length }})"
                                 [class.active]="activeScreenId === null"
                                 (click)="setActiveScreen(null)">
                           <mat-icon>apps</mat-icon>
                           All Fields ({{ fields.length }})
                         </button>
                         @for (screen of screens; track screen.id) {
-                          <button mat-button
+                          <button mat-button matTooltip="{{ screen.isSummaryScreen ? 'Summary (auto-populated)' : (screen.title || 'Untitled') }} ({{ getFieldsInScreen(screen.id).length }})"
                                   [class.active]="activeScreenId === screen.id"
+                                  [class.summary-tab]="screen.isSummaryScreen"
                                   (click)="setActiveScreen(screen.id)">
                             <mat-icon>{{ screen.icon || 'view_carousel' }}</mat-icon>
                             {{ screen.title || 'Untitled' }} ({{ getFieldsInScreen(screen.id).length }})
+                            @if (screen.isSummaryScreen) {
+                              <mat-icon class="lock-icon">lock</mat-icon>
+                            }
                           </button>
                         }
                       </div>
@@ -705,6 +716,21 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                               {{ field.type }}
                               @if (field.required) {
                                 <mat-chip>Required</mat-chip>
+                              }
+                              @if (field.isTitle) {
+                                <mat-chip>Title</mat-chip>
+                              }
+                              @if (field.inSummary) {
+                                <mat-chip>Summary</mat-chip>
+                              }
+                              @if (field.readOnly) {
+                                <mat-chip>ReadOnly</mat-chip>
+                              }
+                              @if (field.hidden) {
+                                <mat-chip>Hidden</mat-chip>
+                              }
+                              @if (field.isUnique) {
+                                <mat-chip>Unique</mat-chip>
                               }
                             </mat-panel-description>
                           </mat-expansion-panel-header>
@@ -794,7 +820,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                   <mat-label>Screen</mat-label>
                                   <mat-select [(ngModel)]="field.screenId">
                                     <mat-option [value]="null">None</mat-option>
-                                    @for (screen of screens; track screen.id) {
+                                    @for (screen of getNonSummaryScreens(); track screen.id) {
                                       <mat-option [value]="screen.id">{{ screen.title || 'Untitled Screen' }}</mat-option>
                                     }
                                   </mat-select>
@@ -968,7 +994,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 <div class="columns-section">
                                   <div class="columns-header">
                                     <span class="columns-title">Columns</span>
-                                    <button mat-stroked-button type="button" (click)="addTableColumn(field)" class="add-column-btn">
+                                    <button mat-stroked-button matTooltip="Add Column" type="button" (click)="addTableColumn(field)" class="add-column-btn">
                                       <mat-icon>add</mat-icon> Add Column
                                     </button>
                                   </div>
@@ -1065,7 +1091,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                       <mat-label>Screen</mat-label>
                                       <mat-select [(ngModel)]="field.screenId">
                                         <mat-option [value]="null">None (All Screens)</mat-option>
-                                        @for (screen of screens; track screen.id) {
+                                        @for (screen of getNonSummaryScreens(); track screen.id) {
                                           <mat-option [value]="screen.id">{{ screen.title || 'Untitled Screen' }}</mat-option>
                                         }
                                       </mat-select>
@@ -1168,7 +1194,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                     <mat-label>Screen</mat-label>
                                     <mat-select [(ngModel)]="field.screenId">
                                       <mat-option [value]="null">None (All Screens)</mat-option>
-                                      @for (screen of screens; track screen.id) {
+                                      @for (screen of getNonSummaryScreens(); track screen.id) {
                                         <mat-option [value]="screen.id">{{ screen.title || 'Untitled Screen' }}</mat-option>
                                       }
                                     </mat-select>
@@ -1197,37 +1223,66 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                   </mat-panel-title>
                                 </mat-expansion-panel-header>
 
-                                <mat-form-field appearance="outline" class="form-field full-width">
-                                  <mat-label>Validation Expression</mat-label>
-                                  <textarea matInput [(ngModel)]="field.validation" rows="2"
-                                            placeholder="e.g., Required() AND MinLength(5)"></textarea>
-                                  <mat-hint>Required(), MinLength(n), MaxLength(n), Min(n), Max(n), Range(min,max), Email(), Phone(), URL(), Pattern(/regex/), Unique(), Digits(), Alpha(), AlphaNumeric(), CreditCard(), ValidWhen(expr), InvalidWhen(expr). Combine with AND.</mat-hint>
-                                </mat-form-field>
+                                <div class="vt-section">
+                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                    <mat-label>Validation Expression</mat-label>
+                                    <textarea matInput [(ngModel)]="field.validation" rows="2"
+                                              placeholder="e.g., Required() AND MinLength(5)"></textarea>
+                                    <mat-hint>Combine functions with AND</mat-hint>
+                                  </mat-form-field>
+                                  <details class="vt-help">
+                                    <summary>Available functions</summary>
+                                    <div class="vt-help-content">
+                                      <strong>String:</strong> <code>Required()</code> <code>NotEmpty()</code> <code>MinLength(n)</code> <code>MaxLength(n)</code> <code>LengthRange(min,max)</code> <code>Alpha()</code> <code>AlphaNumeric()</code> <code>Digits()</code> <code>Pattern(/regex/)</code> <code>Contains("text")</code> <code>StartsWith("text")</code> <code>EndsWith("text")</code> <code>Equals("value")</code>
+                                      <br><strong>Number:</strong> <code>Min(n)</code> <code>Max(n)</code> <code>Range(min,max)</code> <code>Positive()</code> <code>Negative()</code> <code>Integer()</code> <code>Decimal(places)</code>
+                                      <br><strong>Boolean:</strong> <code>IsTrue()</code> <code>IsFalse()</code>
+                                      <br><strong>Date:</strong> <code>Date()</code> <code>FutureDate()</code> <code>PastDate()</code> <code>DateBefore("date")</code> <code>DateAfter("date")</code> <em style="font-size:0.75rem">(aliases: IS_PAST, IS_FUTURE, IS_DATE)</em>
+                                      <br><strong>Format:</strong> <code>Email()</code> <code>Phone()</code> <code>URL()</code> <code>CreditCard()</code>
+                                      <br><strong>List/Table:</strong> <code>MinItems(n)</code> <code>MaxItems(n)</code> <code>MinRows(n)</code> <code>MaxRows(n)</code>
+                                      <br><strong>Cross-field:</strong> <code>MatchField(fieldName)</code> <code>ValidWhen(expr)</code> <code>InvalidWhen(expr)</code> <code>Unique()</code>
+                                      <br><em>All functions accept an optional custom message: e.g., Required("Please fill this in"). Use &#64;&#123;fieldName&#125; in ValidWhen/InvalidWhen. Combine with AND.</em>
+                                    </div>
+                                  </details>
+                                </div>
 
-                                <mat-form-field appearance="outline" class="form-field full-width">
-                                  <mat-label>Transform Expression</mat-label>
-                                  <textarea matInput [(ngModel)]="field.customValidationRule" rows="2"
-                                            placeholder="e.g., UPPER() or TRIM()"></textarea>
-                                  <mat-hint>Transform value: UPPER(), LOWER(), TRIM(), ROUND(decimals), PAD_LEFT(len, char), SUBSTRING(start, end)</mat-hint>
-                                </mat-form-field>
+                                <div class="vt-section">
+                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                    <mat-label>Transform Expression</mat-label>
+                                    <textarea matInput [(ngModel)]="field.customValidationRule" rows="2"
+                                              placeholder="e.g., UPPER() or TRIM()"></textarea>
+                                    <mat-hint>Transform the field value</mat-hint>
+                                  </mat-form-field>
+                                  <details class="vt-help">
+                                    <summary>Available transforms</summary>
+                                    <div class="vt-help-content">
+                                      <strong>String:</strong> <code>UPPER()</code> <code>LOWER()</code> <code>CAPITALIZE()</code> <code>TRIM()</code> <code>LTRIM()</code> <code>RTRIM()</code> <code>SLUG()</code> <code>REMOVE_SPACES()</code> <code>SUBSTRING(start, end)</code> <code>REPLACE("search", "replace")</code> <code>PAD_LEFT(len, "char")</code> <code>PAD_RIGHT(len, "char")</code>
+                                      <br><strong>Number:</strong> <code>ROUND(decimals)</code> <code>ROUND_UP(decimals)</code> <code>ROUND_DOWN(decimals)</code>
+                                      <br><em>Combine with AND: e.g., TRIM() AND UPPER()</em>
+                                    </div>
+                                  </details>
+                                </div>
 
-                                <mat-form-field appearance="outline" class="form-field full-width">
-                                  <mat-label>Custom Error Message</mat-label>
-                                  <input matInput [(ngModel)]="field.validationMessage"
-                                         placeholder="Custom message when validation fails">
-                                </mat-form-field>
+                                <div class="vt-section">
+                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                    <mat-label>Custom Error Message</mat-label>
+                                    <input matInput [(ngModel)]="field.validationMessage"
+                                           placeholder="Custom message when validation fails">
+                                  </mat-form-field>
+                                </div>
 
-                                <mat-form-field appearance="outline" class="form-field full-width">
-                                  <mat-label>Visibility Expression</mat-label>
-                                  <textarea matInput [(ngModel)]="field.visibilityExpression" rows="2"
-                                            placeholder="e.g., true or &#64;{otherField} == 'Yes'"></textarea>
-                                  <mat-hint>Expression to control visibility. Use &#64;{{ '{' }}fieldName{{ '}' }} to reference other fields. Default: true</mat-hint>
-                                </mat-form-field>
+                                <div class="vt-section">
+                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                    <mat-label>Visibility Expression</mat-label>
+                                    <textarea matInput [(ngModel)]="field.visibilityExpression" rows="2"
+                                              placeholder="e.g., true or &#64;{otherField} == 'Yes'"></textarea>
+                                    <mat-hint>Use &#64;{{ '{' }}fieldName{{ '}' }} to reference other fields. Default: true</mat-hint>
+                                  </mat-form-field>
+                                </div>
                               </mat-expansion-panel>
                             }
 
                             <div class="field-actions">
-                              <button mat-button color="warn" (click)="removeField(i)">
+                              <button mat-button matTooltip="Remove" color="warn" (click)="removeField(i)">
                                 <mat-icon>delete</mat-icon>
                                 Remove
                               </button>
@@ -1260,7 +1315,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
             <mat-card>
               <mat-card-header>
                 <mat-card-title>Approval Levels</mat-card-title>
-                <button mat-raised-button color="primary" (click)="addApprover()">
+                <button mat-raised-button matTooltip="Add Approver" color="primary" (click)="addApprover()">
                   <mat-icon>add</mat-icon>
                   Add Approver
                 </button>
@@ -1275,7 +1330,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                           Level {{ approver.level }}: {{ getApproverDisplayName(approver) || 'Approver' }}
                         </mat-panel-title>
                         <mat-panel-description>
-                          {{ approver.approverType }}
+                          {{ approver.email }}
                           @if (approver.amountLimit) {
                             - Up to {{ approver.amountLimit | currency }}
                           }
@@ -1291,53 +1346,14 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                           </mat-form-field>
 
                           <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Approver Type</mat-label>
-                            <mat-select [(ngModel)]="approver.approverType" (selectionChange)="onApproverTypeChange(approver)">
-                              <mat-option value="USER">Specific User</mat-option>
-                              <mat-option value="ROLE">Role</mat-option>
+                            <mat-label>Select User</mat-label>
+                            <mat-select [(ngModel)]="approver.approverId" (selectionChange)="onApproverUserSelected(approver)">
+                              @for (user of users; track user.id) {
+                                <mat-option [value]="user.id">{{ user.fullName }}</mat-option>
+                              }
                             </mat-select>
                           </mat-form-field>
                         </div>
-
-                        @if (approver.approverType === 'USER') {
-                          <mat-form-field appearance="outline" class="form-field full-width">
-                            <mat-label>Select User</mat-label>
-                            <input matInput
-                                   type="text"
-                                   [matAutocomplete]="userAuto"
-                                   [(ngModel)]="approver.userSearchText"
-                                   (ngModelChange)="filterUsers(approver, $event)"
-                                   placeholder="Search by name or email...">
-                            <mat-autocomplete #userAuto="matAutocomplete"
-                                              (optionSelected)="onUserAutoSelected(approver, $event)"
-                                              [displayWith]="displayUserFn.bind(this)">
-                              @for (user of approver.filteredUsers || users; track user.id) {
-                                <mat-option [value]="user.id">
-                                  <span class="user-option">
-                                    <strong>{{ user.fullName }}</strong>
-                                    <small>{{ user.email }}</small>
-                                  </span>
-                                </mat-option>
-                              }
-                              @if ((approver.filteredUsers || users).length === 0) {
-                                <mat-option disabled>No users found</mat-option>
-                              }
-                            </mat-autocomplete>
-                            <mat-icon matSuffix>search</mat-icon>
-                            <mat-hint>Type to search for a user</mat-hint>
-                          </mat-form-field>
-                        }
-
-                        @if (approver.approverType === 'ROLE') {
-                          <mat-form-field appearance="outline" class="form-field full-width">
-                            <mat-label>Select Role</mat-label>
-                            <mat-select [(ngModel)]="approver.roleId">
-                              @for (role of roles; track role.id) {
-                                <mat-option [value]="role.id">{{ role.name }}</mat-option>
-                              }
-                            </mat-select>
-                          </mat-form-field>
-                        }
 
                         <div class="form-row">
                           <mat-form-field appearance="outline" class="form-field">
@@ -1348,8 +1364,8 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
 
                           <mat-form-field appearance="outline" class="form-field">
                             <mat-label>Email</mat-label>
-                            <input matInput type="email" [(ngModel)]="approver.email" [readonly]="approver.approverType === 'USER'">
-                            <mat-hint>{{ approver.approverType === 'USER' ? 'Auto-populated from user' : 'For email notifications' }}</mat-hint>
+                            <input matInput type="email" [(ngModel)]="approver.email" readonly>
+                            <mat-hint>Auto-populated from selected user</mat-hint>
                           </mat-form-field>
                         </div>
 
@@ -1360,7 +1376,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                         </div>
 
                         <div class="approver-actions">
-                          <button mat-button color="warn" (click)="removeApprover(i)">
+                          <button mat-button matTooltip="Remove Level" color="warn" (click)="removeApprover(i)">
                             <mat-icon>delete</mat-icon>
                             Remove Level
                           </button>
@@ -1610,6 +1626,53 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       border-color: #1976d2;
     }
 
+    .field-types.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .field-type-item.disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .summary-screen-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #fff3e0;
+      border: 1px solid #ffcc80;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+      font-size: 0.82rem;
+      color: #e65100;
+    }
+
+    .summary-screen-notice mat-icon {
+      flex-shrink: 0;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .summary-screen-notice p {
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .summary-tab {
+      font-style: italic;
+    }
+
+    .lock-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+      margin-left: 2px;
+      opacity: 0.6;
+    }
+
     .palette-section {
       margin-top: 1rem;
       padding-top: 1rem;
@@ -1631,11 +1694,11 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       align-items: center;
       gap: 0.5rem;
       margin: 0 0 0.5rem 0;
-      font-size: 0.8rem;
+      font-size: var(--function-font-size, 0.8rem);
       font-weight: 600;
-      color: #1976d2;
+      color: var(--function-category-color, #1976d2);
       padding-bottom: 0.375rem;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--border-color, #e0e0e0);
     }
 
     .function-category h4 mat-icon {
@@ -1892,6 +1955,58 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       margin-top: 1rem;
       margin-bottom: 1rem;
       background: #fafafa;
+    }
+
+    .vt-section {
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .vt-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .vt-section .form-field {
+      margin-bottom: 0.25rem;
+    }
+
+    .vt-help {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .vt-help summary {
+      cursor: pointer;
+      color: #1976d2;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .vt-help summary:hover {
+      text-decoration: underline;
+    }
+
+    .vt-help-content {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: #f0f4ff;
+      border-radius: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .vt-help-content code {
+      background: #fff;
+      border: 1px solid #d0d7e2;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: #333;
+      white-space: nowrap;
     }
 
     .validation-panel mat-panel-title {
@@ -2833,6 +2948,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       parentWorkflowId: [null],
       isActive: [true],
       showSummary: [false],
+      showApprovalMatrix: [false],
       commentsMandatory: [false],
       commentsMandatoryOnReject: [true],
       commentsMandatoryOnEscalate: [true],
@@ -3149,6 +3265,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           workflowTypeId: workflow.workflowTypeId || workflow.workflowType?.id,
           isActive: workflow.active ?? workflow.isActive ?? true,
           showSummary: workflow.showSummary ?? false,
+          showApprovalMatrix: workflow.showApprovalMatrix ?? false,
           commentsMandatory: workflow.commentsMandatory ?? false,
           commentsMandatoryOnReject: workflow.commentsMandatoryOnReject ?? true,
           commentsMandatoryOnEscalate: workflow.commentsMandatoryOnEscalate ?? true,
@@ -3195,6 +3312,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         this.approvers = (workflow.approvers || []).map((a: any) => ({
           ...a,
           approverId: a.userId || a.approverId || null,
+          email: a.approverEmail || a.email || '',
           approverType: a.approverType || (a.userId ? 'USER' : (a.roleId ? 'ROLE' : 'USER'))
         }));
       }
@@ -3206,14 +3324,28 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     return fieldType?.icon || 'text_fields';
   }
 
+  get isActiveSummaryScreen(): boolean {
+    if (!this.activeScreenId) return false;
+    const screen = this.screens.find(s => s.id === this.activeScreenId);
+    return screen?.isSummaryScreen === true;
+  }
+
+  getNonSummaryScreens(): any[] {
+    return this.screens.filter(s => !s.isSummaryScreen);
+  }
+
   addField(type: string) {
+    // Prevent adding fields to the Summary screen
+    if (this.isActiveSummaryScreen) return;
+
     // Determine the screen to assign the field to:
     // - If a specific screen is active, use that screen
-    // - If "All Fields" is active (null) and screens exist, use the first screen
+    // - If "All Fields" is active (null) and screens exist, use the first non-summary screen
     // - Otherwise, use null (no screen assignment)
     let targetScreenId = this.activeScreenId;
     if (targetScreenId === null && this.screens.length > 0) {
-      targetScreenId = this.screens[0].id;
+      const firstNonSummary = this.screens.find(s => !s.isSummaryScreen);
+      targetScreenId = firstNonSummary ? firstNonSummary.id : this.screens[0].id;
     }
 
     const field: any = {
@@ -3775,6 +3907,11 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       approver.filteredUsers = this.users;
       return;
     }
+    // Skip filtering if the value is a selected user ID (from autocomplete selection)
+    if (this.users.find(u => u.id === searchText)) {
+      approver.filteredUsers = this.users;
+      return;
+    }
     const search = searchText.toLowerCase();
     approver.filteredUsers = this.users.filter(user =>
       user.fullName?.toLowerCase().includes(search) ||
@@ -3792,6 +3929,13 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     }
   }
 
+  onApproverUserSelected(approver: any) {
+    const selectedUser = this.users.find(u => u.id === approver.approverId);
+    if (selectedUser) {
+      approver.email = selectedUser.email || '';
+    }
+  }
+
   displayUserFn(userId: any): string {
     if (!userId) return '';
     const user = this.users.find(u => u.id === userId);
@@ -3799,27 +3943,11 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   }
 
   getApproverDisplayName(approver: any): string {
-    if (approver.approverType === 'USER') {
-      const userId = approver.approverId || approver.userId;
-      if (userId) {
-        const user = this.users.find(u => u.id === userId);
-        if (user?.fullName) {
-          return user.fullName;
-        }
-      }
-      // Fallback to backend-provided name
-      if (approver.approverName) {
-        return approver.approverName;
-      }
-    }
-    if (approver.approverType === 'ROLE' && approver.roleId) {
-      const role = this.roles.find(r => r.id === approver.roleId);
-      if (role?.name) {
-        return role.name;
-      }
-      // Fallback to backend-provided name
-      if (approver.approverName) {
-        return approver.approverName;
+    const userId = approver.approverId || approver.userId;
+    if (userId) {
+      const user = this.users.find(u => u.id === userId);
+      if (user?.fullName) {
+        return user.fullName;
       }
     }
     return approver.approverName || '';

@@ -11,12 +11,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { SettingService } from '@core/services/setting.service';
+import { UserService } from '@core/services/user.service';
+import { DepartmentService } from '@core/services/department.service';
 import { AuditLog } from '@core/models/setting.model';
 import { AuditDetailDialogComponent } from './audit-detail-dialog.component';
 
@@ -40,13 +43,13 @@ import { AuditDetailDialogComponent } from './audit-detail-dialog.component';
     MatChipsModule,
     MatExpansionModule,
     MatDialogModule,
-    MatDividerModule
-  ],
+    MatDividerModule,
+    MatTooltipModule],
   template: `
     <div class="audit-log-container">
       <div class="header">
         <h1>Audit Logs</h1>
-        <button mat-raised-button (click)="exportLogs()">
+        <button mat-raised-button matTooltip="Export" (click)="exportLogs()">
           <mat-icon>download</mat-icon>
           Export
         </button>
@@ -108,9 +111,72 @@ import { AuditDetailDialogComponent } from './audit-detail-dialog.component';
               </mat-form-field>
             </div>
 
+            <h4 class="section-label">Access Restrictions</h4>
+            <div class="filter-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Corporate</mat-label>
+                <mat-select [(ngModel)]="filters.corporateId">
+                  <mat-option value="">All</mat-option>
+                  @for (corp of corporates; track corp.id) {
+                    <mat-option [value]="corp.id">{{ corp.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>SBU</mat-label>
+                <mat-select [(ngModel)]="filters.sbuId">
+                  <mat-option value="">All</mat-option>
+                  @for (sbu of sbus; track sbu.id) {
+                    <mat-option [value]="sbu.id">{{ sbu.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Branch</mat-label>
+                <mat-select [(ngModel)]="filters.branchId">
+                  <mat-option value="">All</mat-option>
+                  @for (branch of branches; track branch.id) {
+                    <mat-option [value]="branch.id">{{ branch.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Department</mat-label>
+                <mat-select [(ngModel)]="filters.departmentId">
+                  <mat-option value="">All</mat-option>
+                  @for (dept of departments; track dept.id) {
+                    <mat-option [value]="dept.id">{{ dept.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>User</mat-label>
+                <mat-select [(ngModel)]="filters.userId">
+                  <mat-option value="">All</mat-option>
+                  @for (user of users; track user.id) {
+                    <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }} ({{ user.username }})</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Role</mat-label>
+                <mat-select [(ngModel)]="filters.roleId">
+                  <mat-option value="">All</mat-option>
+                  @for (role of roles; track role.id) {
+                    <mat-option [value]="role.id">{{ role.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
             <div class="filter-actions">
-              <button mat-button (click)="clearFilters()">Clear</button>
-              <button mat-raised-button color="primary" (click)="applyFilters()">Apply Filters</button>
+              <button mat-button matTooltip="Clear" (click)="clearFilters()">Clear</button>
+              <button mat-raised-button matTooltip="Apply Filters" color="primary" (click)="applyFilters()">Apply Filters</button>
             </div>
           </mat-expansion-panel>
 
@@ -154,6 +220,16 @@ import { AuditDetailDialogComponent } from './audit-detail-dialog.component';
               <td mat-cell *matCellDef="let log">
                 <span class="entity-name">{{ log.entityName || (log.entityId | slice:0:8) + '...' }}</span>
               </td>
+            </ng-container>
+
+            <ng-container matColumnDef="corporateName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Corporate</th>
+              <td mat-cell *matCellDef="let log">{{ log.corporateName || '-' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="sbuName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>SBU</th>
+              <td mat-cell *matCellDef="let log">{{ log.sbuName || '-' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="summary">
@@ -210,6 +286,15 @@ import { AuditDetailDialogComponent } from './audit-detail-dialog.component';
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
       padding: 1rem 0;
+    }
+
+    .section-label {
+      margin: 0.5rem 0 0 0;
+      color: #666;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-top: 1px solid #e0e0e0;
+      padding-top: 0.75rem;
     }
 
     .filter-actions {
@@ -284,32 +369,50 @@ import { AuditDetailDialogComponent } from './audit-detail-dialog.component';
   `]
 })
 export class AuditLogComponent implements OnInit {
-  displayedColumns = ['actionDate', 'user', 'action', 'entityType', 'entityName', 'summary', 'ipAddress', 'actions'];
+  displayedColumns = ['actionDate', 'user', 'action', 'entityType', 'entityName', 'corporateName', 'sbuName', 'summary', 'ipAddress', 'actions'];
   dataSource = new MatTableDataSource<AuditLog>([]);
   totalElements = 0;
   pageSize = 25;
   currentPage = 0;
 
-  filters = {
+  filters: any = {
     performedBy: '',
     action: '',
     entityType: '',
     fromDate: null as Date | null,
-    toDate: null as Date | null
+    toDate: null as Date | null,
+    corporateId: '',
+    sbuId: '',
+    branchId: '',
+    departmentId: '',
+    userId: '',
+    roleId: ''
   };
 
   actions = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'APPROVE', 'REJECT', 'ESCALATE', 'SUBMIT', 'PASSWORD_CHANGE', 'PASSWORD_RESET'];
   entityTypes = ['User', 'Role', 'Workflow', 'WorkflowInstance', 'Setting', 'SBU', 'Corporate', 'Branch', 'Category'];
+
+  corporates: any[] = [];
+  sbus: any[] = [];
+  branches: any[] = [];
+  departments: any[] = [];
+  users: any[] = [];
+  roles: any[] = [];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   private dialog = inject(MatDialog);
 
-  constructor(private settingService: SettingService) {}
+  constructor(
+    private settingService: SettingService,
+    private userService: UserService,
+    private departmentService: DepartmentService
+  ) {}
 
   ngOnInit() {
     this.loadLogs();
+    this.loadFilterData();
   }
 
   ngAfterViewInit() {
@@ -318,7 +421,9 @@ export class AuditLogComponent implements OnInit {
 
   get hasFilters(): boolean {
     return !!(this.filters.performedBy || this.filters.action || this.filters.entityType ||
-              this.filters.fromDate || this.filters.toDate);
+              this.filters.fromDate || this.filters.toDate || this.filters.corporateId ||
+              this.filters.sbuId || this.filters.branchId || this.filters.departmentId ||
+              this.filters.userId || this.filters.roleId);
   }
 
   get activeFilterCount(): number {
@@ -328,7 +433,34 @@ export class AuditLogComponent implements OnInit {
     if (this.filters.entityType) count++;
     if (this.filters.fromDate) count++;
     if (this.filters.toDate) count++;
+    if (this.filters.corporateId) count++;
+    if (this.filters.sbuId) count++;
+    if (this.filters.branchId) count++;
+    if (this.filters.departmentId) count++;
+    if (this.filters.userId) count++;
+    if (this.filters.roleId) count++;
     return count;
+  }
+
+  loadFilterData() {
+    this.userService.getCorporates().subscribe(res => {
+      if (res.success) this.corporates = res.data;
+    });
+    this.userService.getSbus().subscribe(res => {
+      if (res.success) this.sbus = res.data;
+    });
+    this.userService.getBranches().subscribe(res => {
+      if (res.success) this.branches = res.data;
+    });
+    this.departmentService.getDepartments().subscribe(res => {
+      if (res.success) this.departments = res.data;
+    });
+    this.userService.getUsers().subscribe(res => {
+      if (res.success) this.users = res.data;
+    });
+    this.userService.getRoles().subscribe(res => {
+      if (res.success) this.roles = res.data;
+    });
   }
 
   loadLogs() {
@@ -352,7 +484,13 @@ export class AuditLogComponent implements OnInit {
       action: '',
       entityType: '',
       fromDate: null,
-      toDate: null
+      toDate: null,
+      corporateId: '',
+      sbuId: '',
+      branchId: '',
+      departmentId: '',
+      userId: '',
+      roleId: ''
     };
     this.applyFilters();
   }

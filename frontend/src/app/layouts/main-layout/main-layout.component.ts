@@ -7,6 +7,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -16,6 +17,7 @@ import { AuthService } from '@core/services/auth.service';
 import { WorkflowService } from '@core/services/workflow.service';
 import { ThemeService } from '@core/services/theme.service';
 import { ReportService } from '@core/services/report.service';
+import { SettingService } from '@core/services/setting.service';
 import { Workflow } from '@core/models/workflow.model';
 import { ProfileDialogComponent } from '@shared/components/profile-dialog/profile-dialog.component';
 import { ChangePasswordDialogComponent } from '@shared/components/change-password-dialog/change-password-dialog.component';
@@ -61,13 +63,14 @@ interface ReportCategory {
     MatExpansionModule,
     MatBadgeModule,
     MatDividerModule,
-    MatDialogModule
-  ],
+    MatDialogModule,
+    MatTooltipModule],
   template: `
     <div class="layout-container">
       <aside class="sidebar" [class.collapsed]="!sidebarOpen">
         <div class="sidebar-header">
-          <img src="assets/sonar_logo.png" alt="Sonar" class="brand-logo">
+          <img [src]="logoUrl" alt="Sona" class="brand-logo" (error)="logoUrl = 'assets/logo.png'">
+          <span class="brand-name">Sona</span>
         </div>
 
         <div class="user-profile">
@@ -98,7 +101,7 @@ interface ReportCategory {
                 </a>
                 <a class="menu-item" routerLink="/roles" routerLinkActive="active">
                   <mat-icon>security</mat-icon>
-                  <span>Roles</span>
+                  <span>Roles And Privileges</span>
                 </a>
                 <a class="menu-item" routerLink="/categories" routerLinkActive="active">
                   <mat-icon>category</mat-icon>
@@ -133,7 +136,7 @@ interface ReportCategory {
           }
 
           <!-- Workflow Admin -->
-          @if (canBuildWorkflows) {
+          @if (canBuildWorkflows && workflowModuleEnabled) {
             <mat-expansion-panel class="nav-panel">
               <mat-expansion-panel-header>
                 <mat-icon>build</mat-icon>
@@ -159,21 +162,54 @@ interface ReportCategory {
           }
 
           <!-- Workflows -->
-          <mat-expansion-panel class="nav-panel" [expanded]="true">
+          @if (workflowModuleEnabled) {
+            <mat-expansion-panel class="nav-panel">
+              <mat-expansion-panel-header>
+                <mat-icon>timeline</mat-icon>
+                <span>Workflows</span>
+              </mat-expansion-panel-header>
+              <div class="submenu">
+                @for (workflow of activeWorkflows; track workflow.id) {
+                  <a class="menu-item" [routerLink]="['/workflows', workflow.code, 'instances']">
+                    <mat-icon>{{ workflow.icon || 'description' }}</mat-icon>
+                    <span>{{ workflow.name }}</span>
+                  </a>
+                }
+              </div>
+            </mat-expansion-panel>
+          }
+
+          <!-- Projects -->
+          @if (projectsModuleEnabled) {
+          <mat-expansion-panel class="nav-panel">
             <mat-expansion-panel-header>
-              <mat-icon>timeline</mat-icon>
-              <span>Workflows</span>
+              <mat-icon>folder_special</mat-icon>
+              <span>Projects</span>
             </mat-expansion-panel-header>
             <div class="submenu">
-              @for (workflow of activeWorkflows; track workflow.id) {
-                <a class="menu-item" [routerLink]="['/workflows', workflow.code, 'instances']">
-                  <mat-icon>{{ workflow.icon || 'description' }}</mat-icon>
-                  <span>{{ workflow.name }}</span>
+              <a class="menu-item" routerLink="/projects" routerLinkActive="active">
+                <mat-icon>list</mat-icon>
+                <span>All Projects</span>
+              </a>
+              <a class="menu-item" routerLink="/projects/gantt" routerLinkActive="active">
+                <mat-icon>bar_chart</mat-icon>
+                <span>Gantt Chart</span>
+              </a>
+              <a class="menu-item" routerLink="/projects/categories" routerLinkActive="active">
+                <mat-icon>category</mat-icon>
+                <span>Categories</span>
+              </a>
+              @if (isAdmin) {
+                <a class="menu-item" routerLink="/projects/document-templates" routerLinkActive="active">
+                  <mat-icon>file_copy</mat-icon>
+                  <span>Doc Templates</span>
                 </a>
               }
             </div>
           </mat-expansion-panel>
+          }
 
+          @if (workflowModuleEnabled) {
           <a class="menu-item" routerLink="/approvals" routerLinkActive="active">
             <mat-icon [matBadge]="pendingApprovalsCount > 0 ? pendingApprovalsCount : null"
                       matBadgeColor="warn"
@@ -195,6 +231,7 @@ interface ReportCategory {
               <span class="badge-count primary">{{ mySubmissionsCount }}</span>
             }
           </a>
+          }
 
           <!-- Reports -->
           <mat-expansion-panel class="nav-panel">
@@ -202,22 +239,28 @@ interface ReportCategory {
               <mat-icon>assessment</mat-icon>
               <span>Reports</span>
             </mat-expansion-panel-header>
-            <div class="submenu reports-submenu">
+            <div class="submenu">
+              <a class="menu-item" routerLink="/reports" routerLinkActive="active">
+                <mat-icon>list</mat-icon>
+                <span>All Reports</span>
+              </a>
               @for (category of reportCategories; track category.id) {
-                <mat-expansion-panel class="nav-panel nested-panel">
-                  <mat-expansion-panel-header>
-                    <mat-icon>{{ category.icon }}</mat-icon>
-                    <span>{{ category.name }}</span>
-                  </mat-expansion-panel-header>
-                  <div class="submenu nested-submenu">
-                    @for (report of category.reports; track report.id) {
-                      <a class="menu-item" [routerLink]="['/reports', report.id]">
-                        <mat-icon>{{ report.icon }}</mat-icon>
-                        <span>{{ report.name }}</span>
-                      </a>
-                    }
-                  </div>
-                </mat-expansion-panel>
+                @if ((category.id === 'workflow' && workflowModuleEnabled) || (category.id === 'project' && projectsModuleEnabled)) {
+                  <mat-expansion-panel class="nav-panel nested-panel">
+                    <mat-expansion-panel-header>
+                      <mat-icon>{{ category.icon }}</mat-icon>
+                      <span>{{ category.name }}</span>
+                    </mat-expansion-panel-header>
+                    <div class="submenu nested-submenu">
+                      @for (report of category.reports; track report.id) {
+                        <a class="menu-item" [routerLink]="['/reports', report.id]">
+                          <mat-icon>{{ report.icon }}</mat-icon>
+                          <span>{{ report.name }}</span>
+                        </a>
+                      }
+                    </div>
+                  </mat-expansion-panel>
+                }
               }
             </div>
           </mat-expansion-panel>
@@ -231,8 +274,12 @@ interface ReportCategory {
             <mat-icon class="toggle-icon">{{ footerCollapsed ? 'expand_less' : 'expand_more' }}</mat-icon>
           </div>
           <div class="footer-content" [@footerExpand]="footerCollapsed ? 'collapsed' : 'expanded'">
+            <div class="footer-brand-row">
+              <img [src]="logoUrl" alt="Sona" class="footer-logo" (error)="logoUrl = 'assets/logo.png'">
+              <span class="footer-brand">Sona</span>
+            </div>
             <div class="developer">Developed By: Acad Arch Solutions Pvt. Ltd.</div>
-            <div class="copyright">v1.0.0 | &copy; {{ currentYear }} All Rights Reserved</div>
+            <div class="copyright">v1.5.0 | &copy; {{ currentYear }} All Rights Reserved</div>
           </div>
         </div>
       </aside>
@@ -240,14 +287,15 @@ interface ReportCategory {
       <main class="main-content" [class.expanded]="!sidebarOpen">
         <header class="main-header">
           <div class="header-left">
-            <button mat-icon-button (click)="toggleSidebar()">
+            <button mat-icon-button matTooltip="Menu" (click)="toggleSidebar()">
               <mat-icon>menu</mat-icon>
             </button>
           </div>
 
           <div class="header-right">
-            <button mat-icon-button [matMenuTriggerFor]="userMenu">
+            <button mat-button class="account-btn" [matMenuTriggerFor]="userMenu">
               <mat-icon>account_circle</mat-icon>
+              <span class="account-name">{{ fullName }}</span>
             </button>
             <mat-menu #userMenu="matMenu">
               <button mat-menu-item (click)="openProfileDialog()">
@@ -277,7 +325,7 @@ interface ReportCategory {
     .layout-container { display: flex; min-height: 100vh; }
 
     .sidebar {
-      width: 260px;
+      width: 338px;
       background: var(--sidebar-bg, #263238);
       color: var(--sidebar-text, white);
       display: flex;
@@ -301,9 +349,16 @@ interface ReportCategory {
     }
 
     .brand-logo {
-      max-width: 180px;
-      max-height: 50px;
+      max-width: 64px;
+      max-height: 64px;
       object-fit: contain;
+    }
+
+    .brand-name {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--brand-color, #ffffff);
+      letter-spacing: 1px;
     }
 
     .user-profile {
@@ -359,6 +414,11 @@ interface ReportCategory {
     .nav-panel ::ng-deep .mat-expansion-panel-header {
       padding: 0 1rem;
       color: var(--sidebar-text, white);
+    }
+
+    .nav-panel ::ng-deep .mat-expansion-indicator::after {
+      color: white !important;
+      border-color: white !important;
     }
 
     .nav-panel ::ng-deep .mat-expansion-panel-body {
@@ -439,6 +499,27 @@ interface ReportCategory {
       font-size: 0.75rem;
     }
 
+    .footer-brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .footer-logo {
+      max-width: 56px;
+      max-height: 56px;
+      object-fit: contain;
+    }
+
+    .footer-brand {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--brand-color, #ffffff);
+      letter-spacing: 1px;
+    }
+
     .sidebar-footer .developer {
       font-weight: 500;
       margin-bottom: 0.25rem;
@@ -475,7 +556,7 @@ interface ReportCategory {
 
     .main-content {
       flex: 1;
-      margin-left: 260px;
+      margin-left: 338px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -495,10 +576,33 @@ interface ReportCategory {
       z-index: 100;
     }
 
+    .account-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: none;
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--header-text, #333);
+    }
+
+    .header-left .mat-mdc-icon-button {
+      color: var(--header-text, #333);
+    }
+    .account-name {
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .page-content {
       flex: 1;
       padding: 1.5rem;
       background: var(--body-bg, #f5f5f5);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
     /* Sidebar collapsed state */
@@ -507,7 +611,7 @@ interface ReportCategory {
     }
 
     .sidebar.collapsed {
-      transform: translateX(-260px);
+      transform: translateX(-338px);
     }
 
     .main-content.expanded {
@@ -524,22 +628,55 @@ export class MainLayoutComponent implements OnInit {
   pendingApprovalsCount = 0;
   mySubmissionsCount = 0;
   currentYear = new Date().getFullYear();
+  logoUrl = 'assets/logo.png';
+  workflowModuleEnabled = true;
+  projectsModuleEnabled = true;
 
   constructor(
     private authService: AuthService,
     private workflowService: WorkflowService,
     private themeService: ThemeService,
     private reportService: ReportService,
+    private settingService: SettingService,
     private router: Router,
     private dialog: MatDialog
   ) {}
 
   ngOnInit() {
     this.themeService.loadTheme();
+    this.loadModuleStates();
     this.loadWorkflows();
     this.loadPendingApprovalsCount();
     this.loadMySubmissionsCount();
     this.loadReportCategories();
+    this.loadLogoUrl();
+  }
+
+  loadModuleStates() {
+    this.settingService.getSettingValue('module.workflow.enabled').subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.workflowModuleEnabled = res.data !== 'false';
+        }
+      }
+    });
+    this.settingService.getSettingValue('module.projects.enabled').subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.projectsModuleEnabled = res.data !== 'false';
+        }
+      }
+    });
+  }
+
+  loadLogoUrl() {
+    this.settingService.getSettingValue('app.logo.url').subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.logoUrl = res.data;
+        }
+      }
+    });
   }
 
   loadReportCategories() {

@@ -54,7 +54,10 @@ export class ThemeService {
     'theme.font.primary': '--font-primary',
     'theme.font.size.base': '--font-size-base',
     'theme.form.field.header.bg': '--form-field-header-bg',
-    'theme.form.field.header.color': '--form-field-header-color'
+    'theme.form.field.header.color': '--form-field-header-color',
+    'theme.function.category.bg': '--function-category-bg',
+    'theme.function.category.color': '--function-category-color',
+    'theme.function.font.size': '--function-font-size'
   };
 
   constructor(private http: HttpClient) {}
@@ -72,7 +75,7 @@ export class ThemeService {
     }
 
     // Then load fresh from API
-    this.http.get<any>(`${this.apiUrl}/settings/tab/Theme%20Settings`).subscribe({
+    this.http.get<any>(`${this.apiUrl}/settings/tab/Theme`).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           const settings: ThemeSettings = {};
@@ -97,7 +100,7 @@ export class ThemeService {
       const cssVar = this.settingToCssVar[key];
       if (cssVar && value) {
         // Handle font size specially (add 'px' if it's a number)
-        if (key === 'theme.font.size.base' && !isNaN(Number(value))) {
+        if ((key === 'theme.font.size.base' || key === 'theme.function.font.size') && !isNaN(Number(value))) {
           root.style.setProperty(cssVar, `${value}px`);
         } else {
           root.style.setProperty(cssVar, value);
@@ -139,6 +142,18 @@ export class ThemeService {
     }
 
     this.loadTheme();
+  }
+
+  applyThemeImmediately(settings: { key: string; value: any }[]): void {
+    const themeSettings: ThemeSettings = {};
+    settings.forEach(s => {
+      if (s.key?.startsWith('theme.')) {
+        themeSettings[s.key] = String(s.value);
+      }
+    });
+    this.themeSettings$.next(themeSettings);
+    this.applyTheme(themeSettings);
+    localStorage.setItem('themeSettings', JSON.stringify(themeSettings));
   }
 
   getThemeSettings() {

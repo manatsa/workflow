@@ -34,4 +34,10 @@ public class AuditLogDTO {
     private String workflowInstanceRef;
     private UUID sbuId;
     private String sbuName;
+    private UUID corporateId;
+    private String corporateName;
+    private UUID branchId;
+    private String branchName;
+    private UUID departmentId;
+    private String departmentName;
 }

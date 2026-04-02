@@ -8,19 +8,25 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { SettingService } from '@core/services/setting.service';
 import { ThemeService } from '@core/services/theme.service';
 import { ImportExportService } from '@core/services/import-export.service';
 import { EmailSettingsService } from '@core/services/email-settings.service';
+import { AuthService } from '@core/services/auth.service';
 import { Setting } from '@core/models/setting.model';
 import { EmailSettings, EmailProtocol, SmtpSecurity, EmailTestResult } from '@core/models/email-settings.model';
 import { HttpClient } from '@angular/common/http';
+import { ProjectSettingsService, ProjectSettingsDTO } from '../projects/services/project.service';
+import { WorkflowService } from '@core/services/workflow.service';
+import { Workflow } from '@core/models/workflow.model';
 
 interface SettingGroup {
   category: string;
@@ -45,23 +51,24 @@ interface SettingGroup {
     MatProgressSpinnerModule,
     MatDividerModule,
     MatDialogModule,
-    MatChipsModule
-  ],
+    MatChipsModule,
+    MatExpansionModule,
+    MatTooltipModule],
   template: `
     <div class="settings-container">
       <div class="header">
         <h1>Settings</h1>
         <div class="header-actions">
-          <button mat-stroked-button (click)="jsonFileInput.click()" [disabled]="loading">
+          <button mat-stroked-button matTooltip="Import JSON" (click)="jsonFileInput.click()" [disabled]="loading">
             <mat-icon>upload</mat-icon>
             Import JSON
           </button>
           <input hidden #jsonFileInput type="file" accept=".json" (change)="importSettingsJson($event)">
-          <button mat-stroked-button (click)="exportSettingsJson()" [disabled]="loading || tabs.length === 0">
+          <button mat-stroked-button matTooltip="Export JSON" (click)="exportSettingsJson()" [disabled]="loading || tabs.length === 0">
             <mat-icon>download</mat-icon>
             Export JSON
           </button>
-          <button mat-raised-button color="primary" (click)="saveAll()" [disabled]="loading || tabs.length === 0">
+          <button mat-raised-button matTooltip="Save Changes" color="primary" (click)="saveAll()" [disabled]="loading || tabs.length === 0">
             <mat-icon>save</mat-icon>
             Save Changes
           </button>
@@ -80,7 +87,7 @@ interface SettingGroup {
           <mat-card-content class="error-state">
             <mat-icon>error_outline</mat-icon>
             <p>{{ error }}</p>
-            <button mat-raised-button color="primary" (click)="loadSettings()">
+            <button mat-raised-button matTooltip="Retry" color="primary" (click)="loadSettings()">
               <mat-icon>refresh</mat-icon>
               Retry
             </button>
@@ -105,12 +112,51 @@ interface SettingGroup {
                   <span class="tab-label">{{ tab }}</span>
                 </ng-template>
                 <div class="tab-content">
+                  <!-- Module toggles on General tab (super user only) -->
+                  @if (tab === 'General' && isSuperUser && getModuleToggles().length > 0) {
+                    <div class="module-toggle-section">
+                      <h3 class="category-title">Modules</h3>
+                      @for (toggleSetting of getModuleToggles(); track toggleSetting.key) {
+                        <div class="setting-item module-toggle-item">
+                          <div class="setting-label">
+                            <strong>{{ toggleSetting.label || toggleSetting.key }}</strong>
+                            <span class="description">Enable or disable the {{ getModuleName(toggleSetting.key) }} module</span>
+                          </div>
+                          <div class="setting-input">
+                            <mat-slide-toggle
+                              [checked]="toggleSetting.value === 'true'"
+                              (change)="toggleSetting.value = $event.checked ? 'true' : 'false'">
+                            </mat-slide-toggle>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                  <!-- Module toggle for non-General tabs (super user only) -->
+                  @if (tab !== 'General' && isSuperUser && getModuleToggleForTab(tab); as toggleSetting) {
+                    <div class="module-toggle-section">
+                      <div class="setting-item module-toggle-item">
+                        <div class="setting-label">
+                          <strong>{{ toggleSetting.label || toggleSetting.key }}</strong>
+                          <span class="description">Enable or disable the {{ tab }} module</span>
+                        </div>
+                        <div class="setting-input">
+                          <mat-slide-toggle
+                            [checked]="toggleSetting.value === 'true'"
+                            (change)="toggleSetting.value = $event.checked ? 'true' : 'false'">
+                          </mat-slide-toggle>
+                        </div>
+                      </div>
+                    </div>
+                  }
                   <!-- Settings grouped by category in 2 columns -->
+                  <div [class.disabled-section]="isTabModuleDisabled(tab)">
                   @for (group of getGroupedSettingsForTab(tab); track group.category) {
                     <div class="category-section">
                       <h3 class="category-title">{{ group.category }}</h3>
                       <div class="settings-grid">
                         @for (setting of group.settings; track setting.key) {
+                          @if (!setting.isSuperOnly || isSuperUser) {
                           <div class="setting-item">
                             <div class="setting-label">
                               <strong>{{ setting.label || setting.key }}</strong>
@@ -123,32 +169,38 @@ interface SettingGroup {
                                 @case ('BOOLEAN') {
                                   <mat-slide-toggle
                                     [checked]="setting.value === 'true'"
-                                    (change)="setting.value = $event.checked ? 'true' : 'false'">
+                                    (change)="setting.value = $event.checked ? 'true' : 'false'"
+                                    [disabled]="isTabModuleDisabled(tab)">
                                   </mat-slide-toggle>
                                 }
                                 @case ('COLOR') {
                                   <div class="color-input">
                                     <input type="color" [(ngModel)]="setting.value"
-                                           [ngModelOptions]="{standalone: true}">
+                                           [ngModelOptions]="{standalone: true}"
+                                           [disabled]="isTabModuleDisabled(tab)">
                                     <input matInput [(ngModel)]="setting.value"
-                                           [ngModelOptions]="{standalone: true}" class="color-text">
+                                           [ngModelOptions]="{standalone: true}" class="color-text"
+                                           [disabled]="isTabModuleDisabled(tab)">
                                   </div>
                                 }
                                 @case ('NUMBER') {
                                   <mat-form-field appearance="outline" class="compact-field">
                                     <input matInput type="number" [(ngModel)]="setting.value"
-                                           [ngModelOptions]="{standalone: true}">
+                                           [ngModelOptions]="{standalone: true}"
+                                           [disabled]="isTabModuleDisabled(tab)">
                                   </mat-form-field>
                                 }
                                 @case ('PASSWORD') {
                                   <mat-form-field appearance="outline" class="compact-field">
                                     <input matInput type="password" [(ngModel)]="setting.value"
-                                           [ngModelOptions]="{standalone: true}">
+                                           [ngModelOptions]="{standalone: true}"
+                                           [disabled]="isTabModuleDisabled(tab)">
                                   </mat-form-field>
                                 }
                                 @case ('SELECT') {
                                   <mat-form-field appearance="outline" class="compact-field">
-                                    <mat-select [(ngModel)]="setting.value" [ngModelOptions]="{standalone: true}">
+                                    <mat-select [(ngModel)]="setting.value" [ngModelOptions]="{standalone: true}"
+                                                [disabled]="isTabModuleDisabled(tab)">
                                       @for (option of getSelectOptions(setting); track option) {
                                         <mat-option [value]="option">{{ option }}</mat-option>
                                       }
@@ -158,19 +210,127 @@ interface SettingGroup {
                                 @default {
                                   <mat-form-field appearance="outline" class="compact-field">
                                     <input matInput [(ngModel)]="setting.value"
-                                           [ngModelOptions]="{standalone: true}">
+                                           [ngModelOptions]="{standalone: true}"
+                                           [disabled]="isTabModuleDisabled(tab)">
                                   </mat-form-field>
                                 }
                               }
                             </div>
                           </div>
+                          }
                         }
                       </div>
                     </div>
                   }
+                  </div>
                 </div>
               </mat-tab>
             }
+
+            <!-- Projects Tab -->
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon>folder_special</mat-icon>
+                <span class="tab-label">Projects</span>
+              </ng-template>
+              <div class="tab-content">
+                <!-- Module toggle (super user only) -->
+                @if (isSuperUser && getModuleToggleForTab('Projects'); as toggleSetting) {
+                  <div class="module-toggle-section">
+                    <div class="setting-item module-toggle-item">
+                      <div class="setting-label">
+                        <strong>{{ toggleSetting.label || toggleSetting.key }}</strong>
+                        <span class="description">Enable or disable the Projects module</span>
+                      </div>
+                      <div class="setting-input">
+                        <mat-slide-toggle
+                          [checked]="toggleSetting.value === 'true'"
+                          (change)="toggleSetting.value = $event.checked ? 'true' : 'false'">
+                        </mat-slide-toggle>
+                      </div>
+                    </div>
+                  </div>
+                }
+                <div [class.disabled-section]="isTabModuleDisabled('Projects')">
+                @if (projectSettingsLoading) {
+                  <div class="loading-spinner"><mat-spinner diameter="30"></mat-spinner></div>
+                } @else if (projectSettings.length === 0) {
+                  <div class="empty-state" style="padding: 2rem; text-align: center;">
+                    <mat-icon>settings</mat-icon>
+                    <p>No project settings found.</p>
+                    <button mat-raised-button matTooltip="Initialize Defaults" color="primary" (click)="initializeProjectDefaults()">
+                      <mat-icon>refresh</mat-icon>
+                      Initialize Defaults
+                    </button>
+                  </div>
+                } @else {
+                  <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+                    <button mat-stroked-button matTooltip="Initialize Defaults" (click)="initializeProjectDefaults()">
+                      <mat-icon>refresh</mat-icon>
+                      Initialize Defaults
+                    </button>
+                  </div>
+                  @for (group of projectSettingGroups; track group) {
+                    <mat-expansion-panel [expanded]="true" class="project-settings-panel">
+                      <mat-expansion-panel-header>
+                        <mat-panel-title>
+                          {{ group | titlecase }}
+                        </mat-panel-title>
+                        <mat-panel-description>
+                          {{ getProjectGroupSettings(group).length }} settings
+                        </mat-panel-description>
+                      </mat-expansion-panel-header>
+                      <div class="settings-grid">
+                        @for (setting of getProjectGroupSettings(group); track setting.id) {
+                          <div class="setting-item">
+                            <div class="setting-label">
+                              <strong>{{ setting.description || setting.settingKey }}</strong>
+                              <span class="description">{{ setting.settingKey }}</span>
+                            </div>
+                            <div class="setting-input">
+                              @if (setting.settingType === 'BOOLEAN') {
+                                <mat-slide-toggle
+                                  [checked]="setting.settingValue === 'true'"
+                                  (change)="updateProjectSettingValue(setting, $event.checked ? 'true' : 'false')">
+                                </mat-slide-toggle>
+                              } @else if (setting.settingType === 'SELECT') {
+                                <mat-form-field appearance="outline" class="compact-field">
+                                  <mat-select [(ngModel)]="setting.settingValue" [ngModelOptions]="{standalone: true}" (selectionChange)="saveProjectSetting(setting)">
+                                    @for (opt of getProjectSelectOptions(setting); track opt) {
+                                      <mat-option [value]="opt">{{ opt }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                              } @else if (setting.settingType === 'UUID') {
+                                <mat-form-field appearance="outline" class="compact-field">
+                                  <mat-select [(ngModel)]="setting.settingValue" [ngModelOptions]="{standalone: true}" (selectionChange)="saveProjectSetting(setting)">
+                                    <mat-option value="">None</mat-option>
+                                    @for (wf of projectWorkflows; track wf.id) {
+                                      <mat-option [value]="wf.id">{{ wf.name }}</mat-option>
+                                    }
+                                  </mat-select>
+                                </mat-form-field>
+                              } @else if (setting.settingType === 'NUMBER') {
+                                <mat-form-field appearance="outline" class="compact-field">
+                                  <input matInput type="number" [(ngModel)]="setting.settingValue"
+                                         [ngModelOptions]="{standalone: true}" (blur)="saveProjectSetting(setting)">
+                                </mat-form-field>
+                              } @else {
+                                <mat-form-field appearance="outline" class="compact-field">
+                                  <input matInput [(ngModel)]="setting.settingValue"
+                                         [ngModelOptions]="{standalone: true}" (blur)="saveProjectSetting(setting)">
+                                </mat-form-field>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </mat-expansion-panel>
+                  }
+                }
+                </div>
+              </div>
+            </mat-tab>
 
             <!-- Email Settings Tab -->
             <mat-tab>
@@ -248,7 +408,7 @@ interface SettingGroup {
                         <mat-label>Password</mat-label>
                         <input matInput [(ngModel)]="emailSettings.smtpPassword" [ngModelOptions]="{standalone: true}"
                                [type]="showEmailPassword ? 'text' : 'password'">
-                        <button mat-icon-button matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
+                        <button mat-icon-button matTooltip="{{ showEmailPassword ? 'Hide Password' : 'Show Password' }}" matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
                           <mat-icon>{{ showEmailPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
                         </button>
                       </mat-form-field>
@@ -286,7 +446,7 @@ interface SettingGroup {
                         <mat-label>Client Secret</mat-label>
                         <input matInput [(ngModel)]="emailSettings.msClientSecret" [ngModelOptions]="{standalone: true}"
                                [type]="showEmailPassword ? 'text' : 'password'">
-                        <button mat-icon-button matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
+                        <button mat-icon-button matTooltip="{{ showEmailPassword ? 'Hide Password' : 'Show Password' }}" matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
                           <mat-icon>{{ showEmailPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
                         </button>
                       </mat-form-field>
@@ -314,7 +474,7 @@ interface SettingGroup {
                         <mat-label>Client Secret</mat-label>
                         <input matInput [(ngModel)]="emailSettings.gmailClientSecret" [ngModelOptions]="{standalone: true}"
                                [type]="showEmailPassword ? 'text' : 'password'">
-                        <button mat-icon-button matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
+                        <button mat-icon-button matTooltip="{{ showEmailPassword ? 'Hide Password' : 'Show Password' }}" matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
                           <mat-icon>{{ showEmailPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
                         </button>
                       </mat-form-field>
@@ -353,7 +513,7 @@ interface SettingGroup {
                         <mat-label>Password</mat-label>
                         <input matInput [(ngModel)]="emailSettings.exchangePassword" [ngModelOptions]="{standalone: true}"
                                [type]="showEmailPassword ? 'text' : 'password'">
-                        <button mat-icon-button matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
+                        <button mat-icon-button matTooltip="{{ showEmailPassword ? 'Hide Password' : 'Show Password' }}" matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
                           <mat-icon>{{ showEmailPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
                         </button>
                       </mat-form-field>
@@ -381,7 +541,7 @@ interface SettingGroup {
                         <mat-label>API Key</mat-label>
                         <input matInput [(ngModel)]="emailSettings.apiKey" [ngModelOptions]="{standalone: true}"
                                [type]="showEmailPassword ? 'text' : 'password'">
-                        <button mat-icon-button matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
+                        <button mat-icon-button matTooltip="{{ showEmailPassword ? 'Hide Password' : 'Show Password' }}" matSuffix type="button" (click)="showEmailPassword = !showEmailPassword">
                           <mat-icon>{{ showEmailPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
                         </button>
                       </mat-form-field>
@@ -437,14 +597,14 @@ interface SettingGroup {
                     </div>
                   }
 
-                  <button mat-stroked-button color="accent" type="button" (click)="testEmailConnection()" [disabled]="emailLoading">
+                  <button mat-stroked-button matTooltip="Send Test Email" color="accent" type="button" (click)="testEmailConnection()" [disabled]="emailLoading">
                     <mat-icon>send</mat-icon>
                     Send Test Email
                   </button>
                 </div>
 
                 <div class="action-buttons" style="margin-top: 20px;">
-                  <button mat-raised-button color="primary" type="button" (click)="saveEmailSettings()" [disabled]="emailLoading">
+                  <button mat-raised-button matTooltip="Save Email Settings" color="primary" type="button" (click)="saveEmailSettings()" [disabled]="emailLoading">
                     <mat-icon>save</mat-icon>
                     Save Email Settings
                   </button>
@@ -838,6 +998,33 @@ interface SettingGroup {
     .full-width-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
       display: none;
     }
+
+    .project-settings-panel {
+      margin-bottom: 12px;
+    }
+
+    .project-settings-panel mat-panel-title {
+      font-weight: 500;
+      color: #1976d2;
+    }
+
+    .project-settings-panel mat-panel-description {
+      font-size: 0.85rem;
+    }
+
+    .disabled-section {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .module-toggle-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .module-toggle-item {
+      background: #e3f2fd !important;
+      border: 2px solid #1976d2 !important;
+    }
   `]
 })
 export class SettingsComponent implements OnInit {
@@ -853,7 +1040,7 @@ export class SettingsComponent implements OnInit {
   emailSettings: EmailSettings = {
     emailProtocol: EmailProtocol.SMTP,
     senderEmail: '',
-    senderName: 'Sonar Workflow',
+    senderName: 'Sona Workflow',
     emailEnabled: false,
     smtpPort: 587,
     smtpSecurity: SmtpSecurity.TLS,
@@ -868,6 +1055,12 @@ export class SettingsComponent implements OnInit {
   emailSuccessMessage = '';
   showEmailPassword = false;
 
+  // Project Settings
+  projectSettings: ProjectSettingsDTO[] = [];
+  projectSettingGroups: string[] = [];
+  projectSettingsLoading = false;
+  projectWorkflows: Workflow[] = [];
+
   private apiUrl = '/api';
 
   constructor(
@@ -875,6 +1068,9 @@ export class SettingsComponent implements OnInit {
     private themeService: ThemeService,
     private importExportService: ImportExportService,
     private emailSettingsService: EmailSettingsService,
+    private projectSettingsService: ProjectSettingsService,
+    private workflowService: WorkflowService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private http: HttpClient
   ) {}
@@ -883,6 +1079,8 @@ export class SettingsComponent implements OnInit {
     this.loadSettings();
     this.loadRoles();
     this.loadEmailSettings();
+    this.loadProjectSettings();
+    this.loadProjectWorkflows();
   }
 
   loadRoles() {
@@ -937,7 +1135,8 @@ export class SettingsComponent implements OnInit {
   }
 
   getTabsBeforeReporting(): string[] {
-    return this.tabs.filter(tab => tab !== 'Reporting');
+    // Return all tabs except Reporting, Mail Settings, and Projects (Projects has its own custom tab)
+    return this.tabs.filter(tab => tab !== 'Reporting' && tab !== 'Mail Settings' && tab !== 'Projects');
   }
 
   hasReportingTab(): boolean {
@@ -968,7 +1167,9 @@ export class SettingsComponent implements OnInit {
       'Branding': 'branding_watermark',
       'Email': 'email',
       'Mail Settings': 'mail',
-      'Reporting': 'assessment'
+      'Reporting': 'assessment',
+      'Projects': 'folder_special',
+      'Reports': 'assessment'
     };
     return iconMap[tab] || 'tune';
   }
@@ -980,6 +1181,9 @@ export class SettingsComponent implements OnInit {
     if (tab === 'Reporting') {
       settings = settings.filter(s => s.key !== 'reporting.roles');
     }
+
+    // Filter out module toggle settings (rendered separately at top of tab)
+    settings = settings.filter(s => !(s.key?.startsWith('module.') && s.key?.endsWith('.enabled')));
 
     const categoryMap = new Map<string, Setting[]>();
 
@@ -1005,6 +1209,37 @@ export class SettingsComponent implements OnInit {
     return setting.options.split(',').map(opt => opt.trim()).filter(opt => opt.length > 0);
   }
 
+  get isSuperUser(): boolean {
+    return this.authService.isSuperUser;
+  }
+
+  getModuleToggleForTab(tab: string): Setting | null {
+    const keyMap: Record<string, string> = {
+      'Workflow': 'module.workflow.enabled',
+      'Projects': 'module.projects.enabled'
+    };
+    const key = keyMap[tab];
+    if (!key) return null;
+    return this.settings.find(s => s.key === key) || null;
+  }
+
+  getModuleToggles(): Setting[] {
+    return this.settings.filter(s => s.key?.startsWith('module.') && s.key?.endsWith('.enabled'));
+  }
+
+  getModuleName(key: string): string {
+    const nameMap: Record<string, string> = {
+      'module.workflow.enabled': 'Workflow',
+      'module.projects.enabled': 'Projects'
+    };
+    return nameMap[key] || key.replace('module.', '').replace('.enabled', '');
+  }
+
+  isTabModuleDisabled(tab: string): boolean {
+    const toggle = this.getModuleToggleForTab(tab);
+    return toggle ? toggle.value === 'false' : false;
+  }
+
   saveAll() {
     const modifiedSettings = this.settings.map(s => ({
       id: s.id,
@@ -1016,12 +1251,13 @@ export class SettingsComponent implements OnInit {
       category: s.category
     }));
 
+    // Apply theme colors immediately before waiting for save response
+    this.themeService.applyThemeImmediately(modifiedSettings);
+
     this.settingService.saveSettings(modifiedSettings).subscribe({
       next: (res) => {
         if (res.success) {
           this.snackBar.open('Settings saved successfully', 'Close', { duration: 3000 });
-          // Refresh theme to apply new theme settings
-          this.themeService.refreshTheme();
         }
       },
       error: () => {
@@ -1165,5 +1401,63 @@ export class SettingsComponent implements OnInit {
   isApiBasedProtocol(): boolean {
     const p = this.emailSettings.emailProtocol;
     return p === EmailProtocol.SENDGRID || p === EmailProtocol.MAILGUN || p === EmailProtocol.AWS_SES;
+  }
+
+  // Project Settings Methods
+  loadProjectSettings() {
+    this.projectSettingsLoading = true;
+    this.projectSettingsService.getAllSettings().subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.projectSettings = res.data || [];
+          this.projectSettingGroups = [...new Set(this.projectSettings.map(s => s.settingGroup || 'general'))];
+        }
+        this.projectSettingsLoading = false;
+      },
+      error: () => {
+        this.projectSettingsLoading = false;
+      }
+    });
+  }
+
+  loadProjectWorkflows() {
+    this.workflowService.getWorkflows().subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.projectWorkflows = res.data || [];
+        }
+      }
+    });
+  }
+
+  getProjectGroupSettings(group: string): ProjectSettingsDTO[] {
+    return this.projectSettings.filter(s => (s.settingGroup || 'general') === group);
+  }
+
+  getProjectSelectOptions(setting: ProjectSettingsDTO): string[] {
+    if (!setting.options) return [];
+    return setting.options.split(',').map(opt => opt.trim()).filter(opt => opt.length > 0);
+  }
+
+  updateProjectSettingValue(setting: ProjectSettingsDTO, value: string) {
+    setting.settingValue = value;
+    this.saveProjectSetting(setting);
+  }
+
+  saveProjectSetting(setting: ProjectSettingsDTO) {
+    this.projectSettingsService.saveSetting(setting).subscribe({
+      next: () => this.snackBar.open('Setting saved', 'Close', { duration: 2000 }),
+      error: () => this.snackBar.open('Failed to save setting', 'Close', { duration: 3000 })
+    });
+  }
+
+  initializeProjectDefaults() {
+    this.projectSettingsService.initializeDefaults().subscribe({
+      next: () => {
+        this.snackBar.open('Project defaults initialized', 'Close', { duration: 3000 });
+        this.loadProjectSettings();
+      },
+      error: () => this.snackBar.open('Failed to initialize defaults', 'Close', { duration: 3000 })
+    });
   }
 }

@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,4 +56,63 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
             @Param("entityType") String entityType,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate);
+
+    // Scoped queries: filter by user's organizational access
+
+    @Query("SELECT a FROM AuditLog a WHERE " +
+            "(a.corporate IS NULL OR a.corporate.id IN :corporateIds) AND " +
+            "(a.sbu IS NULL OR a.sbu.id IN :sbuIds) AND " +
+            "(a.branch IS NULL OR a.branch.id IN :branchIds) AND " +
+            "(a.department IS NULL OR a.department.id IN :departmentIds) " +
+            "ORDER BY a.actionDate DESC")
+    Page<AuditLog> findAllByScope(
+            @Param("corporateIds") Collection<UUID> corporateIds,
+            @Param("sbuIds") Collection<UUID> sbuIds,
+            @Param("branchIds") Collection<UUID> branchIds,
+            @Param("departmentIds") Collection<UUID> departmentIds,
+            Pageable pageable);
+
+    @Query("SELECT a FROM AuditLog a WHERE " +
+            "a.userId = :userId " +
+            "ORDER BY a.actionDate DESC")
+    Page<AuditLog> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
+
+    @Query(value = "SELECT * FROM audit_logs a WHERE " +
+            "(" +
+            "  (CAST(a.corporate_id AS VARCHAR) IS NULL OR a.corporate_id IN (:corporateIds)) AND " +
+            "  (CAST(a.sbu_id AS VARCHAR) IS NULL OR a.sbu_id IN (:sbuIds)) AND " +
+            "  (CAST(a.branch_id AS VARCHAR) IS NULL OR a.branch_id IN (:branchIds)) AND " +
+            "  (CAST(a.department_id AS VARCHAR) IS NULL OR a.department_id IN (:departmentIds))" +
+            ") AND " +
+            "(CAST(:username AS VARCHAR) IS NULL OR CAST(a.username AS VARCHAR) ILIKE '%' || CAST(:username AS VARCHAR) || '%') AND " +
+            "(CAST(:action AS VARCHAR) IS NULL OR a.action = CAST(:action AS VARCHAR)) AND " +
+            "(CAST(:entityType AS VARCHAR) IS NULL OR a.entity_type = CAST(:entityType AS VARCHAR)) AND " +
+            "(CAST(:fromDate AS TIMESTAMP) IS NULL OR a.action_date >= CAST(:fromDate AS TIMESTAMP)) AND " +
+            "(CAST(:toDate AS TIMESTAMP) IS NULL OR a.action_date <= CAST(:toDate AS TIMESTAMP)) " +
+            "ORDER BY a.action_date DESC", nativeQuery = true)
+    List<AuditLog> findAllFilteredByScope(
+            @Param("corporateIds") Collection<UUID> corporateIds,
+            @Param("sbuIds") Collection<UUID> sbuIds,
+            @Param("branchIds") Collection<UUID> branchIds,
+            @Param("departmentIds") Collection<UUID> departmentIds,
+            @Param("username") String username,
+            @Param("action") String action,
+            @Param("entityType") String entityType,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate);
+
+    @Query("SELECT a FROM AuditLog a WHERE " +
+            "(a.corporate IS NULL OR a.corporate.id IN :corporateIds) AND " +
+            "(a.sbu IS NULL OR a.sbu.id IN :sbuIds) AND " +
+            "(a.branch IS NULL OR a.branch.id IN :branchIds) AND " +
+            "(a.department IS NULL OR a.department.id IN :departmentIds) AND " +
+            "(LOWER(a.summary) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(a.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(a.entityName) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<AuditLog> searchAuditLogsByScope(
+            @Param("corporateIds") Collection<UUID> corporateIds,
+            @Param("sbuIds") Collection<UUID> sbuIds,
+            @Param("branchIds") Collection<UUID> branchIds,
+            @Param("departmentIds") Collection<UUID> departmentIds,
+            @Param("search") String search, Pageable pageable);
 }

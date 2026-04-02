@@ -22,13 +22,33 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/audit")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ADMIN') or hasRole('ROLE_ADMIN')")
+@PreAuthorize("hasAuthority('ADMIN') or hasRole('ROLE_ADMIN') or hasAuthority('VIEW_AUDIT_LOG')")
 public class AuditController {
 
     private final AuditService auditService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<AuditLogDTO>>> getAuditLogs(Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<AuditLogDTO>>> getAuditLogs(
+            Pageable pageable,
+            @RequestParam(required = false) String performedBy,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) String entityType,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(required = false) UUID corporateId,
+            @RequestParam(required = false) UUID sbuId,
+            @RequestParam(required = false) UUID branchId,
+            @RequestParam(required = false) UUID departmentId,
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) UUID roleId) {
+        boolean hasExtraFilters = performedBy != null || action != null || entityType != null ||
+                fromDate != null || toDate != null || corporateId != null || sbuId != null ||
+                branchId != null || departmentId != null || userId != null || roleId != null;
+        if (hasExtraFilters) {
+            return ResponseEntity.ok(ApiResponse.success(
+                    auditService.getAuditLogsFiltered(pageable, performedBy, action, entityType,
+                            fromDate, toDate, corporateId, sbuId, branchId, departmentId, userId, roleId)));
+        }
         return ResponseEntity.ok(ApiResponse.success(auditService.getAuditLogs(pageable)));
     }
 
@@ -63,9 +83,16 @@ public class AuditController {
             @RequestParam(required = false) String action,
             @RequestParam(required = false) String entityType,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) throws IOException {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(required = false) UUID corporateId,
+            @RequestParam(required = false) UUID sbuId,
+            @RequestParam(required = false) UUID branchId,
+            @RequestParam(required = false) UUID departmentId,
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) UUID roleId) throws IOException {
 
-        byte[] excelContent = auditService.exportAuditLogs(performedBy, action, entityType, fromDate, toDate);
+        byte[] excelContent = auditService.exportAuditLogs(performedBy, action, entityType,
+                fromDate, toDate, corporateId, sbuId, branchId, departmentId, userId, roleId);
 
         String filename = "audit_logs_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
 

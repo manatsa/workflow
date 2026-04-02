@@ -26,6 +26,10 @@ export class SettingService {
     return this.api.get<Record<string, Setting[]>>('/settings/grouped');
   }
 
+  getSettingValue(key: string): Observable<ApiResponse<string>> {
+    return this.api.get<string>(`/settings/value/${key}`);
+  }
+
   saveSetting(setting: Partial<Setting>): Observable<ApiResponse<Setting>> {
     return this.api.post<Setting>('/settings', setting);
   }
@@ -74,6 +78,12 @@ export class SettingService {
       if (filters.entityType) params.entityType = filters.entityType;
       if (filters.fromDate) params.fromDate = filters.fromDate.toISOString();
       if (filters.toDate) params.toDate = filters.toDate.toISOString();
+      if (filters.corporateId) params.corporateId = filters.corporateId;
+      if (filters.sbuId) params.sbuId = filters.sbuId;
+      if (filters.branchId) params.branchId = filters.branchId;
+      if (filters.departmentId) params.departmentId = filters.departmentId;
+      if (filters.userId) params.userId = filters.userId;
+      if (filters.roleId) params.roleId = filters.roleId;
     }
     return this.api.getPage<AuditLog>('/audit', page, size, params);
   }
@@ -87,6 +97,12 @@ export class SettingService {
       if (filters.entityType) params.push(`entityType=${encodeURIComponent(filters.entityType)}`);
       if (filters.fromDate) params.push(`fromDate=${encodeURIComponent(filters.fromDate.toISOString())}`);
       if (filters.toDate) params.push(`toDate=${encodeURIComponent(filters.toDate.toISOString())}`);
+      if (filters.corporateId) params.push(`corporateId=${encodeURIComponent(filters.corporateId)}`);
+      if (filters.sbuId) params.push(`sbuId=${encodeURIComponent(filters.sbuId)}`);
+      if (filters.branchId) params.push(`branchId=${encodeURIComponent(filters.branchId)}`);
+      if (filters.departmentId) params.push(`departmentId=${encodeURIComponent(filters.departmentId)}`);
+      if (filters.userId) params.push(`userId=${encodeURIComponent(filters.userId)}`);
+      if (filters.roleId) params.push(`roleId=${encodeURIComponent(filters.roleId)}`);
     }
     if (params.length > 0) {
       url += '?' + params.join('&');

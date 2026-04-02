@@ -59,6 +59,9 @@ $theme: mat.m2-define-light-theme((
   --font-size-base: 14px;
   --form-field-header-bg: #1976d2;
   --form-field-header-color: #ffffff;
+  --function-category-bg: #f5f5f5;
+  --function-category-color: #1e90ff;
+  --function-font-size: 11px;
 }
 
 * {
@@ -126,6 +129,75 @@ body {
 
   tr:hover {
     background: var(--table-stripe-bg);
+  }
+}
+
+// Override Angular Material primary button color with CSS variable
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-fab.mat-primary,
+.mat-mdc-mini-fab.mat-primary {
+  --mdc-filled-button-container-color: var(--button-primary-bg) !important;
+  --mdc-filled-button-label-text-color: var(--button-primary-text) !important;
+  --mdc-protected-button-container-color: var(--button-primary-bg) !important;
+  --mdc-protected-button-label-text-color: var(--button-primary-text) !important;
+}
+
+.mat-mdc-raised-button:not(.mat-primary):not(.mat-accent):not(.mat-warn) {
+  --mdc-protected-button-container-color: var(--button-secondary-bg);
+  --mdc-protected-button-label-text-color: var(--button-secondary-text);
+}
+
+// Apply primary color to checkboxes, radios, slide toggles, progress bars
+.mat-mdc-checkbox.mat-primary {
+  --mdc-checkbox-selected-checkmark-color: #fff;
+  --mdc-checkbox-selected-focus-state-layer-color: var(--primary-color);
+  --mdc-checkbox-selected-hover-state-layer-color: var(--primary-color);
+  --mdc-checkbox-selected-icon-color: var(--primary-color);
+  --mdc-checkbox-selected-focus-icon-color: var(--primary-color);
+  --mdc-checkbox-selected-hover-icon-color: var(--primary-color);
+  --mdc-checkbox-selected-pressed-icon-color: var(--primary-color);
+}
+
+.mat-mdc-slide-toggle.mat-primary {
+  --mdc-switch-selected-track-color: var(--primary-color);
+  --mdc-switch-selected-handle-color: var(--primary-color);
+  --mdc-switch-selected-focus-track-color: var(--primary-color);
+  --mdc-switch-selected-hover-track-color: var(--primary-color);
+  --mdc-switch-selected-pressed-track-color: var(--primary-color);
+}
+
+.mat-mdc-progress-bar.mat-primary {
+  --mdc-linear-progress-active-indicator-color: var(--primary-color);
+}
+
+.mat-mdc-progress-spinner.mat-primary circle {
+  stroke: var(--primary-color) !important;
+}
+
+// Tabs
+.mat-mdc-tab-group .mat-mdc-tab:not(.mat-mdc-tab-disabled) .mdc-tab-indicator__content--underline {
+  border-color: var(--primary-color) !important;
+}
+
+.mat-mdc-tab:not(.mat-mdc-tab-disabled).mdc-tab--active .mdc-tab__text-label {
+  color: var(--primary-color) !important;
+}
+
+// Links
+.mat-mdc-form-field .mat-mdc-form-field-focus-overlay {
+  background-color: transparent;
+}
+
+.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+  color: var(--primary-color) !important;
+}
+
+.mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused {
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: var(--input-focus-border) !important;
   }
 }
 
@@ -324,7 +396,15 @@ body.dark-mode {
     border-bottom-color: var(--border-color);
 
     button, .mat-mdc-icon-button {
-      color: #ffffff !important;
+      color: var(--header-text, #ffffff) !important;
+    }
+
+    .account-btn {
+      color: var(--header-text, #ffffff) !important;
+
+      mat-icon, .account-name {
+        color: var(--header-text, #ffffff) !important;
+      }
     }
   }
 
@@ -353,6 +433,10 @@ body.dark-mode {
 
     .mat-mdc-tab {
       color: #b0b0b0 !important;
+
+      mat-icon, .mat-icon {
+        color: inherit !important;
+      }
 
       &.mdc-tab--active {
         color: #ffffff !important;
@@ -506,8 +590,18 @@ body.dark-mode {
 
   // Chips
   .mat-mdc-chip {
-    background: #333333 !important;
+    background: #7A7A73 !important;
     color: #e0e0e0 !important;
+
+    .mdc-evolution-chip__text-label,
+    .mat-mdc-chip-action-label,
+    .mdc-evolution-chip__action--primary {
+      color: #e0e0e0 !important;
+    }
+
+    mat-icon, .mat-icon {
+      color: #bdbdbd !important;
+    }
   }
 
   // Tooltips
