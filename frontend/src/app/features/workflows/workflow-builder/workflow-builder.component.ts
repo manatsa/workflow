@@ -1224,12 +1224,17 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 </mat-expansion-panel-header>
 
                                 <div class="vt-section">
-                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-form-field appearance="outline" class="form-field full-width"
+                                                  [class.expr-error]="validateExpression(field.validation, 'validation')">
                                     <mat-label>Validation Expression</mat-label>
                                     <textarea matInput [(ngModel)]="field.validation" rows="2"
+                                              [style.color]="validateExpression(field.validation, 'validation') ? '#f44336' : null"
                                               placeholder="e.g., Required() AND MinLength(5)"></textarea>
                                     <mat-hint>Combine functions with AND</mat-hint>
                                   </mat-form-field>
+                                  @if (validateExpression(field.validation, 'validation')) {
+                                    <div class="expr-error-msg">{{ validateExpression(field.validation, 'validation') }}</div>
+                                  }
                                   <details class="vt-help">
                                     <summary>Available functions</summary>
                                     <div class="vt-help-content">
@@ -1246,12 +1251,17 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 </div>
 
                                 <div class="vt-section">
-                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-form-field appearance="outline" class="form-field full-width"
+                                                  [class.expr-error]="validateExpression(field.customValidationRule, 'transform')">
                                     <mat-label>Transform Expression</mat-label>
                                     <textarea matInput [(ngModel)]="field.customValidationRule" rows="2"
+                                              [style.color]="validateExpression(field.customValidationRule, 'transform') ? '#f44336' : null"
                                               placeholder="e.g., UPPER() or TRIM()"></textarea>
                                     <mat-hint>Transform the field value</mat-hint>
                                   </mat-form-field>
+                                  @if (validateExpression(field.customValidationRule, 'transform')) {
+                                    <div class="expr-error-msg">{{ validateExpression(field.customValidationRule, 'transform') }}</div>
+                                  }
                                   <details class="vt-help">
                                     <summary>Available transforms</summary>
                                     <div class="vt-help-content">
@@ -1271,12 +1281,17 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 </div>
 
                                 <div class="vt-section">
-                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-form-field appearance="outline" class="form-field full-width"
+                                                  [class.expr-error]="validateExpression(field.visibilityExpression, 'visibility')">
                                     <mat-label>Visibility Expression</mat-label>
                                     <textarea matInput [(ngModel)]="field.visibilityExpression" rows="2"
+                                              [style.color]="validateExpression(field.visibilityExpression, 'visibility') ? '#f44336' : null"
                                               placeholder="e.g., true or &#64;{otherField} == 'Yes'"></textarea>
                                     <mat-hint>Use &#64;{{ '{' }}fieldName{{ '}' }} to reference other fields. Default: true</mat-hint>
                                   </mat-form-field>
+                                  @if (validateExpression(field.visibilityExpression, 'visibility')) {
+                                    <div class="expr-error-msg">{{ validateExpression(field.visibilityExpression, 'visibility') }}</div>
+                                  }
                                 </div>
                               </mat-expansion-panel>
                             }
@@ -1971,6 +1986,32 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
 
     .vt-section .form-field {
       margin-bottom: 0.25rem;
+    }
+
+    .expr-error .mdc-text-field--outlined .mdc-notched-outline__leading,
+    .expr-error .mdc-text-field--outlined .mdc-notched-outline__notch,
+    .expr-error .mdc-text-field--outlined .mdc-notched-outline__trailing {
+      border-color: #f44336 !important;
+    }
+
+    .expr-error mat-label {
+      color: #f44336 !important;
+    }
+
+    .expr-error-msg {
+      color: #f44336;
+      font-size: 0.75rem;
+      margin-top: -0.75rem;
+      margin-bottom: 0.5rem;
+      padding-left: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .expr-error-msg::before {
+      content: '\\26A0';
+      font-size: 0.85rem;
     }
 
     .vt-help {
@@ -3332,6 +3373,99 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
 
   getNonSummaryScreens(): any[] {
     return this.screens.filter(s => !s.isSummaryScreen);
+  }
+
+  // Expression validation
+  private knownFunctions: Set<string> | null = null;
+
+  private getKnownFunctions(): Set<string> {
+    if (!this.knownFunctions) {
+      this.knownFunctions = new Set<string>();
+      const allFnArrays = [
+        this.validationFunctions, this.stringFunctions, this.numberFunctions,
+        this.dateFunctions, this.booleanFunctions, this.tableFunctions, this.utilityFunctions
+      ];
+      for (const arr of allFnArrays) {
+        for (const fn of arr) {
+          const match = fn.name.match(/^([A-Z_]+)\(/);
+          if (match) this.knownFunctions.add(match[1]);
+        }
+      }
+      // Add inline validation function names
+      const inlineFns = [
+        'Required', 'NotEmpty', 'MinLength', 'MaxLength', 'LengthRange',
+        'Alpha', 'AlphaNumeric', 'Digits', 'Pattern', 'Contains',
+        'StartsWith', 'EndsWith', 'Equals', 'Min', 'Max', 'Range',
+        'Positive', 'Negative', 'Integer', 'Decimal', 'IsTrue', 'IsFalse',
+        'Date', 'FutureDate', 'PastDate', 'DateBefore', 'DateAfter',
+        'Email', 'Phone', 'URL', 'CreditCard', 'MinItems', 'MaxItems',
+        'MinRows', 'MaxRows', 'MatchField', 'ValidWhen', 'InvalidWhen', 'Unique',
+        'UPPER', 'LOWER', 'CAPITALIZE', 'TRIM', 'LTRIM', 'RTRIM', 'SLUG',
+        'REMOVE_SPACES', 'ROUND', 'ROUND_UP', 'ROUND_DOWN'
+      ];
+      inlineFns.forEach(f => this.knownFunctions!.add(f.toUpperCase()));
+    }
+    return this.knownFunctions;
+  }
+
+  validateExpression(expr: string, type: 'validation' | 'transform' | 'visibility'): string | null {
+    if (!expr || !expr.trim()) return null;
+    const trimmed = expr.trim();
+
+    // For visibility: allow simple "true"/"false"
+    if (type === 'visibility' && (trimmed === 'true' || trimmed === 'false')) return null;
+
+    // Check balanced parentheses and unterminated strings
+    let depth = 0;
+    let inString = false;
+    let strChar = '';
+    for (let i = 0; i < trimmed.length; i++) {
+      const ch = trimmed[i];
+      if (inString) {
+        if (ch === '\\' && i + 1 < trimmed.length) { i++; continue; } // skip escaped chars
+        if (ch === strChar) inString = false;
+        continue;
+      }
+      if (ch === '"' || ch === "'") { inString = true; strChar = ch; continue; }
+      if (ch === '(') depth++;
+      if (ch === ')') depth--;
+      if (depth < 0) return 'Unmatched closing parenthesis ")"';
+    }
+    if (inString) return 'Unterminated string — missing closing quote';
+    if (depth > 0) return `Unmatched opening parenthesis "(" — ${depth} unclosed`;
+
+    // Check for empty parentheses with content issues like "Required( )" is ok but "Required(,)" is suspicious
+    if (/,\s*\)/.test(trimmed)) return 'Trailing comma before closing parenthesis';
+    if (/\(\s*,/.test(trimmed)) return 'Leading comma after opening parenthesis';
+
+    // Extract function names and validate them
+    const fnPattern = /([A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
+    let match;
+    const known = this.getKnownFunctions();
+    const unknownFns: string[] = [];
+    while ((match = fnPattern.exec(trimmed)) !== null) {
+      const fnName = match[1].toUpperCase();
+      if (!known.has(fnName)) {
+        unknownFns.push(match[1]);
+      }
+    }
+    if (unknownFns.length > 0) {
+      return `Unknown function${unknownFns.length > 1 ? 's' : ''}: ${unknownFns.join(', ')}`;
+    }
+
+    // For validation/transform: must contain at least one function call
+    if (type !== 'visibility' && !/[A-Za-z_]\w*\s*\(/.test(trimmed)) {
+      return 'Expression must contain at least one function call';
+    }
+
+    // For visibility: if it has parens, we already validated functions above
+    // If no parens, check that it looks like a valid expression (has @{field} refs or operators)
+    if (type === 'visibility' && !trimmed.includes('(') && !trimmed.includes('@{') &&
+        !/[=!<>]/.test(trimmed) && trimmed !== 'true' && trimmed !== 'false') {
+      return 'Expression should use @{fieldName} references, operators, or function calls';
+    }
+
+    return null;
   }
 
   addField(type: string) {
