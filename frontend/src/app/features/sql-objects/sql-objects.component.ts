@@ -17,9 +17,12 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatRadioModule } from '@angular/material/radio';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { SqlObjectService } from '@core/services/sql-object.service';
 import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.model';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-sql-objects',
@@ -44,6 +47,8 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
     MatProgressSpinnerModule,
     MatMenuModule,
     MatDividerModule,
+    MatSlideToggleModule,
+    MatRadioModule,
     DragDropModule
   ],
   template: `
@@ -56,7 +61,7 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
           </h1>
           <p class="subtitle">Manage custom data tables for dropdown options</p>
         </div>
-        <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <button mat-raised-button matTooltip="New SQL Object" color="primary" (click)="openCreateDialog()">
           <mat-icon>add</mat-icon>
           New SQL Object
         </button>
@@ -169,7 +174,7 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
                 <mat-icon>storage</mat-icon>
                 <h3>No SQL Objects</h3>
                 <p>Create your first SQL Object to use as dropdown options in your workflows.</p>
-                <button mat-raised-button color="primary" (click)="openCreateDialog()">
+                <button mat-raised-button matTooltip="Create SQL Object" color="primary" (click)="openCreateDialog()">
                   <mat-icon>add</mat-icon>
                   Create SQL Object
                 </button>
@@ -185,7 +190,7 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
           <div class="dialog-container" (click)="$event.stopPropagation()">
             <div class="dialog-header">
               <h2>{{ editingObject ? 'Edit SQL Object' : 'Create SQL Object' }}</h2>
-              <button mat-icon-button (click)="closeDialog()">
+              <button mat-icon-button matTooltip="Close" (click)="closeDialog()">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
@@ -212,37 +217,14 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
                       <textarea matInput [(ngModel)]="formData.description" rows="2"></textarea>
                     </mat-form-field>
 
-                    <div class="form-row">
-                      <mat-form-field appearance="outline">
-                        <mat-label>Value Column</mat-label>
-                        <mat-select [(ngModel)]="formData.valueColumn">
-                          <mat-option [value]="null">-- Select --</mat-option>
-                          @for (col of formData.columns; track col.columnName) {
-                            <mat-option [value]="col.columnName">{{ col.displayName }}</mat-option>
-                          }
-                        </mat-select>
-                        <mat-hint>Column to use as option value</mat-hint>
-                      </mat-form-field>
-
-                      <mat-form-field appearance="outline">
-                        <mat-label>Label Column</mat-label>
-                        <mat-select [(ngModel)]="formData.labelColumn">
-                          <mat-option [value]="null">-- Select --</mat-option>
-                          @for (col of formData.columns; track col.columnName) {
-                            <mat-option [value]="col.columnName">{{ col.displayName }}</mat-option>
-                          }
-                        </mat-select>
-                        <mat-hint>Column to display as option label</mat-hint>
-                      </mat-form-field>
-                    </div>
                   </div>
                 </mat-tab>
 
-                <mat-tab label="Columns" [disabled]="!!editingObject">
+                <mat-tab label="Columns">
                   <div class="tab-content">
                     <div class="columns-header">
                       <h3>Define Columns</h3>
-                      <button mat-stroked-button color="primary" (click)="addColumn()">
+                      <button mat-stroked-button matTooltip="Add Column" color="primary" (click)="addColumn()">
                         <mat-icon>add</mat-icon>
                         Add Column
                       </button>
@@ -250,22 +232,24 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
 
                     <div class="columns-list" cdkDropList (cdkDropListDropped)="dropColumn($event)">
                       @for (col of formData.columns; track col.columnName; let i = $index) {
-                        <div class="column-item" cdkDrag>
+                        <div class="column-item" cdkDrag [class.existing-col]="isExistingColumn(col)">
                           <mat-icon cdkDragHandle class="drag-handle">drag_indicator</mat-icon>
 
                           <mat-form-field appearance="outline" class="col-field">
                             <mat-label>Column Name</mat-label>
-                            <input matInput [(ngModel)]="col.columnName" (input)="sanitizeColumnName(col)">
+                            <input matInput [(ngModel)]="col.columnName" (input)="sanitizeColumnName(col)"
+                                   [readonly]="isExistingColumn(col)">
                           </mat-form-field>
 
                           <mat-form-field appearance="outline" class="col-field">
                             <mat-label>Display Name</mat-label>
-                            <input matInput [(ngModel)]="col.displayName">
+                            <input matInput [(ngModel)]="col.displayName"
+                                   [readonly]="isExistingColumn(col)">
                           </mat-form-field>
 
                           <mat-form-field appearance="outline" class="col-field-small">
                             <mat-label>Type</mat-label>
-                            <mat-select [(ngModel)]="col.dataType">
+                            <mat-select [(ngModel)]="col.dataType" [disabled]="isExistingColumn(col)">
                               <mat-option value="VARCHAR">Text</mat-option>
                               <mat-option value="TEXT">Long Text</mat-option>
                               <mat-option value="INTEGER">Integer</mat-option>
@@ -277,16 +261,28 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
                             </mat-select>
                           </mat-form-field>
 
-                          @if (col.dataType === 'VARCHAR') {
+                          @if (col.dataType === 'VARCHAR' && !isExistingColumn(col)) {
                             <mat-form-field appearance="outline" class="col-field-tiny">
                               <mat-label>Length</mat-label>
                               <input matInput type="number" [(ngModel)]="col.columnLength">
                             </mat-form-field>
                           }
 
-                          <mat-checkbox [(ngModel)]="col.isNullable">Nullable</mat-checkbox>
+                          @if (col.dataType === 'BOOLEAN') {
+                            <mat-form-field appearance="outline" class="col-field-small">
+                              <mat-label>Control</mat-label>
+                              <mat-select [(ngModel)]="col.booleanControl">
+                                <mat-option value="TOGGLE">Toggle</mat-option>
+                                <mat-option value="CHECKBOX">Checkbox</mat-option>
+                                <mat-option value="DROPDOWN">Dropdown</mat-option>
+                                <mat-option value="RADIO">Radio Buttons</mat-option>
+                              </mat-select>
+                            </mat-form-field>
+                          }
 
-                          <button mat-icon-button color="warn" (click)="removeColumn(i)" matTooltip="Remove column">
+                          <mat-checkbox [(ngModel)]="col.isNullable" [disabled]="isExistingColumn(col)">Nullable</mat-checkbox>
+
+                          <button mat-icon-button class="delete-col-btn" (click)="confirmRemoveColumn(i, col)" matTooltip="Remove column">
                             <mat-icon>delete</mat-icon>
                           </button>
                         </div>
@@ -301,11 +297,47 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
                     }
                   </div>
                 </mat-tab>
+
+                <mat-tab label="Options">
+                  <div class="tab-content">
+                    <h3>Value &amp; Label Configuration</h3>
+                    <p class="values-hint">Choose which columns to use as the option value and display label when this SQL Object is used in dropdowns.</p>
+
+                    @if (formData.columns && formData.columns.length > 0) {
+                      <div class="form-row">
+                        <mat-form-field appearance="outline">
+                          <mat-label>Value Column</mat-label>
+                          <mat-select [(ngModel)]="formData.valueColumn">
+                            @for (col of formData.columns; track col.columnName) {
+                              <mat-option [value]="col.columnName">{{ col.displayName || col.columnName }}</mat-option>
+                            }
+                          </mat-select>
+                          <mat-hint>Column to use as the stored option value</mat-hint>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                          <mat-label>Label Column</mat-label>
+                          <mat-select [(ngModel)]="formData.labelColumn">
+                            @for (col of formData.columns; track col.columnName) {
+                              <mat-option [value]="col.columnName">{{ col.displayName || col.columnName }}</mat-option>
+                            }
+                          </mat-select>
+                          <mat-hint>Column to display as the option label</mat-hint>
+                        </mat-form-field>
+                      </div>
+                    } @else {
+                      <div class="empty-columns">
+                        <mat-icon>warning</mat-icon>
+                        <p>Define columns first in the Columns tab, then configure value and label mappings here.</p>
+                      </div>
+                    }
+                  </div>
+                </mat-tab>
               </mat-tab-group>
             </div>
 
             <div class="dialog-actions">
-              <button mat-button (click)="closeDialog()">Cancel</button>
+              <button mat-button matTooltip="Cancel" (click)="closeDialog()">Cancel</button>
               <button mat-raised-button color="primary" (click)="save()" [disabled]="saving">
                 @if (saving) {
                   <mat-spinner diameter="20"></mat-spinner>
@@ -327,20 +359,34 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
                 <mat-icon>table_rows</mat-icon>
                 Manage Data: {{ selectedObject?.displayName }}
               </h2>
-              <button mat-icon-button (click)="closeDataManager()">
+              <button mat-icon-button matTooltip="Close" (click)="closeDataManager()">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
 
             <div class="dialog-content">
               <div class="data-toolbar">
-                <button mat-raised-button color="primary" (click)="addRow()">
+                <button mat-raised-button matTooltip="Add Row" color="primary" (click)="addRow()">
                   <mat-icon>add</mat-icon>
                   Add Row
                 </button>
-                <button mat-stroked-button (click)="refreshData()">
+                <button mat-stroked-button matTooltip="Refresh" (click)="refreshData()">
                   <mat-icon>refresh</mat-icon>
                   Refresh
+                </button>
+                <span class="toolbar-spacer"></span>
+                <button mat-stroked-button matTooltip="Download Template" (click)="downloadDataTemplate()">
+                  <mat-icon>description</mat-icon>
+                  Template
+                </button>
+                <button mat-stroked-button matTooltip="Import Data from Excel" (click)="dataFileInput.click()">
+                  <mat-icon>upload</mat-icon>
+                  Import
+                </button>
+                <input #dataFileInput type="file" hidden accept=".xlsx,.xls" (change)="importDataFile($event)">
+                <button mat-stroked-button matTooltip="Export Data to Excel" (click)="exportData()">
+                  <mat-icon>download</mat-icon>
+                  Export
                 </button>
               </div>
 
@@ -362,9 +408,33 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
                         <th mat-header-cell *matHeaderCellDef>{{ col.displayName }}</th>
                         <td mat-cell *matCellDef="let row">
                           @if (editingRowId === row.id) {
-                            <input matInput [(ngModel)]="editingRowData[col.columnName]" class="inline-edit">
+                            @if (col.dataType === 'BOOLEAN' && col.booleanControl === 'TOGGLE') {
+                              <mat-slide-toggle [(ngModel)]="editingRowData[col.columnName]">{{ editingRowData[col.columnName] ? 'Yes' : 'No' }}</mat-slide-toggle>
+                            } @else if (col.dataType === 'BOOLEAN' && col.booleanControl === 'CHECKBOX') {
+                              <mat-checkbox [(ngModel)]="editingRowData[col.columnName]">{{ editingRowData[col.columnName] ? 'Yes' : 'No' }}</mat-checkbox>
+                            } @else if (col.dataType === 'BOOLEAN' && col.booleanControl === 'RADIO') {
+                              <mat-radio-group [(ngModel)]="editingRowData[col.columnName]" class="bool-radio">
+                                <mat-radio-button [value]="true">Yes</mat-radio-button>
+                                <mat-radio-button [value]="false">No</mat-radio-button>
+                              </mat-radio-group>
+                            } @else if (col.dataType === 'BOOLEAN' && col.booleanControl === 'DROPDOWN') {
+                              <select [(ngModel)]="editingRowData[col.columnName]" class="inline-edit">
+                                <option [ngValue]="true">Yes</option>
+                                <option [ngValue]="false">No</option>
+                              </select>
+                            } @else if (col.dataType === 'BOOLEAN') {
+                              <mat-slide-toggle [(ngModel)]="editingRowData[col.columnName]">{{ editingRowData[col.columnName] ? 'Yes' : 'No' }}</mat-slide-toggle>
+                            } @else {
+                              <input matInput [(ngModel)]="editingRowData[col.columnName]" class="inline-edit">
+                            }
                           } @else {
-                            {{ row[col.columnName] }}
+                            @if (col.dataType === 'BOOLEAN') {
+                              <span class="bool-display" [class.bool-yes]="row[col.columnName]" [class.bool-no]="!row[col.columnName]">
+                                {{ row[col.columnName] ? 'Yes' : 'No' }}
+                              </span>
+                            } @else {
+                              {{ row[col.columnName] }}
+                            }
                           }
                         </td>
                       </ng-container>
@@ -404,39 +474,72 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
                 }
               }
 
-              <!-- Add/Edit Row Form -->
-              @if (showRowForm) {
-                <div class="row-form">
-                  <h4>{{ editingRowId ? 'Edit Row' : 'Add New Row' }}</h4>
-                  <div class="row-fields">
-                    @for (col of selectedObject?.columns || []; track col.columnName) {
-                      <mat-form-field appearance="outline">
-                        <mat-label>{{ col.displayName }}</mat-label>
-                        @if (col.dataType === 'TEXT') {
-                          <textarea matInput [(ngModel)]="newRowData[col.columnName]"></textarea>
-                        } @else if (col.dataType === 'BOOLEAN') {
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Add/Edit Row Dialog -->
+      @if (showRowForm) {
+        <div class="dialog-overlay" (click)="cancelRowForm()">
+          <div class="dialog-container row-dialog" (click)="$event.stopPropagation()">
+            <div class="dialog-header">
+              <h2>
+                <mat-icon>{{ editingRowId ? 'edit' : 'add_circle' }}</mat-icon>
+                {{ editingRowId ? 'Edit Row' : 'Add New Row' }} - {{ selectedObject?.displayName }}
+              </h2>
+              <button mat-icon-button matTooltip="Close" (click)="cancelRowForm()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            <div class="dialog-content">
+              <div class="row-fields">
+                @for (col of selectedObject?.columns || []; track col.columnName) {
+                  @if (col.dataType === 'BOOLEAN') {
+                    <div class="bool-form-field">
+                      <label class="bool-label">{{ col.displayName }}</label>
+                      @if (col.booleanControl === 'CHECKBOX') {
+                        <mat-checkbox [(ngModel)]="newRowData[col.columnName]">{{ newRowData[col.columnName] ? 'Yes' : 'No' }}</mat-checkbox>
+                      } @else if (col.booleanControl === 'RADIO') {
+                        <mat-radio-group [(ngModel)]="newRowData[col.columnName]" class="bool-radio">
+                          <mat-radio-button [value]="true">Yes</mat-radio-button>
+                          <mat-radio-button [value]="false">No</mat-radio-button>
+                        </mat-radio-group>
+                      } @else if (col.booleanControl === 'DROPDOWN') {
+                        <mat-form-field appearance="outline" class="full-width">
+                          <mat-label>{{ col.displayName }}</mat-label>
                           <mat-select [(ngModel)]="newRowData[col.columnName]">
                             <mat-option [value]="true">Yes</mat-option>
                             <mat-option [value]="false">No</mat-option>
                           </mat-select>
-                        } @else if (col.dataType === 'INTEGER' || col.dataType === 'BIGINT' || col.dataType === 'DECIMAL') {
-                          <input matInput type="number" [(ngModel)]="newRowData[col.columnName]">
-                        } @else if (col.dataType === 'DATE') {
-                          <input matInput type="date" [(ngModel)]="newRowData[col.columnName]">
-                        } @else {
-                          <input matInput [(ngModel)]="newRowData[col.columnName]">
-                        }
-                      </mat-form-field>
-                    }
-                  </div>
-                  <div class="row-form-actions">
-                    <button mat-button (click)="cancelRowForm()">Cancel</button>
-                    <button mat-raised-button color="primary" (click)="saveNewRow()">
-                      {{ editingRowId ? 'Update' : 'Add' }}
-                    </button>
-                  </div>
-                </div>
-              }
+                        </mat-form-field>
+                      } @else {
+                        <mat-slide-toggle [(ngModel)]="newRowData[col.columnName]">{{ newRowData[col.columnName] ? 'Yes' : 'No' }}</mat-slide-toggle>
+                      }
+                    </div>
+                  } @else {
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>{{ col.displayName }}</mat-label>
+                      @if (col.dataType === 'TEXT') {
+                        <textarea matInput [(ngModel)]="newRowData[col.columnName]" rows="3"></textarea>
+                      } @else if (col.dataType === 'INTEGER' || col.dataType === 'BIGINT' || col.dataType === 'DECIMAL') {
+                        <input matInput type="number" [(ngModel)]="newRowData[col.columnName]">
+                      } @else if (col.dataType === 'DATE') {
+                        <input matInput type="date" [(ngModel)]="newRowData[col.columnName]">
+                      } @else {
+                        <input matInput [(ngModel)]="newRowData[col.columnName]">
+                      }
+                    </mat-form-field>
+                  }
+                }
+              </div>
+            </div>
+            <div class="dialog-actions">
+              <button mat-button matTooltip="Cancel" (click)="cancelRowForm()">Cancel</button>
+              <button mat-raised-button color="primary" (click)="saveNewRow()">
+                <mat-icon>{{ editingRowId ? 'save' : 'add' }}</mat-icon>
+                {{ editingRowId ? 'Update' : 'Add Row' }}
+              </button>
             </div>
           </div>
         </div>
@@ -638,6 +741,22 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
       margin-bottom: 0.5rem;
     }
 
+    .existing-col {
+      opacity: 0.75;
+      background: #f0f0f0 !important;
+    }
+
+    .delete-col-btn {
+      color: white !important;
+      background: #e53935 !important;
+      border-radius: 50%;
+    }
+
+    .delete-col-btn:hover {
+      background: #c62828 !important;
+      color: white !important;
+    }
+
     .drag-handle {
       cursor: move;
       color: #999;
@@ -653,6 +772,12 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
 
     .col-field-tiny {
       width: 80px;
+    }
+
+    .values-hint {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
     }
 
     .empty-columns {
@@ -672,6 +797,12 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
       display: flex;
       gap: 0.5rem;
       margin-bottom: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .toolbar-spacer {
+      flex: 1;
     }
 
     .data-table-container {
@@ -712,6 +843,58 @@ import { SqlObject, SqlColumn, SqlColumnDataType } from '@core/models/workflow.m
       gap: 1rem;
     }
 
+    .bool-field {
+      margin-top: 8px;
+    }
+
+    .bool-radio {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .row-dialog {
+      max-width: 600px;
+    }
+
+    .row-dialog .row-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .bool-form-field {
+      padding: 12px 16px;
+      background: #fafafa;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .bool-label {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .bool-display {
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .bool-yes {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .bool-no {
+      background: #ffebee;
+      color: #c62828;
+    }
+
     .row-form-actions {
       display: flex;
       justify-content: flex-end;
@@ -731,6 +914,7 @@ export class SqlObjectsComponent implements OnInit {
   showDialog = false;
   editingObject: SqlObject | null = null;
   formData: Partial<SqlObject> = this.getEmptyForm();
+  existingColumnNames: Set<string> = new Set();
 
   // Data manager state
   showDataManager = false;
@@ -745,7 +929,8 @@ export class SqlObjectsComponent implements OnInit {
 
   constructor(
     private sqlObjectService: SqlObjectService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -779,12 +964,14 @@ export class SqlObjectsComponent implements OnInit {
 
   openCreateDialog() {
     this.editingObject = null;
+    this.existingColumnNames = new Set();
     this.formData = this.getEmptyForm();
     this.showDialog = true;
   }
 
   openEditDialog(obj: SqlObject) {
     this.editingObject = obj;
+    this.existingColumnNames = new Set((obj.columns || []).map(c => c.columnName));
     this.formData = {
       displayName: obj.displayName,
       tableName: obj.tableName,
@@ -819,6 +1006,7 @@ export class SqlObjectsComponent implements OnInit {
         .replace(/^[0-9]/, '_$&')
         .replace(/__+/g, '_');
     }
+    this.autoDefaultValueLabelColumns();
   }
 
   addColumn() {
@@ -832,7 +1020,44 @@ export class SqlObjectsComponent implements OnInit {
       columnLength: 255,
       isNullable: true,
       isPrimaryKey: false,
-      displayOrder: this.formData.columns.length
+      displayOrder: this.formData.columns.length,
+      booleanControl: 'TOGGLE'
+    });
+    // Auto-default value and label columns to the first column
+    this.autoDefaultValueLabelColumns();
+  }
+
+  private autoDefaultValueLabelColumns() {
+    if (!this.formData.columns || this.formData.columns.length === 0) return;
+    const firstCol = this.formData.columns[0];
+    if (firstCol.columnName) {
+      if (!this.formData.valueColumn || !this.formData.columns.some(c => c.columnName === this.formData.valueColumn)) {
+        this.formData.valueColumn = firstCol.columnName;
+      }
+      if (!this.formData.labelColumn || !this.formData.columns.some(c => c.columnName === this.formData.labelColumn)) {
+        this.formData.labelColumn = firstCol.columnName;
+      }
+    }
+  }
+
+  isExistingColumn(col: SqlColumn): boolean {
+    return this.editingObject != null && this.existingColumnNames.has(col.columnName);
+  }
+
+  confirmRemoveColumn(index: number, col: SqlColumn) {
+    const name = col.displayName || col.columnName || 'this column';
+    const isExisting = this.isExistingColumn(col);
+    const message = isExisting
+      ? `Are you sure you want to delete "${name}"? This will permanently remove the column and all its data from the database.`
+      : `Remove "${name}" from the column list?`;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'Delete Column', message, confirmText: 'Delete', confirmColor: 'warn' } as ConfirmDialogData
+    });
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.removeColumn(index);
+      }
     });
   }
 
@@ -914,17 +1139,28 @@ export class SqlObjectsComponent implements OnInit {
   }
 
   confirmDelete(obj: SqlObject) {
-    if (confirm(`Are you sure you want to delete "${obj.displayName}"? This will also delete all data in the table.`)) {
-      this.sqlObjectService.deleteSqlObject(obj.id).subscribe({
-        next: () => {
-          this.snackBar.open('SQL Object deleted', 'Close', { duration: 3000 });
-          this.loadSqlObjects();
-        },
-        error: () => {
-          this.snackBar.open('Failed to delete', 'Close', { duration: 3000 });
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete SQL Object',
+        message: 'This will also delete all data in the table. Are you sure?',
+        itemName: obj.displayName,
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result?.confirmed) {
+        this.sqlObjectService.deleteSqlObject(obj.id).subscribe({
+          next: () => {
+            this.snackBar.open('SQL Object deleted', 'Close', { duration: 3000 });
+            this.loadSqlObjects();
+          },
+          error: () => {
+            this.snackBar.open('Failed to delete', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   // Data Manager methods
@@ -1010,16 +1246,79 @@ export class SqlObjectsComponent implements OnInit {
 
   deleteRow(row: any) {
     if (!this.selectedObject) return;
-    if (confirm('Are you sure you want to delete this row?')) {
-      this.sqlObjectService.deleteTableRow(this.selectedObject.id, row.id).subscribe({
-        next: () => {
-          this.snackBar.open('Row deleted', 'Close', { duration: 3000 });
-          this.refreshData();
-        },
-        error: () => {
-          this.snackBar.open('Failed to delete row', 'Close', { duration: 3000 });
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Row',
+        message: 'Are you sure you want to delete this row?',
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result?.confirmed) {
+        this.sqlObjectService.deleteTableRow(this.selectedObject!.id, row.id).subscribe({
+          next: () => {
+            this.snackBar.open('Row deleted', 'Close', { duration: 3000 });
+            this.refreshData();
+          },
+          error: () => {
+            this.snackBar.open('Failed to delete row', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
+  }
+
+  // Template / Import / Export
+  downloadDataTemplate() {
+    if (!this.selectedObject) return;
+    this.sqlObjectService.downloadTemplate(this.selectedObject.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = this.selectedObject!.displayName + '_Template.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+    });
+  }
+
+  exportData() {
+    if (!this.selectedObject) return;
+    this.sqlObjectService.exportData(this.selectedObject.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = this.selectedObject!.displayName + '_Export.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => this.snackBar.open('Failed to export data', 'Close', { duration: 3000 })
+    });
+  }
+
+  importDataFile(event: any) {
+    const file = event.target.files?.[0];
+    if (!file || !this.selectedObject) return;
+    event.target.value = '';
+    const objName = this.selectedObject.displayName;
+
+    this.sqlObjectService.importData(this.selectedObject.id, file).subscribe({
+      next: (blob) => {
+        // Download the result Excel
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = objName + '_Import_Results.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('Import complete - results downloaded', 'Close', { duration: 5000 });
+        this.refreshData();
+      },
+      error: () => this.snackBar.open('Import failed', 'Close', { duration: 3000 })
+    });
   }
 }

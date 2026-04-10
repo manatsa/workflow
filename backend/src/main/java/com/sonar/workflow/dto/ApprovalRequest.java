@@ -26,4 +26,6 @@ public class ApprovalRequest {
     private UUID escalateToUserId;
 
     private String actionSource;
+
+    private UUID stampId;
 }

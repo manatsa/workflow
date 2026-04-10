@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
@@ -22,15 +23,15 @@ import { UserService } from '@core/services/user.service';
     MatDividerModule,
     MatChipsModule,
     MatTabsModule,
-    MatSnackBarModule
-  ],
+    MatSnackBarModule,
+    MatTooltipModule],
   template: `
     <div class="dialog-header">
       <h2 mat-dialog-title>
         <mat-icon>person</mat-icon>
         User Details
       </h2>
-      <button mat-icon-button (click)="close()">
+      <button mat-icon-button matTooltip="Close" (click)="close()">
         <mat-icon>close</mat-icon>
       </button>
     </div>
@@ -224,28 +225,30 @@ import { UserService } from '@core/services/user.service';
 
     <mat-dialog-actions>
       <div class="action-buttons">
-        <button mat-stroked-button color="primary" (click)="editUser()">
-          <mat-icon>edit</mat-icon>
-          Edit
-        </button>
-        @if (isLocked) {
-          <button mat-stroked-button (click)="unlockUser()">
-            <mat-icon>lock_open</mat-icon>
-            Unlock
+        @if (data.username !== 'super') {
+          <button mat-stroked-button matTooltip="Edit" color="primary" (click)="editUser()">
+            <mat-icon>edit</mat-icon>
+            Edit
           </button>
-        } @else {
-          <button mat-stroked-button color="warn" (click)="lockUser()">
-            <mat-icon>lock</mat-icon>
-            Lock
+          @if (isLocked) {
+            <button mat-stroked-button matTooltip="Unlock" (click)="unlockUser()">
+              <mat-icon>lock_open</mat-icon>
+              Unlock
+            </button>
+          } @else {
+            <button mat-stroked-button matTooltip="Lock" color="warn" (click)="lockUser()">
+              <mat-icon>lock</mat-icon>
+              Lock
+            </button>
+          }
+          <button mat-stroked-button matTooltip="Reset Password" (click)="resetPassword()">
+            <mat-icon>vpn_key</mat-icon>
+            Reset Password
           </button>
         }
-        <button mat-stroked-button (click)="resetPassword()">
-          <mat-icon>vpn_key</mat-icon>
-          Reset Password
-        </button>
       </div>
       <span class="spacer"></span>
-      <button mat-button (click)="close()">Close</button>
+      <button mat-button matTooltip="Close" (click)="close()">Close</button>
     </mat-dialog-actions>
   `,
   styles: [`

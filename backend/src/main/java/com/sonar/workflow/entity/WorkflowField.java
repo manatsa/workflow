@@ -190,6 +190,21 @@ public class WorkflowField extends BaseEntity {
     @Column(name = "table_bordered")
     private Boolean tableBordered = true;
 
+    @Column(name = "table_resizable")
+    private Boolean tableResizable = false;
+
+    @Column(name = "table_searchable")
+    private Boolean tableSearchable = false;
+
+    @Column(name = "table_filterable")
+    private Boolean tableFilterable = false;
+
+    @Column(name = "table_pageable")
+    private Boolean tablePageable = false;
+
+    @Column(name = "table_page_size")
+    private Integer tablePageSize = 10;
+
     // ACCORDION field specific configurations
     @Column(name = "accordion_allow_multiple")
     private Boolean accordionAllowMultiple = false;
@@ -217,6 +232,56 @@ public class WorkflowField extends BaseEntity {
     @Column(name = "parent_field_id")
     private UUID parentFieldId;
 
+    // API field type configurations
+    @Column(name = "api_url", columnDefinition = "TEXT")
+    private String apiUrl;
+
+    @Column(name = "api_method")
+    private String apiMethod = "GET"; // GET, POST, PUT, DELETE
+
+    @Column(name = "api_auth_type")
+    private String apiAuthType; // NONE, BASIC, BEARER, API_KEY
+
+    @Column(name = "api_auth_value", columnDefinition = "TEXT")
+    private String apiAuthValue; // credentials value (token, base64, key)
+
+    @Column(name = "api_headers", columnDefinition = "TEXT")
+    private String apiHeaders; // JSON array of {key, value} pairs
+
+    @Column(name = "api_params", columnDefinition = "TEXT")
+    private String apiParams; // JSON array of {key, value} pairs - query parameters
+
+    @Column(name = "api_body", columnDefinition = "TEXT")
+    private String apiBody; // Request body for POST/PUT
+
+    @Column(name = "api_response_path")
+    private String apiResponsePath; // JSONPath-like dot notation to extract data from response
+
+    // Whether API_ARRAY/API_OBJECT_ARRAY fields show their own control in the form
+    @Column(name = "api_show_in_form")
+    private Boolean apiShowInForm = true;
+
+    // API data source for SELECT/RADIO/CHECKBOX_GROUP/MULTISELECT options
+    @Column(name = "api_data_source_field")
+    private String apiDataSourceField;
+
+    @Column(name = "api_display_field")
+    private String apiDisplayField;
+
+    @Column(name = "api_value_field")
+    private String apiValueField;
+
+    // TABLE data source - name of an API_OBJECT_ARRAY field to populate from
+    @Column(name = "table_data_source")
+    private String tableDataSource;
+
+    // SQL_TABLE field - execute SQL query and display results as a table
+    @Column(name = "sql_query", columnDefinition = "TEXT")
+    private String sqlQuery;
+
+    @Column(name = "sql_table_columns", columnDefinition = "TEXT")
+    private String sqlTableColumns; // JSON: [{key: "db_column", label: "Display Name"}]
+
     public enum FieldType {
         TEXT, TEXTAREA, NUMBER, CURRENCY, DATE, DATETIME, CHECKBOX, CHECKBOX_GROUP, RADIO, SELECT, MULTISELECT,
         FILE, EMAIL, PHONE, URL, PASSWORD, HIDDEN, LABEL, DIVIDER, USER,
@@ -225,7 +290,13 @@ public class WorkflowField extends BaseEntity {
         // SQL Object field type - dynamic options from SQL Object tables
         SQL_OBJECT,
         // Container field types
-        ACCORDION, COLLAPSIBLE
+        ACCORDION, COLLAPSIBLE,
+        // API field types - fetch data from external APIs
+        API_ARRAY, API_OBJECT_ARRAY, API_VALUE, API_OBJECT, API_LIST,
+        // Object viewer - displays nested JSON objects with expand/collapse
+        OBJECT_VIEWER,
+        // SQL Table - execute SQL query and display results as read-only table
+        SQL_TABLE
     }
 
     // View type for SQL_OBJECT field - how to display the options

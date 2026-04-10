@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -34,22 +35,32 @@ public class WorkflowInstanceService {
     private final ApprovalHistoryRepository approvalHistoryRepository;
     private final UserRepository userRepository;
     private final SBURepository sbuRepository;
+    private final WorkflowChildParameterRepository workflowChildParameterRepository;
     private final AuditService auditService;
     private final EmailService emailService;
     private final SettingService settingService;
     private final AttachmentService attachmentService;
     private final EmailApprovalService emailApprovalService;
+    private final AccessScopeService accessScopeService;
+    private final StampRepository stampRepository;
+    private final UserSignatureRepository userSignatureRepository;
+    private final DocumentStampService documentStampService;
 
     @Transactional(readOnly = true)
     public Page<WorkflowInstanceDTO> getWorkflowInstances(UUID workflowId, Pageable pageable) {
-        return workflowInstanceRepository.findByWorkflowId(workflowId, pageable).map(this::toDTO);
+        User user = accessScopeService.getCurrentUser();
+        Page<WorkflowInstanceDTO> page = workflowInstanceRepository.findByWorkflowId(workflowId, pageable).map(this::toDTO);
+        if (user != null && !accessScopeService.isUnrestricted(user)) {
+            return filterPageByScope(workflowInstanceRepository.findByWorkflowId(workflowId, pageable), user);
+        }
+        return page;
     }
 
     @Transactional(readOnly = true)
     public Page<WorkflowInstanceDTO> getWorkflowInstancesByCode(String workflowCode, Pageable pageable) {
         Workflow workflow = workflowRepository.findByCode(workflowCode)
                 .orElseThrow(() -> new BusinessException("Workflow not found: " + workflowCode));
-        return workflowInstanceRepository.findByWorkflowId(workflow.getId(), pageable).map(this::toDTO);
+        return getWorkflowInstances(workflow.getId(), pageable);
     }
 
     @Transactional(readOnly = true)
@@ -87,7 +98,20 @@ public class WorkflowInstanceService {
 
     @Transactional(readOnly = true)
     public Page<WorkflowInstanceDTO> searchInstances(String search, Pageable pageable) {
-        return workflowInstanceRepository.searchInstances(search, pageable).map(this::toDTO);
+        User user = accessScopeService.getCurrentUser();
+        Page<WorkflowInstance> page = workflowInstanceRepository.searchInstances(search, pageable);
+        if (user != null && !accessScopeService.isUnrestricted(user)) {
+            return filterPageByScope(page, user);
+        }
+        return page.map(this::toDTO);
+    }
+
+    private Page<WorkflowInstanceDTO> filterPageByScope(Page<WorkflowInstance> page, User user) {
+        List<WorkflowInstanceDTO> filtered = page.getContent().stream()
+                .filter(inst -> accessScopeService.canAccessInstance(inst, user))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+        return new org.springframework.data.domain.PageImpl<>(filtered, page.getPageable(), filtered.size());
     }
 
     @Transactional(readOnly = true)
@@ -151,7 +175,11 @@ public class WorkflowInstanceService {
         WorkflowInstance instance = workflowInstanceRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
 
-        if (instance.getStatus() != WorkflowInstance.Status.DRAFT) {
+        boolean isApprovedEditable = instance.getStatus() == WorkflowInstance.Status.APPROVED &&
+                !Boolean.TRUE.equals(instance.getWorkflow().getLockApproved());
+        if (instance.getStatus() != WorkflowInstance.Status.DRAFT &&
+            instance.getStatus() != WorkflowInstance.Status.REJECTED &&
+            !isApprovedEditable) {
             throw new BusinessException("Cannot update submitted workflow instance");
         }
 
@@ -174,7 +202,11 @@ public class WorkflowInstanceService {
         WorkflowInstance instance = workflowInstanceRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
 
-        if (instance.getStatus() != WorkflowInstance.Status.DRAFT) {
+        boolean isApprovedEditable = instance.getStatus() == WorkflowInstance.Status.APPROVED &&
+                !Boolean.TRUE.equals(instance.getWorkflow().getLockApproved());
+        if (instance.getStatus() != WorkflowInstance.Status.DRAFT &&
+            instance.getStatus() != WorkflowInstance.Status.REJECTED &&
+            !isApprovedEditable) {
             throw new BusinessException("Workflow instance already submitted");
         }
 
@@ -196,7 +228,7 @@ public class WorkflowInstanceService {
                 instance.setAmount(limitedAmount);
 
                 // Check if skip unauthorized approvers setting is enabled
-                boolean skipUnauthorized = settingService.getBooleanValue("workflow.skip.unauthorized.approvers", true);
+                boolean skipUnauthorized = settingService.getBooleanValue("workflow.skip.unauthorized.approvers", false);
 
                 if (skipUnauthorized) {
                     // Find the minimum level that can approve this amount
@@ -304,12 +336,45 @@ public class WorkflowInstanceService {
             WorkflowInstance parentInstance = workflowInstanceRepository.findById(parentInstanceId)
                     .orElseThrow(() -> new BusinessException("Parent instance not found"));
             instance.setParentInstance(parentInstance);
+
+            // Get child parameters for this workflow
+            List<WorkflowChildParameter> childParams = workflowChildParameterRepository.findByChildWorkflowId(workflow.getId());
+
+            // If there are child parameters, pass values from parent to child
+            if (!childParams.isEmpty()) {
+                // Get parent field values
+                Map<String, Object> parentFieldValues = new HashMap<>();
+                List<WorkflowFieldValue> parentFieldValueList = workflowFieldValueRepository.findByWorkflowInstanceId(parentInstanceId);
+                for (WorkflowFieldValue fv : parentFieldValueList) {
+                    parentFieldValues.put(fv.getFieldName(), fv.getValue());
+                }
+
+                // Map parameters from parent to child
+                Map<String, Object> passedValues = new HashMap<>();
+                for (WorkflowChildParameter param : childParams) {
+                    Object value = parentFieldValues.get(param.getSourceField());
+                    if (value == null && param.getDefaultValue() != null) {
+                        value = param.getDefaultValue();
+                    }
+                    if (value != null) {
+                        passedValues.put(param.getTargetField(), value);
+                    }
+                }
+
+                // Merge with provided field values (provided values override passed values)
+                if (fieldValues != null) {
+                    passedValues.putAll(fieldValues);
+                    fieldValues = passedValues;
+                } else {
+                    fieldValues = passedValues;
+                }
+            }
         }
 
         WorkflowInstance saved = workflowInstanceRepository.save(instance);
 
         // Save field values
-        if (fieldValues != null) {
+        if (fieldValues != null && !fieldValues.isEmpty()) {
             saveFieldValues(saved, fieldValues);
         }
 
@@ -357,8 +422,19 @@ public class WorkflowInstanceService {
         WorkflowInstance instance = workflowInstanceRepository.findById(instanceId)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
 
-        if (instance.getStatus() != WorkflowInstance.Status.DRAFT) {
-            throw new BusinessException("Only draft instances can be edited");
+        boolean isApprovedEditable = instance.getStatus() == WorkflowInstance.Status.APPROVED &&
+                !Boolean.TRUE.equals(instance.getWorkflow().getLockApproved());
+        if (instance.getStatus() != WorkflowInstance.Status.DRAFT &&
+            instance.getStatus() != WorkflowInstance.Status.REJECTED &&
+            !isApprovedEditable) {
+            throw new BusinessException("Only draft, rejected, or recalled instances can be edited");
+        }
+
+        // Check if child workflow is locked due to parent approval
+        if (instance.getParentInstance() != null &&
+            instance.getParentInstance().getStatus() == WorkflowInstance.Status.APPROVED &&
+            Boolean.TRUE.equals(instance.getWorkflow().getLockChildOnParentApproval())) {
+            throw new BusinessException("This submission cannot be edited because the parent workflow has been approved");
         }
 
         // Update field values
@@ -506,6 +582,50 @@ public class WorkflowInstanceService {
 
         // Invalidate any remaining tokens for this instance
         emailApprovalService.invalidateAllTokensForInstance(instance.getId());
+
+        // Resolve seal: workflow-configured stamp → default seal from settings
+        try {
+            // Re-fetch the workflow with stamp eagerly loaded
+            Workflow freshWorkflow = workflowRepository.findByIdWithStamp(workflow.getId()).orElse(workflow);
+
+            UUID stampId = null;
+            if (freshWorkflow.getStamp() != null) {
+                stampId = freshWorkflow.getStamp().getId();
+                log.info("Using workflow stamp {} for instance {}", stampId, instance.getId());
+            } else {
+                String defaultSealId = settingService.getValue("workflow.default.seal.id", "");
+                if (!defaultSealId.isBlank()) {
+                    try {
+                        stampId = UUID.fromString(defaultSealId);
+                        log.info("Using default seal {} for instance {}", stampId, instance.getId());
+                    } catch (IllegalArgumentException ignored) {}
+                }
+            }
+
+            if (stampId != null) {
+                // Stamp PDF/Word attachments
+                documentStampService.stampAttachments(instance.getId(), stampId, approver);
+
+                // Save composite stamp in the final approval history entry for display
+                Stamp resolvedStamp = stampRepository.findById(stampId).orElse(null);
+                if (resolvedStamp != null) {
+                    var histories = approvalHistoryRepository.findByWorkflowInstanceId(instance.getId());
+                    histories.stream()
+                            .filter(h -> h.getAction() == ApprovalHistory.Action.APPROVED)
+                            .reduce((first, second) -> second)
+                            .ifPresent(lastHistory -> {
+                                lastHistory.setStamp(resolvedStamp);
+                                lastHistory.setStampData(generateCompositeStamp(resolvedStamp, approver));
+                                approvalHistoryRepository.save(lastHistory);
+                            });
+                }
+            } else {
+                log.warn("No stamp configured for workflow {} and no default seal set. Skipping document stamping for instance {}",
+                        workflow.getName(), instance.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to stamp attachments for instance {}: {}", instance.getId(), e.getMessage(), e);
+        }
 
         // Notify initiator
         emailService.sendApprovalNotificationEmail(
@@ -686,31 +806,41 @@ public class WorkflowInstanceService {
     }
 
     private void handleEscalation(WorkflowInstance instance, User approver, UUID escalateToUserId) {
-        instance.setStatus(WorkflowInstance.Status.ESCALATED);
-
         if (escalateToUserId != null) {
             WorkflowApprover escalateTo = workflowApproverRepository
                     .findByUserIdAndWorkflowId(escalateToUserId, instance.getWorkflow().getId())
                     .orElseThrow(() -> new BusinessException("Escalation target not found"));
             instance.setCurrentApprover(escalateTo);
+            instance.setStatus(WorkflowInstance.Status.PENDING);
+            log.info("Escalated to specific user: {}", escalateTo.getApproverEmail());
 
             if (escalateTo.getNotifyOnPending()) {
                 sendApprovalRequestNotification(instance, escalateTo);
             }
         } else {
-            // Escalate to next level
+            // Escalate to next level in the approval matrix
             int nextLevel = instance.getCurrentLevel() + 1;
-            List<WorkflowApprover> nextApprovers = workflowApproverRepository
-                    .findByWorkflowIdAndLevel(instance.getWorkflow().getId(), nextLevel);
+            Integer maxLevel = workflowApproverRepository.findMaxLevelByWorkflowId(instance.getWorkflow().getId());
 
-            if (!nextApprovers.isEmpty()) {
-                instance.setCurrentLevel(nextLevel);
-                WorkflowApprover nextApprover = findEligibleApprover(nextApprovers, instance);
-                instance.setCurrentApprover(nextApprover);
+            if (maxLevel != null && nextLevel <= maxLevel) {
+                List<WorkflowApprover> nextApprovers = workflowApproverRepository
+                        .findByWorkflowIdAndLevel(instance.getWorkflow().getId(), nextLevel);
 
-                if (nextApprover.getNotifyOnPending()) {
-                    sendApprovalRequestNotification(instance, nextApprover);
+                if (!nextApprovers.isEmpty()) {
+                    instance.setCurrentLevel(nextLevel);
+                    WorkflowApprover nextApprover = findEligibleApprover(nextApprovers, instance);
+                    instance.setCurrentApprover(nextApprover);
+                    instance.setStatus(WorkflowInstance.Status.PENDING);
+                    log.info("Escalated to next level {}: approver {}", nextLevel, nextApprover.getApproverEmail());
+
+                    if (nextApprover.getNotifyOnPending()) {
+                        sendApprovalRequestNotification(instance, nextApprover);
+                    }
+                } else {
+                    throw new BusinessException("No approvers found at level " + nextLevel);
                 }
+            } else {
+                throw new BusinessException("No higher approval level available for escalation");
             }
         }
     }
@@ -744,6 +874,10 @@ public class WorkflowInstanceService {
 
     @Transactional
     public void deleteInstance(UUID id) {
+        deleteInstance(id, false);
+    }
+
+    public void deleteInstance(UUID id, boolean permanent) {
         WorkflowInstance instance = workflowInstanceRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
 
@@ -761,12 +895,18 @@ public class WorkflowInstanceService {
             throw new BusinessException("You can only delete your own submissions");
         }
 
-        // Soft delete - set isActive to false
-        instance.setIsActive(false);
-        workflowInstanceRepository.save(instance);
+        String refNumber = instance.getReferenceNumber();
+
+        if (permanent) {
+            workflowInstanceRepository.delete(instance);
+            log.info("Permanently deleted workflow instance: {}", refNumber);
+        } else {
+            instance.setIsActive(false);
+            workflowInstanceRepository.save(instance);
+        }
 
         auditService.logWorkflowAction(AuditLog.AuditAction.DELETE, instance,
-                "Workflow instance deleted: " + instance.getReferenceNumber(), null, null);
+                "Workflow instance " + (permanent ? "permanently " : "") + "deleted: " + refNumber, null, null);
     }
 
     @Transactional
@@ -1124,6 +1264,17 @@ public class WorkflowInstanceService {
         // Build submission link (direct link to the workflow submission view)
         String submissionLink = baseUrl + "/workflows/" + instance.getWorkflow().getCode() + "/instances/" + instance.getId();
 
+        // Build approval matrix if enabled on the workflow
+        Workflow workflow = instance.getWorkflow();
+        List<Map<String, Object>> approvalMatrix = null;
+        if (Boolean.TRUE.equals(workflow.getShowApprovalMatrix())) {
+            approvalMatrix = buildApprovalMatrix(workflow, instance.getCurrentLevel(), instance.getAmount());
+        }
+
+        // Get max approval level for "Level X of Y" display
+        Integer maxLevel = workflowApproverRepository.findMaxLevelByWorkflowId(workflow.getId());
+        String submissionTitle = instance.getTitle() != null ? instance.getTitle() : instance.getReferenceNumber();
+
         emailService.sendApprovalRequestEmail(
                 approver.getApproverEmail(),
                 approver.getApproverName(),
@@ -1138,7 +1289,11 @@ public class WorkflowInstanceService {
                 amount,
                 emailApprovalEnabled,
                 summaryFields,
-                submissionLink
+                submissionLink,
+                approvalMatrix,
+                instance.getCurrentLevel(),
+                maxLevel != null ? maxLevel : instance.getCurrentLevel(),
+                submissionTitle
         );
     }
 
@@ -1176,6 +1331,57 @@ public class WorkflowInstanceService {
         return summaryFields;
     }
 
+    private List<Map<String, Object>> buildApprovalMatrix(Workflow workflow, int currentLevel, BigDecimal amount) {
+        List<Map<String, Object>> matrix = new ArrayList<>();
+        List<WorkflowApprover> allApprovers = workflowApproverRepository
+                .findByWorkflowId(workflow.getId());
+
+        boolean isFinancial = workflow.getWorkflowCategory() == Workflow.WorkflowCategory.FINANCIAL && amount != null;
+
+        // Group by level
+        Map<Integer, List<WorkflowApprover>> byLevel = new LinkedHashMap<>();
+        for (WorkflowApprover a : allApprovers) {
+            byLevel.computeIfAbsent(a.getLevel(), k -> new ArrayList<>()).add(a);
+        }
+
+        for (Map.Entry<Integer, List<WorkflowApprover>> entry : byLevel.entrySet()) {
+            Map<String, Object> levelData = new HashMap<>();
+            int level = entry.getKey();
+            levelData.put("level", level);
+            levelData.put("isCurrent", level == currentLevel);
+
+            boolean isCompleted = level < currentLevel;
+            boolean isSkipped = false;
+
+            // For financial workflows, check if this completed level was actually skipped
+            // A level is skipped if the approver's limit is less than the submission amount
+            if (isFinancial && isCompleted) {
+                boolean allBelowLimit = entry.getValue().stream().allMatch(a -> {
+                    if (Boolean.TRUE.equals(a.getIsUnlimited())) return false;
+                    if (a.getApprovalLimit() == null) return true;
+                    return amount.compareTo(a.getApprovalLimit()) > 0;
+                });
+                if (allBelowLimit) {
+                    isSkipped = true;
+                }
+            }
+
+            levelData.put("isCompleted", isCompleted && !isSkipped);
+            levelData.put("isSkipped", isSkipped);
+
+            List<Map<String, String>> approvers = new ArrayList<>();
+            for (WorkflowApprover a : entry.getValue()) {
+                Map<String, String> approverData = new HashMap<>();
+                approverData.put("name", a.getApproverName() != null ? a.getApproverName() : "Approver");
+                approverData.put("email", a.getApproverEmail() != null ? a.getApproverEmail() : "");
+                approvers.add(approverData);
+            }
+            levelData.put("approvers", approvers);
+            matrix.add(levelData);
+        }
+        return matrix;
+    }
+
     private String generateReferenceNumber(String workflowCode) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String random = String.format("%04d", new Random().nextInt(10000));
@@ -1192,7 +1398,15 @@ public class WorkflowInstanceService {
     }
 
     private CustomUserDetails getCurrentUser() {
-        return (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
+            throw new BusinessException("Not authenticated. Please log in again.");
+        }
+        Object principal = auth.getPrincipal();
+        if (principal instanceof CustomUserDetails cud) {
+            return cud;
+        }
+        throw new BusinessException("Session expired. Please log in again.");
     }
 
     private WorkflowInstanceDTO toDTO(WorkflowInstance instance) {
@@ -1203,11 +1417,18 @@ public class WorkflowInstanceService {
                     instance.getWorkflow().getId(), instance.getCurrentLevel());
         }
 
+        // Get max approval level for this workflow
+        Integer maxLevel = workflowApproverRepository.findMaxLevelByWorkflowId(instance.getWorkflow().getId());
+
         return WorkflowInstanceDTO.builder()
                 .id(instance.getId())
                 .workflowId(instance.getWorkflow().getId())
                 .workflowName(instance.getWorkflow().getName())
                 .workflowCode(instance.getWorkflow().getCode())
+                .lockApproved(instance.getWorkflow().getLockApproved())
+                .lockChildOnParentApproval(instance.getWorkflow().getLockChildOnParentApproval())
+                .parentApproved(instance.getParentInstance() != null &&
+                        instance.getParentInstance().getStatus() == WorkflowInstance.Status.APPROVED)
                 .referenceNumber(instance.getReferenceNumber())
                 .title(instance.getTitle())
                 .summary(instance.getSummary())
@@ -1216,6 +1437,7 @@ public class WorkflowInstanceService {
                 .initiatorName(instance.getInitiator().getFullName())
                 .initiatorEmail(instance.getInitiator().getEmail())
                 .currentLevel(instance.getCurrentLevel())
+                .maxLevel(maxLevel)
                 .currentApproverOrder(instance.getCurrentApproverOrder())
                 .totalApproversAtLevel(totalApproversAtLevel)
                 .currentApproverName(instance.getCurrentApprover() != null ? instance.getCurrentApprover().getApproverName() : null)
@@ -1235,6 +1457,7 @@ public class WorkflowInstanceService {
                 .commentsMandatory(instance.getWorkflow().getCommentsMandatory())
                 .commentsMandatoryOnReject(instance.getWorkflow().getCommentsMandatoryOnReject())
                 .commentsMandatoryOnEscalate(instance.getWorkflow().getCommentsMandatoryOnEscalate())
+                .workflowStampId(instance.getWorkflow().getStamp() != null ? instance.getWorkflow().getStamp().getId() : null)
                 .build();
     }
 
@@ -1280,6 +1503,9 @@ public class WorkflowInstanceService {
                 .comments(history.getComments())
                 .actionDate(history.getActionDate())
                 .actionSource(history.getActionSource())
+                .stampId(history.getStamp() != null ? history.getStamp().getId() : null)
+                .stampName(history.getStamp() != null ? history.getStamp().getName() : null)
+                .stampData(history.getStampData())
                 .build();
     }
 
@@ -1360,5 +1586,104 @@ public class WorkflowInstanceService {
                     return target;
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Generates a composite stamp SVG with signature, date, and approver name
+     * seamlessly integrated inside the stamp design.
+     */
+    private String generateCompositeStamp(Stamp stamp, User approver) {
+        String dateStr = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy"));
+        String color = stamp.getStampColor() != null ? stamp.getStampColor() : "#c62828";
+
+        // Get user's current signature
+        String signatureData = null;
+        try {
+            var sig = userSignatureRepository.findByUserIdAndIsCurrentTrue(approver.getId());
+            if (sig.isPresent()) {
+                signatureData = sig.get().getSignatureData();
+            }
+        } catch (Exception e) {
+            log.debug("Could not load signature for user {}: {}", approver.getUsername(), e.getMessage());
+        }
+
+        // Build a single unified stamp with everything embedded inside
+        StringBuilder svg = new StringBuilder();
+        svg.append("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'>");
+
+        // Outer circle border
+        svg.append("<circle cx='120' cy='120' r='115' fill='none' stroke='").append(color).append("' stroke-width='4'/>");
+        svg.append("<circle cx='120' cy='120' r='108' fill='none' stroke='").append(color).append("' stroke-width='6'/>");
+        svg.append("<circle cx='120' cy='120' r='101' fill='none' stroke='").append(color).append("' stroke-width='1.5'/>");
+
+        // Stamp name arced along the top
+        svg.append("<path id='stampArcTop' d='M 40,120 A 80,80 0 0,1 200,120' fill='none'/>");
+        svg.append("<text fill='").append(color).append("' font-family='serif' font-size='14' font-weight='bold' letter-spacing='3'>");
+        svg.append("<textPath href='#stampArcTop' startOffset='50%' text-anchor='middle'>");
+        svg.append(escapeXml(stamp.getName()));
+        svg.append("</textPath></text>");
+
+        // Stars on sides
+        svg.append("<text x='35' y='125' font-size='12' fill='").append(color).append("'>&#x2605;</text>");
+        svg.append("<text x='197' y='125' font-size='12' fill='").append(color).append("'>&#x2605;</text>");
+
+        // Inner circle for signature area
+        svg.append("<circle cx='120' cy='120' r='68' fill='none' stroke='").append(color).append("' stroke-width='0.8' stroke-dasharray='3,2'/>");
+
+        // Date at center-top of inner area
+        svg.append("<text x='120' y='78' text-anchor='middle' font-family='sans-serif' font-size='9' fill='").append(color).append("'>").append(dateStr).append("</text>");
+
+        // Signature in the center of the stamp
+        if (signatureData != null) {
+            if (signatureData.startsWith("<svg") || signatureData.startsWith("<?xml")) {
+                // SVG signature - extract paths and embed centered inside the stamp
+                String sigViewBox = "0 0 560 180";
+                if (signatureData.contains("viewBox=\"")) {
+                    int s = signatureData.indexOf("viewBox=\"") + 9;
+                    int e = signatureData.indexOf("\"", s);
+                    sigViewBox = signatureData.substring(s, e);
+                }
+                String sigPaths = "";
+                if (signatureData.contains(">") && signatureData.contains("</svg>")) {
+                    sigPaths = signatureData.substring(signatureData.indexOf(">") + 1, signatureData.lastIndexOf("</svg>"));
+                }
+                // Embed signature scaled to fit inside the inner circle
+                svg.append("<svg x='45' y='82' width='150' height='50' viewBox='").append(sigViewBox).append("' preserveAspectRatio='xMidYMid meet'>");
+                svg.append(sigPaths);
+                svg.append("</svg>");
+            } else if (signatureData.startsWith("data:image")) {
+                // Legacy PNG data URI
+                svg.append("<image x='45' y='82' width='150' height='50' href='").append(signatureData).append("' preserveAspectRatio='xMidYMid meet'/>");
+            }
+        } else {
+            // Signature line placeholder
+            svg.append("<line x1='60' y1='115' x2='180' y2='115' stroke='").append(color).append("' stroke-width='0.8' stroke-dasharray='4,2'/>");
+        }
+
+        // Approver name below signature
+        svg.append("<text x='120' y='148' text-anchor='middle' font-family='sans-serif' font-size='8' font-weight='bold' fill='").append(color).append("'>").append(escapeXml(approver.getFullName())).append("</text>");
+
+        // "AUTHORIZED" arced along the bottom
+        svg.append("<path id='stampArcBot' d='M 200,120 A 80,80 0 0,1 40,120' fill='none'/>");
+        svg.append("<text fill='").append(color).append("' font-family='serif' font-size='11' letter-spacing='2'>");
+        svg.append("<textPath href='#stampArcBot' startOffset='50%' text-anchor='middle'>");
+        svg.append("AUTHORIZED &amp; SIGNED");
+        svg.append("</textPath></text>");
+
+        // Decorative dots around the border
+        for (int i = 0; i < 36; i++) {
+            double angle = Math.toRadians(i * 10);
+            double dotX = 120 + 104 * Math.cos(angle);
+            double dotY = 120 + 104 * Math.sin(angle);
+            svg.append(String.format("<circle cx='%.1f' cy='%.1f' r='1' fill='%s'/>", dotX, dotY, color));
+        }
+
+        svg.append("</svg>");
+        return svg.toString();
+    }
+
+    private String escapeXml(String input) {
+        if (input == null) return "";
+        return input.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;");
     }
 }

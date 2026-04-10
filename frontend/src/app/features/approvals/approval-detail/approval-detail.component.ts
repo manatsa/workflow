@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
@@ -14,6 +15,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { WorkflowService } from '@core/services/workflow.service';
 import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-approval-detail',
@@ -31,8 +33,8 @@ import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
     MatDividerModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatDialogModule
-  ],
+    MatDialogModule,
+    MatTooltipModule],
   template: `
     <div class="approval-detail-container">
       @if (loading) {
@@ -41,7 +43,7 @@ import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
         </div>
       } @else if (instance) {
         <div class="header">
-          <button mat-icon-button routerLink="/approvals">
+          <button mat-icon-button matTooltip="Go Back" routerLink="/approvals">
             <mat-icon>arrow_back</mat-icon>
           </button>
           <div class="header-info">
@@ -108,7 +110,7 @@ import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
                         <mat-icon>description</mat-icon>
                         <span class="name">{{ attachment.originalFileName }}</span>
                         <span class="size">({{ formatFileSize(attachment.fileSize) }})</span>
-                        <button mat-icon-button (click)="downloadAttachment(attachment)">
+                        <button mat-icon-button matTooltip="Export" (click)="downloadAttachment(attachment)">
                           <mat-icon>download</mat-icon>
                         </button>
                       </div>
@@ -150,21 +152,21 @@ import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
                 </form>
 
                 <div class="action-buttons">
-                  <button mat-raised-button color="primary" (click)="approve()"
+                  <button mat-raised-button matTooltip="Approve" color="primary" (click)="approve()"
                           [disabled]="submitting">
                     <mat-icon>check</mat-icon>
                     Approve
                   </button>
 
                   @if (canEscalate) {
-                    <button mat-stroked-button color="primary" (click)="escalate()"
+                    <button mat-stroked-button matTooltip="Escalate" color="primary" (click)="escalate()"
                             [disabled]="submitting">
                       <mat-icon>arrow_upward</mat-icon>
                       Escalate
                     </button>
                   }
 
-                  <button mat-raised-button color="warn" (click)="reject()"
+                  <button mat-raised-button matTooltip="Reject" color="warn" (click)="reject()"
                           [disabled]="submitting">
                     <mat-icon>close</mat-icon>
                     Reject
@@ -196,6 +198,9 @@ import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
                         </div>
                         @if (history.comments) {
                           <div class="history-comments">"{{ history.comments }}"</div>
+                        }
+                        @if (history.stampData) {
+                          <div class="history-stamp" [innerHTML]="getSafeStampHtml(history.stampData)"></div>
                         }
                       </div>
                     }
@@ -434,6 +439,20 @@ import { WorkflowInstance, ApprovalHistory } from '@core/models/workflow.model';
       font-style: italic;
     }
 
+    .history-stamp {
+      margin-top: 8px;
+      padding: 8px;
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      display: inline-block;
+    }
+    .history-stamp :deep(svg) {
+      width: 180px;
+      height: auto;
+      max-height: 220px;
+    }
+
     .approval-chain {
       display: flex;
       flex-direction: column;
@@ -508,7 +527,9 @@ export class ApprovalDetailComponent implements OnInit {
     private workflowService: WorkflowService,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog,
+    private sanitizer: DomSanitizer
   ) {
     this.actionForm = this.fb.group({
       comments: ['']
@@ -558,6 +579,7 @@ export class ApprovalDetailComponent implements OnInit {
   }
 
   approve() {
+    // Seal is resolved automatically by backend: workflow stamp → default setting stamp
     this.submitAction('APPROVE');
   }
 
@@ -569,18 +591,21 @@ export class ApprovalDetailComponent implements OnInit {
     this.submitAction('REJECT');
   }
 
-  submitAction(action: string) {
+  submitAction(action: string, stampId?: string) {
     if (this.requireComment && !this.actionForm.value.comments?.trim()) {
       this.snackBar.open('Comments are required', 'Close', { duration: 3000 });
       return;
     }
 
     this.submitting = true;
-    const data = {
+    const data: any = {
       instanceId: this.instance!.id,
       action,
       comments: this.actionForm.value.comments
     };
+    if (stampId) {
+      data.stampId = stampId;
+    }
 
     this.workflowService.submitApproval(data).subscribe({
       next: (res) => {
@@ -614,5 +639,9 @@ export class ApprovalDetailComponent implements OnInit {
       a.click();
       window.URL.revokeObjectURL(url);
     });
+  }
+
+  getSafeStampHtml(stampData: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(stampData);
   }
 }

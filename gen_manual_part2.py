@@ -1,0 +1,6 @@
+exec(open(r"C:\Users\Codebreaker\CODE\Sonar workflow\gen_manual.py",encoding="utf-8").read())
+print("Part1 loaded")
+doc.add_page_break()
+doc.add_heading("Chapter 5: Project Management",level=1)
+bod(doc,"The Sonar Workflow System includes a comprehensive project management module.")
+print("test")

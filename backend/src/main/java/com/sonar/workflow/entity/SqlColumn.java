@@ -41,6 +41,14 @@ public class SqlColumn extends BaseEntity {
     @Column(name = "display_order")
     private Integer displayOrder = 0;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "boolean_control")
+    private BooleanControl booleanControl = BooleanControl.TOGGLE;
+
+    public enum BooleanControl {
+        TOGGLE, CHECKBOX, DROPDOWN, RADIO
+    }
+
     public enum ColumnDataType {
         VARCHAR,
         TEXT,

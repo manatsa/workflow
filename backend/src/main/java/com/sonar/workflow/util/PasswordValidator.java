@@ -51,8 +51,15 @@ public class PasswordValidator {
         }
 
         if (requireSpecialChars) {
-            String escapedChars = Pattern.quote(specialCharsPattern);
-            if (!Pattern.compile("[" + escapedChars + "]").matcher(password).find()) {
+            // Check if password contains any of the special characters
+            boolean hasSpecial = false;
+            for (char c : specialCharsPattern.toCharArray()) {
+                if (password.indexOf(c) >= 0) {
+                    hasSpecial = true;
+                    break;
+                }
+            }
+            if (!hasSpecial) {
                 errors.add("Password must contain at least one special character: " + specialCharsPattern);
             }
         }

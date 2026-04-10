@@ -3426,6 +3426,49 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
     relatedFunctions: ['GET_ROW', 'GET_COLUMN', 'ROW_COUNT']
   },
 
+  'SET_TABLE_FROM_JSON': {
+    name: 'SET_TABLE_FROM_JSON',
+    syntax: 'SET_TABLE_FROM_JSON(tableName, jsonData, clearExisting?)',
+    category: 'Table',
+    description: 'Populate table with data from JSON array',
+    explanation: 'Parses a JSON array string and populates the table with the data. Each object in the array becomes a row, with property names matching column names. Optionally clears existing rows before adding new ones.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field to populate', required: true },
+      { name: 'jsonData', type: 'string', description: 'JSON array string (e.g., [{"col1":"val1"},{"col1":"val2"}])', required: true },
+      { name: 'clearExisting', type: 'boolean', description: 'Clear existing rows before adding new ones (default: true)', required: false }
+    ],
+    examples: [
+      { usage: 'SET_TABLE_FROM_JSON(@{orderItems}, \'[{"item":"A","qty":"5"},{"item":"B","qty":"3"}]\')', result: 'Populates table with 2 rows', description: 'Populate table from JSON array' },
+      { usage: 'SET_TABLE_FROM_JSON(@{orderItems}, @{jsonData}, false)', result: 'Appends rows to existing data', description: 'Append JSON data to table' }
+    ],
+    tips: [
+      'JSON must be a valid array format',
+      'Object keys should match table column names',
+      'Set clearExisting to false to append data',
+      'Works well with FROM_JSON and TABLE_JSON functions'
+    ],
+    relatedFunctions: ['TABLE_JSON', 'ADD_ROW', 'CLEAR_TABLE', 'FROM_JSON', 'TO_JSON']
+  },
+
+  'CLEAR_TABLE': {
+    name: 'CLEAR_TABLE',
+    syntax: 'CLEAR_TABLE(tableName)',
+    category: 'Table',
+    description: 'Remove all rows from a table',
+    explanation: 'Removes all rows from the specified table field. Useful for resetting table data or clearing temporary entries.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field to clear', required: true }
+    ],
+    examples: [
+      { usage: 'CLEAR_TABLE(@{orderItems})', result: 'Table now has 0 rows', description: 'Clear all rows from table' }
+    ],
+    tips: [
+      'Cannot be undone',
+      'Consider using ADD_ROW after clearing if a minimum row count is required'
+    ],
+    relatedFunctions: ['DELETE_ROW', 'SET_TABLE_FROM_JSON', 'ROW_COUNT']
+  },
+
   'COPY_ROW': {
     name: 'COPY_ROW',
     syntax: 'COPY_ROW(tableName, sourceRowIndex, targetRowIndex?)',
@@ -3447,6 +3490,862 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
       'Useful for duplicating line items'
     ],
     relatedFunctions: ['ADD_ROW', 'SET_ROW', 'GET_ROW']
+  },
+
+  'FILTER_TABLE': {
+    name: 'FILTER_TABLE',
+    syntax: 'FILTER_TABLE(tableName, columnName, operator, value)',
+    category: 'Table',
+    description: 'Filter table rows based on condition',
+    explanation: 'Returns a JSON array of rows where the specified column matches the condition. Supports operators: =, !=, >, <, >=, <=, contains, startsWith, endsWith, empty, notEmpty.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Column to filter by', required: true },
+      { name: 'operator', type: 'string', description: 'Comparison operator (=, !=, >, <, >=, <=, contains, startsWith, endsWith, empty, notEmpty)', required: true },
+      { name: 'value', type: 'string', description: 'Value to compare against', required: true }
+    ],
+    examples: [
+      { usage: 'FILTER_TABLE(@{items}, "status", "=", "active")', result: 'Returns rows where status equals "active"', description: 'Filter by exact match' },
+      { usage: 'FILTER_TABLE(@{items}, "name", "contains", "test")', result: 'Returns rows where name contains "test"', description: 'Filter by contains' }
+    ],
+    tips: [
+      'Returns JSON array, use with SET_TABLE_FROM_JSON to update table',
+      'Supports text and numeric comparisons',
+      'Use empty/notEmpty to check for null/empty values'
+    ],
+    relatedFunctions: ['FIND_ROW', 'TABLE_JSON', 'SET_TABLE_FROM_JSON']
+  },
+
+  'SORT_TABLE': {
+    name: 'SORT_TABLE',
+    syntax: 'SORT_TABLE(tableName, columnName, order?)',
+    category: 'Table',
+    description: 'Sort table rows by column values',
+    explanation: 'Sorts the table rows based on the specified column. Order can be "asc" (ascending, default) or "desc" (descending).',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Column to sort by', required: true },
+      { name: 'order', type: 'string', description: 'Sort order: "asc" or "desc" (default: asc)', required: false }
+    ],
+    examples: [
+      { usage: 'SORT_TABLE(@{items}, "name", "asc")', result: 'Sorts items by name A-Z', description: 'Sort ascending' },
+      { usage: 'SORT_TABLE(@{items}, "price", "desc")', result: 'Sorts items by price high-low', description: 'Sort descending' }
+    ],
+    tips: [
+      'Modifies the table in place',
+      'Works with both text and numeric values'
+    ],
+    relatedFunctions: ['TABLE_JSON', 'ROW_COUNT']
+  },
+
+  'UNIQUE_VALUES': {
+    name: 'UNIQUE_VALUES',
+    syntax: 'UNIQUE_VALUES(tableName, columnName)',
+    category: 'Table',
+    description: 'Get unique values from a column',
+    explanation: 'Returns a JSON array of unique/distinct values from the specified column, removing duplicates.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Column to get unique values from', required: true }
+    ],
+    examples: [
+      { usage: 'UNIQUE_VALUES(@{orders}, "category")', result: '["Electronics","Clothing","Food"]', description: 'Get unique categories' }
+    ],
+    tips: [
+      'Returns JSON array of unique values',
+      'Useful for populating dropdowns dynamically'
+    ],
+    relatedFunctions: ['GET_COLUMN', 'COUNT_COLUMN']
+  },
+
+  'REMOVE_DUPLICATES': {
+    name: 'REMOVE_DUPLICATES',
+    syntax: 'REMOVE_DUPLICATES(tableName, columnName)',
+    category: 'Table',
+    description: 'Remove duplicate rows based on column',
+    explanation: 'Removes duplicate rows from the table, keeping only the first occurrence of each unique value in the specified column.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Column to check for duplicates', required: true }
+    ],
+    examples: [
+      { usage: 'REMOVE_DUPLICATES(@{items}, "sku")', result: 'Removes rows with duplicate SKUs', description: 'Remove duplicate SKUs' }
+    ],
+    tips: [
+      'Keeps first occurrence of each unique value',
+      'Returns number of rows removed'
+    ],
+    relatedFunctions: ['UNIQUE_VALUES', 'ROW_COUNT', 'DELETE_ROW']
+  },
+
+  'MERGE_TABLES': {
+    name: 'MERGE_TABLES',
+    syntax: 'MERGE_TABLES(targetTable, sourceTableOrJson, matchColumn, updateColumn?)',
+    category: 'Table',
+    description: 'Merge rows from another table or JSON',
+    explanation: 'Merges data from another table or JSON array into the target table. If matchColumn and updateColumn are provided, updates existing rows; otherwise appends all rows.',
+    parameters: [
+      { name: 'targetTable', type: 'string', description: 'Target TABLE field name', required: true },
+      { name: 'sourceTableOrJson', type: 'string', description: 'Source table name or JSON array', required: true },
+      { name: 'matchColumn', type: 'string', description: 'Column to match rows', required: true },
+      { name: 'updateColumn', type: 'string', description: 'Column to update on match (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'MERGE_TABLES(@{items}, @{importData}, "sku")', result: 'Appends import data to items', description: 'Merge and append' },
+      { usage: 'MERGE_TABLES(@{items}, @{"[{\"sku\":\"A\",\"qty\":10}]"}, "sku", "qty")', result: 'Updates qty where sku matches', description: 'Merge with update' }
+    ],
+    tips: [
+      'Can use table field reference or JSON string as source',
+      'Without updateColumn, just appends rows'
+    ],
+    relatedFunctions: ['SET_TABLE_FROM_JSON', 'TABLE_JSON', 'ADD_ROW']
+  },
+
+  'TABLE_EXISTS': {
+    name: 'TABLE_EXISTS',
+    syntax: 'TABLE_EXISTS(tableName)',
+    category: 'Table',
+    description: 'Check if table has data',
+    explanation: 'Returns "true" if the table exists and has at least one row, otherwise returns "false".',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true }
+    ],
+    examples: [
+      { usage: 'TABLE_EXISTS(@{orderItems})', result: 'true or false', description: 'Check if table has data' }
+    ],
+    tips: [
+      'Useful for conditional logic',
+      'Returns string "true" or "false"'
+    ],
+    relatedFunctions: ['ROW_COUNT', 'IS_EMPTY']
+  },
+
+  'INSERT_ROW': {
+    name: 'INSERT_ROW',
+    syntax: 'INSERT_ROW(tableName, position, valuesJson?)',
+    category: 'Table',
+    description: 'Insert a row at specific position',
+    explanation: 'Inserts a new row at the specified position (1-based). If position is 0 or exceeds table length, adds at end.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'position', type: 'number', description: 'Position to insert row (1-based)', required: true },
+      { name: 'valuesJson', type: 'string', description: 'JSON object with column values (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'INSERT_ROW(@{items}, 1)', result: 'Inserts empty row at position 1', description: 'Insert empty row' },
+      { usage: 'INSERT_ROW(@{items}, 2, \'{"name":"New Item","qty":5}\')', result: 'Inserts row with values at position 2', description: 'Insert row with values' }
+    ],
+    tips: [
+      'Position 1 inserts at the beginning',
+      'Use with ADD_ROW to append at end'
+    ],
+    relatedFunctions: ['ADD_ROW', 'SET_ROW', 'DELETE_ROW']
+  },
+
+  'SWAP_ROWS': {
+    name: 'SWAP_ROWS',
+    syntax: 'SWAP_ROWS(tableName, rowIndex1, rowIndex2)',
+    category: 'Table',
+    description: 'Swap positions of two rows',
+    explanation: 'Swaps the positions of two rows in the table. Row indices are 1-based.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'rowIndex1', type: 'number', description: 'First row position (1-based)', required: true },
+      { name: 'rowIndex2', type: 'number', description: 'Second row position (1-based)', required: true }
+    ],
+    examples: [
+      { usage: 'SWAP_ROWS(@{items}, 1, 3)', result: 'Swaps row 1 with row 3', description: 'Swap two rows' }
+    ],
+    tips: [
+      'Useful for reordering items',
+      'Both rows must exist'
+    ],
+    relatedFunctions: ['MOVE_ROW', 'COPY_ROW', 'GET_ROW']
+  },
+
+  'MOVE_ROW': {
+    name: 'MOVE_ROW',
+    syntax: 'MOVE_ROW(tableName, fromPosition, toPosition)',
+    category: 'Table',
+    description: 'Move row to different position',
+    explanation: 'Moves a row from one position to another. Positions are 1-based.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'fromPosition', type: 'number', description: 'Current row position (1-based)', required: true },
+      { name: 'toPosition', type: 'number', description: 'Target position (1-based)', required: true }
+    ],
+    examples: [
+      { usage: 'MOVE_ROW(@{items}, 5, 1)', result: 'Moves row 5 to position 1', description: 'Move row to top' }
+    ],
+    tips: [
+      'Useful for reordering priority',
+      'Other rows shift accordingly'
+    ],
+    relatedFunctions: ['SWAP_ROWS', 'COPY_ROW', 'SORT_TABLE']
+  },
+
+  'GROUP_BY': {
+    name: 'GROUP_BY',
+    syntax: 'GROUP_BY(tableName, groupColumn, aggregateColumn, operation)',
+    category: 'Table',
+    description: 'Group rows and aggregate values',
+    explanation: 'Groups rows by a column and performs aggregation (SUM, AVG, COUNT, MIN, MAX) on another column. Returns JSON array of grouped results.',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'groupColumn', type: 'string', description: 'Column to group by', required: true },
+      { name: 'aggregateColumn', type: 'string', description: 'Column to aggregate', required: true },
+      { name: 'operation', type: 'string', description: 'Operation: SUM, AVG, COUNT, MIN, MAX', required: true }
+    ],
+    examples: [
+      { usage: 'GROUP_BY(@{sales}, "product", "amount", "SUM")', result: '[{"product":"A","amount":150},{"product":"B","amount":200}]', description: 'Sum by product' },
+      { usage: 'GROUP_BY(@{orders}, "category", "orderId", "COUNT")', result: '[{"category":"Electronics","orderId":5}]', description: 'Count by category' }
+    ],
+    tips: [
+      'Returns JSON array for further processing',
+      'Works with SET_TABLE_FROM_JSON to create summary table'
+    ],
+    relatedFunctions: ['SUM_COLUMN', 'AVG_COLUMN', 'UNIQUE_VALUES']
+  },
+
+  'TABLE_HAS_ROW': {
+    name: 'TABLE_HAS_ROW',
+    syntax: 'TABLE_HAS_ROW(tableName, columnName, value)',
+    category: 'Table',
+    description: 'Check if table has a row with value',
+    explanation: 'Returns "true" if any row in the table has the specified value in the given column, otherwise returns "false".',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Column to search', required: true },
+      { name: 'value', type: 'string', description: 'Value to find', required: true }
+    ],
+    examples: [
+      { usage: 'TABLE_HAS_ROW(@{items}, "sku", "ABC123")', result: 'true or false', description: 'Check if SKU exists' }
+    ],
+    tips: [
+      'Useful for validation',
+      'Returns string "true" or "false"'
+    ],
+    relatedFunctions: ['FIND_ROW', 'TABLE_EXISTS', 'COUNT_COLUMN']
+  },
+
+  'DUPLICATE_ROWS': {
+    name: 'DUPLICATE_ROWS',
+    syntax: 'DUPLICATE_ROWS(tableName, columnName)',
+    category: 'Table',
+    description: 'Find duplicate row values',
+    explanation: 'Returns a JSON array of values from the specified column that appear more than once (duplicates).',
+    parameters: [
+      { name: 'tableName', type: 'string', description: 'Name of the TABLE field', required: true },
+      { name: 'columnName', type: 'string', description: 'Column to check for duplicates', required: true }
+    ],
+    examples: [
+      { usage: 'DUPLICATE_ROWS(@{items}, "sku")', result: '["SKU001","SKU002"]', description: 'Find duplicate SKUs' }
+    ],
+    tips: [
+      'Useful for data validation',
+      'Returns only values that appear 2+ times'
+    ],
+    relatedFunctions: ['UNIQUE_VALUES', 'REMOVE_DUPLICATES']
+  },
+
+  // ==================== VALIDATION-SPECIFIC FUNCTIONS ====================
+  // These are optimized for the Validation Expression field
+
+  'Required': {
+    name: 'Required',
+    syntax: 'Required("message")',
+    category: 'Validation',
+    description: 'Field value is required (cannot be empty)',
+    explanation: 'Validates that the field has a non-empty value. Works with text, numbers, dates, dropdowns, and all field types.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [
+      { usage: 'Required()', result: 'Error if empty', description: 'Default message' },
+      { usage: 'Required("Please enter your name")', result: 'Custom message', description: 'Custom error' }
+    ],
+    relatedFunctions: ['NotEmpty', 'IS_EMPTY', 'IS_NOT_EMPTY']
+  },
+
+  'NotEmpty': {
+    name: 'NotEmpty',
+    syntax: 'NotEmpty("message")',
+    category: 'Validation',
+    description: 'Field must not be empty or whitespace only',
+    explanation: 'Similar to Required but specifically checks for whitespace-only values.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'NotEmpty("Cannot be blank")', result: 'Error if blank', description: 'Rejects whitespace' }],
+    relatedFunctions: ['Required', 'IS_BLANK']
+  },
+
+  'MinLength': {
+    name: 'MinLength',
+    syntax: 'MinLength(n, "message")',
+    category: 'Validation',
+    description: 'Text must have at least n characters',
+    explanation: 'Validates minimum text length. Skips validation if field is empty (combine with Required for mandatory fields).',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Minimum character count', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MinLength(5, "Too short")', result: 'Error if < 5 chars', description: 'Minimum length' }],
+    relatedFunctions: ['MaxLength', 'LengthRange', 'HAS_MIN_LENGTH']
+  },
+
+  'MaxLength': {
+    name: 'MaxLength',
+    syntax: 'MaxLength(n, "message")',
+    category: 'Validation',
+    description: 'Text must have at most n characters',
+    explanation: 'Validates maximum text length.',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Maximum character count', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MaxLength(100)', result: 'Error if > 100 chars', description: 'Max length' }],
+    relatedFunctions: ['MinLength', 'LengthRange', 'HAS_MAX_LENGTH']
+  },
+
+  'Min': {
+    name: 'Min',
+    syntax: 'Min(n, "message")',
+    category: 'Validation',
+    description: 'Numeric value must be at least n',
+    explanation: 'Validates that a number field value is greater than or equal to the specified minimum.',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Minimum allowed value', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'Min(0, "Must be positive")', result: 'Error if < 0', description: 'Minimum value' }],
+    relatedFunctions: ['Max', 'Range', 'Positive']
+  },
+
+  'Max': {
+    name: 'Max',
+    syntax: 'Max(n, "message")',
+    category: 'Validation',
+    description: 'Numeric value must be at most n',
+    explanation: 'Validates that a number field value is less than or equal to the specified maximum.',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Maximum allowed value', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'Max(999999)', result: 'Error if > 999999', description: 'Maximum value' }],
+    relatedFunctions: ['Min', 'Range', 'Negative']
+  },
+
+  'PastDate': {
+    name: 'PastDate',
+    syntax: 'PastDate("message")',
+    category: 'Validation',
+    description: 'Date must be in the past (before today)',
+    explanation: 'Validates that a date field is strictly before today. Aliases: IS_PAST(), IsPast().',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [
+      { usage: 'PastDate()', result: 'Error if today or future', description: 'Must be past' },
+      { usage: 'IS_PAST("Date of loss must be in the past")', result: 'Custom message', description: 'Using alias' }
+    ],
+    relatedFunctions: ['FutureDate', 'DateBefore', 'DateAfter', 'IS_PAST']
+  },
+
+  'FutureDate': {
+    name: 'FutureDate',
+    syntax: 'FutureDate("message")',
+    category: 'Validation',
+    description: 'Date must be in the future (after today)',
+    explanation: 'Validates that a date field is strictly after today. Aliases: IS_FUTURE(), IsFuture().',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'FutureDate("Expiry must be a future date")', result: 'Custom message', description: 'Future date' }],
+    relatedFunctions: ['PastDate', 'DateBefore', 'DateAfter', 'IS_FUTURE']
+  },
+
+  'DateBefore': {
+    name: 'DateBefore',
+    syntax: 'DateBefore("date", "message")',
+    category: 'Validation',
+    description: 'Date must be before a specific date',
+    explanation: 'Validates that a date is before the target. Use "today" for current date. Alias: DATE_BEFORE().',
+    parameters: [
+      { name: 'date', type: 'string', description: 'Target date (yyyy-mm-dd or "today")', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'DateBefore("today", "Must be before today")', result: 'Past date check', description: 'Before today' }],
+    relatedFunctions: ['DateAfter', 'PastDate', 'FutureDate']
+  },
+
+  'DateAfter': {
+    name: 'DateAfter',
+    syntax: 'DateAfter("date", "message")',
+    category: 'Validation',
+    description: 'Date must be after a specific date',
+    explanation: 'Validates that a date is after the target. Use "today" for current date. Alias: DATE_AFTER().',
+    parameters: [
+      { name: 'date', type: 'string', description: 'Target date (yyyy-mm-dd or "today")', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'DateAfter("2024-01-01")', result: 'After Jan 1 2024', description: 'After specific date' }],
+    relatedFunctions: ['DateBefore', 'PastDate', 'FutureDate']
+  },
+
+  'Pattern': {
+    name: 'Pattern',
+    syntax: 'Pattern(/regex/, "message")',
+    category: 'Validation',
+    description: 'Value must match a regular expression pattern',
+    explanation: 'Validates the field value against a regex. Useful for custom format validation like ID numbers, codes, etc.',
+    parameters: [
+      { name: 'regex', type: 'regex', description: 'Regular expression (in /slashes/)', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'Pattern(/^[A-Z]{3}-\\d{4}$/, "Format: ABC-1234")', result: 'Regex match', description: 'Code format' },
+      { usage: 'Pattern(/^\\d{10}$/)', result: 'Exactly 10 digits', description: 'Phone digits' }
+    ],
+    relatedFunctions: ['REGEX_MATCH', 'Alpha', 'AlphaNumeric', 'Digits']
+  },
+
+  'MatchField': {
+    name: 'MatchField',
+    syntax: 'MatchField(fieldName, "message")',
+    category: 'Validation',
+    description: 'Value must match another field',
+    explanation: 'Cross-field validation. Ensures this field matches the value of another field. Common for password confirmation.',
+    parameters: [
+      { name: 'fieldName', type: 'string', description: 'Name of the field to match', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MatchField(password, "Passwords must match")', result: 'Match check', description: 'Password confirm' }],
+    relatedFunctions: ['Equals', 'EQUALS', 'ValidWhen']
+  },
+
+  'Positive': {
+    name: 'Positive',
+    syntax: 'Positive("message")',
+    category: 'Validation',
+    description: 'Number must be positive (greater than 0)',
+    explanation: 'Validates that a numeric value is strictly positive.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'Positive("Amount must be positive")', result: 'Error if <= 0', description: 'Positive check' }],
+    relatedFunctions: ['Negative', 'Min', 'IS_POSITIVE']
+  },
+
+  'Negative': {
+    name: 'Negative',
+    syntax: 'Negative("message")',
+    category: 'Validation',
+    description: 'Number must be negative (less than 0)',
+    explanation: 'Validates that a numeric value is strictly negative.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'Negative()', result: 'Error if >= 0', description: 'Negative check' }],
+    relatedFunctions: ['Positive', 'Max', 'IS_NEGATIVE']
+  },
+
+  'Integer': {
+    name: 'Integer',
+    syntax: 'Integer("message")',
+    category: 'Validation',
+    description: 'Value must be a whole number (no decimals)',
+    explanation: 'Validates that the value is an integer with no fractional part.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'Integer("Quantity must be a whole number")', result: 'No decimals', description: 'Integer check' }],
+    relatedFunctions: ['Decimal', 'IS_INTEGER', 'Digits']
+  },
+
+  'Decimal': {
+    name: 'Decimal',
+    syntax: 'Decimal(places, "message")',
+    category: 'Validation',
+    description: 'Number must have at most n decimal places',
+    explanation: 'Validates that the number has no more than the specified decimal places.',
+    parameters: [
+      { name: 'places', type: 'number', description: 'Maximum decimal places allowed', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'Decimal(2, "Max 2 decimal places")', result: 'At most 2 decimals', description: 'Currency format' }],
+    relatedFunctions: ['Integer', 'IS_DECIMAL']
+  },
+
+  'Unique': {
+    name: 'Unique',
+    syntax: 'Unique("message")',
+    category: 'Validation',
+    description: 'Value must be unique across all submissions',
+    explanation: 'Async validation that checks the backend to ensure no other submission has the same value for this field.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'Unique("This ID already exists")', result: 'Backend check', description: 'Uniqueness' }],
+    relatedFunctions: ['Required', 'Equals']
+  },
+
+  'IsTrue': {
+    name: 'IsTrue',
+    syntax: 'IsTrue("message")',
+    category: 'Validation',
+    description: 'Boolean/checkbox must be checked (true)',
+    explanation: 'For checkbox and toggle fields. Validates the value is true.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'IsTrue("You must agree to the terms")', result: 'Must be checked', description: 'Terms checkbox' }],
+    relatedFunctions: ['IsFalse', 'IS_TRUE']
+  },
+
+  'IsFalse': {
+    name: 'IsFalse',
+    syntax: 'IsFalse("message")',
+    category: 'Validation',
+    description: 'Boolean/checkbox must be unchecked (false)',
+    explanation: 'For checkbox and toggle fields. Validates the value is false.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'IsFalse()', result: 'Must be unchecked', description: 'Boolean false' }],
+    relatedFunctions: ['IsTrue', 'IS_FALSE']
+  },
+
+  'MinItems': {
+    name: 'MinItems',
+    syntax: 'MinItems(n, "message")',
+    category: 'Validation',
+    description: 'Multi-select must have at least n items selected',
+    explanation: 'For MULTISELECT and CHECKBOX_GROUP fields. Validates minimum selected items.',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Minimum item count', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MinItems(2, "Select at least 2")', result: 'Min items', description: 'Multi-select min' }],
+    relatedFunctions: ['MaxItems', 'Required']
+  },
+
+  'MaxItems': {
+    name: 'MaxItems',
+    syntax: 'MaxItems(n, "message")',
+    category: 'Validation',
+    description: 'Multi-select must have at most n items selected',
+    explanation: 'For MULTISELECT and CHECKBOX_GROUP fields. Validates maximum selected items.',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Maximum item count', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MaxItems(5)', result: 'Max 5 items', description: 'Multi-select max' }],
+    relatedFunctions: ['MinItems']
+  },
+
+  'MinRows': {
+    name: 'MinRows',
+    syntax: 'MinRows(n, "message")',
+    category: 'Validation',
+    description: 'Table field must have at least n rows',
+    explanation: 'For TABLE fields. Validates minimum row count.',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Minimum row count', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MinRows(1, "Add at least one item")', result: 'Min rows', description: 'Table min' }],
+    relatedFunctions: ['MaxRows']
+  },
+
+  'MaxRows': {
+    name: 'MaxRows',
+    syntax: 'MaxRows(n, "message")',
+    category: 'Validation',
+    description: 'Table field must have at most n rows',
+    explanation: 'For TABLE fields. Validates maximum row count.',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Maximum row count', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MaxRows(10)', result: 'Max 10 rows', description: 'Table max' }],
+    relatedFunctions: ['MinRows']
+  },
+
+  'LengthRange': {
+    name: 'LengthRange',
+    syntax: 'LengthRange(min, max, "message")',
+    category: 'Validation',
+    description: 'Text length must be between min and max characters',
+    explanation: 'Combines MinLength and MaxLength into a single check.',
+    parameters: [
+      { name: 'min', type: 'number', description: 'Minimum length', required: true },
+      { name: 'max', type: 'number', description: 'Maximum length', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'LengthRange(3, 50)', result: '3-50 chars', description: 'Length range' }],
+    relatedFunctions: ['MinLength', 'MaxLength']
+  },
+
+  'Range': {
+    name: 'Range',
+    syntax: 'Range(min, max, "message")',
+    category: 'Validation',
+    description: 'Numeric value must be between min and max',
+    explanation: 'Validates that a number is within the specified range (inclusive).',
+    parameters: [
+      { name: 'min', type: 'number', description: 'Minimum value', required: true },
+      { name: 'max', type: 'number', description: 'Maximum value', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'Range(1, 100, "Must be 1-100")', result: '1 to 100', description: 'Numeric range' }],
+    relatedFunctions: ['Min', 'Max', 'BETWEEN']
+  },
+
+  'Alpha': {
+    name: 'Alpha',
+    syntax: 'Alpha("message")',
+    category: 'Validation',
+    description: 'Value must contain only letters (a-z, A-Z)',
+    explanation: 'Rejects any non-alphabetic characters.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'Alpha("Letters only")', result: 'Only letters', description: 'Alpha check' }],
+    relatedFunctions: ['AlphaNumeric', 'Digits', 'IS_ALPHA']
+  },
+
+  'AlphaNumeric': {
+    name: 'AlphaNumeric',
+    syntax: 'AlphaNumeric("message")',
+    category: 'Validation',
+    description: 'Value must contain only letters and numbers',
+    explanation: 'Rejects special characters and spaces.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'AlphaNumeric()', result: 'Letters & numbers', description: 'AlphaNum check' }],
+    relatedFunctions: ['Alpha', 'Digits', 'IS_ALPHANUMERIC']
+  },
+
+  'Digits': {
+    name: 'Digits',
+    syntax: 'Digits("message")',
+    category: 'Validation',
+    description: 'Value must contain only digits (0-9)',
+    explanation: 'Rejects any non-digit characters. For strict numeric-string validation.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'Digits("ID must be digits only")', result: 'Only 0-9', description: 'Digits check' }],
+    relatedFunctions: ['Alpha', 'AlphaNumeric', 'IS_NUMERIC']
+  },
+
+  'CreditCard': {
+    name: 'CreditCard',
+    syntax: 'CreditCard("message")',
+    category: 'Validation',
+    description: 'Value must be a valid credit card number (Luhn algorithm)',
+    explanation: 'Validates using the Luhn checksum algorithm. Accepts 13-19 digit numbers.',
+    parameters: [{ name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }],
+    examples: [{ usage: 'CreditCard("Invalid card number")', result: 'Luhn check', description: 'Card validation' }],
+    relatedFunctions: ['Digits', 'Pattern']
+  },
+
+  'Equals': {
+    name: 'Equals',
+    syntax: 'Equals("value", "message")',
+    category: 'Validation',
+    description: 'Value must equal a specific value',
+    explanation: 'Validates exact match with the specified value.',
+    parameters: [
+      { name: 'value', type: 'string|number', description: 'Expected value', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'Equals("YES", "Must be YES")', result: 'Exact match', description: 'Equals check' }],
+    relatedFunctions: ['MatchField', 'EQUALS', 'Contains']
+  },
+
+  'Contains': {
+    name: 'Contains',
+    syntax: 'Contains("text", "message")',
+    category: 'Validation',
+    description: 'Value must contain a specific substring',
+    explanation: 'Case-sensitive substring check.',
+    parameters: [
+      { name: 'text', type: 'string', description: 'Substring to find', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'Contains("@", "Must contain @")', result: 'Substring check', description: 'Contains' }],
+    relatedFunctions: ['StartsWith', 'EndsWith', 'CONTAINS']
+  },
+
+  'StartsWith': {
+    name: 'StartsWith',
+    syntax: 'StartsWith("text", "message")',
+    category: 'Validation',
+    description: 'Value must start with a specific prefix',
+    explanation: 'Validates that the field value begins with the specified text.',
+    parameters: [
+      { name: 'text', type: 'string', description: 'Required prefix', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'StartsWith("PRJ-")', result: 'Prefix check', description: 'Starts with' }],
+    relatedFunctions: ['EndsWith', 'Contains', 'STARTS_WITH']
+  },
+
+  'EndsWith': {
+    name: 'EndsWith',
+    syntax: 'EndsWith("text", "message")',
+    category: 'Validation',
+    description: 'Value must end with a specific suffix',
+    explanation: 'Validates that the field value ends with the specified text.',
+    parameters: [
+      { name: 'text', type: 'string', description: 'Required suffix', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'EndsWith(".pdf", "Must be a PDF")', result: 'Suffix check', description: 'Ends with' }],
+    relatedFunctions: ['StartsWith', 'Contains', 'ENDS_WITH']
+  },
+  // ==================== SQL FUNCTIONS ====================
+  'SQL_LOOKUP': {
+    name: 'SQL_LOOKUP',
+    syntax: 'SQL_LOOKUP(table, returnColumn, whereColumn, whereValue)',
+    category: 'SQL',
+    description: 'Looks up a single value from an SQL Object table',
+    explanation: 'Searches the specified SQL Object table for a row where whereColumn matches whereValue, and returns the value from returnColumn. Returns the first matching result.',
+    parameters: [
+      { name: 'table', type: 'string', description: 'SQL Object table name or display name', required: true },
+      { name: 'returnColumn', type: 'string', description: 'Column to return the value from', required: true },
+      { name: 'whereColumn', type: 'string', description: 'Column to search in', required: true },
+      { name: 'whereValue', type: 'string', description: 'Value to search for (can be a field reference)', required: true }
+    ],
+    examples: [
+      { usage: 'SQL_LOOKUP("employees", "email", "emp_id", "E001")', result: '"john@example.com"', description: 'Get email for employee E001' },
+      { usage: 'SQL_LOOKUP("products", "price", "product_code", @{product_code})', result: '"29.99"', description: 'Get price using a field value' }
+    ],
+    tips: [
+      'Table name can be the display name or internal table name of the SQL Object',
+      'Use @{fieldName} to reference form field values as the search value',
+      'Returns empty string if no match is found'
+    ],
+    relatedFunctions: ['SQL_QUERY', 'SQL_COUNT', 'SQL_EXISTS', 'LOOKUP']
+  },
+  'SQL_QUERY': {
+    name: 'SQL_QUERY',
+    syntax: 'SQL_QUERY(table, columns, whereColumn, whereValue)',
+    category: 'SQL',
+    description: 'Queries rows from an SQL Object table and returns matching data',
+    explanation: 'Retrieves data from the specified SQL Object table. Can filter by a column value and select specific columns. Returns a JSON array of matching rows.',
+    parameters: [
+      { name: 'table', type: 'string', description: 'SQL Object table name or display name', required: true },
+      { name: 'columns', type: 'string', description: 'Columns to select (comma-separated, or "*" for all)', required: false },
+      { name: 'whereColumn', type: 'string', description: 'Column to filter by', required: false },
+      { name: 'whereValue', type: 'string', description: 'Value to filter for', required: false }
+    ],
+    examples: [
+      { usage: 'SQL_QUERY("employees")', result: '[{...}, {...}]', description: 'Get all employees' },
+      { usage: 'SQL_QUERY("employees", "name, email", "department", "IT")', result: '[{"name":"John","email":"john@co.com"}]', description: 'Get IT department employees' }
+    ],
+    tips: [
+      'Omit columns parameter or use "*" to get all columns',
+      'Results are returned as a JSON array'
+    ],
+    relatedFunctions: ['SQL_LOOKUP', 'SQL_COUNT', 'SQL_DISTINCT']
+  },
+  'SQL_COUNT': {
+    name: 'SQL_COUNT',
+    syntax: 'SQL_COUNT(table, whereColumn, whereValue)',
+    category: 'SQL',
+    description: 'Counts the number of rows in an SQL Object table',
+    explanation: 'Returns the count of rows in the specified SQL Object table. Optionally filter by a column value.',
+    parameters: [
+      { name: 'table', type: 'string', description: 'SQL Object table name or display name', required: true },
+      { name: 'whereColumn', type: 'string', description: 'Column to filter by', required: false },
+      { name: 'whereValue', type: 'string', description: 'Value to filter for', required: false }
+    ],
+    examples: [
+      { usage: 'SQL_COUNT("employees")', result: '"42"', description: 'Count all employees' },
+      { usage: 'SQL_COUNT("employees", "department", "IT")', result: '"12"', description: 'Count IT department employees' }
+    ],
+    relatedFunctions: ['SQL_QUERY', 'SQL_SUM', 'SQL_EXISTS']
+  },
+  'SQL_SUM': {
+    name: 'SQL_SUM',
+    syntax: 'SQL_SUM(table, column, whereColumn, whereValue)',
+    category: 'SQL',
+    description: 'Calculates the sum of a numeric column in an SQL Object table',
+    explanation: 'Returns the sum of values in the specified column. Optionally filter by a column value.',
+    parameters: [
+      { name: 'table', type: 'string', description: 'SQL Object table name or display name', required: true },
+      { name: 'column', type: 'string', description: 'Numeric column to sum', required: true },
+      { name: 'whereColumn', type: 'string', description: 'Column to filter by', required: false },
+      { name: 'whereValue', type: 'string', description: 'Value to filter for', required: false }
+    ],
+    examples: [
+      { usage: 'SQL_SUM("orders", "amount")', result: '"15000"', description: 'Sum all order amounts' },
+      { usage: 'SQL_SUM("orders", "amount", "status", "completed")', result: '"12500"', description: 'Sum completed order amounts' }
+    ],
+    relatedFunctions: ['SQL_AVG', 'SQL_COUNT', 'SQL_MIN', 'SQL_MAX']
+  },
+  'SQL_AVG': {
+    name: 'SQL_AVG',
+    syntax: 'SQL_AVG(table, column, whereColumn, whereValue)',
+    category: 'SQL',
+    description: 'Calculates the average of a numeric column in an SQL Object table',
+    explanation: 'Returns the average of values in the specified column. Optionally filter by a column value.',
+    parameters: [
+      { name: 'table', type: 'string', description: 'SQL Object table name or display name', required: true },
+      { name: 'column', type: 'string', description: 'Numeric column to average', required: true },
+      { name: 'whereColumn', type: 'string', description: 'Column to filter by', required: false },
+      { name: 'whereValue', type: 'string', description: 'Value to filter for', required: false }
+    ],
+    examples: [
+      { usage: 'SQL_AVG("products", "price")', result: '"24.99"', description: 'Average product price' },
+      { usage: 'SQL_AVG("products", "price", "category", "Electronics")', result: '"149.99"', description: 'Average electronics price' }
+    ],
+    relatedFunctions: ['SQL_SUM', 'SQL_MIN', 'SQL_MAX', 'SQL_COUNT']
+  },
+  'SQL_MIN': {
+    name: 'SQL_MIN',
+    syntax: 'SQL_MIN(table, column, whereColumn, whereValue)',
+    category: 'SQL',
+    description: 'Returns the minimum value of a column in an SQL Object table',
+    explanation: 'Returns the minimum value in the specified column. Optionally filter by a column value.',
+    parameters: [
+      { name: 'table', type: 'string', description: 'SQL Object table name or display name', required: true },
+      { name: 'column', type: 'string', description: 'Column to find minimum of', required: true },
+      { name: 'whereColumn', type: 'string', description: 'Column to filter by', required: false },
+      { name: 'whereValue', type: 'string', description: 'Value to filter for', required: false }
+    ],
+    examples: [
+      { usage: 'SQL_MIN("products", "price")', result: '"4.99"', description: 'Cheapest product price' }
+    ],
+    relatedFunctions: ['SQL_MAX', 'SQL_AVG', 'SQL_SUM']
+  },
+  'SQL_MAX': {
+    name: 'SQL_MAX',
+    syntax: 'SQL_MAX(table, column, whereColumn, whereValue)',
+    category: 'SQL',
+    description: 'Returns the maximum value of a column in an SQL Object table',
+    explanation: 'Returns the maximum value in the specified column. Optionally filter by a column value.',
+    parameters: [
+      { name: 'table', type: 'string', description: 'SQL Object table name or display name', required: true },
+      { name: 'column', type: 'string', description: 'Column to find maximum of', required: true },
+      { name: 'whereColumn', type: 'string', description: 'Column to filter by', required: false },
+      { name: 'whereValue', type: 'string', description: 'Value to filter for', required: false }
+    ],
+    examples: [
+      { usage: 'SQL_MAX("products", "price")', result: '"999.99"', description: 'Most expensive product price' }
+    ],
+    relatedFunctions: ['SQL_MIN', 'SQL_AVG', 'SQL_SUM']
+  },
+  'SQL_DISTINCT': {
+    name: 'SQL_DISTINCT',
+    syntax: 'SQL_DISTINCT(table, column, whereColumn, whereValue)',
+    category: 'SQL',
+    description: 'Returns distinct values from a column in an SQL Object table',
+    explanation: 'Returns an array of unique values from the specified column. Optionally filter by another column value.',
+    parameters: [
+      { name: 'table', type: 'string', description: 'SQL Object table name or display name', required: true },
+      { name: 'column', type: 'string', description: 'Column to get distinct values from', required: true },
+      { name: 'whereColumn', type: 'string', description: 'Column to filter by', required: false },
+      { name: 'whereValue', type: 'string', description: 'Value to filter for', required: false }
+    ],
+    examples: [
+      { usage: 'SQL_DISTINCT("employees", "department")', result: '["IT","HR","Finance"]', description: 'Get all unique departments' }
+    ],
+    relatedFunctions: ['SQL_QUERY', 'SQL_COUNT']
+  },
+  'SQL_EXISTS': {
+    name: 'SQL_EXISTS',
+    syntax: 'SQL_EXISTS(table, whereColumn, whereValue)',
+    category: 'SQL',
+    description: 'Checks if a row exists in an SQL Object table',
+    explanation: 'Returns true if at least one row exists matching the filter condition, false otherwise.',
+    parameters: [
+      { name: 'table', type: 'string', description: 'SQL Object table name or display name', required: true },
+      { name: 'whereColumn', type: 'string', description: 'Column to search in', required: true },
+      { name: 'whereValue', type: 'string', description: 'Value to search for', required: true }
+    ],
+    examples: [
+      { usage: 'SQL_EXISTS("employees", "emp_id", "E001")', result: '"true"', description: 'Check if employee E001 exists' }
+    ],
+    relatedFunctions: ['SQL_LOOKUP', 'SQL_COUNT']
   }
 };
 

@@ -1,62 +1,60 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { UserService } from '@core/services/user.service';
 import { ImportExportService } from '@core/services/import-export.service';
-import { Corporate, CorporateType, CorporateTypeLabels } from '@core/models/corporate.model';
+import { Corporate } from '@core/models/corporate.model';
 import { Category } from '@core/models/category.model';
+import { CorporateEditDialogComponent } from '../corporate-edit-dialog/corporate-edit-dialog.component';
+import { CorporateDetailDialogComponent } from '../corporate-detail-dialog/corporate-detail-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-corporate-list',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
     MatCardModule,
     MatTableModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
     MatChipsModule,
-    MatSelectModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatDialogModule,
+    MatMenuModule
   ],
   template: `
     <div class="corporate-list-container">
       <div class="header">
         <h1>Corporates</h1>
         <div class="header-actions">
-          <button mat-stroked-button (click)="downloadTemplate()">
+          <button mat-stroked-button matTooltip="Download Template" (click)="downloadTemplate()">
             <mat-icon>description</mat-icon> Template
           </button>
-          <button mat-stroked-button (click)="fileInput.click()">
+          <button mat-stroked-button matTooltip="Import from Excel" (click)="fileInput.click()">
             <mat-icon>upload</mat-icon> Import
           </button>
           <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
-          <button mat-stroked-button (click)="exportToExcel()">
+          <button mat-stroked-button matTooltip="Export to Excel" (click)="exportToExcel()">
             <mat-icon>download</mat-icon> Export
           </button>
-          <button mat-raised-button color="primary" (click)="showForm = true; editingCorporate = null; corporateForm.reset()">
+          <button mat-raised-button matTooltip="Add new Corporate" color="primary" (click)="openAddCorporate()">
             <mat-icon>add</mat-icon>
             Add Corporate
           </button>
         </div>
       </div>
 
-      <div class="content-grid" [class.with-form]="showForm">
+      <div class="content-area">
         <mat-card class="table-card">
           <mat-card-content>
             <table mat-table [dataSource]="corporates" class="full-width">
@@ -80,6 +78,11 @@ import { Category } from '@core/models/category.model';
                 <td mat-cell *matCellDef="let row">{{ row.corporateTypeDisplayName || '-' }}</td>
               </ng-container>
 
+              <ng-container matColumnDef="address">
+                <th mat-header-cell *matHeaderCellDef>Address</th>
+                <td mat-cell *matCellDef="let row">{{ row.address || '-' }}</td>
+              </ng-container>
+
               <ng-container matColumnDef="status">
                 <th mat-header-cell *matHeaderCellDef>Status</th>
                 <td mat-cell *matCellDef="let row">
@@ -90,22 +93,28 @@ import { Category } from '@core/models/category.model';
               </ng-container>
 
               <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let row">
-                  <button mat-icon-button (click)="editCorporate(row)" matTooltip="Edit">
-                    <mat-icon>edit</mat-icon>
+                  <button mat-icon-button matTooltip="Actions" [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                    <mat-icon>more_vert</mat-icon>
                   </button>
-                  <button mat-icon-button (click)="toggleStatus(row)" [matTooltip]="row.isActive ? 'Deactivate' : 'Activate'">
-                    <mat-icon>{{ row.isActive ? 'visibility_off' : 'visibility' }}</mat-icon>
-                  </button>
-                  <button mat-icon-button color="warn" (click)="deleteCorporate(row)" matTooltip="Delete">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="openEditCorporate(row)">
+                      <mat-icon>edit</mat-icon> <span>Edit</span>
+                    </button>
+                    <button mat-menu-item (click)="toggleStatus(row)">
+                      <mat-icon>{{ row.isActive ? 'visibility_off' : 'visibility' }}</mat-icon>
+                      <span>{{ row.isActive ? 'Deactivate' : 'Activate' }}</span>
+                    </button>
+                    <button mat-menu-item (click)="deleteCorporate(row)">
+                      <mat-icon color="warn">delete</mat-icon> <span>Delete</span>
+                    </button>
+                  </mat-menu>
                 </td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="clickable-row" (click)="viewCorporate(row)"></tr>
             </table>
 
             @if (corporates.length === 0) {
@@ -116,105 +125,32 @@ import { Category } from '@core/models/category.model';
             }
           </mat-card-content>
         </mat-card>
-
-        @if (showForm) {
-          <mat-card class="form-card">
-            <mat-card-header>
-              <mat-card-title>{{ editingCorporate ? 'Edit Corporate' : 'Add Corporate' }}</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <form [formGroup]="corporateForm" (ngSubmit)="saveCorporate()">
-                <div class="form-row">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Code</mat-label>
-                    <input matInput formControlName="code">
-                    @if (corporateForm.get('code')?.hasError('required')) {
-                      <mat-error>Code is required</mat-error>
-                    }
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Name</mat-label>
-                    <input matInput formControlName="name">
-                    @if (corporateForm.get('name')?.hasError('required')) {
-                      <mat-error>Name is required</mat-error>
-                    }
-                  </mat-form-field>
-                </div>
-
-                <div class="form-row">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Category (Industry)</mat-label>
-                    <mat-select formControlName="categoryId">
-                      <mat-option [value]="null">-- None --</mat-option>
-                      @for (category of categories; track category.id) {
-                        <mat-option [value]="category.id">{{ category.name }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Corporate Type</mat-label>
-                    <mat-select formControlName="corporateType">
-                      <mat-option [value]="null">-- None --</mat-option>
-                      @for (type of corporateTypes; track type.value) {
-                        <mat-option [value]="type.value">{{ type.label }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-
-                <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Description</mat-label>
-                  <textarea matInput formControlName="description" rows="2"></textarea>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Address</mat-label>
-                  <textarea matInput formControlName="address" rows="2"></textarea>
-                </mat-form-field>
-
-                <div class="form-row">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Contact Email</mat-label>
-                    <input matInput formControlName="contactEmail" type="email">
-                    @if (corporateForm.get('contactEmail')?.hasError('email')) {
-                      <mat-error>Invalid email format</mat-error>
-                    }
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Contact Phone</mat-label>
-                    <input matInput formControlName="contactPhone">
-                  </mat-form-field>
-                </div>
-
-                <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Website</mat-label>
-                  <input matInput formControlName="website" placeholder="https://example.com">
-                </mat-form-field>
-
-                <div class="form-actions">
-                  <button mat-button type="button" (click)="showForm = false">Cancel</button>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="loading || corporateForm.invalid">
-                    {{ editingCorporate ? 'Update' : 'Create' }}
-                  </button>
-                </div>
-              </form>
-            </mat-card-content>
-          </mat-card>
-        }
       </div>
     </div>
   `,
   styles: [`
-    .corporate-list-container { padding: 1rem; }
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .corporate-list-container {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      box-sizing: border-box;
+    }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      flex-shrink: 0;
     }
 
     .header-actions {
@@ -223,20 +159,14 @@ import { Category } from '@core/models/category.model';
       align-items: center;
     }
 
-    .content-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
+    .content-area {
+      flex: 1;
+      min-height: 0;
     }
 
-    .content-grid.with-form {
-      grid-template-columns: 1fr 500px;
-    }
-
-    @media (max-width: 1100px) {
-      .content-grid.with-form {
-        grid-template-columns: 1fr;
-      }
+    .table-card {
+      width: 100%;
+      height: 100%;
     }
 
     .full-width { width: 100%; }
@@ -257,29 +187,12 @@ import { Category } from '@core/models/category.model';
       opacity: 0.5;
     }
 
-    .form-row {
-      display: flex;
-      gap: 1rem;
+    .clickable-row {
+      cursor: pointer;
     }
 
-    .form-field {
-      flex: 1;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-field.full-width {
-      width: 100%;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-
-    table {
-      width: 100%;
+    .clickable-row:hover {
+      background: #f0f4ff;
     }
 
     .mat-column-actions {
@@ -291,35 +204,14 @@ import { Category } from '@core/models/category.model';
 export class CorporateListComponent implements OnInit {
   corporates: Corporate[] = [];
   categories: Category[] = [];
-  displayedColumns = ['code', 'name', 'category', 'type', 'status', 'actions'];
-  showForm = false;
-  editingCorporate: Corporate | null = null;
-  loading = false;
-  corporateForm: FormGroup;
-
-  corporateTypes = Object.values(CorporateType).map(value => ({
-    value,
-    label: CorporateTypeLabels[value]
-  }));
+  displayedColumns = ['code', 'name', 'category', 'type', 'address', 'status', 'actions'];
 
   constructor(
-    private fb: FormBuilder,
     private userService: UserService,
     private importExportService: ImportExportService,
-    private snackBar: MatSnackBar
-  ) {
-    this.corporateForm = this.fb.group({
-      code: ['', Validators.required],
-      name: ['', Validators.required],
-      description: [''],
-      address: [''],
-      categoryId: [null],
-      corporateType: [null],
-      contactEmail: ['', Validators.email],
-      contactPhone: [''],
-      website: ['']
-    });
-  }
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit() {
     this.loadCorporates();
@@ -342,50 +234,44 @@ export class CorporateListComponent implements OnInit {
     });
   }
 
-  editCorporate(corporate: Corporate) {
-    this.editingCorporate = corporate;
-    this.showForm = true;
-    this.corporateForm.patchValue({
-      code: corporate.code,
-      name: corporate.name,
-      description: corporate.description,
-      address: corporate.address,
-      categoryId: corporate.categoryId,
-      corporateType: corporate.corporateType,
-      contactEmail: corporate.contactEmail,
-      contactPhone: corporate.contactPhone,
-      website: corporate.website
+  viewCorporate(corporate: Corporate) {
+    const dialogRef = this.dialog.open(CorporateDetailDialogComponent, {
+      data: corporate,
+      width: '650px',
+      maxHeight: '85vh'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'edit') {
+        this.openEditCorporate(corporate);
+      }
     });
   }
 
-  saveCorporate() {
-    if (this.corporateForm.invalid) return;
+  openAddCorporate() {
+    const dialogRef = this.dialog.open(CorporateEditDialogComponent, {
+      data: { corporate: null, categories: this.categories },
+      width: '650px',
+      maxHeight: '85vh'
+    });
 
-    this.loading = true;
-    const data = this.corporateForm.value;
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadCorporates();
+      }
+    });
+  }
 
-    const request = this.editingCorporate
-      ? this.userService.updateCorporate(this.editingCorporate.id, data)
-      : this.userService.createCorporate(data);
+  openEditCorporate(corporate: Corporate) {
+    const dialogRef = this.dialog.open(CorporateEditDialogComponent, {
+      data: { corporate, categories: this.categories },
+      width: '650px',
+      maxHeight: '85vh'
+    });
 
-    request.subscribe({
-      next: (res) => {
-        this.loading = false;
-        if (res.success) {
-          this.snackBar.open(
-            this.editingCorporate ? 'Corporate updated' : 'Corporate created',
-            'Close',
-            { duration: 3000 }
-          );
-          this.showForm = false;
-          this.editingCorporate = null;
-          this.corporateForm.reset();
-          this.loadCorporates();
-        }
-      },
-      error: (err) => {
-        this.loading = false;
-        this.snackBar.open(err.error?.message || 'Operation failed', 'Close', { duration: 3000 });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadCorporates();
       }
     });
   }
@@ -399,8 +285,7 @@ export class CorporateListComponent implements OnInit {
       next: () => {
         this.snackBar.open(
           corporate.isActive ? 'Corporate deactivated' : 'Corporate activated',
-          'Close',
-          { duration: 3000 }
+          'Close', { duration: 3000 }
         );
         this.loadCorporates();
       },
@@ -411,17 +296,29 @@ export class CorporateListComponent implements OnInit {
   }
 
   deleteCorporate(corporate: Corporate) {
-    if (confirm(`Are you sure you want to delete "${corporate.name}"?`)) {
-      this.userService.deleteCorporate(corporate.id).subscribe({
-        next: () => {
-          this.snackBar.open('Corporate deleted', 'Close', { duration: 3000 });
-          this.loadCorporates();
-        },
-        error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to delete', 'Close', { duration: 3000 });
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Corporate',
+        message: 'Are you sure you want to delete this corporate?',
+        itemName: corporate.name,
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.userService.deleteCorporate(corporate.id).subscribe({
+          next: () => {
+            this.snackBar.open('Corporate deleted', 'Close', { duration: 3000 });
+            this.loadCorporates();
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to delete', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   downloadTemplate() {
@@ -439,16 +336,19 @@ export class CorporateListComponent implements OnInit {
     if (!input.files?.length) return;
     const file = input.files[0];
     this.importExportService.importFromExcel('corporates', file).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.snackBar.open(res.message || 'Corporates imported', 'Close', { duration: 3000 });
-          this.loadCorporates();
-        } else {
-          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+      next: (response) => {
+        if (response.body) {
+          const filename = this.importExportService.extractFilename(response, file.name.replace('.xlsx', '') + '_Result.xlsx');
+          this.importExportService.downloadFile(response.body, filename);
         }
+        this.snackBar.open('Import complete - results downloaded', 'Close', { duration: 5000 });
+        this.loadCorporates();
         input.value = '';
       },
-      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+      error: () => {
+        this.snackBar.open('Failed to import', 'Close', { duration: 5000 });
+        input.value = '';
+      }
     });
   }
 

@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '@core/services/auth.service';
@@ -22,14 +23,14 @@ import { AuthService } from '@core/services/auth.service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
-  ],
+    MatProgressSpinnerModule,
+    MatTooltipModule],
   template: `
     <div class="login-container">
       <mat-card class="login-card">
         <mat-card-header>
           <mat-icon mat-card-avatar>workflow</mat-icon>
-          <mat-card-title>Sonar Workflow</mat-card-title>
+          <mat-card-title>Sona Workflow</mat-card-title>
           <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
         </mat-card-header>
 
@@ -53,7 +54,7 @@ import { AuthService } from '@core/services/auth.service';
               <input matInput [type]="hidePassword ? 'password' : 'text'"
                      formControlName="password" autocomplete="current-password">
               <mat-icon matPrefix>lock</mat-icon>
-              <button mat-icon-button matSuffix type="button"
+              <button mat-icon-button matTooltip="{{ hidePassword ? 'Hide Password' : 'Show Password' }}" matSuffix type="button"
                       (click)="hidePassword = !hidePassword">
                 <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>

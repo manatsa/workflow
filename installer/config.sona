@@ -1,0 +1,24 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "workflow",
+    "username": "sonar",
+    "password": "P@88345!"
+  },
+  "server": {
+    "port": 9500
+  },
+  "mail": {
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "username": "",
+    "password": ""
+  },
+  "app": {
+    "baseUrl": "",
+    "jwtSecret": "SonarWorkflowSystemSecretKeyForJWTTokenGenerationMustBeAtLeast256Bits",
+    "encryptionKey": "SonarAESKey12345",
+    "storagePath": "C:/Sonar Docs/"
+  }
+}

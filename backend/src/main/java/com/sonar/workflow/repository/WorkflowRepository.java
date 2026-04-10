@@ -43,4 +43,7 @@ public interface WorkflowRepository extends JpaRepository<Workflow, UUID> {
 
     @Query("SELECT w FROM Workflow w WHERE w.parentWorkflow.id = :parentId AND w.isActive = true ORDER BY w.displayOrder ASC")
     List<Workflow> findChildWorkflows(@Param("parentId") UUID parentId);
+
+    @Query("SELECT w FROM Workflow w LEFT JOIN FETCH w.stamp WHERE w.id = :id")
+    Optional<Workflow> findByIdWithStamp(@Param("id") UUID id);
 }

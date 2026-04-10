@@ -2,18 +2,19 @@
 # Run as Administrator for best results
 
 param(
-    [string]$InstallPath = "$env:ProgramFiles\Sonar\Workflow System",
+    [string]$InstallPath = "$env:ProgramFiles\Acad\Sona Workflow",
     [switch]$Silent
 )
 
 $ErrorActionPreference = "Stop"
 
 # Application Info
-$AppName = "Sonar Workflow System"
-$AppVersion = "1.0.0"
-$AppPublisher = "Sonar"
+$AppName = "Sona Workflow"
+$AppVersion = "1.5.0"
+$AppPublisher = "Acad"
 $AppExe = "SonarWorkflow.bat"
 $AppIcon = "sonar_icon.ico"
+$JarFile = "workflow-system-1.5.0.jar"
 
 function Write-Header {
     if (-not $Silent) {
@@ -31,6 +32,14 @@ function Test-Admin {
     return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+function Get-LocalIP {
+    try {
+        $ip = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notmatch "Loopback" -and $_.IPAddress -ne "127.0.0.1" } | Select-Object -First 1).IPAddress
+        if ($ip) { return $ip }
+    } catch {}
+    return "localhost"
+}
+
 function Install-Application {
     Write-Header
 
@@ -39,9 +48,7 @@ function Install-Application {
         Write-Host "Note: Running without administrator rights." -ForegroundColor Yellow
         Write-Host "      Some features may not work correctly." -ForegroundColor Yellow
         Write-Host ""
-
-        # Use user's local app data instead
-        $InstallPath = "$env:LOCALAPPDATA\Sonar\Workflow System"
+        $InstallPath = "$env:LOCALAPPDATA\Acad\Sona Workflow"
     }
 
     # Check Java
@@ -51,10 +58,8 @@ function Install-Application {
         Write-Host "  Found: $javaVersion" -ForegroundColor Green
     } catch {
         Write-Host "  Java not found!" -ForegroundColor Red
-        Write-Host "  Please install Java 25 or later from https://adoptium.net/" -ForegroundColor Yellow
-        if (-not $Silent) {
-            Read-Host "Press Enter to exit"
-        }
+        Write-Host "  Please install Java 21 or later from https://adoptium.net/" -ForegroundColor Yellow
+        if (-not $Silent) { Read-Host "Press Enter to exit" }
         exit 1
     }
 
@@ -76,17 +81,19 @@ function Install-Application {
 
     $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-    # Copy JAR
-    Copy-Item "$ScriptDir\workflow-system-1.0.0.jar" "$InstallPath\" -Force
-    Write-Host "  Copied workflow-system-1.0.0.jar" -ForegroundColor Green
+    $filesToCopy = @(
+        @{ Source = "$ScriptDir\$JarFile"; Dest = "$InstallPath\"; Name = $JarFile },
+        @{ Source = "$ScriptDir\SonarWorkflow.bat"; Dest = "$InstallPath\"; Name = "SonarWorkflow.bat" },
+        @{ Source = "$ScriptDir\SonarWorkflow-Hidden.vbs"; Dest = "$InstallPath\"; Name = "SonarWorkflow-Hidden.vbs" },
+        @{ Source = "$ScriptDir\Uninstall.ps1"; Dest = "$InstallPath\"; Name = "Uninstall.ps1" }
+    )
 
-    # Copy launcher
-    Copy-Item "$ScriptDir\SonarWorkflow.bat" "$InstallPath\" -Force
-    Write-Host "  Copied SonarWorkflow.bat" -ForegroundColor Green
-
-    # Copy hidden launcher
-    Copy-Item "$ScriptDir\SonarWorkflow-Hidden.vbs" "$InstallPath\" -Force
-    Write-Host "  Copied SonarWorkflow-Hidden.vbs" -ForegroundColor Green
+    foreach ($file in $filesToCopy) {
+        if (Test-Path $file.Source) {
+            Copy-Item $file.Source $file.Dest -Force
+            Write-Host "  Copied $($file.Name)" -ForegroundColor Green
+        }
+    }
 
     # Copy icon
     if (Test-Path "$ScriptDir\sonar_icon.ico") {
@@ -96,10 +103,6 @@ function Install-Application {
         Copy-Item "$ScriptDir\sonar_icon.png" "$InstallPath\" -Force
         Write-Host "  Copied sonar_icon.png" -ForegroundColor Green
     }
-
-    # Copy uninstaller
-    Copy-Item "$ScriptDir\Uninstall.ps1" "$InstallPath\" -Force
-    Write-Host "  Copied Uninstall.ps1" -ForegroundColor Green
 
     # Create shortcuts
     Write-Host ""
@@ -166,6 +169,9 @@ function Install-Application {
         Write-Host "  Added to Programs and Features" -ForegroundColor Green
     }
 
+    # Detect IP
+    $localIP = Get-LocalIP
+
     # Done
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Green
@@ -176,7 +182,7 @@ function Install-Application {
     Write-Host "  - Desktop shortcut" -ForegroundColor Cyan
     Write-Host "  - Start Menu > $AppPublisher > $AppName" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "The application will be available at: http://localhost:8080" -ForegroundColor Yellow
+    Write-Host "The application will be available at: http://${localIP}:9500" -ForegroundColor Yellow
     Write-Host ""
 
     if (-not $Silent) {

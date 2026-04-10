@@ -22,6 +22,9 @@ public class WorkflowInstanceDTO {
     private UUID workflowId;
     private String workflowName;
     private String workflowCode;
+    private Boolean lockApproved;
+    private Boolean lockChildOnParentApproval;
+    private Boolean parentApproved;
     private String referenceNumber;
     private String title;
     private String summary;
@@ -30,6 +33,7 @@ public class WorkflowInstanceDTO {
     private String initiatorName;
     private String initiatorEmail;
     private Integer currentLevel;
+    private Integer maxLevel;
     private Integer currentApproverOrder;
     private Integer totalApproversAtLevel;
     private String currentApproverName;
@@ -53,4 +57,5 @@ public class WorkflowInstanceDTO {
     private Boolean commentsMandatory;
     private Boolean commentsMandatoryOnReject;
     private Boolean commentsMandatoryOnEscalate;
+    private UUID workflowStampId;
 }

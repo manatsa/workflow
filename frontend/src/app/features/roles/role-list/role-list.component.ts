@@ -1,102 +1,81 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserService } from '@core/services/user.service';
 import { ImportExportService } from '@core/services/import-export.service';
 import { Role, Privilege } from '@core/models/user.model';
+import { RoleDetailDialogComponent } from '../role-detail-dialog/role-detail-dialog.component';
+import { RoleEditDialogComponent } from '../role-edit-dialog/role-edit-dialog.component';
+import { PrivilegeEditDialogComponent } from '../privilege-edit-dialog/privilege-edit-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
+
 
 @Component({
   selector: 'app-role-list',
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatCardModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatSelectModule,
+    MatTabsModule,
+    MatSnackBarModule,
     MatDialogModule,
-    MatSnackBarModule
-  ],
+    MatTooltipModule],
   template: `
     <div class="role-list-container">
       <div class="header">
         <h1>Roles & Privileges</h1>
         <div class="header-actions">
-          <button mat-stroked-button (click)="downloadTemplate()">
-            <mat-icon>description</mat-icon> Template
-          </button>
-          <button mat-stroked-button (click)="fileInput.click()">
-            <mat-icon>upload</mat-icon> Import
-          </button>
-          <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
-          <button mat-stroked-button (click)="exportToExcel()">
-            <mat-icon>download</mat-icon> Export
-          </button>
-          <button mat-raised-button color="primary" (click)="showAddRole = true">
-            <mat-icon>add</mat-icon>
-            Add Role
-          </button>
+          @if (activeTab === 0) {
+            <button mat-stroked-button matTooltip="Template" (click)="downloadTemplate('roles')">
+              <mat-icon>description</mat-icon> Template
+            </button>
+            <button mat-stroked-button matTooltip="Import" (click)="rolesFileInput.click()">
+              <mat-icon>upload</mat-icon> Import
+            </button>
+            <input hidden #rolesFileInput type="file" accept=".xlsx" (change)="importFromExcel($event, 'roles')">
+            <button mat-stroked-button matTooltip="Export" (click)="exportToExcel('roles')">
+              <mat-icon>download</mat-icon> Export
+            </button>
+            <button mat-raised-button matTooltip="Add Role" color="primary" (click)="openAddRole()">
+              <mat-icon>add</mat-icon> Add Role
+            </button>
+          } @else {
+            <button mat-stroked-button matTooltip="Template" (click)="downloadTemplate('privileges')">
+              <mat-icon>description</mat-icon> Template
+            </button>
+            <button mat-stroked-button matTooltip="Import" (click)="privilegesFileInput.click()">
+              <mat-icon>upload</mat-icon> Import
+            </button>
+            <input hidden #privilegesFileInput type="file" accept=".xlsx" (change)="importFromExcel($event, 'privileges')">
+            <button mat-stroked-button matTooltip="Export" (click)="exportToExcel('privileges')">
+              <mat-icon>download</mat-icon> Export
+            </button>
+            <button mat-raised-button matTooltip="Add Privilege" color="primary" (click)="openAddPrivilege()">
+              <mat-icon>add</mat-icon> Add Privilege
+            </button>
+          }
         </div>
       </div>
 
-      <div class="content-grid">
-        <mat-card class="roles-card">
-          <mat-card-header>
-            <mat-card-title>Roles</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            @if (showAddRole) {
-              <div class="add-role-form">
-                <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Role Name</mat-label>
-                    <input matInput formControlName="name">
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Description</mat-label>
-                    <input matInput formControlName="description">
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Privileges</mat-label>
-                    <mat-select formControlName="privilegeIds" multiple>
-                      @for (priv of privileges; track priv.id) {
-                        <mat-option [value]="priv.id">{{ priv.name }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-
-                  <div class="form-actions">
-                    <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
-                    <button mat-raised-button color="primary" type="submit">
-                      {{ editingRole ? 'Update' : 'Create' }}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            }
-
+      <mat-tab-group (selectedTabChange)="activeTab = $event.index">
+        <!-- Roles Tab -->
+        <mat-tab label="Roles">
+          <div class="tab-content">
             <table mat-table [dataSource]="rolesDataSource" matSort class="data-table">
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
@@ -123,187 +102,125 @@ import { Role, Privilege } from '@core/models/user.model';
               <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let role">
-                  <button mat-icon-button (click)="editRole(role)">
+                  <button mat-icon-button matTooltip="Edit" (click)="openEditRole(role); $event.stopPropagation()">
                     <mat-icon>edit</mat-icon>
                   </button>
-                  <button mat-icon-button (click)="deleteRole(role)" color="warn">
+                  <button mat-icon-button matTooltip="Delete" (click)="deleteRole(role); $event.stopPropagation()" color="warn">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="rolesColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: rolesColumns;"></tr>
+              <tr mat-row *matRowDef="let row; columns: rolesColumns;" (click)="viewRole(row)" class="clickable-row"></tr>
             </table>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </mat-tab>
 
-        <mat-card class="privileges-card">
-          <mat-card-header>
-            <mat-card-title>Privileges</mat-card-title>
-            <button mat-icon-button (click)="showAddPrivilege = true">
-              <mat-icon>add</mat-icon>
-            </button>
-          </mat-card-header>
-          <mat-card-content>
-            @if (showAddPrivilege) {
-              <div class="add-privilege-form">
-                <form [formGroup]="privilegeForm" (ngSubmit)="savePrivilege()">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Privilege Name</mat-label>
-                    <input matInput formControlName="name">
-                  </mat-form-field>
+        <!-- Privileges Tab -->
+        <mat-tab label="Privileges">
+          <div class="tab-content">
+            <table mat-table [dataSource]="privilegesDataSource" class="data-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let priv">
+                  <strong>{{ priv.name }}</strong>
+                  @if (priv.description) {
+                    <div class="description">{{ priv.description }}</div>
+                  }
+                </td>
+              </ng-container>
 
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Description</mat-label>
-                    <input matInput formControlName="description">
-                  </mat-form-field>
+              <ng-container matColumnDef="category">
+                <th mat-header-cell *matHeaderCellDef>Category</th>
+                <td mat-cell *matCellDef="let priv">{{ priv.category }}</td>
+              </ng-container>
 
-                  <div class="form-actions">
-                    <button mat-button type="button" (click)="showAddPrivilege = false">Cancel</button>
-                    <button mat-raised-button color="primary" type="submit">Create</button>
-                  </div>
-                </form>
-              </div>
-            }
-
-            <div class="privilege-list">
-              @for (priv of privileges; track priv.id) {
-                <div class="privilege-item">
-                  <div class="privilege-info">
-                    <strong>{{ priv.name }}</strong>
-                    @if (priv.description) {
-                      <span class="description">{{ priv.description }}</span>
-                    }
-                  </div>
-                  <button mat-icon-button (click)="deletePrivilege(priv)" color="warn"
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let priv">
+                  <button mat-icon-button matTooltip="Edit" (click)="openEditPrivilege(priv); $event.stopPropagation()">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Delete" (click)="deletePrivilege(priv); $event.stopPropagation()" color="warn"
                           [disabled]="priv.name === 'ADMIN'">
                     <mat-icon>delete</mat-icon>
                   </button>
-                </div>
-              }
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="privilegesColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: privilegesColumns;" (click)="openEditPrivilege(row)" class="clickable-row"></tr>
+            </table>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
     </div>
   `,
   styles: [`
-    .role-list-container { padding: 1rem; }
+    app-role-list .role-list-container { padding: 1rem; }
 
-    .header {
+    app-role-list .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
-    .header-actions {
+    app-role-list .header-actions {
       display: flex;
       gap: 0.5rem;
       align-items: center;
+      flex-wrap: wrap;
     }
 
-    .content-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 1rem;
+    app-role-list .tab-content {
+      padding: 1rem 0;
     }
 
-    .add-role-form, .add-privilege-form {
-      background: #f5f5f5;
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-    }
-
-    .form-field {
-      width: 100%;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-    }
-
-    .data-table {
+    app-role-list .data-table {
       width: 100%;
     }
 
-    .description {
+    app-role-list .description {
       font-size: 0.75rem;
       color: #666;
     }
 
-    .more {
+    app-role-list .more {
       font-size: 0.75rem;
       color: #666;
       margin-left: 0.25rem;
     }
 
-    .privilege-list {
-      max-height: 400px;
-      overflow-y: auto;
+    app-role-list .clickable-row {
+      cursor: pointer;
     }
 
-    .privilege-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem;
-      border-bottom: 1px solid #eee;
-    }
-
-    .privilege-item:last-child {
-      border-bottom: none;
-    }
-
-    .privilege-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .privilege-info .description {
-      font-size: 0.75rem;
-      color: #666;
+    app-role-list .clickable-row:hover {
+      background: #f0f4ff;
     }
   `]
 })
 export class RoleListComponent implements OnInit {
+  activeTab = 0;
   rolesColumns = ['name', 'privileges', 'actions'];
+  privilegesColumns = ['name', 'category', 'actions'];
   rolesDataSource = new MatTableDataSource<Role>([]);
+  privilegesDataSource = new MatTableDataSource<Privilege>([]);
   privileges: Privilege[] = [];
-
-  showAddRole = false;
-  showAddPrivilege = false;
-  editingRole: Role | null = null;
-
-  roleForm: FormGroup;
-  privilegeForm: FormGroup;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
-    private fb: FormBuilder,
     private userService: UserService,
     private importExportService: ImportExportService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
-  ) {
-    this.roleForm = this.fb.group({
-      name: ['', Validators.required],
-      description: [''],
-      privilegeIds: [[]]
-    });
-
-    this.privilegeForm = this.fb.group({
-      name: ['', Validators.required],
-      description: ['']
-    });
-  }
+  ) {}
 
   ngOnInit() {
     this.loadRoles();
@@ -327,82 +244,108 @@ export class RoleListComponent implements OnInit {
     this.userService.getPrivileges().subscribe(res => {
       if (res.success) {
         this.privileges = res.data;
+        this.privilegesDataSource.data = res.data;
       }
     });
   }
 
-  editRole(role: Role) {
-    this.editingRole = role;
-    this.showAddRole = true;
-    this.roleForm.patchValue({
-      name: role.name,
-      description: role.description,
-      privilegeIds: role.privilegeIds || []
+  // --- Role dialogs ---
+
+  viewRole(role: Role) {
+    const dialogRef = this.dialog.open(RoleDetailDialogComponent, {
+      data: role,
+      width: '600px',
+      maxHeight: '85vh'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'edit') {
+        this.openEditRole(role);
+      }
     });
   }
 
-  cancelEdit() {
-    this.showAddRole = false;
-    this.editingRole = null;
-    this.roleForm.reset();
+  openAddRole() {
+    const dialogRef = this.dialog.open(RoleEditDialogComponent, {
+      data: { role: null, privileges: this.privileges },
+      width: '600px',
+      maxHeight: '85vh'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadRoles();
+      }
+    });
   }
 
-  saveRole() {
-    if (this.roleForm.invalid) return;
+  openEditRole(role: Role) {
+    const dialogRef = this.dialog.open(RoleEditDialogComponent, {
+      data: { role, privileges: this.privileges },
+      width: '600px',
+      maxHeight: '85vh'
+    });
 
-    const roleData = this.roleForm.value;
-    const request = this.editingRole
-      ? this.userService.updateRole(this.editingRole.id, roleData)
-      : this.userService.createRole(roleData);
-
-    request.subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.snackBar.open(
-            this.editingRole ? 'Role updated successfully' : 'Role created successfully',
-            'Close',
-            { duration: 3000 }
-          );
-          this.cancelEdit();
-          this.loadRoles();
-        }
-      },
-      error: (err) => {
-        this.snackBar.open(err.error?.message || 'Operation failed', 'Close', { duration: 3000 });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadRoles();
       }
     });
   }
 
   deleteRole(role: Role) {
-    if (confirm(`Are you sure you want to delete the role "${role.name}"?`)) {
-      this.userService.deleteRole(role.id).subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.snackBar.open('Role deleted successfully', 'Close', { duration: 3000 });
-            this.loadRoles();
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Role',
+        message: 'Are you sure you want to delete this role?',
+        itemName: role.name,
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.userService.deleteRole(role.id).subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.snackBar.open('Role deleted successfully', 'Close', { duration: 3000 });
+              this.loadRoles();
+            }
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to delete role', 'Close', { duration: 3000 });
           }
-        },
-        error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to delete role', 'Close', { duration: 3000 });
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
-  savePrivilege() {
-    if (this.privilegeForm.invalid) return;
+  // --- Privilege dialogs ---
 
-    this.userService.createPrivilege(this.privilegeForm.value).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.snackBar.open('Privilege created successfully', 'Close', { duration: 3000 });
-          this.showAddPrivilege = false;
-          this.privilegeForm.reset();
-          this.loadPrivileges();
-        }
-      },
-      error: (err) => {
-        this.snackBar.open(err.error?.message || 'Failed to create privilege', 'Close', { duration: 3000 });
+  openAddPrivilege() {
+    const dialogRef = this.dialog.open(PrivilegeEditDialogComponent, {
+      data: null,
+      width: '500px',
+      maxHeight: '85vh'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadPrivileges();
+      }
+    });
+  }
+
+  openEditPrivilege(priv: Privilege) {
+    const dialogRef = this.dialog.open(PrivilegeEditDialogComponent, {
+      data: priv,
+      width: '500px',
+      maxHeight: '85vh'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadPrivileges();
       }
     });
   }
@@ -413,54 +356,76 @@ export class RoleListComponent implements OnInit {
       return;
     }
 
-    if (confirm(`Are you sure you want to delete the privilege "${priv.name}"?`)) {
-      this.userService.deletePrivilege(priv.id).subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.snackBar.open('Privilege deleted successfully', 'Close', { duration: 3000 });
-            this.loadPrivileges();
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Privilege',
+        message: 'Are you sure you want to delete this privilege?',
+        itemName: priv.name,
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.userService.deletePrivilege(priv.id).subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.snackBar.open('Privilege deleted successfully', 'Close', { duration: 3000 });
+              this.loadPrivileges();
+            }
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to delete privilege', 'Close', { duration: 3000 });
           }
-        },
-        error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to delete privilege', 'Close', { duration: 3000 });
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
-  downloadTemplate() {
-    this.importExportService.downloadTemplate('roles').subscribe({
+  // --- Import/Export ---
+
+  downloadTemplate(entity: string) {
+    this.importExportService.downloadTemplate(entity).subscribe({
       next: (blob) => {
-        this.importExportService.downloadFile(blob, 'Roles_Template.xlsx');
+        const label = entity.charAt(0).toUpperCase() + entity.slice(1);
+        this.importExportService.downloadFile(blob, `${label}_Template.xlsx`);
         this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
       },
       error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
     });
   }
 
-  importFromExcel(event: Event) {
+  importFromExcel(event: Event, entity: string) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
     const file = input.files[0];
-    this.importExportService.importFromExcel('roles', file).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.snackBar.open(res.message || 'Roles imported', 'Close', { duration: 3000 });
+    this.importExportService.importFromExcel(entity, file).subscribe({
+      next: (response) => {
+        if (response.body) {
+          const filename = this.importExportService.extractFilename(response, file.name.replace('.xlsx', '') + '_Result.xlsx');
+          this.importExportService.downloadFile(response.body, filename);
+        }
+        this.snackBar.open('Import complete - results downloaded', 'Close', { duration: 5000 });
+        if (entity === 'roles') {
           this.loadRoles();
         } else {
-          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+          this.loadPrivileges();
         }
         input.value = '';
       },
-      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+      error: () => {
+        this.snackBar.open('Failed to import', 'Close', { duration: 5000 });
+        input.value = '';
+      }
     });
   }
 
-  exportToExcel() {
-    this.importExportService.exportToExcel('roles').subscribe({
+  exportToExcel(entity: string) {
+    const label = entity.charAt(0).toUpperCase() + entity.slice(1);
+    this.importExportService.exportToExcel(entity).subscribe({
       next: (blob) => {
-        this.importExportService.downloadFile(blob, 'Roles_Export.xlsx');
-        this.snackBar.open('Roles exported', 'Close', { duration: 3000 });
+        this.importExportService.downloadFile(blob, `${label}_Export.xlsx`);
+        this.snackBar.open(`${label} exported`, 'Close', { duration: 3000 });
       },
       error: () => this.snackBar.open('Failed to export', 'Close', { duration: 3000 })
     });

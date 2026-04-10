@@ -191,8 +191,9 @@ public class WorkflowInstanceController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteInstance(@PathVariable UUID id) {
-        workflowInstanceService.deleteInstance(id);
+    public ResponseEntity<ApiResponse<Void>> deleteInstance(@PathVariable UUID id,
+            @RequestParam(defaultValue = "false") boolean permanent) {
+        workflowInstanceService.deleteInstance(id, permanent);
         return ResponseEntity.ok(ApiResponse.success("Instance deleted", null));
     }
 
@@ -253,5 +254,13 @@ public class WorkflowInstanceController {
             @RequestParam(required = false) UUID excludeInstanceId) {
         boolean isUnique = workflowInstanceService.isFieldValueUnique(workflowCode, fieldName, value, excludeInstanceId);
         return ResponseEntity.ok(ApiResponse.success(isUnique));
+    }
+
+    @PostMapping("/attachments/upload")
+    public ResponseEntity<ApiResponse<String>> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "folder", required = false, defaultValue = "general") String folder) {
+        String url = attachmentService.uploadGeneralFile(file, folder);
+        return ResponseEntity.ok(ApiResponse.success("File uploaded", url));
     }
 }

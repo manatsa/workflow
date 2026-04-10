@@ -366,6 +366,19 @@ a {
   }
 }
 
+// Tab icon colors - match text color
+.mat-mdc-tab-group .mat-mdc-tab {
+  mat-icon, .mat-icon {
+    color: rgba(0, 0, 0, 0.6) !important;
+  }
+
+  &.mdc-tab--active {
+    mat-icon, .mat-icon {
+      color: var(--primary-color, #1976d2) !important;
+    }
+  }
+}
+
 // Dark Mode Styles
 body.dark-mode {
   // Override CSS variables for dark mode
@@ -435,11 +448,15 @@ body.dark-mode {
       color: #b0b0b0 !important;
 
       mat-icon, .mat-icon {
-        color: inherit !important;
+        color: #ffffff !important;
       }
 
       &.mdc-tab--active {
         color: #ffffff !important;
+
+        mat-icon, .mat-icon {
+          color: #ffffff !important;
+        }
       }
     }
 
@@ -987,5 +1004,203 @@ html.dark-mode .cdk-overlay-container {
       background: #c1c1c1;
       border-radius: 4px;
     }
+  }
+}
+
+// Settings tabs: stretch to fill available space, shrink on small screens
+app-settings .mat-mdc-tab-header {
+  // Disable paginator completely to prevent layout oscillation
+  .mat-mdc-tab-header-pagination {
+    display: none !important;
+  }
+
+  .mat-mdc-tab-label-container {
+    overflow: visible !important;
+  }
+
+  .mat-mdc-tab-list {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+  }
+
+  .mat-mdc-tab {
+    min-width: 0 !important;
+    padding: 0 !important;
+    flex-grow: 1 !important;
+    flex-shrink: 0 !important;
+    flex-basis: auto !important;
+
+    .mdc-tab__content {
+      padding: 0 4px !important;
+      gap: 2px !important;
+    }
+
+    .mdc-tab__text-label {
+      padding: 0 1px !important;
+      font-size: 11px !important;
+      letter-spacing: 0 !important;
+      white-space: nowrap !important;
+    }
+
+    .mat-icon {
+      font-size: 16px !important;
+      width: 16px !important;
+      height: 16px !important;
+      margin-right: 2px !important;
+      flex-shrink: 0 !important;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  app-settings .mat-mdc-tab-header .mat-mdc-tab {
+    .mdc-tab__content {
+      padding: 0 3px !important;
+    }
+
+    .mdc-tab__text-label {
+      font-size: 10px !important;
+    }
+
+    .mat-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+    }
+  }
+}
+
+// Compact action buttons on tablets and small screens
+@media (max-width: 1024px) {
+  .header-actions,
+  .page-header .header-actions,
+  .table-toolbar {
+    gap: 4px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .header-actions .mat-mdc-raised-button,
+  .header-actions .mat-mdc-outlined-button,
+  .header-actions .mat-mdc-unelevated-button,
+  .header-actions [mat-raised-button],
+  .header-actions [mat-stroked-button],
+  .header-actions [mat-button] {
+    font-size: 10px !important;
+    padding: 0 6px !important;
+    min-width: 0 !important;
+    height: 30px !important;
+    line-height: 30px !important;
+
+    .mat-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+      margin-right: 2px !important;
+    }
+  }
+
+  .page-header {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+
+    h1 { font-size: 1.1rem !important; }
+    .subtitle { font-size: 11px !important; }
+  }
+}
+
+// Responsive tables for all entity lists
+.mat-mdc-table {
+  width: 100%;
+}
+
+// Horizontal scroll wrapper for tables on small screens
+@media (max-width: 1024px) {
+  .mat-mdc-card-content,
+  mat-card-content {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mat-mdc-table {
+    font-size: 12px !important;
+
+    .mat-mdc-header-cell {
+      font-size: 11px !important;
+      padding: 6px 8px !important;
+      white-space: nowrap;
+    }
+
+    .mat-mdc-cell {
+      font-size: 12px !important;
+      padding: 6px 8px !important;
+    }
+
+    .mat-mdc-row {
+      min-height: 36px !important;
+    }
+
+    .mat-mdc-header-row {
+      min-height: 36px !important;
+    }
+  }
+
+  .mat-mdc-paginator {
+    font-size: 11px !important;
+
+    .mat-mdc-paginator-container {
+      min-height: 40px !important;
+      padding: 0 4px !important;
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+    }
+
+    .mat-mdc-paginator-page-size-label,
+    .mat-mdc-paginator-range-label {
+      font-size: 11px !important;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .mat-mdc-table {
+    font-size: 11px !important;
+    min-width: 500px;
+
+    .mat-mdc-header-cell {
+      font-size: 10px !important;
+      padding: 4px 6px !important;
+    }
+
+    .mat-mdc-cell {
+      font-size: 11px !important;
+      padding: 4px 6px !important;
+    }
+
+    .mat-mdc-row,
+    .mat-mdc-header-row {
+      min-height: 32px !important;
+    }
+
+    // Hide less important columns on very small screens
+    .mat-column-description,
+    .mat-column-createdBy,
+    .mat-column-updatedAt,
+    .mat-column-createdAt {
+      display: none !important;
+    }
+  }
+
+  .mat-mdc-paginator {
+    .mat-mdc-paginator-page-size {
+      display: none !important;
+    }
+  }
+
+  // Chips in tables
+  .mat-mdc-table .mat-mdc-chip {
+    font-size: 10px !important;
+    min-height: 22px !important;
+    padding: 0 6px !important;
   }
 }

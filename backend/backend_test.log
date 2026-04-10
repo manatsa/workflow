@@ -1,0 +1,3588 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.1)
+
+2026-01-28 21:16:02 [main] INFO  c.sonar.workflow.WorkflowApplication - Starting WorkflowApplication v1.0.0 using Java 25.0.1 with PID 15000 (C:\Users\Codebreaker\CODE\Sonarworks\backend\target\workflow-system-1.0.0.jar started by Codebreaker in C:\Users\Codebreaker\CODE\Sonarworks\backend)
+2026-01-28 21:16:02 [main] DEBUG c.sonar.workflow.WorkflowApplication - Running with Spring Boot v3.4.1, Spring v6.2.1
+2026-01-28 21:16:02 [main] INFO  c.sonar.workflow.WorkflowApplication - The following 1 profile is active: "dev"
+2026-01-28 21:16:03 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-28 21:16:03 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 63 ms. Found 27 JPA repository interfaces.
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.apache.tomcat.jni.Library in an unnamed module (jar:nested:/C:/Users/Codebreaker/CODE/Sonarworks/backend/target/workflow-system-1.0.0.jar/!BOOT-INF/lib/tomcat-embed-core-10.1.34.jar!/)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+2026-01-28 21:16:03 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 9500 (http)
+2026-01-28 21:16:03 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-01-28 21:16:03 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.34]
+2026-01-28 21:16:03 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-01-28 21:16:03 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1282 ms
+2026-01-28 21:16:04 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-28 21:16:04 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.4.Final
+2026-01-28 21:16:04 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2026-01-28 21:16:04 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-28 21:16:04 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-01-28 21:16:04 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@2b0494a8
+2026-01-28 21:16:04 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-01-28 21:16:04 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-28 21:16:04 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.1
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-01-28 21:16:05 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-28 21:16:05 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-28 21:16:05 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-28 21:16:06 [main] DEBUG c.s.w.s.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+2026-01-28 21:16:07 [main] INFO  o.s.s.c.a.a.c.InitializeAuthenticationProviderBeanManagerConfigurer$InitializeAuthenticationProviderManagerConfigurer - Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-01-28 21:16:07 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page: class path resource [static/index.html]
+2026-01-28 21:16:07 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will secure any request with filters: DisableEncodeUrlFilter, WebAsyncManagerIntegrationFilter, SecurityContextHolderFilter, HeaderWriterFilter, CorsFilter, LogoutFilter, JwtAuthenticationFilter, RequestCacheAwareFilter, SecurityContextHolderAwareRequestFilter, AnonymousAuthenticationFilter, SessionManagementFilter, ExceptionTranslationFilter, AuthorizationFilter
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/index.html']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/index.html']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/favicon.ico']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/favicon.ico']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/error']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/error']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.js']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.js']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.css']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.css']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.map']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.map']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.woff']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.woff']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.woff2']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.woff2']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.ttf']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.ttf']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.png']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.png']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.jpg']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.jpg']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.svg']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.svg']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/**/*.gif']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/**/*.gif']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/assets/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/assets/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/login']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/login']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/dashboard']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/dashboard']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/workflows']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/workflows']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/workflows/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/workflows/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/approvals']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/approvals']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/approvals/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/approvals/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/my-submissions']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/my-submissions']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/my-submissions/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/my-submissions/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/admin']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/admin']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/admin/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/admin/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/settings']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/settings']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/settings/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/settings/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/users']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/users']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/users/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/users/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/roles']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/roles']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/roles/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/roles/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/sbus']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/sbus']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/sbus/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/sbus/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/audit']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/audit']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/audit/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/audit/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/profile']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/profile']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/profile/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/profile/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/change-password']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/change-password']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/forgot-password']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/forgot-password']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/reset-password']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/reset-password']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/reports']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/reports']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/reports/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/reports/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/categories']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/categories']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/categories/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/categories/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/corporates']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/corporates']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/corporates/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/corporates/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/branches']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/branches']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/branches/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/branches/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/departments']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/departments']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/departments/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/departments/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/email-approval']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/email-approval']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/email-approval/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/email-approval/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/sql-objects']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/sql-objects']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/sql-objects/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/sql-objects/**']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/api/sql-objects']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/api/sql-objects']
+2026-01-28 21:16:07 [main] WARN  o.s.s.c.a.web.builders.WebSecurity - You are asking Spring Security to ignore Ant [pattern='/api/sql-objects/**']. This is not recommended -- please use permitAll via HttpSecurity#authorizeHttpRequests instead.
+2026-01-28 21:16:07 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will not secure Ant [pattern='/api/sql-objects/**']
+2026-01-28 21:16:08 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 9500 (http) with context path '/'
+2026-01-28 21:16:08 [main] INFO  c.sonar.workflow.WorkflowApplication - Started WorkflowApplication in 5.795 seconds (process running for 6.08)
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    ALTER TABLE approval_history DROP CONSTRAINT IF EXISTS approval_history_action_check
+Hibernate: 
+    ALTER TABLE approval_history DROP CONSTRAINT IF EXISTS approval_history_action_check
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    ALTER TABLE approval_history ADD CONSTRAINT approval_history_action_check CHECK (action IN ('SUBMITTED', 'APPROVED', 'REJECTED', 'ESCALATED', 'CANCELLED', 'RETURNED', 'REASSIGNED', 'RECALLED'))
+Hibernate: 
+    ALTER TABLE approval_history ADD CONSTRAINT approval_history_action_check CHECK (action IN ('SUBMITTED', 'APPROVED', 'REJECTED', 'ESCALATED', 'CANCELLED', 'RETURNED', 'REASSIGNED', 'RECALLED'))
+2026-01-28 21:16:08 [main] INFO  c.s.workflow.config.DataInitializer - Updated approval_history action constraint to include RECALLED
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    ALTER TABLE email_approval_tokens DROP CONSTRAINT IF EXISTS email_approval_tokens_action_type_check
+Hibernate: 
+    ALTER TABLE email_approval_tokens DROP CONSTRAINT IF EXISTS email_approval_tokens_action_type_check
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    ALTER TABLE email_approval_tokens ADD CONSTRAINT email_approval_tokens_action_type_check CHECK (action_type IN ('APPROVE', 'REJECT', 'VIEW', 'ESCALATE', 'REVIEW'))
+Hibernate: 
+    ALTER TABLE email_approval_tokens ADD CONSTRAINT email_approval_tokens_action_type_check CHECK (action_type IN ('APPROVE', 'REJECT', 'VIEW', 'ESCALATE', 'REVIEW'))
+2026-01-28 21:16:08 [main] INFO  c.s.workflow.config.DataInitializer - Updated email_approval_tokens action_type constraint to include ESCALATE and REVIEW
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        p1_0.id 
+    from
+        privileges p1_0 
+    where
+        p1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        r1_0.id 
+    from
+        roles r1_0 
+    where
+        r1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        r1_0.id 
+    from
+        roles r1_0 
+    where
+        r1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        r1_0.id 
+    from
+        roles r1_0 
+    where
+        r1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        r1_0.id 
+    from
+        roles r1_0 
+    where
+        r1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        r1_0.id 
+    from
+        roles r1_0 
+    where
+        r1_0.name=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        r1_0.id 
+    from
+        roles r1_0 
+    where
+        r1_0.name=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        r1_0.id,
+        r1_0.created_at,
+        r1_0.created_by,
+        r1_0.description,
+        r1_0.is_active,
+        r1_0.is_system_role,
+        r1_0.name,
+        r1_0.updated_at,
+        r1_0.updated_by,
+        r1_0.version 
+    from
+        roles r1_0 
+    where
+        r1_0.name=?
+Hibernate: 
+    select
+        r1_0.id,
+        r1_0.created_at,
+        r1_0.created_by,
+        r1_0.description,
+        r1_0.is_active,
+        r1_0.is_system_role,
+        r1_0.name,
+        r1_0.updated_at,
+        r1_0.updated_by,
+        r1_0.version 
+    from
+        roles r1_0 
+    where
+        r1_0.name=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        p1_0.role_id,
+        p1_1.id,
+        p1_1.category,
+        p1_1.created_at,
+        p1_1.created_by,
+        p1_1.description,
+        p1_1.is_active,
+        p1_1.is_system_privilege,
+        p1_1.name,
+        p1_1.updated_at,
+        p1_1.updated_by,
+        p1_1.version 
+    from
+        role_privileges p1_0 
+    join
+        privileges p1_1 
+            on p1_1.id=p1_0.privilege_id 
+    where
+        p1_0.role_id=?
+Hibernate: 
+    select
+        p1_0.role_id,
+        p1_1.id,
+        p1_1.category,
+        p1_1.created_at,
+        p1_1.created_by,
+        p1_1.description,
+        p1_1.is_active,
+        p1_1.is_system_privilege,
+        p1_1.name,
+        p1_1.updated_at,
+        p1_1.updated_by,
+        p1_1.version 
+    from
+        role_privileges p1_0 
+    join
+        privileges p1_1 
+            on p1_1.id=p1_0.privilege_id 
+    where
+        p1_0.role_id=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id 
+    from
+        users u1_0 
+    where
+        u1_0.username=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        u1_0.id 
+    from
+        users u1_0 
+    where
+        u1_0.username=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id 
+    from
+        users u1_0 
+    where
+        u1_0.username=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        u1_0.id 
+    from
+        users u1_0 
+    where
+        u1_0.username=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.setting_category,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.default_value,
+        s1_0.description,
+        s1_0.display_order,
+        s1_0.is_active,
+        s1_0.is_encrypted,
+        s1_0.is_system,
+        s1_0.setting_key,
+        s1_0.setting_label,
+        s1_0.setting_options,
+        s1_0.setting_tab,
+        s1_0.setting_type,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.validation_regex,
+        s1_0.setting_value,
+        s1_0.version 
+    from
+        settings s1_0
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.setting_category,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.default_value,
+        s1_0.description,
+        s1_0.display_order,
+        s1_0.is_active,
+        s1_0.is_encrypted,
+        s1_0.is_system,
+        s1_0.setting_key,
+        s1_0.setting_label,
+        s1_0.setting_options,
+        s1_0.setting_tab,
+        s1_0.setting_type,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.validation_regex,
+        s1_0.setting_value,
+        s1_0.version 
+    from
+        settings s1_0
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        settings s1_0 
+    where
+        s1_0.setting_key=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        ss1_0.id,
+        ss1_0.created_at,
+        ss1_0.created_by,
+        ss1_0.is_active,
+        ss1_0.is_locked,
+        ss1_0.lock_reason,
+        ss1_0.locked_at,
+        ss1_0.locked_by,
+        ss1_0.maintenance_message,
+        ss1_0.maintenance_mode,
+        ss1_0.updated_at,
+        ss1_0.updated_by,
+        ss1_0.version 
+    from
+        system_state ss1_0 
+    order by
+        ss1_0.created_at desc 
+    fetch
+        first 1 rows only
+Hibernate: 
+    select
+        ss1_0.id,
+        ss1_0.created_at,
+        ss1_0.created_by,
+        ss1_0.is_active,
+        ss1_0.is_locked,
+        ss1_0.lock_reason,
+        ss1_0.locked_at,
+        ss1_0.locked_by,
+        ss1_0.maintenance_message,
+        ss1_0.maintenance_mode,
+        ss1_0.updated_at,
+        ss1_0.updated_by,
+        ss1_0.version 
+    from
+        system_state ss1_0 
+    order by
+        ss1_0.created_at desc 
+    fetch
+        first 1 rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        s1_0.id 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.address,
+        s1_0.code,
+        s1_0.contact_email,
+        s1_0.contact_phone,
+        s1_0.corporate_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.description,
+        s1_0.is_active,
+        s1_0.is_root,
+        s1_0.name,
+        s1_0.parent_id,
+        s1_0.updated_at,
+        s1_0.updated_by,
+        s1_0.version 
+    from
+        sbus s1_0 
+    where
+        s1_0.code=?
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        wt1_0.id 
+    from
+        workflow_types wt1_0 
+    where
+        wt1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        w1_0.id 
+    from
+        workflows w1_0 
+    where
+        w1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        w1_0.id 
+    from
+        workflows w1_0 
+    where
+        w1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        w1_0.id 
+    from
+        workflows w1_0 
+    where
+        w1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        w1_0.id 
+    from
+        workflows w1_0 
+    where
+        w1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        w1_0.id 
+    from
+        workflows w1_0 
+    where
+        w1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        w1_0.id 
+    from
+        workflows w1_0 
+    where
+        w1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] DEBUG org.hibernate.SQL - 
+    select
+        w1_0.id 
+    from
+        workflows w1_0 
+    where
+        w1_0.code=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        w1_0.id 
+    from
+        workflows w1_0 
+    where
+        w1_0.code=? 
+    fetch
+        first ? rows only
+2026-01-28 21:16:08 [main] INFO  c.s.workflow.config.DataInitializer - Data initialization completed
+2026-01-28 21:17:21 [http-nio-9500-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-01-28 21:17:21 [http-nio-9500-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-01-28 21:17:21 [http-nio-9500-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2026-01-28 21:17:21 [http-nio-9500-exec-1] DEBUG o.s.security.web.FilterChainProxy - Securing POST /api/auth/login
+2026-01-28 21:17:21 [http-nio-9500-exec-1] DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2026-01-28 21:17:21 [http-nio-9500-exec-1] DEBUG o.s.security.web.FilterChainProxy - Secured POST /api/auth/login
+2026-01-28 21:17:21 [http-nio-9500-exec-1] ERROR c.s.w.e.GlobalExceptionHandler - Unexpected error
+org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Unrecognized character escape '!' (code 33)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:409)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.read(AbstractJackson2HttpMessageConverter.java:357)
+	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodArgumentResolver.readWithMessageConverters(AbstractMessageConverterMethodArgumentResolver.java:204)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.readWithMessageConverters(RequestResponseBodyMethodProcessor.java:176)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.resolveArgument(RequestResponseBodyMethodProcessor.java:150)
+	at org.springframework.web.method.support.HandlerMethodArgumentResolverComposite.resolveArgument(HandlerMethodArgumentResolverComposite.java:122)
+	at org.springframework.web.method.support.InvocableHandlerMethod.getMethodArgumentValues(InvocableHandlerMethod.java:226)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:180)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:986)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:891)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1088)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:978)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:479)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:340)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:82)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:128)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at com.sonar.workflow.security.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:51)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:114)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at com.sonar.workflow.config.NoCacheFilter.doFilter(NoCacheFilter.java:40)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:905)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: com.fasterxml.jackson.databind.JsonMappingException: Unrecognized character escape '!' (code 33)
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 41] (through reference chain: com.sonar.workflow.dto.AuthRequest["password"])
+	at com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(JsonMappingException.java:401)
+	at com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(JsonMappingException.java:360)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.wrapAndThrow(BeanDeserializerBase.java:1964)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:312)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)
+	at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:342)
+	at com.fasterxml.jackson.databind.ObjectReader._bindAndClose(ObjectReader.java:2125)
+	at com.fasterxml.jackson.databind.ObjectReader.readValue(ObjectReader.java:1501)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:398)
+	... 141 common frames omitted
+Caused by: com.fasterxml.jackson.core.JsonParseException: Unrecognized character escape '!' (code 33)
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 41]
+	at com.fasterxml.jackson.core.JsonParser._constructReadException(JsonParser.java:2660)
+	at com.fasterxml.jackson.core.base.ParserBase._handleUnrecognizedCharacterEscape(ParserBase.java:1379)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser._decodeEscaped(UTF8StreamJsonParser.java:3380)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser._finishString2(UTF8StreamJsonParser.java:2567)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser._finishAndReturnString(UTF8StreamJsonParser.java:2520)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser.getText(UTF8StreamJsonParser.java:294)
+	at com.fasterxml.jackson.databind.deser.std.StringDeserializer.deserialize(StringDeserializer.java:42)
+	at com.fasterxml.jackson.databind.deser.std.StringDeserializer.deserialize(StringDeserializer.java:11)
+	at com.fasterxml.jackson.databind.deser.impl.MethodProperty.deserializeAndSet(MethodProperty.java:129)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:310)
+	... 146 common frames omitted
+2026-01-28 21:17:21 [http-nio-9500-exec-2] DEBUG o.s.security.web.FilterChainProxy - Securing POST /api/workflows
+2026-01-28 21:17:21 [http-nio-9500-exec-2] DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2026-01-28 21:17:21 [http-nio-9500-exec-2] DEBUG o.s.s.w.a.Http403ForbiddenEntryPoint - Pre-authenticated entry point called. Rejecting access
+2026-01-28 21:18:57 [http-nio-9500-exec-6] DEBUG o.s.security.web.FilterChainProxy - Securing POST /api/auth/login
+2026-01-28 21:18:57 [http-nio-9500-exec-6] DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2026-01-28 21:18:57 [http-nio-9500-exec-6] DEBUG o.s.security.web.FilterChainProxy - Secured POST /api/auth/login
+2026-01-28 21:18:57 [http-nio-9500-exec-6] ERROR c.s.w.e.GlobalExceptionHandler - Unexpected error
+org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Unrecognized character escape '!' (code 33)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:409)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.read(AbstractJackson2HttpMessageConverter.java:357)
+	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodArgumentResolver.readWithMessageConverters(AbstractMessageConverterMethodArgumentResolver.java:204)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.readWithMessageConverters(RequestResponseBodyMethodProcessor.java:176)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.resolveArgument(RequestResponseBodyMethodProcessor.java:150)
+	at org.springframework.web.method.support.HandlerMethodArgumentResolverComposite.resolveArgument(HandlerMethodArgumentResolverComposite.java:122)
+	at org.springframework.web.method.support.InvocableHandlerMethod.getMethodArgumentValues(InvocableHandlerMethod.java:226)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:180)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:986)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:891)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1088)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:978)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:479)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:340)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:82)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:128)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at com.sonar.workflow.security.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:51)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:114)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at com.sonar.workflow.config.NoCacheFilter.doFilter(NoCacheFilter.java:40)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:905)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: com.fasterxml.jackson.databind.JsonMappingException: Unrecognized character escape '!' (code 33)
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 41] (through reference chain: com.sonar.workflow.dto.AuthRequest["password"])
+	at com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(JsonMappingException.java:401)
+	at com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(JsonMappingException.java:360)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.wrapAndThrow(BeanDeserializerBase.java:1964)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:312)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)
+	at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:342)
+	at com.fasterxml.jackson.databind.ObjectReader._bindAndClose(ObjectReader.java:2125)
+	at com.fasterxml.jackson.databind.ObjectReader.readValue(ObjectReader.java:1501)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:398)
+	... 141 common frames omitted
+Caused by: com.fasterxml.jackson.core.JsonParseException: Unrecognized character escape '!' (code 33)
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 41]
+	at com.fasterxml.jackson.core.JsonParser._constructReadException(JsonParser.java:2660)
+	at com.fasterxml.jackson.core.base.ParserBase._handleUnrecognizedCharacterEscape(ParserBase.java:1379)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser._decodeEscaped(UTF8StreamJsonParser.java:3380)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser._finishString2(UTF8StreamJsonParser.java:2567)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser._finishAndReturnString(UTF8StreamJsonParser.java:2520)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser.getText(UTF8StreamJsonParser.java:294)
+	at com.fasterxml.jackson.databind.deser.std.StringDeserializer.deserialize(StringDeserializer.java:42)
+	at com.fasterxml.jackson.databind.deser.std.StringDeserializer.deserialize(StringDeserializer.java:11)
+	at com.fasterxml.jackson.databind.deser.impl.MethodProperty.deserializeAndSet(MethodProperty.java:129)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:310)
+	... 146 common frames omitted
+2026-01-28 21:18:57 [http-nio-9500-exec-9] DEBUG o.s.security.web.FilterChainProxy - Securing POST /api/workflows
+2026-01-28 21:18:57 [http-nio-9500-exec-9] DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2026-01-28 21:18:57 [http-nio-9500-exec-9] DEBUG o.s.s.w.a.Http403ForbiddenEntryPoint - Pre-authenticated entry point called. Rejecting access
+2026-01-28 21:19:01 [http-nio-9500-exec-3] DEBUG o.s.security.web.FilterChainProxy - Securing POST /api/auth/login
+2026-01-28 21:19:01 [http-nio-9500-exec-3] DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2026-01-28 21:19:01 [http-nio-9500-exec-3] DEBUG o.s.security.web.FilterChainProxy - Secured POST /api/auth/login
+2026-01-28 21:19:01 [http-nio-9500-exec-3] ERROR c.s.w.e.GlobalExceptionHandler - Unexpected error
+org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Unrecognized character escape '!' (code 33)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:409)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.read(AbstractJackson2HttpMessageConverter.java:357)
+	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodArgumentResolver.readWithMessageConverters(AbstractMessageConverterMethodArgumentResolver.java:204)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.readWithMessageConverters(RequestResponseBodyMethodProcessor.java:176)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.resolveArgument(RequestResponseBodyMethodProcessor.java:150)
+	at org.springframework.web.method.support.HandlerMethodArgumentResolverComposite.resolveArgument(HandlerMethodArgumentResolverComposite.java:122)
+	at org.springframework.web.method.support.InvocableHandlerMethod.getMethodArgumentValues(InvocableHandlerMethod.java:226)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:180)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:986)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:891)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1088)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:978)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:479)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:340)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:82)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:128)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at com.sonar.workflow.security.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:51)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:114)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at com.sonar.workflow.config.NoCacheFilter.doFilter(NoCacheFilter.java:40)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:905)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: com.fasterxml.jackson.databind.JsonMappingException: Unrecognized character escape '!' (code 33)
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 41] (through reference chain: com.sonar.workflow.dto.AuthRequest["password"])
+	at com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(JsonMappingException.java:401)
+	at com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(JsonMappingException.java:360)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.wrapAndThrow(BeanDeserializerBase.java:1964)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:312)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)
+	at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:342)
+	at com.fasterxml.jackson.databind.ObjectReader._bindAndClose(ObjectReader.java:2125)
+	at com.fasterxml.jackson.databind.ObjectReader.readValue(ObjectReader.java:1501)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:398)
+	... 141 common frames omitted
+Caused by: com.fasterxml.jackson.core.JsonParseException: Unrecognized character escape '!' (code 33)
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 41]
+	at com.fasterxml.jackson.core.JsonParser._constructReadException(JsonParser.java:2660)
+	at com.fasterxml.jackson.core.base.ParserBase._handleUnrecognizedCharacterEscape(ParserBase.java:1379)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser._decodeEscaped(UTF8StreamJsonParser.java:3380)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser._finishString2(UTF8StreamJsonParser.java:2567)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser._finishAndReturnString(UTF8StreamJsonParser.java:2520)
+	at com.fasterxml.jackson.core.json.UTF8StreamJsonParser.getText(UTF8StreamJsonParser.java:294)
+	at com.fasterxml.jackson.databind.deser.std.StringDeserializer.deserialize(StringDeserializer.java:42)
+	at com.fasterxml.jackson.databind.deser.std.StringDeserializer.deserialize(StringDeserializer.java:11)
+	at com.fasterxml.jackson.databind.deser.impl.MethodProperty.deserializeAndSet(MethodProperty.java:129)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:310)
+	... 146 common frames omitted

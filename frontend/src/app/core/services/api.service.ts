@@ -55,6 +55,10 @@ export class ApiService {
     return this.http.post<ApiResponse<T>>(`${this.baseUrl}${path}`, formData);
   }
 
+  uploadBlob(path: string, formData: FormData): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}${path}`, formData, { responseType: 'blob' });
+  }
+
   download(path: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}${path}`, { responseType: 'blob' });
   }

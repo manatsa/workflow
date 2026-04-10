@@ -5,6 +5,7 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTableModule } from '@angular/material/table';
@@ -43,8 +44,8 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
     MatInputModule,
     MatDialogModule,
     MatSnackBarModule,
-    ClipboardModule
-  ],
+    ClipboardModule,
+    MatTooltipModule],
   template: `
     <div class="instance-detail-container">
       @if (loading) {
@@ -53,7 +54,7 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
         </div>
       } @else if (instance) {
         <div class="header">
-          <button mat-icon-button (click)="goBack()">
+          <button mat-icon-button matTooltip="Go Back" (click)="goBack()">
             <mat-icon>arrow_back</mat-icon>
           </button>
           <div class="header-info">
@@ -61,7 +62,7 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
             <p class="subtitle">{{ instance.workflowName }}</p>
           </div>
           <span class="badge" [class]="instance.status.toLowerCase()">{{ instance.status }}</span>
-          <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+          <button mat-icon-button matTooltip="More Options" [matMenuTriggerFor]="actionsMenu">
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #actionsMenu="matMenu" xPosition="before">
@@ -175,7 +176,7 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
                   <mat-card-content>
                     <div class="sub-workflow-buttons">
                       @for (child of childWorkflows; track child.id) {
-                        <button mat-stroked-button color="primary" [routerLink]="['/workflows', child.code, 'new']" [queryParams]="{ parentInstanceId: instance.id }">
+                        <button mat-stroked-button matTooltip="{{ child.name }}" color="primary" [routerLink]="['/workflows', child.code, 'new']" [queryParams]="{ parentInstanceId: instance.id }">
                           <mat-icon>{{ child.icon || 'add_circle_outline' }}</mat-icon>
                           {{ child.name }}
                         </button>
@@ -233,10 +234,13 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
                           <mat-icon>description</mat-icon>
                           <a class="attachment-link" (click)="downloadAttachment(attachment)">{{ attachment.originalFileName }}</a>
                           <span class="size">({{ formatFileSize(attachment.fileSize) }})</span>
-                          <button mat-icon-button (click)="downloadAttachment(attachment)">
+                          @if (attachment.uploadedAt) {
+                            <span class="date">{{ attachment.uploadedAt | date:'dd MMM yyyy, HH:mm' }}</span>
+                          }
+                          <button mat-icon-button matTooltip="Export" (click)="downloadAttachment(attachment)">
                             <mat-icon>download</mat-icon>
                           </button>
-                          <button mat-icon-button color="warn" (click)="deleteAttachment(attachment)">
+                          <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteAttachment(attachment)">
                             <mat-icon>delete</mat-icon>
                           </button>
                         </div>
@@ -368,7 +372,7 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
               </ng-template>
               <div class="tab-content">
                 <div class="child-tab-header">
-                  <button mat-stroked-button color="primary" [routerLink]="['/workflows', childWf.code, 'new']" [queryParams]="{ parentInstanceId: instance.id }">
+                  <button mat-stroked-button matTooltip="New Submission" color="primary" [routerLink]="['/workflows', childWf.code, 'new']" [queryParams]="{ parentInstanceId: instance.id }">
                     <mat-icon>add</mat-icon>
                     New Submission
                   </button>
@@ -428,17 +432,17 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
                 }
               </mat-form-field>
               <div class="approval-action-buttons">
-                <button mat-raised-button color="primary" (click)="approveSubmission()"
+                <button mat-raised-button matTooltip="Approve" color="primary" (click)="approveSubmission()"
                         [disabled]="submittingAction">
                   <mat-icon>check</mat-icon>
                   Approve
                 </button>
-                <button mat-stroked-button color="primary" (click)="escalateSubmission()"
+                <button mat-stroked-button matTooltip="Escalate" color="primary" (click)="escalateSubmission()"
                         [disabled]="submittingAction">
                   <mat-icon>arrow_upward</mat-icon>
                   Escalate
                 </button>
-                <button mat-raised-button color="warn" (click)="rejectSubmission()"
+                <button mat-raised-button matTooltip="Reject" color="warn" (click)="rejectSubmission()"
                         [disabled]="submittingAction">
                   <mat-icon>close</mat-icon>
                   Reject
@@ -451,7 +455,7 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
         <!-- Edit Action -->
         @if (canEdit) {
           <div class="action-bar">
-            <button mat-raised-button color="accent" (click)="editSubmission()">
+            <button mat-raised-button matTooltip="Edit Submission" color="accent" (click)="editSubmission()">
               <mat-icon>edit</mat-icon>
               Edit Submission
             </button>
@@ -589,6 +593,11 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
       color: #1565c0;
     }
 
+    .attachment-item .date {
+      font-size: 12px;
+      color: #888;
+      margin-left: 8px;
+    }
     .attachment-item .size {
       color: #666;
       font-size: 0.75rem;
@@ -851,7 +860,9 @@ export class InstanceDetailComponent implements OnInit {
           this.instance = res.data;
           this.approvalHistory = res.data.approvalHistory || [];
           this.canTakeAction = res.data.status === 'PENDING';
-          this.canEdit = res.data.status === 'DRAFT' || res.data.status === 'RECALLED';
+          const isApprovedEditable = res.data.status === 'APPROVED' && !res.data.lockApproved;
+          const isChildLocked = res.data.parentApproved && res.data.lockChildOnParentApproval;
+          this.canEdit = !isChildLocked && (res.data.status === 'DRAFT' || res.data.status === 'RECALLED' || res.data.status === 'REJECTED' || isApprovedEditable);
           this.canDelete = res.data.status === 'DRAFT' || res.data.status === 'RECALLED';
           // Can recall if pending and current user is the initiator
           this.canRecall = res.data.status === 'PENDING' && res.data.initiatorId === this.currentUserId;

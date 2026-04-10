@@ -5,12 +5,16 @@ import com.sonar.workflow.dto.ApprovalRequest;
 import com.sonar.workflow.dto.WorkflowInstanceDTO;
 import com.sonar.workflow.entity.ApprovalHistory;
 import com.sonar.workflow.entity.EmailApprovalToken;
+import com.sonar.workflow.entity.User;
 import com.sonar.workflow.entity.WorkflowInstance;
+import com.sonar.workflow.repository.UserRepository;
+import com.sonar.workflow.security.CustomUserDetails;
 import com.sonar.workflow.service.EmailApprovalService;
 import com.sonar.workflow.service.WorkflowInstanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +34,7 @@ public class EmailApprovalController {
 
     private final EmailApprovalService emailApprovalService;
     private final WorkflowInstanceService workflowInstanceService;
+    private final UserRepository userRepository;
 
     /**
      * Validates a token and returns the workflow instance details
@@ -113,27 +118,42 @@ public class EmailApprovalController {
         UUID instanceId = instance.getId();
         Integer approvalLevel = approvalToken.getApprovalLevel();
 
-        // Verify the authenticated user matches the approver
+        // Verify the user - prefer JWT auth, but fall back to email token identity
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            return ResponseEntity.status(401)
-                    .body(ApiResponse.error("Authentication required"));
+        boolean jwtAuthenticated = auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal());
+
+        if (jwtAuthenticated) {
+            // JWT present - verify email matches token approver
+            String authenticatedEmail = null;
+            Object principal = auth.getPrincipal();
+            if (principal instanceof com.sonar.workflow.security.CustomUserDetails) {
+                authenticatedEmail = ((com.sonar.workflow.security.CustomUserDetails) principal).getEmail();
+            } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                authenticatedEmail = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+            }
+
+            if (authenticatedEmail != null && !authenticatedEmail.equalsIgnoreCase(approvalToken.getApproverEmail())) {
+                log.warn("Email approval: authenticated user email '{}' does not match token approver email '{}'",
+                        authenticatedEmail, approvalToken.getApproverEmail());
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("You are not authorized to perform this action. Please log in with the account associated with " + approvalToken.getApproverEmail()));
+            }
         }
 
-        // Verify the logged-in user's email matches the token's approver email
-        String authenticatedEmail = null;
-        Object principal = auth.getPrincipal();
-        if (principal instanceof com.sonar.workflow.security.CustomUserDetails) {
-            authenticatedEmail = ((com.sonar.workflow.security.CustomUserDetails) principal).getEmail();
-        } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-            authenticatedEmail = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
-        }
-
-        if (authenticatedEmail == null || !authenticatedEmail.equalsIgnoreCase(approvalToken.getApproverEmail())) {
-            log.warn("Email approval: authenticated user email '{}' does not match token approver email '{}'",
-                    authenticatedEmail, approvalToken.getApproverEmail());
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("You are not authorized to perform this action. Please log in with the account associated with " + approvalToken.getApproverEmail()));
+        // If no valid JWT, authenticate from the email token's approver
+        if (!jwtAuthenticated) {
+            Optional<User> approverUser = userRepository.findByEmail(approvalToken.getApproverEmail());
+            if (approverUser.isPresent()) {
+                User user = approverUser.get();
+                CustomUserDetails userDetails = new CustomUserDetails(user);
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+                log.info("Email approval: set security context from token for approver {}", user.getEmail());
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Approver account not found for email: " + approvalToken.getApproverEmail()));
+            }
         }
 
         // Check if instance is still pending or escalated

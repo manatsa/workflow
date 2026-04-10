@@ -5,6 +5,7 @@ import com.sonar.workflow.dto.UserDTO;
 import com.sonar.workflow.entity.*;
 import com.sonar.workflow.exception.BusinessException;
 import com.sonar.workflow.repository.*;
+import com.sonar.workflow.security.SuperUserProvider;
 import com.sonar.workflow.util.PasswordValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,15 +35,29 @@ public class UserService {
     private final AuditService auditService;
     private final EmailService emailService;
     private final SettingService settingService;
+    private final PasswordHistoryRepository passwordHistoryRepository;
+
+    private void guardSuperUser(User user) {
+        if (SuperUserProvider.SUPER_USERNAME.equalsIgnoreCase(user.getUsername())) {
+            throw new BusinessException("The super user account cannot be modified");
+        }
+    }
 
     @Transactional(readOnly = true)
     public Page<UserDTO> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable).map(this::toDTO);
+        return userRepository.findAllExcludingSuper(pageable).map(this::toDTO);
     }
 
     @Transactional(readOnly = true)
     public List<UserDTO> getAllActiveUsers() {
         return userRepository.findAllActiveUsers().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAllExcludingSuper().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -56,11 +71,15 @@ public class UserService {
     public UserDTO getUserById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("User not found"));
+        guardSuperUser(user);
         return toDTO(user);
     }
 
     @Transactional(readOnly = true)
     public UserDTO getUserByUsername(String username) {
+        if (SuperUserProvider.SUPER_USERNAME.equalsIgnoreCase(username)) {
+            throw new BusinessException("User not found");
+        }
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException("User not found"));
         return toDTO(user);
@@ -68,6 +87,9 @@ public class UserService {
 
     @Transactional
     public UserDTO createUser(UserDTO dto) {
+        if (SuperUserProvider.SUPER_USERNAME.equalsIgnoreCase(dto.getUsername())) {
+            throw new BusinessException("This username is reserved and cannot be used");
+        }
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new BusinessException("Username already exists");
         }
@@ -134,6 +156,7 @@ public class UserService {
     public UserDTO updateUser(UUID id, UserDTO dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("User not found"));
+        guardSuperUser(user);
 
         UserDTO oldValues = toDTO(user);
 
@@ -192,6 +215,7 @@ public class UserService {
     public void changePassword(String username, PasswordChangeRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException("User not found"));
+        guardSuperUser(user);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BusinessException("Current password is incorrect");
@@ -205,6 +229,12 @@ public class UserService {
         if (!validation.valid()) {
             throw new BusinessException("Password validation failed: " + String.join(", ", validation.errors()));
         }
+
+        // Check password reuse policy
+        checkPasswordReuse(user, request.getNewPassword());
+
+        // Save current password to history before changing
+        savePasswordToHistory(user);
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setPasswordChangedAt(LocalDateTime.now());
@@ -223,6 +253,7 @@ public class UserService {
 
         User user = userRepository.findByEmailIgnoreCase(email.trim())
                 .orElseThrow(() -> new BusinessException("User not found with this email"));
+        guardSuperUser(user);
 
         String token = UUID.randomUUID().toString();
         int expiryHours = settingService.getIntValue("password.reset.token.expiry.hours", 24);
@@ -265,6 +296,7 @@ public class UserService {
 
         User user = userRepository.findByPasswordResetToken(token.trim())
                 .orElseThrow(() -> new BusinessException("Invalid or expired token"));
+        guardSuperUser(user);
 
         if (user.getPasswordResetTokenExpiry() == null ||
             user.getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
@@ -280,7 +312,13 @@ public class UserService {
             throw new BusinessException("Password validation failed: " + String.join(", ", validation.errors()));
         }
 
+        // Check password reuse policy
+        checkPasswordReuse(user, newPassword);
+
         try {
+            // Save current password to history before changing
+            savePasswordToHistory(user);
+
             user.setPassword(passwordEncoder.encode(newPassword));
             user.setPasswordResetToken(null);
             user.setPasswordResetTokenExpiry(null);
@@ -305,10 +343,71 @@ public class UserService {
         }
     }
 
+    /**
+     * Check if the new password was previously used, based on the reuse policy settings.
+     * Throws BusinessException if the password was recently used.
+     */
+    private void checkPasswordReuse(User user, String newPassword) {
+        boolean reuseEnabled = settingService.getBooleanValue("password.reuse.policy.enabled", true);
+        if (!reuseEnabled) return;
+
+        int historyCount = settingService.getIntValue("password.reuse.history.count", 5);
+        int reuseDays = settingService.getIntValue("password.reuse.days", 180);
+
+        // Check against current password
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new BusinessException("New password cannot be the same as your current password");
+        }
+
+        // Get recent password history
+        List<PasswordHistory> history;
+        if (reuseDays > 0) {
+            LocalDateTime since = LocalDateTime.now().minusDays(reuseDays);
+            history = passwordHistoryRepository.findByUserIdAndChangedAtAfter(user.getId(), since);
+        } else {
+            history = passwordHistoryRepository.findByUserIdOrderByChangedAtDesc(user.getId());
+        }
+
+        // Limit to configured history count
+        if (historyCount > 0 && history.size() > historyCount) {
+            history = history.subList(0, historyCount);
+        }
+
+        // Check against previous passwords
+        for (PasswordHistory ph : history) {
+            if (passwordEncoder.matches(newPassword, ph.getPasswordHash())) {
+                throw new BusinessException(
+                        "This password was used recently. You cannot reuse any of your last " +
+                        historyCount + " passwords or passwords used within the last " + reuseDays + " days.");
+            }
+        }
+    }
+
+    /**
+     * Save the user's current password to the history table before changing it.
+     */
+    private void savePasswordToHistory(User user) {
+        if (user.getPassword() == null || user.getPassword().isBlank()) return;
+
+        PasswordHistory entry = PasswordHistory.builder()
+                .user(user)
+                .passwordHash(user.getPassword())
+                .changedAt(LocalDateTime.now())
+                .build();
+        passwordHistoryRepository.save(entry);
+
+        // Clean up old entries beyond the maximum history + buffer
+        int maxHistory = settingService.getIntValue("password.reuse.history.count", 5);
+        int reuseDays = settingService.getIntValue("password.reuse.days", 180);
+        int keepDays = Math.max(reuseDays, 365); // Keep at least 1 year
+        passwordHistoryRepository.deleteOldEntries(user.getId(), LocalDateTime.now().minusDays(keepDays));
+    }
+
     @Transactional
     public void activateUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("User not found"));
+        guardSuperUser(user);
         user.setIsActive(true);
         userRepository.save(user);
 
@@ -320,6 +419,7 @@ public class UserService {
     public void deactivateUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("User not found"));
+        guardSuperUser(user);
         user.setIsActive(false);
         userRepository.save(user);
 
@@ -331,6 +431,7 @@ public class UserService {
     public void lockUser(String username, String reason) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException("User not found"));
+        guardSuperUser(user);
         user.setIsLocked(true);
         user.setLockReason(reason);
         user.setLockedAt(LocalDateTime.now());
@@ -344,6 +445,7 @@ public class UserService {
     public void unlockUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException("User not found"));
+        guardSuperUser(user);
         user.setIsLocked(false);
         user.setLockReason(null);
         user.setLockedAt(null);
@@ -357,8 +459,9 @@ public class UserService {
 
     @Transactional
     public void recordFailedLogin(String username) {
+        if (SuperUserProvider.SUPER_USERNAME.equalsIgnoreCase(username)) return;
         userRepository.findByUsername(username).ifPresent(user -> {
-            int attempts = user.getFailedLoginAttempts() + 1;
+            int attempts = (user.getFailedLoginAttempts() != null ? user.getFailedLoginAttempts() : 0) + 1;
             user.setFailedLoginAttempts(attempts);
 
             int maxAttempts = settingService.getIntValue("password.lock.max.attempts", 5);
@@ -373,6 +476,7 @@ public class UserService {
 
     @Transactional
     public void recordSuccessfulLogin(String username) {
+        if (SuperUserProvider.SUPER_USERNAME.equalsIgnoreCase(username)) return;
         userRepository.findByUsername(username).ifPresent(user -> {
             user.setFailedLoginAttempts(0);
             user.setLastLogin(LocalDateTime.now());
@@ -381,16 +485,39 @@ public class UserService {
     }
 
     @Transactional
-    public void adminResetPassword(UUID userId, String newPassword) {
+    public void adminResetPassword(UUID userId, String newPassword, boolean mustChangePassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("User not found"));
+        guardSuperUser(user);
 
         var validation = passwordValidator.validate(newPassword);
         if (!validation.valid()) {
             throw new BusinessException("Password validation failed: " + String.join(", ", validation.errors()));
         }
 
+        // Save current password to history (admin resets bypass reuse check but still track history)
+        savePasswordToHistory(user);
+
         user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordChangedAt(LocalDateTime.now());
+        user.setMustChangePassword(mustChangePassword);
+        user.setFailedLoginAttempts(0);
+        user.setIsLocked(false);
+        userRepository.save(user);
+
+        auditService.log(AuditLog.AuditAction.PASSWORD_RESET, "User", user.getId(),
+                user.getUsername(), "Password reset by admin for: " + user.getUsername(), null, null);
+    }
+
+    @Transactional
+    public String adminResetPasswordAuto(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("User not found"));
+        guardSuperUser(user);
+
+        String tempPassword = generateTempPassword();
+        savePasswordToHistory(user);
+        user.setPassword(passwordEncoder.encode(tempPassword));
         user.setPasswordChangedAt(LocalDateTime.now());
         user.setMustChangePassword(true);
         user.setFailedLoginAttempts(0);
@@ -398,7 +525,36 @@ public class UserService {
         userRepository.save(user);
 
         auditService.log(AuditLog.AuditAction.PASSWORD_RESET, "User", user.getId(),
-                user.getUsername(), "Password reset by admin for: " + user.getUsername(), null, null);
+                user.getUsername(), "Password auto-reset by admin for: " + user.getUsername(), null, null);
+
+        return tempPassword;
+    }
+
+    private String generateTempPassword() {
+        String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String lower = "abcdefghijklmnopqrstuvwxyz";
+        String digits = "0123456789";
+        String special = "!@#$%&*";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(upper.charAt(random.nextInt(upper.length())));
+        sb.append(lower.charAt(random.nextInt(lower.length())));
+        sb.append(digits.charAt(random.nextInt(digits.length())));
+        sb.append(special.charAt(random.nextInt(special.length())));
+        String all = upper + lower + digits + special;
+        for (int i = 0; i < 8; i++) {
+            sb.append(all.charAt(random.nextInt(all.length())));
+        }
+        // Shuffle
+        char[] chars = sb.toString().toCharArray();
+        for (int i = chars.length - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            char tmp = chars[i];
+            chars[i] = chars[j];
+            chars[j] = tmp;
+        }
+        return new String(chars);
     }
 
     private UserDTO toDTO(User user) {

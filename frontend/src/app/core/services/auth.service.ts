@@ -35,6 +35,10 @@ export class AuthService {
     return !!this.token;
   }
 
+  get isSuperUser(): boolean {
+    return this.currentUser?.username === 'super';
+  }
+
   login(credentials: AuthRequest): Observable<ApiResponse<AuthResponse>> {
     return this.http.post<ApiResponse<AuthResponse>>(`${environment.apiUrl}/auth/login`, credentials)
       .pipe(

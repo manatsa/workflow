@@ -25,4 +25,7 @@ public class ApprovalHistoryDTO {
     private String comments;
     private LocalDateTime actionDate;
     private ApprovalHistory.ActionSource actionSource;
+    private UUID stampId;
+    private String stampName;
+    private String stampData;
 }

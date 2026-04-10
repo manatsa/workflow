@@ -13,6 +13,7 @@ import { MatNativeDateModule, ErrorStateMatcher } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -23,9 +24,13 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { HttpClient } from '@angular/common/http';
 import { WorkflowService } from '@core/services/workflow.service';
 import { AuthService } from '@core/services/auth.service';
 import { UserService } from '@core/services/user.service';
+import { environment } from '../../../../environments/environment';
 import { Workflow, WorkflowField, FieldGroup, Screen } from '@core/models/workflow.model';
 import { User } from '@core/models/user.model';
 
@@ -54,12 +59,22 @@ import { User } from '@core/models/user.model';
     MatDividerModule,
     MatSlideToggleModule,
     MatButtonToggleModule,
-    MatSliderModule
-  ],
+    MatSliderModule,
+    MatTooltipModule,
+    MatDialogModule],
   template: `
-    <div class="workflow-form-container">
+    <div class="workflow-form-container" [class.api-loading-active]="isAnyApiFieldLoading()">
+      <!-- Blocking overlay when API fields are loading -->
+      @if (isAnyApiFieldLoading()) {
+        <div class="api-blocking-overlay">
+          <div class="api-blocking-content">
+            <mat-spinner diameter="48"></mat-spinner>
+            <span>Getting Data</span>
+          </div>
+        </div>
+      }
       <div class="header">
-        <button mat-icon-button (click)="goBack()">
+        <button mat-icon-button matTooltip="Go Back" (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <div>
@@ -517,7 +532,7 @@ import { User } from '@core/models/user.model';
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
                             <div class="image-upload-area">
                               <input type="file" accept="image/*" (change)="onImageSelect($event, field)" #imageInput hidden>
-                              <button mat-stroked-button type="button" (click)="imageInput.click()" [disabled]="isFieldReadonly(field)">
+                              <button mat-stroked-button matTooltip="Select Image" type="button" (click)="imageInput.click()" [disabled]="isFieldReadonly(field)">
                                 <mat-icon>add_photo_alternate</mat-icon>
                                 Select Image
                               </button>
@@ -676,12 +691,37 @@ import { User } from '@core/models/user.model';
                         @case ('TABLE') {
                           <div class="table-field" [class.has-error]="hasFieldError(field)" [class.readonly-table]="isFieldReadonly(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            @if (field.tableSearchable) {
+                              <div class="table-search-bar">
+                                <mat-icon>search</mat-icon>
+                                <input type="text" placeholder="Search table..." [value]="tableSearchTerms[field.name] || ''" (input)="onTableSearch($event, field)" class="table-search-input">
+                                @if (tableSearchTerms[field.name]) {
+                                  <button mat-icon-button (click)="clearTableSearch(field)" matTooltip="Clear search"><mat-icon>close</mat-icon></button>
+                                }
+                              </div>
+                            }
                             <div class="table-input">
-                              <table class="data-table" [class.table-striped]="field.tableStriped !== false" [class.table-bordered]="field.tableBordered !== false">
+                              <div class="table-scroll-wrapper">
+                              <table class="data-table" [class.table-striped]="field.tableStriped !== false" [class.table-bordered]="field.tableBordered !== false" [class.table-resizable]="field.tableResizable">
                                 <thead>
                                   <tr>
                                     @for (col of getTableColumns(field); track col.name) {
-                                      <th [style.width]="col.width ? col.width + 'px' : 'auto'">{{ col.label }}</th>
+                                      <th [style.width]="col.width ? col.width + 'px' : 'auto'" [style.min-width]="field.tableResizable ? '60px' : 'auto'">
+                                        <div class="th-content">
+                                          <span class="th-label" (click)="onTableSort(field, col.name)">
+                                            {{ col.label }}
+                                            @if (tableSortState[field.name]?.column === col.name) {
+                                              <mat-icon class="sort-icon">{{ tableSortState[field.name]?.direction === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                                            }
+                                          </span>
+                                          @if (field.tableResizable) {
+                                            <div class="col-resize-handle" (mousedown)="onColumnResizeStart($event, field, col)"></div>
+                                          }
+                                        </div>
+                                        @if (field.tableFilterable) {
+                                          <input type="text" class="col-filter-input" placeholder="Filter..." [value]="getColumnFilter(field, col.name)" (input)="onColumnFilter($event, field, col.name)">
+                                        }
+                                      </th>
                                     }
                                     @if (!isTableFullyReadonly(field)) {
                                       <th class="actions-col">Actions</th>
@@ -689,39 +729,41 @@ import { User } from '@core/models/user.model';
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  @for (row of getTableRows(field); track $index; let rowIndex = $index) {
+                                  @for (row of getDisplayedTableRows(field); track $index) {
                                     <tr>
                                       @for (col of getTableColumns(field); track col.name) {
                                         <td [style.width]="col.width ? col.width + 'px' : 'auto'">
                                           @switch (col.type) {
                                             @case ('NUMBER') {
-                                              <input type="number" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                              <input type="number" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, getActualRowIndex(field, row), col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
                                             }
                                             @case ('DATE') {
-                                              <input type="date" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                              <input type="date" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, getActualRowIndex(field, row), col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
                                             }
                                             @case ('CHECKBOX') {
-                                              <mat-checkbox [checked]="row[col.name] === 'true' || row[col.name] === true" (change)="onTableCheckboxChange($event, field, rowIndex, col.name)" [disabled]="isColumnReadonly(field, col)"></mat-checkbox>
+                                              <mat-checkbox [checked]="row[col.name] === 'true' || row[col.name] === true" (change)="onTableCheckboxChange($event, field, getActualRowIndex(field, row), col.name)" [disabled]="isColumnReadonly(field, col)"></mat-checkbox>
                                             }
                                             @default {
-                                              <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                              <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, getActualRowIndex(field, row), col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
                                             }
                                           }
                                         </td>
                                       }
                                       @if (!isTableFullyReadonly(field)) {
                                         <td class="actions-col">
-                                          <button mat-icon-button type="button" (click)="removeTableRow(field, rowIndex)" [disabled]="!canRemoveTableRow(field)" matTooltip="Remove row">
+                                          <button mat-icon-button type="button" (click)="removeTableRow(field, getActualRowIndex(field, row))" [disabled]="!canRemoveTableRow(field)" matTooltip="Remove row">
                                             <mat-icon>delete</mat-icon>
                                           </button>
                                         </td>
                                       }
                                     </tr>
                                   }
-                                  @if (getTableRows(field).length === 0) {
+                                  @if (getDisplayedTableRows(field).length === 0) {
                                     <tr>
                                       <td [attr.colspan]="isTableFullyReadonly(field) ? getTableColumns(field).length : getTableColumns(field).length + 1" class="empty-table">
-                                        @if (isTableFullyReadonly(field)) {
+                                        @if (tableSearchTerms[field.name] || hasColumnFilters(field)) {
+                                          No matching rows found.
+                                        } @else if (isTableFullyReadonly(field)) {
                                           No data available.
                                         } @else {
                                           No rows added. Click "Add Row" to add data.
@@ -731,16 +773,28 @@ import { User } from '@core/models/user.model';
                                   }
                                 </tbody>
                               </table>
-                              @if (!isTableFullyReadonly(field)) {
-                                <div class="table-actions">
-                                  <button mat-stroked-button type="button" (click)="addTableRow(field)" [disabled]="!canAddTableRow(field)" class="add-row-btn">
-                                    <mat-icon>add</mat-icon> Add Row
-                                  </button>
-                                  @if (field.tableMaxRows) {
-                                    <span class="row-count">{{ getTableRows(field).length }} / {{ field.tableMaxRows }} rows</span>
-                                  }
-                                </div>
-                              }
+                              </div>
+                              <div class="table-footer">
+                                @if (!isTableFullyReadonly(field)) {
+                                  <div class="table-actions">
+                                    <button mat-stroked-button matTooltip="Add Row" type="button" (click)="addTableRow(field)" [disabled]="!canAddTableRow(field)" class="add-row-btn">
+                                      <mat-icon>add</mat-icon> Add Row
+                                    </button>
+                                    @if (field.tableMaxRows) {
+                                      <span class="row-count">{{ getTableRows(field).length }} / {{ field.tableMaxRows }} rows</span>
+                                    }
+                                  </div>
+                                }
+                                @if (field.tablePageable && getFilteredTableRows(field).length > (field.tablePageSize || 10)) {
+                                  <div class="table-pagination">
+                                    <span class="page-info">{{ getPageInfo(field) }}</span>
+                                    <button mat-icon-button [disabled]="getTablePage(field) === 0" (click)="setTablePage(field, 0)" matTooltip="First"><mat-icon>first_page</mat-icon></button>
+                                    <button mat-icon-button [disabled]="getTablePage(field) === 0" (click)="setTablePage(field, getTablePage(field) - 1)" matTooltip="Previous"><mat-icon>chevron_left</mat-icon></button>
+                                    <button mat-icon-button [disabled]="getTablePage(field) >= getTableTotalPages(field) - 1" (click)="setTablePage(field, getTablePage(field) + 1)" matTooltip="Next"><mat-icon>chevron_right</mat-icon></button>
+                                    <button mat-icon-button [disabled]="getTablePage(field) >= getTableTotalPages(field) - 1" (click)="setTablePage(field, getTableTotalPages(field) - 1)" matTooltip="Last"><mat-icon>last_page</mat-icon></button>
+                                  </div>
+                                }
+                              </div>
                             </div>
                             @if (hasFieldError(field)) {
                               <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
@@ -827,6 +881,73 @@ import { User } from '@core/models/user.model';
                               </div>
                             }
                           }
+                        }
+                        @case ('SQL_TABLE') {
+                          <div class="sql-table-field" [class.has-error]="hasFieldError(field)">
+                            @if (field.label) {
+                              <label class="field-label">{{ field.label }}</label>
+                            }
+                            @if (sqlTableData[field.name]?.loading) {
+                              <div style="text-align: center; padding: 24px;"><mat-spinner diameter="30"></mat-spinner></div>
+                            } @else if (sqlTableData[field.name]?.error) {
+                              <div style="color: #f44336; padding: 12px;">{{ sqlTableData[field.name].error }}</div>
+                            } @else if (sqlTableData[field.name]?.data) {
+                              <div class="sql-table-wrapper">
+                                @if (field.tableSearchable) {
+                                  <div class="sql-table-search">
+                                    <mat-icon>search</mat-icon>
+                                    <input type="text" placeholder="Search..." (input)="onSqlTableSearch(field.name, $event)">
+                                  </div>
+                                }
+                                <table class="sql-result-table"
+                                       [class.table-striped]="field.tableStriped !== false"
+                                       [class.table-bordered]="field.tableBordered !== false">
+                                  <thead>
+                                    <tr>
+                                      @for (col of sqlTableData[field.name].columns; track col.field) {
+                                        <th (click)="onSqlTableSort(field.name, col.field)" class="sortable-th">
+                                          {{ col.header }}
+                                          @if (sqlTableState[field.name]?.sortField === col.field) {
+                                            <mat-icon class="sort-icon">{{ sqlTableState[field.name].sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                                          }
+                                        </th>
+                                      }
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    @for (row of getSqlTableDisplayRows(field); track $index) {
+                                      <tr>
+                                        @for (col of sqlTableData[field.name].columns; track col.field) {
+                                          <td>{{ row[col.field] }}</td>
+                                        }
+                                      </tr>
+                                    }
+                                    @if (getSqlTableDisplayRows(field).length === 0) {
+                                      <tr><td [attr.colspan]="sqlTableData[field.name].columns.length" style="text-align: center; color: #999; padding: 24px;">No data</td></tr>
+                                    }
+                                  </tbody>
+                                </table>
+                                <div class="sql-table-footer">
+                                  @if (field.tablePageable) {
+                                    <span>Showing {{ getSqlTableDisplayRows(field).length }} of {{ getSqlTableFilteredRows(field.name).length }} row(s)</span>
+                                    <div class="sql-table-pager">
+                                      <button mat-icon-button [disabled]="(sqlTableState[field.name]?.page || 0) === 0" (click)="sqlTablePageChange(field.name, -1)">
+                                        <mat-icon>chevron_left</mat-icon>
+                                      </button>
+                                      <span>Page {{ (sqlTableState[field.name]?.page || 0) + 1 }} of {{ getSqlTableTotalPages(field) || 1 }}</span>
+                                      <button mat-icon-button [disabled]="(sqlTableState[field.name]?.page || 0) >= getSqlTableTotalPages(field) - 1" (click)="sqlTablePageChange(field.name, 1)">
+                                        <mat-icon>chevron_right</mat-icon>
+                                      </button>
+                                    </div>
+                                  } @else {
+                                    <span>{{ getSqlTableFilteredRows(field.name).length }} row(s)</span>
+                                  }
+                                </div>
+                              </div>
+                            } @else {
+                              <div style="color: #999; padding: 12px;">No SQL query configured</div>
+                            }
+                          </div>
                         }
                         @case ('ACCORDION') {
                           <div class="accordion-field" [class.has-error]="hasFieldError(field)">
@@ -1030,6 +1151,231 @@ import { User } from '@core/models/user.model';
                                 }
                               </div>
                             </mat-expansion-panel>
+                          </div>
+                        }
+                        @case ('API_ARRAY') {
+                          @if (field.apiShowInForm !== false) {
+                          <div class="field-container api-field-container">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            @if (apiFieldLoading[field.name]) {
+                              <div class="api-loading-overlay">
+                                <mat-spinner diameter="24"></mat-spinner>
+                                <span>Getting Data</span>
+                              </div>
+                            } @else if (apiFieldErrors[field.name]) {
+                              <div class="api-error">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>{{ apiFieldErrors[field.name] }}</span>
+                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
+                              </div>
+                            } @else {
+                              <div class="api-data-display api-array">
+                                @if (apiFieldData[field.name]?.length > 0) {
+                                  <mat-chip-set>
+                                    @for (item of apiFieldData[field.name]; track $index) {
+                                      <mat-chip>{{ item }}</mat-chip>
+                                    }
+                                  </mat-chip-set>
+                                } @else {
+                                  <p class="no-data-hint">No data returned</p>
+                                }
+                              </div>
+                            }
+                          </div>
+                          }
+                        }
+                        @case ('API_OBJECT_ARRAY') {
+                          @if (field.apiShowInForm !== false) {
+                          <div class="field-container api-field-container">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            @if (apiFieldLoading[field.name]) {
+                              <div class="api-loading-overlay">
+                                <mat-spinner diameter="24"></mat-spinner>
+                                <span>Getting Data</span>
+                              </div>
+                            } @else if (apiFieldErrors[field.name]) {
+                              <div class="api-error">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>{{ apiFieldErrors[field.name] }}</span>
+                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
+                              </div>
+                            } @else {
+                              <div class="api-data-display api-object-array">
+                                @if (apiFieldData[field.name]?.length > 0) {
+                                  <div class="api-table-wrapper">
+                                    <table class="api-table">
+                                      <thead>
+                                        <tr>
+                                          @for (key of getObjectKeys(apiFieldData[field.name][0]); track key) {
+                                            <th>{{ key }}</th>
+                                          }
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        @for (item of apiFieldData[field.name]; track $index) {
+                                          <tr>
+                                            @for (key of getObjectKeys(item); track key) {
+                                              <td>{{ item[key] }}</td>
+                                            }
+                                          </tr>
+                                        }
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                } @else {
+                                  <p class="no-data-hint">No data returned</p>
+                                }
+                              </div>
+                            }
+                          </div>
+                          }
+                        }
+                        @case ('API_VALUE') {
+                          <div class="field-container api-field-container">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            @if (apiFieldLoading[field.name]) {
+                              <div class="api-loading-overlay">
+                                <mat-spinner diameter="24"></mat-spinner>
+                                <span>Getting Data</span>
+                              </div>
+                            } @else if (apiFieldErrors[field.name]) {
+                              <div class="api-error">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>{{ apiFieldErrors[field.name] }}</span>
+                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
+                              </div>
+                            } @else {
+                              <div class="api-data-display api-value">
+                                <span class="api-value-text">{{ apiFieldData[field.name] ?? 'No data returned' }}</span>
+                              </div>
+                            }
+                          </div>
+                        }
+                        @case ('API_OBJECT') {
+                          <div class="field-container api-field-container">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            @if (apiFieldLoading[field.name]) {
+                              <div class="api-loading-overlay">
+                                <mat-spinner diameter="24"></mat-spinner>
+                                <span>Getting Data</span>
+                              </div>
+                            } @else if (apiFieldErrors[field.name]) {
+                              <div class="api-error">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>{{ apiFieldErrors[field.name] }}</span>
+                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
+                              </div>
+                            } @else {
+                              <div class="api-data-display api-object">
+                                @if (apiFieldData[field.name]) {
+                                  <div class="api-object-props">
+                                    @for (key of getObjectKeys(apiFieldData[field.name]); track key) {
+                                      <div class="api-prop-row">
+                                        <span class="api-prop-key">{{ key }}:</span>
+                                        <span class="api-prop-value">{{ apiFieldData[field.name][key] }}</span>
+                                      </div>
+                                    }
+                                  </div>
+                                } @else {
+                                  <p class="no-data-hint">No data returned</p>
+                                }
+                              </div>
+                            }
+                          </div>
+                        }
+                        @case ('API_LIST') {
+                          <div class="field-container api-field-container">
+                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            @if (apiFieldLoading[field.name]) {
+                              <div class="api-loading-overlay">
+                                <mat-spinner diameter="24"></mat-spinner>
+                                <span>Getting Data</span>
+                              </div>
+                            } @else if (apiFieldErrors[field.name]) {
+                              <div class="api-error">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>{{ apiFieldErrors[field.name] }}</span>
+                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
+                              </div>
+                            } @else {
+                              <div class="api-data-display api-list">
+                                @if (apiFieldData[field.name]?.length > 0) {
+                                  <ol class="api-list-items">
+                                    @for (item of apiFieldData[field.name]; track $index) {
+                                      <li>
+                                        @if (isObject(item)) {
+                                          <div class="api-list-object">
+                                            @for (key of getObjectKeys(item); track key) {
+                                              <span class="api-prop-key">{{ key }}:</span> <span class="api-prop-value">{{ item[key] }}</span>@if (!$last) { , }
+                                            }
+                                          </div>
+                                        } @else {
+                                          {{ item }}
+                                        }
+                                      </li>
+                                    }
+                                  </ol>
+                                } @else {
+                                  <p class="no-data-hint">No data returned</p>
+                                }
+                              </div>
+                            }
+                          </div>
+                        }
+                        @case ('OBJECT_VIEWER') {
+                          <div class="field-container api-field-container object-viewer-container">
+                            @if (apiFieldLoading[field.name]) {
+                              <label class="field-label">{{ field.label }}</label>
+                              <div class="api-loading-overlay">
+                                <mat-spinner diameter="24"></mat-spinner>
+                                <span>Getting Data</span>
+                              </div>
+                            } @else if (apiFieldErrors[field.name]) {
+                              <label class="field-label">{{ field.label }}</label>
+                              <div class="api-error">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>{{ apiFieldErrors[field.name] }}</span>
+                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
+                              </div>
+                            } @else if (apiFieldData[field.name] != null) {
+                              <mat-expansion-panel class="ov-panel">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title>
+                                    <mat-icon class="ov-panel-icon">account_tree</mat-icon>
+                                    {{ field.label }}
+                                  </mat-panel-title>
+                                  <mat-panel-description>
+                                    {{ getOvTypeBadge(apiFieldData[field.name]) }}
+                                  </mat-panel-description>
+                                </mat-expansion-panel-header>
+                                <div class="object-viewer">
+                                  <div class="ov-toolbar">
+                                    <button mat-stroked-button (click)="expandAllObjectViewer(field.name); $event.stopPropagation()" matTooltip="Expand All"><mat-icon>unfold_more</mat-icon></button>
+                                    <button mat-stroked-button (click)="collapseAllObjectViewer(field.name); $event.stopPropagation()" matTooltip="Collapse All"><mat-icon>unfold_less</mat-icon></button>
+                                  </div>
+                                  <div class="ov-tree" (click)="onOvTreeClick($event, field.name)">
+                                    @for (node of getOvNodes(apiFieldData[field.name], field.name, 0); track node.path) {
+                                      @if (node.expandable) {
+                                        <div class="ov-key-row ov-expandable" [style.padding-left]="(node.depth * 16) + 'px'" [attr.data-path]="node.path">
+                                          <mat-icon class="ov-toggle">{{ node.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                                          <span class="ov-key">{{ node.key }}</span>
+                                          <span class="ov-type-badge">{{ node.badge }}</span>
+                                        </div>
+                                      } @else {
+                                        <div class="ov-key-row ov-leaf" [style.padding-left]="(node.depth * 16) + 'px'">
+                                          <span class="ov-dot"></span>
+                                          <span class="ov-key">{{ node.key }}:</span>
+                                          <span class="ov-value" [class]="'ov-val-' + node.valueType">{{ node.value }}</span>
+                                        </div>
+                                      }
+                                    }
+                                  </div>
+                                </div>
+                              </mat-expansion-panel>
+                            } @else {
+                              <label class="field-label">{{ field.label }}</label>
+                              <div class="api-data-display"><p class="no-data-hint">No data returned</p></div>
+                            }
                           </div>
                         }
                         @default {
@@ -1402,7 +1748,7 @@ import { User } from '@core/models/user.model';
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
                             <div class="image-upload-area">
                               <input type="file" accept="image/*" (change)="onImageSelect($event, field)" #imageInputGroup hidden>
-                              <button mat-stroked-button type="button" (click)="imageInputGroup.click()" [disabled]="isFieldReadonly(field)">
+                              <button mat-stroked-button matTooltip="Select Image" type="button" (click)="imageInputGroup.click()" [disabled]="isFieldReadonly(field)">
                                 <mat-icon>add_photo_alternate</mat-icon>
                                 Select Image
                               </button>
@@ -1561,12 +1907,37 @@ import { User } from '@core/models/user.model';
                         @case ('TABLE') {
                           <div class="table-field" [class.has-error]="hasFieldError(field)" [class.readonly-table]="isFieldReadonly(field)">
                             <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
+                            @if (field.tableSearchable) {
+                              <div class="table-search-bar">
+                                <mat-icon>search</mat-icon>
+                                <input type="text" placeholder="Search table..." [value]="tableSearchTerms[field.name] || ''" (input)="onTableSearch($event, field)" class="table-search-input">
+                                @if (tableSearchTerms[field.name]) {
+                                  <button mat-icon-button (click)="clearTableSearch(field)" matTooltip="Clear search"><mat-icon>close</mat-icon></button>
+                                }
+                              </div>
+                            }
                             <div class="table-input">
-                              <table class="data-table" [class.table-striped]="field.tableStriped !== false" [class.table-bordered]="field.tableBordered !== false">
+                              <div class="table-scroll-wrapper">
+                              <table class="data-table" [class.table-striped]="field.tableStriped !== false" [class.table-bordered]="field.tableBordered !== false" [class.table-resizable]="field.tableResizable">
                                 <thead>
                                   <tr>
                                     @for (col of getTableColumns(field); track col.name) {
-                                      <th [style.width]="col.width ? col.width + 'px' : 'auto'">{{ col.label }}</th>
+                                      <th [style.width]="col.width ? col.width + 'px' : 'auto'" [style.min-width]="field.tableResizable ? '60px' : 'auto'">
+                                        <div class="th-content">
+                                          <span class="th-label" (click)="onTableSort(field, col.name)">
+                                            {{ col.label }}
+                                            @if (tableSortState[field.name]?.column === col.name) {
+                                              <mat-icon class="sort-icon">{{ tableSortState[field.name]?.direction === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                                            }
+                                          </span>
+                                          @if (field.tableResizable) {
+                                            <div class="col-resize-handle" (mousedown)="onColumnResizeStart($event, field, col)"></div>
+                                          }
+                                        </div>
+                                        @if (field.tableFilterable) {
+                                          <input type="text" class="col-filter-input" placeholder="Filter..." [value]="getColumnFilter(field, col.name)" (input)="onColumnFilter($event, field, col.name)">
+                                        }
+                                      </th>
                                     }
                                     @if (!isTableFullyReadonly(field)) {
                                       <th class="actions-col">Actions</th>
@@ -1574,39 +1945,41 @@ import { User } from '@core/models/user.model';
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  @for (row of getTableRows(field); track $index; let rowIndex = $index) {
+                                  @for (row of getDisplayedTableRows(field); track $index) {
                                     <tr>
                                       @for (col of getTableColumns(field); track col.name) {
                                         <td [style.width]="col.width ? col.width + 'px' : 'auto'">
                                           @switch (col.type) {
                                             @case ('NUMBER') {
-                                              <input type="number" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                              <input type="number" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, getActualRowIndex(field, row), col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
                                             }
                                             @case ('DATE') {
-                                              <input type="date" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                              <input type="date" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, getActualRowIndex(field, row), col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
                                             }
                                             @case ('CHECKBOX') {
-                                              <mat-checkbox [checked]="row[col.name] === 'true' || row[col.name] === true" (change)="onTableCheckboxChange($event, field, rowIndex, col.name)" [disabled]="isColumnReadonly(field, col)"></mat-checkbox>
+                                              <mat-checkbox [checked]="row[col.name] === 'true' || row[col.name] === true" (change)="onTableCheckboxChange($event, field, getActualRowIndex(field, row), col.name)" [disabled]="isColumnReadonly(field, col)"></mat-checkbox>
                                             }
                                             @default {
-                                              <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, rowIndex, col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
+                                              <input type="text" [value]="row[col.name] || ''" (input)="onTableCellChange($event, field, getActualRowIndex(field, row), col.name)" [readonly]="isColumnReadonly(field, col)" class="table-cell-input">
                                             }
                                           }
                                         </td>
                                       }
                                       @if (!isTableFullyReadonly(field)) {
                                         <td class="actions-col">
-                                          <button mat-icon-button type="button" (click)="removeTableRow(field, rowIndex)" [disabled]="!canRemoveTableRow(field)" matTooltip="Remove row">
+                                          <button mat-icon-button type="button" (click)="removeTableRow(field, getActualRowIndex(field, row))" [disabled]="!canRemoveTableRow(field)" matTooltip="Remove row">
                                             <mat-icon>delete</mat-icon>
                                           </button>
                                         </td>
                                       }
                                     </tr>
                                   }
-                                  @if (getTableRows(field).length === 0) {
+                                  @if (getDisplayedTableRows(field).length === 0) {
                                     <tr>
                                       <td [attr.colspan]="isTableFullyReadonly(field) ? getTableColumns(field).length : getTableColumns(field).length + 1" class="empty-table">
-                                        @if (isTableFullyReadonly(field)) {
+                                        @if (tableSearchTerms[field.name] || hasColumnFilters(field)) {
+                                          No matching rows found.
+                                        } @else if (isTableFullyReadonly(field)) {
                                           No data available.
                                         } @else {
                                           No rows added. Click "Add Row" to add data.
@@ -1616,16 +1989,28 @@ import { User } from '@core/models/user.model';
                                   }
                                 </tbody>
                               </table>
-                              @if (!isTableFullyReadonly(field)) {
-                                <div class="table-actions">
-                                  <button mat-stroked-button type="button" (click)="addTableRow(field)" [disabled]="!canAddTableRow(field)" class="add-row-btn">
-                                    <mat-icon>add</mat-icon> Add Row
-                                  </button>
-                                  @if (field.tableMaxRows) {
-                                    <span class="row-count">{{ getTableRows(field).length }} / {{ field.tableMaxRows }} rows</span>
-                                  }
-                                </div>
-                              }
+                              </div>
+                              <div class="table-footer">
+                                @if (!isTableFullyReadonly(field)) {
+                                  <div class="table-actions">
+                                    <button mat-stroked-button matTooltip="Add Row" type="button" (click)="addTableRow(field)" [disabled]="!canAddTableRow(field)" class="add-row-btn">
+                                      <mat-icon>add</mat-icon> Add Row
+                                    </button>
+                                    @if (field.tableMaxRows) {
+                                      <span class="row-count">{{ getTableRows(field).length }} / {{ field.tableMaxRows }} rows</span>
+                                    }
+                                  </div>
+                                }
+                                @if (field.tablePageable && getFilteredTableRows(field).length > (field.tablePageSize || 10)) {
+                                  <div class="table-pagination">
+                                    <span class="page-info">{{ getPageInfo(field) }}</span>
+                                    <button mat-icon-button [disabled]="getTablePage(field) === 0" (click)="setTablePage(field, 0)" matTooltip="First"><mat-icon>first_page</mat-icon></button>
+                                    <button mat-icon-button [disabled]="getTablePage(field) === 0" (click)="setTablePage(field, getTablePage(field) - 1)" matTooltip="Previous"><mat-icon>chevron_left</mat-icon></button>
+                                    <button mat-icon-button [disabled]="getTablePage(field) >= getTableTotalPages(field) - 1" (click)="setTablePage(field, getTablePage(field) + 1)" matTooltip="Next"><mat-icon>chevron_right</mat-icon></button>
+                                    <button mat-icon-button [disabled]="getTablePage(field) >= getTableTotalPages(field) - 1" (click)="setTablePage(field, getTableTotalPages(field) - 1)" matTooltip="Last"><mat-icon>last_page</mat-icon></button>
+                                  </div>
+                                }
+                              </div>
                             </div>
                             @if (hasFieldError(field)) {
                               <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
@@ -1712,6 +2097,73 @@ import { User } from '@core/models/user.model';
                               </div>
                             }
                           }
+                        }
+                        @case ('SQL_TABLE') {
+                          <div class="sql-table-field" [class.has-error]="hasFieldError(field)">
+                            @if (field.label) {
+                              <label class="field-label">{{ field.label }}</label>
+                            }
+                            @if (sqlTableData[field.name]?.loading) {
+                              <div style="text-align: center; padding: 24px;"><mat-spinner diameter="30"></mat-spinner></div>
+                            } @else if (sqlTableData[field.name]?.error) {
+                              <div style="color: #f44336; padding: 12px;">{{ sqlTableData[field.name].error }}</div>
+                            } @else if (sqlTableData[field.name]?.data) {
+                              <div class="sql-table-wrapper">
+                                @if (field.tableSearchable) {
+                                  <div class="sql-table-search">
+                                    <mat-icon>search</mat-icon>
+                                    <input type="text" placeholder="Search..." (input)="onSqlTableSearch(field.name, $event)">
+                                  </div>
+                                }
+                                <table class="sql-result-table"
+                                       [class.table-striped]="field.tableStriped !== false"
+                                       [class.table-bordered]="field.tableBordered !== false">
+                                  <thead>
+                                    <tr>
+                                      @for (col of sqlTableData[field.name].columns; track col.field) {
+                                        <th (click)="onSqlTableSort(field.name, col.field)" class="sortable-th">
+                                          {{ col.header }}
+                                          @if (sqlTableState[field.name]?.sortField === col.field) {
+                                            <mat-icon class="sort-icon">{{ sqlTableState[field.name].sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                                          }
+                                        </th>
+                                      }
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    @for (row of getSqlTableDisplayRows(field); track $index) {
+                                      <tr>
+                                        @for (col of sqlTableData[field.name].columns; track col.field) {
+                                          <td>{{ row[col.field] }}</td>
+                                        }
+                                      </tr>
+                                    }
+                                    @if (getSqlTableDisplayRows(field).length === 0) {
+                                      <tr><td [attr.colspan]="sqlTableData[field.name].columns.length" style="text-align: center; color: #999; padding: 24px;">No data</td></tr>
+                                    }
+                                  </tbody>
+                                </table>
+                                <div class="sql-table-footer">
+                                  @if (field.tablePageable) {
+                                    <span>Showing {{ getSqlTableDisplayRows(field).length }} of {{ getSqlTableFilteredRows(field.name).length }} row(s)</span>
+                                    <div class="sql-table-pager">
+                                      <button mat-icon-button [disabled]="(sqlTableState[field.name]?.page || 0) === 0" (click)="sqlTablePageChange(field.name, -1)">
+                                        <mat-icon>chevron_left</mat-icon>
+                                      </button>
+                                      <span>Page {{ (sqlTableState[field.name]?.page || 0) + 1 }} of {{ getSqlTableTotalPages(field) || 1 }}</span>
+                                      <button mat-icon-button [disabled]="(sqlTableState[field.name]?.page || 0) >= getSqlTableTotalPages(field) - 1" (click)="sqlTablePageChange(field.name, 1)">
+                                        <mat-icon>chevron_right</mat-icon>
+                                      </button>
+                                    </div>
+                                  } @else {
+                                    <span>{{ getSqlTableFilteredRows(field.name).length }} row(s)</span>
+                                  }
+                                </div>
+                              </div>
+                            } @else {
+                              <div style="color: #999; padding: 12px;">No SQL query configured</div>
+                            }
+                          </div>
                         }
                         @case ('ACCORDION') {
                           <div class="accordion-field" [class.has-error]="hasFieldError(field)">
@@ -1922,7 +2374,7 @@ import { User } from '@core/models/user.model';
               <mat-card-content>
                 <div class="attachment-area">
                   <input type="file" #fileInput (change)="onAttachmentSelect($event)" multiple hidden>
-                  <button mat-stroked-button type="button" (click)="fileInput.click()">
+                  <button mat-stroked-button matTooltip="Add Attachments" type="button" (click)="fileInput.click()">
                     <mat-icon>attach_file</mat-icon>
                     Add Attachments
                   </button>
@@ -1933,7 +2385,7 @@ import { User } from '@core/models/user.model';
                           <mat-icon>description</mat-icon>
                           <span>{{ file.name }}</span>
                           <span class="size">({{ formatFileSize(file.size) }})</span>
-                          <button mat-icon-button (click)="removeAttachment(i)">
+                          <button mat-icon-button matTooltip="Close" (click)="removeAttachment(i)">
                             <mat-icon>close</mat-icon>
                           </button>
                         </div>
@@ -2005,8 +2457,8 @@ import { User } from '@core/models/user.model';
           @if (!isMultiStep) {
             <!-- Single Page Form Actions -->
             <div class="form-actions">
-              <button mat-button type="button" (click)="goBack()">Cancel</button>
-              <button mat-stroked-button type="button" (click)="saveDraft()" [disabled]="submitting">
+              <button mat-button matTooltip="Cancel" type="button" (click)="goBack()">Cancel</button>
+              <button mat-stroked-button matTooltip="Save Draft" type="button" (click)="saveDraft()" [disabled]="submitting">
                 Save Draft
               </button>
               <button mat-raised-button color="primary" type="submit" [disabled]="submitting">
@@ -2022,21 +2474,21 @@ import { User } from '@core/models/user.model';
             <div class="form-actions multi-step">
               @if (isFirstScreen) {
                 <!-- First Screen: Cancel + Next -->
-                <button mat-button type="button" (click)="goBack()">Cancel</button>
+                <button mat-button matTooltip="Cancel" type="button" (click)="goBack()">Cancel</button>
                 <span class="spacer"></span>
-                <button mat-raised-button color="primary" type="button" (click)="goToNextScreen()">
+                <button mat-raised-button matTooltip="Go Forward" color="primary" type="button" (click)="goToNextScreen()">
                   Next
                   <mat-icon>arrow_forward</mat-icon>
                 </button>
               } @else if (isLastScreen) {
                 <!-- Last Screen: Back + Cancel/Save Draft/Submit -->
-                <button mat-stroked-button type="button" (click)="goToPreviousScreen()">
+                <button mat-stroked-button matTooltip="Back" type="button" (click)="goToPreviousScreen()">
                   <mat-icon>arrow_back</mat-icon>
                   Back
                 </button>
                 <span class="spacer"></span>
-                <button mat-button type="button" (click)="goBack()">Cancel</button>
-                <button mat-stroked-button type="button" (click)="saveDraft()" [disabled]="submitting">
+                <button mat-button matTooltip="Cancel" type="button" (click)="goBack()">Cancel</button>
+                <button mat-stroked-button matTooltip="Save Draft" type="button" (click)="saveDraft()" [disabled]="submitting">
                   Save Draft
                 </button>
                 <button mat-raised-button color="primary" type="submit" [disabled]="submitting">
@@ -2048,12 +2500,12 @@ import { User } from '@core/models/user.model';
                 </button>
               } @else {
                 <!-- Middle Screens: Back + Next -->
-                <button mat-stroked-button type="button" (click)="goToPreviousScreen()">
+                <button mat-stroked-button matTooltip="Back" type="button" (click)="goToPreviousScreen()">
                   <mat-icon>arrow_back</mat-icon>
                   Back
                 </button>
                 <span class="spacer"></span>
-                <button mat-raised-button color="primary" type="button" (click)="goToNextScreen()">
+                <button mat-raised-button matTooltip="Go Forward" color="primary" type="button" (click)="goToNextScreen()">
                   Next
                   <mat-icon>arrow_forward</mat-icon>
                 </button>
@@ -2632,6 +3084,64 @@ import { User } from '@core/models/user.model';
       padding: 1rem;
       color: #999;
     }
+
+    .sql-table-wrapper { overflow-x: auto; }
+    .sql-table-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+    }
+    .sql-table-search input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      flex: 1;
+    }
+    .sql-table-search mat-icon { color: #999; font-size: 20px; width: 20px; height: 20px; }
+    .sql-result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .sql-result-table th {
+      background: #f5f5f5;
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .sql-result-table td {
+      padding: 6px 12px;
+    }
+    .sql-result-table.table-bordered th,
+    .sql-result-table.table-bordered td {
+      border: 1px solid #e0e0e0;
+    }
+    .sql-result-table.table-striped tbody tr:nth-child(odd) { background: #fafafa; }
+    .sql-result-table tbody tr:hover { background: #e3f2fd; }
+    .sortable-th { cursor: pointer; user-select: none; }
+    .sortable-th:hover { background: #e8e8e8; }
+    .sort-icon { font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-left: 4px; }
+    .sql-table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #666;
+    }
+    .sql-table-pager {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sql-table-pager button { transform: scale(0.85); }
 
     .data-table.table-striped tbody tr:nth-child(odd) {
       background: #fafafa;
@@ -3375,6 +3885,465 @@ import { User } from '@core/models/user.model';
     :host-context(.dark-mode) .collapsible-icon {
       color: #aaa;
     }
+
+    /* API field blocking overlay */
+    .api-blocking-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .api-blocking-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 32px 48px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    :host-context(.dark-mode) .api-blocking-content {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    /* API field containers */
+    .api-field-container {
+      position: relative;
+    }
+
+    .api-loading-overlay {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      border: 1px dashed #ccc;
+      color: #666;
+    }
+
+    :host-context(.dark-mode) .api-loading-overlay {
+      background: #2d2d2d;
+      border-color: #555;
+      color: #aaa;
+    }
+
+    .api-error {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #fff3f3;
+      border: 1px solid #ffcdd2;
+      border-radius: 8px;
+      color: #c62828;
+      font-size: 0.875rem;
+    }
+
+    .api-error button {
+      margin-left: auto;
+    }
+
+    :host-context(.dark-mode) .api-error {
+      background: #3e2020;
+      border-color: #5a2020;
+      color: #ef9a9a;
+    }
+
+    .api-data-display {
+      padding: 12px 16px;
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      min-height: 48px;
+    }
+
+    :host-context(.dark-mode) .api-data-display {
+      background: #2d2d2d;
+      border-color: #444;
+      color: #e0e0e0;
+    }
+
+    .api-value-text {
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 4px 0;
+      display: block;
+    }
+
+    .api-object-props {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+    }
+
+    .api-prop-key {
+      font-weight: 600;
+      color: #555;
+      font-size: 0.875rem;
+    }
+
+    :host-context(.dark-mode) .api-prop-key {
+      color: #aaa;
+    }
+
+    .api-prop-value {
+      font-size: 0.875rem;
+    }
+
+    .api-table-wrapper {
+      overflow-x: auto;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .api-table th {
+      background: #e3f2fd;
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #90caf9;
+      position: sticky;
+      top: 0;
+    }
+
+    :host-context(.dark-mode) .api-table th {
+      background: #1a3a5c;
+      border-bottom-color: #2a5a8c;
+      color: #e0e0e0;
+    }
+
+    .api-table td {
+      padding: 6px 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    :host-context(.dark-mode) .api-table td {
+      border-bottom-color: #444;
+    }
+
+    .api-table tbody tr:hover {
+      background: #f5f5f5;
+    }
+
+    :host-context(.dark-mode) .api-table tbody tr:hover {
+      background: #383838;
+    }
+
+    .api-list-items {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .api-list-items li {
+      padding: 4px 0;
+      font-size: 0.9rem;
+    }
+
+    .no-data-hint {
+      color: #999;
+      font-style: italic;
+      margin: 0;
+    }
+
+    /* Object Viewer */
+    .ov-panel {
+      border-radius: 8px !important;
+      box-shadow: none !important;
+      border: 1px solid #e0e0e0;
+    }
+
+    :host-context(.dark-mode) .ov-panel {
+      border-color: #444;
+    }
+
+    .ov-panel-icon {
+      margin-right: 8px;
+      color: #5c2d91;
+    }
+
+    :host-context(.dark-mode) .ov-panel-icon {
+      color: #ce93d8;
+    }
+
+    .object-viewer {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fafafa;
+      overflow: hidden;
+    }
+
+    :host-context(.dark-mode) .object-viewer {
+      background: #1e1e1e;
+      border-color: #444;
+    }
+
+    .ov-toolbar {
+      display: flex;
+      gap: 4px;
+      padding: 6px 12px;
+      background: #f0f0f0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    :host-context(.dark-mode) .ov-toolbar {
+      background: #2a2a2a;
+      border-bottom-color: #444;
+    }
+
+    .ov-toolbar button {
+      min-width: 0;
+      padding: 0 6px;
+      line-height: 28px;
+      height: 28px;
+    }
+
+    .ov-toolbar .mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .ov-tree {
+      padding: 8px 4px;
+      max-height: 500px;
+      overflow-y: auto;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.85rem;
+    }
+
+    .ov-node {
+      line-height: 1.2;
+    }
+
+    .ov-key-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .ov-expandable {
+      cursor: pointer;
+    }
+
+    .ov-expandable:hover {
+      background: rgba(25, 118, 210, 0.08);
+    }
+
+    :host-context(.dark-mode) .ov-expandable:hover {
+      background: rgba(100, 181, 246, 0.12);
+    }
+
+    .ov-toggle {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #888;
+      flex-shrink: 0;
+    }
+
+    .ov-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #bbb;
+      margin: 0 6px;
+      flex-shrink: 0;
+    }
+
+    .ov-key {
+      font-weight: 600;
+      color: #5c2d91;
+      margin-right: 4px;
+    }
+
+    :host-context(.dark-mode) .ov-key {
+      color: #ce93d8;
+    }
+
+    .ov-value {
+      word-break: break-all;
+    }
+
+    .ov-val-string { color: #0d7e3f; }
+    .ov-val-number { color: #1565c0; }
+    .ov-val-boolean { color: #e65100; }
+    .ov-val-null { color: #999; font-style: italic; }
+
+    :host-context(.dark-mode) .ov-val-string { color: #81c784; }
+    :host-context(.dark-mode) .ov-val-number { color: #64b5f6; }
+    :host-context(.dark-mode) .ov-val-boolean { color: #ffb74d; }
+
+    .ov-type-badge {
+      font-size: 0.7rem;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: #e8eaf6;
+      color: #3949ab;
+      margin-left: 4px;
+      font-weight: 400;
+    }
+
+    :host-context(.dark-mode) .ov-type-badge {
+      background: #283593;
+      color: #c5cae9;
+    }
+
+    /* Table search bar */
+    .table-search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      margin-bottom: 8px;
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+
+    :host-context(.dark-mode) .table-search-bar {
+      background: #2d2d2d;
+      border-color: #444;
+    }
+
+    .table-search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 0.9rem;
+      padding: 4px 0;
+      color: inherit;
+    }
+
+    /* Table scroll wrapper */
+    .table-scroll-wrapper {
+      overflow-x: auto;
+    }
+
+    /* Column filter input */
+    .col-filter-input {
+      width: 100%;
+      border: none;
+      border-top: 1px solid #ddd;
+      outline: none;
+      padding: 4px 6px;
+      font-size: 0.75rem;
+      background: #fafafa;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+
+    :host-context(.dark-mode) .col-filter-input {
+      background: #333;
+      border-top-color: #555;
+      color: #e0e0e0;
+    }
+
+    /* Sortable header */
+    .th-content {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .th-label {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
+    }
+
+    .th-label:hover {
+      color: #1976d2;
+    }
+
+    .sort-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Column resize handle */
+    .col-resize-handle {
+      width: 4px;
+      cursor: col-resize;
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background: transparent;
+    }
+
+    .col-resize-handle:hover {
+      background: #1976d2;
+    }
+
+    .table-resizable th {
+      position: relative;
+    }
+
+    /* Table footer */
+    .table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Pagination */
+    .table-pagination {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-left: auto;
+    }
+
+    .page-info {
+      font-size: 0.8rem;
+      color: #666;
+      margin-right: 4px;
+    }
+
+    :host-context(.dark-mode) .page-info {
+      color: #aaa;
+    }
+
+    .table-pagination .mat-mdc-icon-button {
+      width: 32px;
+      height: 32px;
+      padding: 4px;
+    }
+
+    .table-pagination .mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
   `]
 })
 export class WorkflowFormComponent implements OnInit, OnDestroy {
@@ -3392,6 +4361,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   screens: Screen[] = [];
   currentScreenIndex = 0;
   selectedFiles: Record<string, File[]> = {};
+  sqlTableData: Record<string, { loading: boolean; error: string | null; columns: any[]; data: any[] }> = {};
+  sqlTableState: Record<string, { search: string; sortField: string; sortDir: 'asc' | 'desc'; page: number }> = {};
   existingAttachments: Record<string, any[]> = {}; // Already-uploaded attachments by field name
   existingGeneralAttachments: any[] = []; // Already-uploaded general attachments (no field name)
   attachments: File[] = [];
@@ -3427,12 +4398,19 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   // Accordion expansion state: accordionFieldId -> array of expanded collapsible indices
   accordionExpandedState: Record<string, Set<number>> = {};
 
+  // API field data
+  apiFieldData: Record<string, any> = {};
+  apiFieldLoading: Record<string, boolean> = {};
+  apiFieldErrors: Record<string, string | null> = {};
+
   // Per-screen draft saving
   private hasScreenNotifiers = false;
   private draftInstanceId: string | null = null;
 
   constructor(
     private fb: FormBuilder,
+    private http: HttpClient,
+    private dialog: MatDialog,
     private userService: UserService,
     private workflowService: WorkflowService,
     private authService: AuthService,
@@ -3768,6 +4746,10 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
     this.form = this.fb.group(formControls);
 
+    // Load SQL_TABLE field data
+    this.fields.filter(f => (f.type === 'SQL_TABLE' || f.fieldType === 'SQL_TABLE') && f.sqlQuery)
+      .forEach(field => this.loadSqlTableData(field));
+
     // Safety net: explicitly patch existing field values after form creation
     // This ensures values are set even if FormBuilder initial values have issues
     if (this.isEditMode && Object.keys(this.existingFieldValues).length > 0) {
@@ -3810,8 +4792,98 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     // Set up validation subscriptions for fields with validation expressions
     this.setupValidationSubscriptions();
 
+    // Fetch data for API field types
+    this.initApiFields();
+
     // Force change detection to ensure view reflects form values
     this.cdr.detectChanges();
+  }
+
+  onSqlTableSearch(fieldName: string, event: Event) {
+    const val = (event.target as HTMLInputElement).value;
+    if (!this.sqlTableState[fieldName]) this.sqlTableState[fieldName] = { search: '', sortField: '', sortDir: 'asc', page: 0 };
+    this.sqlTableState[fieldName].search = val;
+    this.sqlTableState[fieldName].page = 0;
+  }
+
+  onSqlTableSort(fieldName: string, colField: string) {
+    if (!this.sqlTableState[fieldName]) this.sqlTableState[fieldName] = { search: '', sortField: '', sortDir: 'asc', page: 0 };
+    const st = this.sqlTableState[fieldName];
+    if (st.sortField === colField) {
+      st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      st.sortField = colField;
+      st.sortDir = 'asc';
+    }
+  }
+
+  getSqlTableFilteredRows(fieldName: string): any[] {
+    const td = this.sqlTableData[fieldName];
+    if (!td?.data) return [];
+    let rows = [...td.data];
+    const st = this.sqlTableState[fieldName];
+    if (st?.search) {
+      const s = st.search.toLowerCase();
+      rows = rows.filter(r => td.columns.some((c: any) => String(r[c.field] ?? '').toLowerCase().includes(s)));
+    }
+    if (st?.sortField) {
+      rows.sort((a, b) => {
+        const va = a[st.sortField] ?? '';
+        const vb = b[st.sortField] ?? '';
+        const cmp = String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' });
+        return st.sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+    return rows;
+  }
+
+  getSqlTableDisplayRows(field: any): any[] {
+    const rows = this.getSqlTableFilteredRows(field.name);
+    if (!field.tablePageable) return rows;
+    const pageSize = field.tablePageSize || 10;
+    const page = this.sqlTableState[field.name]?.page || 0;
+    return rows.slice(page * pageSize, (page + 1) * pageSize);
+  }
+
+  getSqlTableTotalPages(field: any): number {
+    const rows = this.getSqlTableFilteredRows(field.name);
+    const pageSize = field.tablePageSize || 10;
+    return Math.ceil(rows.length / pageSize);
+  }
+
+  sqlTablePageChange(fieldName: string, delta: number) {
+    if (!this.sqlTableState[fieldName]) this.sqlTableState[fieldName] = { search: '', sortField: '', sortDir: 'asc', page: 0 };
+    this.sqlTableState[fieldName].page = Math.max(0, (this.sqlTableState[fieldName].page || 0) + delta);
+  }
+
+  private loadSqlTableData(field: any) {
+    this.sqlTableData[field.name] = { loading: true, error: null, columns: [], data: [] };
+    this.sqlTableState[field.name] = { search: '', sortField: '', sortDir: 'asc', page: 0 };
+    this.http.post<any>(`${environment.apiUrl}/sql-objects/execute-query`, {
+      query: field.sqlQuery,
+      columns: field.sqlTableColumns || null
+    }).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.sqlTableData[field.name] = {
+            loading: false,
+            error: null,
+            columns: res.data.columns || [],
+            data: res.data.data || []
+          };
+        } else {
+          this.sqlTableData[field.name] = { loading: false, error: res.message || 'Failed to load data', columns: [], data: [] };
+        }
+      },
+      error: (err) => {
+        this.sqlTableData[field.name] = {
+          loading: false,
+          error: err.error?.message || 'Query execution failed',
+          columns: [],
+          data: []
+        };
+      }
+    });
   }
 
   private extractFieldDependencies(expression: string, allFieldNames: Set<string>): string[] {
@@ -3931,6 +5003,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   private validateAllFields() {
     this.fields.forEach(field => {
+      console.log(`[validateAllFields] field="${field.name}" validation="${field.validation}" customValidationRule="${field.customValidationRule}"`);
       if (field.validation) {
         const error = this.evaluateValidation(field);
         this.validationErrors[field.name] = error;
@@ -3955,6 +5028,128 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  private applyAllTransformations() {
+    this.fields.forEach(field => {
+      const transformExpr = field.customValidationRule;
+      if (!transformExpr || !transformExpr.trim()) return;
+
+      const control = this.form.get(field.name);
+      if (!control) return;
+
+      let value = control.value;
+      if (value === null || value === undefined) return;
+
+      try {
+        const transforms = this.splitOutsideQuotes(transformExpr, /\s+AND\s+/i).map((t: string) => t.trim());
+        for (const transform of transforms) {
+          value = this.applySingleTransform(transform, value);
+        }
+        control.setValue(value, { emitEvent: false });
+      } catch (e) {
+        // Skip transform errors silently
+      }
+    });
+  }
+
+  private applySingleTransform(expression: string, value: any): any {
+    const strValue = value != null ? String(value) : '';
+
+    // UPPER()
+    if (/^UPPER\(\)$/i.test(expression)) return strValue.toUpperCase();
+
+    // LOWER()
+    if (/^LOWER\(\)$/i.test(expression)) return strValue.toLowerCase();
+
+    // TRIM()
+    if (/^TRIM\(\)$/i.test(expression)) return strValue.trim();
+
+    // TRIM_LEFT() / LTRIM()
+    if (/^(TRIM_LEFT|LTRIM)\(\)$/i.test(expression)) return strValue.trimStart();
+
+    // TRIM_RIGHT() / RTRIM()
+    if (/^(TRIM_RIGHT|RTRIM)\(\)$/i.test(expression)) return strValue.trimEnd();
+
+    // CAPITALIZE()
+    if (/^CAPITALIZE\(\)$/i.test(expression)) {
+      return strValue.replace(/\b\w/g, (c: string) => c.toUpperCase());
+    }
+
+    // ROUND(decimals)
+    const roundMatch = expression.match(/^ROUND\(\s*(\d+)\s*\)$/i);
+    if (roundMatch) {
+      const decimals = parseInt(roundMatch[1], 10);
+      const num = parseFloat(strValue);
+      if (!isNaN(num)) return Number(num.toFixed(decimals));
+      return value;
+    }
+
+    // ROUND_UP(decimals)
+    const roundUpMatch = expression.match(/^ROUND_UP\(\s*(\d+)\s*\)$/i);
+    if (roundUpMatch) {
+      const decimals = parseInt(roundUpMatch[1], 10);
+      const num = parseFloat(strValue);
+      if (!isNaN(num)) {
+        const factor = Math.pow(10, decimals);
+        return Math.ceil(num * factor) / factor;
+      }
+      return value;
+    }
+
+    // ROUND_DOWN(decimals)
+    const roundDownMatch = expression.match(/^ROUND_DOWN\(\s*(\d+)\s*\)$/i);
+    if (roundDownMatch) {
+      const decimals = parseInt(roundDownMatch[1], 10);
+      const num = parseFloat(strValue);
+      if (!isNaN(num)) {
+        const factor = Math.pow(10, decimals);
+        return Math.floor(num * factor) / factor;
+      }
+      return value;
+    }
+
+    // PAD_LEFT(length, char)
+    const padLeftMatch = expression.match(/^PAD_LEFT\(\s*(\d+)\s*,\s*(?:"([^"]*)"|'([^']*)'|(\S))\s*\)$/i);
+    if (padLeftMatch) {
+      const len = parseInt(padLeftMatch[1], 10);
+      const ch = padLeftMatch[2] || padLeftMatch[3] || padLeftMatch[4] || ' ';
+      return strValue.padStart(len, ch);
+    }
+
+    // PAD_RIGHT(length, char)
+    const padRightMatch = expression.match(/^PAD_RIGHT\(\s*(\d+)\s*,\s*(?:"([^"]*)"|'([^']*)'|(\S))\s*\)$/i);
+    if (padRightMatch) {
+      const len = parseInt(padRightMatch[1], 10);
+      const ch = padRightMatch[2] || padRightMatch[3] || padRightMatch[4] || ' ';
+      return strValue.padEnd(len, ch);
+    }
+
+    // SUBSTRING(start, end)
+    const substringMatch = expression.match(/^SUBSTRING\(\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+    if (substringMatch) {
+      const start = parseInt(substringMatch[1], 10);
+      const end = parseInt(substringMatch[2], 10);
+      return strValue.substring(start, end);
+    }
+
+    // REPLACE(search, replacement)
+    const replaceMatch = expression.match(/^REPLACE\(\s*(?:"([^"]*)"|'([^']*)')\s*,\s*(?:"([^"]*)"|'([^']*)')\s*\)$/i);
+    if (replaceMatch) {
+      const search = replaceMatch[1] || replaceMatch[2] || '';
+      const replacement = replaceMatch[3] || replaceMatch[4] || '';
+      return strValue.split(search).join(replacement);
+    }
+
+    // REMOVE_SPACES()
+    if (/^REMOVE_SPACES\(\)$/i.test(expression)) return strValue.replace(/\s/g, '');
+
+    // SLUG()
+    if (/^SLUG\(\)$/i.test(expression)) {
+      return strValue.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-');
+    }
+
+    return value; // Unknown transform, return unchanged
+  }
+
   private evaluateValidation(field: WorkflowField): string | null {
     const expression = field.validation;
     if (!expression) return null;
@@ -3962,12 +5157,18 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     try {
       // Parse and evaluate validation expression(s)
       // Support combining with AND
-      const parts = expression.split(/\s+AND\s+/i);
+      const parts = this.splitOutsideQuotes(expression, /\s+AND\s+/i);
 
       for (const part of parts) {
         const trimmed = part.trim();
         const error = this.evaluateSingleValidation(trimmed, field);
-        if (error) return error;
+        if (error) {
+          // Custom error message from builder's "Validation & Transformation" section takes precedence
+          if (field.validationMessage && field.validationMessage.trim()) {
+            return field.validationMessage.trim();
+          }
+          return error;
+        }
       }
 
       return null;
@@ -4024,35 +5225,41 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     }
 
     // ValidWhen(expression, "message") or ValidWhen(expression)
-    const validWhenMatch = expression.match(/^ValidWhen\(\s*(.+?)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
-    if (validWhenMatch) {
-      const conditionExpr = validWhenMatch[1].trim();
-      const customMessage = validWhenMatch[2] || validWhenMatch[3];
-
-      const result = this.evaluateCondition(conditionExpr);
-      // Valid when result is true (or 0)
-      const isValid = result === true || result === 'true' || result === 0 || result === '0';
-      if (!isValid) {
-        return customMessage || `${fieldLabel} validation failed`;
+    if (/^ValidWhen\s*\(/i.test(expression)) {
+      const { expr, message } = this.parseWhenFunction(expression, 'ValidWhen');
+      if (expr !== null) {
+        // Skip evaluation if the current field value is empty (unless combined with Required)
+        if (value === null || value === undefined || value === '' ||
+            (typeof value === 'string' && value.trim() === '')) {
+          return null;
+        }
+        const result = this.evaluateCondition(expr);
+        const isValid = result === true || result === 'true' || result === 0 || result === '0';
+        if (!isValid) {
+          return message || `${fieldLabel} validation failed`;
+        }
+        return null;
       }
-      return null;
     }
 
     // InvalidWhen(expression, "message") or InvalidWhen(expression)
-    const invalidWhenMatch = expression.match(/^InvalidWhen\(\s*(.+?)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
-    if (invalidWhenMatch) {
-      const conditionExpr = invalidWhenMatch[1].trim();
-      const customMessage = invalidWhenMatch[2] || invalidWhenMatch[3];
-
-      const result = this.evaluateCondition(conditionExpr);
-      // Invalid when result is true (or non-zero)
-      const isInvalid = result === true || result === 'true' ||
-                        (typeof result === 'number' && result !== 0) ||
-                        (typeof result === 'string' && result !== '0' && result !== 'false' && result !== '');
-      if (isInvalid) {
-        return customMessage || `${fieldLabel} validation failed`;
+    if (/^InvalidWhen\s*\(/i.test(expression)) {
+      const { expr, message } = this.parseWhenFunction(expression, 'InvalidWhen');
+      if (expr !== null) {
+        // Skip evaluation if the current field value is empty (unless combined with Required)
+        if (value === null || value === undefined || value === '' ||
+            (typeof value === 'string' && value.trim() === '')) {
+          return null;
+        }
+        const result = this.evaluateCondition(expr);
+        const isInvalid = result === true || result === 'true' ||
+                          (typeof result === 'number' && result !== 0) ||
+                          (typeof result === 'string' && result !== '0' && result !== 'false' && result !== '');
+        if (isInvalid) {
+          return message || `${fieldLabel} validation failed`;
+        }
+        return null;
       }
-      return null;
     }
 
     // MinLength(n) or MinLength(n, "message")
@@ -4061,7 +5268,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       const minLen = parseInt(minLengthMatch[1], 10);
       const customMessage = minLengthMatch[2] || minLengthMatch[3];
       const strValue = value ? String(value) : '';
-      if (strValue.length < minLen) {
+      if (strValue && strValue.length < minLen) {
         return customMessage || `${fieldLabel} must be at least ${minLen} characters`;
       }
       return null;
@@ -4073,7 +5280,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       const maxLen = parseInt(maxLengthMatch[1], 10);
       const customMessage = maxLengthMatch[2] || maxLengthMatch[3];
       const strValue = value ? String(value) : '';
-      if (strValue.length > maxLen) {
+      if (strValue && strValue.length > maxLen) {
         return customMessage || `${fieldLabel} must be at most ${maxLen} characters`;
       }
       return null;
@@ -4121,8 +5328,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    // Email() or Email("message")
-    const emailMatch = expression.match(/^Email\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    // Email / IS_EMAIL / IsEmail ("message")
+    const emailMatch = expression.match(/^(?:Email|IS_EMAIL|IsEmail)\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
     if (emailMatch) {
       const customMessage = emailMatch[1] || emailMatch[2];
       const strValue = value ? String(value) : '';
@@ -4133,8 +5340,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    // Phone() or Phone("message")
-    const phoneMatch = expression.match(/^Phone\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    // Phone / IS_PHONE / IsPhone ("message")
+    const phoneMatch = expression.match(/^(?:Phone|IS_PHONE|IsPhone)\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
     if (phoneMatch) {
       const customMessage = phoneMatch[1] || phoneMatch[2];
       const strValue = value ? String(value) : '';
@@ -4146,8 +5353,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    // URL() or URL("message")
-    const urlMatch = expression.match(/^URL\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    // URL / IS_URL / IsUrl ("message")
+    const urlMatch = expression.match(/^(?:URL|IS_URL|IsUrl)\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
     if (urlMatch) {
       const customMessage = urlMatch[1] || urlMatch[2];
       const strValue = value ? String(value) : '';
@@ -4181,7 +5388,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       const maxLen = parseInt(lengthRangeMatch[2], 10);
       const customMessage = lengthRangeMatch[3] || lengthRangeMatch[4];
       const strValue = value ? String(value) : '';
-      if (strValue.length < minLen || strValue.length > maxLen) {
+      if (strValue && (strValue.length < minLen || strValue.length > maxLen)) {
         return customMessage || `${fieldLabel} must be between ${minLen} and ${maxLen} characters`;
       }
       return null;
@@ -4220,8 +5427,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    // Date() or Date("message") - valid date format
-    const dateMatch = expression.match(/^Date\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    // Date / IS_DATE / IsDate ("message") - valid date format
+    const dateMatch = expression.match(/^(?:Date|IS_DATE|IsDate)\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
     if (dateMatch) {
       const customMessage = dateMatch[1] || dateMatch[2];
       const strValue = value ? String(value) : '';
@@ -4242,7 +5449,362 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return null;
     }
 
+    // NotEmpty() or NotEmpty("message") - value must not be empty/whitespace
+    const notEmptyMatch = expression.match(/^NotEmpty\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (notEmptyMatch) {
+      const customMessage = notEmptyMatch[1] || notEmptyMatch[2];
+      const strValue = value ? String(value) : '';
+      if (!strValue.trim()) {
+        return customMessage || `${fieldLabel} must not be empty`;
+      }
+      return null;
+    }
+
+    // Equals(value, "message") - must equal a specific value
+    const equalsMatch = expression.match(/^Equals\(\s*(?:"([^"]*)"|'([^']*)'|(-?[\d.]+))(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (equalsMatch) {
+      const expected = equalsMatch[1] || equalsMatch[2] || equalsMatch[3];
+      const customMessage = equalsMatch[4] || equalsMatch[5];
+      const strValue = value != null ? String(value) : '';
+      if (strValue && strValue !== expected) {
+        return customMessage || `${fieldLabel} must equal "${expected}"`;
+      }
+      return null;
+    }
+
+    // Contains(text, "message") - must contain a substring
+    const containsMatch = expression.match(/^Contains\(\s*(?:"([^"]*)"|'([^']*)')(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (containsMatch) {
+      const search = containsMatch[1] || containsMatch[2] || '';
+      const customMessage = containsMatch[3] || containsMatch[4];
+      const strValue = value ? String(value) : '';
+      if (strValue && !strValue.includes(search)) {
+        return customMessage || `${fieldLabel} must contain "${search}"`;
+      }
+      return null;
+    }
+
+    // StartsWith(text, "message")
+    const startsWithMatch = expression.match(/^StartsWith\(\s*(?:"([^"]*)"|'([^']*)')(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (startsWithMatch) {
+      const prefix = startsWithMatch[1] || startsWithMatch[2] || '';
+      const customMessage = startsWithMatch[3] || startsWithMatch[4];
+      const strValue = value ? String(value) : '';
+      if (strValue && !strValue.startsWith(prefix)) {
+        return customMessage || `${fieldLabel} must start with "${prefix}"`;
+      }
+      return null;
+    }
+
+    // EndsWith(text, "message")
+    const endsWithMatch = expression.match(/^EndsWith\(\s*(?:"([^"]*)"|'([^']*)')(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (endsWithMatch) {
+      const suffix = endsWithMatch[1] || endsWithMatch[2] || '';
+      const customMessage = endsWithMatch[3] || endsWithMatch[4];
+      const strValue = value ? String(value) : '';
+      if (strValue && !strValue.endsWith(suffix)) {
+        return customMessage || `${fieldLabel} must end with "${suffix}"`;
+      }
+      return null;
+    }
+
+    // MatchField(otherFieldName, "message") - must match another field
+    const matchFieldMatch = expression.match(/^MatchField\(\s*(?:"([^"]*)"|'([^']*)'|([a-zA-Z_]\w*))(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (matchFieldMatch) {
+      const otherFieldName = matchFieldMatch[1] || matchFieldMatch[2] || matchFieldMatch[3];
+      const customMessage = matchFieldMatch[4] || matchFieldMatch[5];
+      // Only validate if the current field has a value
+      if (value !== null && value !== undefined && value !== '') {
+        const otherValue = this.form.get(otherFieldName)?.value;
+        const otherField = this.fields.find(f => f.name === otherFieldName);
+        const otherLabel = otherField?.label || otherFieldName;
+        if (value !== otherValue) {
+          return customMessage || `${fieldLabel} must match ${otherLabel}`;
+        }
+      }
+      return null;
+    }
+
+    // IsTrue("message") - boolean must be true (for checkboxes/toggles)
+    const isTrueMatch = expression.match(/^IsTrue\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (isTrueMatch) {
+      const customMessage = isTrueMatch[1] || isTrueMatch[2];
+      if (value !== true && value !== 'true') {
+        return customMessage || `${fieldLabel} must be checked`;
+      }
+      return null;
+    }
+
+    // IsFalse("message") - boolean must be false
+    const isFalseMatch = expression.match(/^IsFalse\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (isFalseMatch) {
+      const customMessage = isFalseMatch[1] || isFalseMatch[2];
+      // null/undefined counts as false (unchecked)
+      if (value === true || value === 'true') {
+        return customMessage || `${fieldLabel} must not be checked`;
+      }
+      return null;
+    }
+
+    // MinItems(n, "message") - for multi-select, array must have min items
+    const minItemsMatch = expression.match(/^MinItems\(\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (minItemsMatch) {
+      const minCount = parseInt(minItemsMatch[1], 10);
+      const customMessage = minItemsMatch[2] || minItemsMatch[3];
+      const arr = Array.isArray(value) ? value : [];
+      if (arr.length < minCount) {
+        return customMessage || `${fieldLabel} must have at least ${minCount} items`;
+      }
+      return null;
+    }
+
+    // MaxItems(n, "message") - for multi-select, array must have max items
+    const maxItemsMatch = expression.match(/^MaxItems\(\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (maxItemsMatch) {
+      const maxCount = parseInt(maxItemsMatch[1], 10);
+      const customMessage = maxItemsMatch[2] || maxItemsMatch[3];
+      const arr = Array.isArray(value) ? value : [];
+      if (arr.length > maxCount) {
+        return customMessage || `${fieldLabel} must have at most ${maxCount} items`;
+      }
+      return null;
+    }
+
+    // Positive("message") - number must be positive
+    const positiveMatch = expression.match(/^Positive\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (positiveMatch) {
+      const customMessage = positiveMatch[1] || positiveMatch[2];
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue <= 0) {
+        return customMessage || `${fieldLabel} must be a positive number`;
+      }
+      return null;
+    }
+
+    // Negative("message") - number must be negative
+    const negativeMatch = expression.match(/^Negative\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (negativeMatch) {
+      const customMessage = negativeMatch[1] || negativeMatch[2];
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue >= 0) {
+        return customMessage || `${fieldLabel} must be a negative number`;
+      }
+      return null;
+    }
+
+    // Integer("message") - must be a whole number
+    const integerMatch = expression.match(/^Integer\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (integerMatch) {
+      const customMessage = integerMatch[1] || integerMatch[2];
+      const strValue = value != null ? String(value) : '';
+      if (strValue && (isNaN(Number(strValue)) || !Number.isInteger(Number(strValue)))) {
+        return customMessage || `${fieldLabel} must be a whole number`;
+      }
+      return null;
+    }
+
+    // Decimal(places, "message") - must have up to N decimal places
+    const decimalMatch = expression.match(/^Decimal\(\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (decimalMatch) {
+      const places = parseInt(decimalMatch[1], 10);
+      const customMessage = decimalMatch[2] || decimalMatch[3];
+      const strValue = value != null ? String(value) : '';
+      if (strValue) {
+        const num = Number(strValue);
+        if (isNaN(num)) {
+          return customMessage || `${fieldLabel} must be a valid number`;
+        }
+        const decimalPart = strValue.includes('.') ? strValue.split('.')[1] : '';
+        if (decimalPart.length > places) {
+          return customMessage || `${fieldLabel} must have at most ${places} decimal places`;
+        }
+      }
+      return null;
+    }
+
+    // MinRows(n, "message") - for TABLE fields
+    const minRowsMatch = expression.match(/^MinRows\(\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (minRowsMatch) {
+      const minCount = parseInt(minRowsMatch[1], 10);
+      const customMessage = minRowsMatch[2] || minRowsMatch[3];
+      const rows = Array.isArray(value) ? value : [];
+      if (rows.length < minCount) {
+        return customMessage || `${fieldLabel} must have at least ${minCount} rows`;
+      }
+      return null;
+    }
+
+    // MaxRows(n, "message") - for TABLE fields
+    const maxRowsMatch = expression.match(/^MaxRows\(\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (maxRowsMatch) {
+      const maxCount = parseInt(maxRowsMatch[1], 10);
+      const customMessage = maxRowsMatch[2] || maxRowsMatch[3];
+      const rows = Array.isArray(value) ? value : [];
+      if (rows.length > maxCount) {
+        return customMessage || `${fieldLabel} must have at most ${maxCount} rows`;
+      }
+      return null;
+    }
+
+    // DateBefore / DATE_BEFORE (date, "message") - date must be before a specific date
+    const dateBeforeMatch = expression.match(/^(?:DateBefore|DATE_BEFORE)\(\s*(?:"([^"]*)"|'([^']*)')(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (dateBeforeMatch) {
+      const targetDate = dateBeforeMatch[1] || dateBeforeMatch[2] || '';
+      const customMessage = dateBeforeMatch[3] || dateBeforeMatch[4];
+      if (value) {
+        const d = this.toDateOnly(value);
+        const t = targetDate.toLowerCase() === 'today' ? this.toDateOnly(new Date()) : this.toDateOnly(targetDate);
+        if (d && t && d.getTime() >= t.getTime()) {
+          return customMessage || `${fieldLabel} must be before ${targetDate}`;
+        }
+      }
+      return null;
+    }
+
+    // DateAfter / DATE_AFTER (date, "message") - date must be after a specific date
+    const dateAfterMatch = expression.match(/^(?:DateAfter|DATE_AFTER)\(\s*(?:"([^"]*)"|'([^']*)')(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (dateAfterMatch) {
+      const targetDate = dateAfterMatch[1] || dateAfterMatch[2] || '';
+      const customMessage = dateAfterMatch[3] || dateAfterMatch[4];
+      if (value) {
+        const d = this.toDateOnly(value);
+        const t = targetDate.toLowerCase() === 'today' ? this.toDateOnly(new Date()) : this.toDateOnly(targetDate);
+        if (d && t && d.getTime() <= t.getTime()) {
+          return customMessage || `${fieldLabel} must be after ${targetDate}`;
+        }
+      }
+      return null;
+    }
+
+    // FutureDate / IS_FUTURE / IsFuture ("message") - date must be in the future (strictly after today)
+    const futureDateMatch = expression.match(/^(?:FutureDate|IS_FUTURE|IsFuture)\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (futureDateMatch) {
+      const customMessage = futureDateMatch[1] || futureDateMatch[2];
+      if (value) {
+        const d = this.toDateOnly(value);
+        const today = this.toDateOnly(new Date())!;
+        if (d && d.getTime() <= today.getTime()) {
+          return customMessage || `${fieldLabel} must be a future date`;
+        }
+      }
+      return null;
+    }
+
+    // PastDate / IS_PAST / IsPast ("message") - date must be in the past (strictly before today)
+    const pastDateMatch = expression.match(/^(?:PastDate|IS_PAST|IsPast)\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (pastDateMatch) {
+      const customMessage = pastDateMatch[1] || pastDateMatch[2];
+      if (value) {
+        const d = this.toDateOnly(value);
+        const today = this.toDateOnly(new Date())!;
+        if (d && d.getTime() >= today.getTime()) {
+          return customMessage || `${fieldLabel} must be a past date`;
+        }
+      }
+      return null;
+    }
+
+    // Fallback: try to evaluate as a function library expression
+    // This allows ALL library functions (IS_PAST, IS_FUTURE, IS_EMPTY, IS_NUMBER,
+    // BETWEEN, IN, NOT_IN, EQUALS, CONTAINS, STARTS_WITH, ENDS_WITH, REGEX_MATCH,
+    // IS_WEEKEND, IS_WORKDAY, IS_UPPERCASE, IS_LOWERCASE, etc.) to work as validators
+    try {
+      // Extract trailing custom message if present: FUNC(args, "message")
+      let resolvedExpr = expression;
+      let fallbackMessage: string | null = null;
+      const trailingMsg = resolvedExpr.match(/,\s*"([^"]*)"\s*\)$/);
+      const trailingMsgSingle = resolvedExpr.match(/,\s*'([^']*)'\s*\)$/);
+      if (trailingMsg) {
+        fallbackMessage = trailingMsg[1];
+        resolvedExpr = resolvedExpr.slice(0, resolvedExpr.length - trailingMsg[0].length) + ')';
+      } else if (trailingMsgSingle) {
+        fallbackMessage = trailingMsgSingle[1];
+        resolvedExpr = resolvedExpr.slice(0, resolvedExpr.length - trailingMsgSingle[0].length) + ')';
+      }
+
+      // If function has empty parens like IS_PAST(), inject current field value
+      const emptyFuncMatch = resolvedExpr.match(/^([A-Z_]+)\(\s*\)$/i);
+      if (emptyFuncMatch && value != null && value !== '') {
+        const funcName = emptyFuncMatch[1].toUpperCase();
+        // For functions that take a single value argument, auto-inject
+        const autoInjectFuncs = [
+          'IS_EMPTY', 'IS_NOT_EMPTY', 'IS_NULL', 'IS_BLANK', 'IS_NUMBER',
+          'IS_UPPERCASE', 'IS_LOWERCASE', 'IS_PAST', 'IS_FUTURE',
+          'IS_WEEKEND', 'IS_WORKDAY', 'LENGTH', 'TRIM', 'UPPER', 'LOWER',
+          'ABS', 'FLOOR', 'CEIL', 'TRUNC', 'SIGN', 'SQRT', 'YEAR', 'MONTH', 'DAY',
+          'HOUR', 'MINUTE', 'SECOND', 'WEEKDAY', 'WEEK_OF_YEAR', 'QUARTER',
+          'START_OF_MONTH', 'END_OF_MONTH', 'START_OF_YEAR', 'END_OF_YEAR',
+          'START_OF_WEEK', 'AGE', 'REVERSE', 'CAPITALIZE', 'TITLE_CASE'
+        ];
+        if (autoInjectFuncs.includes(funcName)) {
+          const injectValue = typeof value === 'string' ? `"${value.replace(/"/g, '\\"')}"` :
+                              value instanceof Date ? `"${value.toISOString()}"` : String(value);
+          resolvedExpr = `${funcName}(${injectValue})`;
+        }
+      }
+
+      // Resolve @{fieldName} references
+      resolvedExpr = resolvedExpr.replace(/@\{([^}]+)\}/g, (match, fieldName) => {
+        const fVal = this.form.get(fieldName.trim())?.value;
+        if (fVal === null || fVal === undefined || fVal === '') return '""';
+        if (fVal instanceof Date) return `"${fVal.toISOString()}"`;
+        if (typeof fVal === 'string') return `"${fVal.replace(/"/g, '\\"')}"`;
+        if (typeof fVal === 'number') return String(fVal);
+        if (typeof fVal === 'boolean') return String(fVal);
+        // For objects (e.g. Material Moment adapter date), try to extract date
+        if (fVal && typeof fVal === 'object' && typeof fVal.toISOString === 'function') {
+          return `"${fVal.toISOString()}"`;
+        }
+        if (fVal && typeof fVal === 'object' && fVal.getTime) {
+          return `"${new Date(fVal.getTime()).toISOString()}"`;
+        }
+        return `"${String(fVal)}"`;
+      });
+
+      console.log('[Validation Fallback] Resolved:', resolvedExpr, 'isFuncExpr:', this.isFunctionExpression(resolvedExpr));
+
+      if (this.isFunctionExpression(resolvedExpr)) {
+        const result = this.evaluateFunction(resolvedExpr, field.type || 'TEXT');
+        console.log('[Validation Fallback] Result:', result, 'type:', typeof result);
+
+        // Check if result indicates invalid
+        const resultStr = String(result).toLowerCase().trim();
+        if (result === false || resultStr === 'false' || result === 0 || resultStr === '0' ||
+            result === null || result === undefined || result === '') {
+          return fallbackMessage || `${fieldLabel} validation failed`;
+        }
+        // Result is truthy = valid
+        return null;
+      }
+    } catch (e) {
+      console.warn('[Validation Fallback] Failed to evaluate expression:', expression, 'Error:', e);
+    }
+
     return null; // Unknown validation expression
+  }
+
+  /**
+   * Normalize a date value to date-only (midnight local time) for consistent comparison.
+   * Handles Date objects, ISO strings, and date-only strings like "2025-03-15".
+   */
+  private toDateOnly(value: any): Date | null {
+    if (!value) return null;
+    let d: Date;
+    if (value instanceof Date) {
+      d = value;
+    } else {
+      const str = String(value);
+      // Date-only string like "2025-03-15" — parse as local date, not UTC
+      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+        const [y, m, day] = str.split('-').map(Number);
+        d = new Date(y, m - 1, day);
+      } else {
+        d = new Date(str);
+      }
+    }
+    if (isNaN(d.getTime())) return null;
+    // Strip time portion — set to midnight local
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
 
   // Luhn algorithm for credit card validation
@@ -4262,13 +5824,62 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     return sum % 10 === 0;
   }
 
+  /**
+   * Robustly parse ValidWhen/InvalidWhen arguments, handling nested quotes.
+   * Finds the LAST comma-separated quoted message argument before the closing paren.
+   */
+  private parseWhenFunction(expression: string, funcName: string): { expr: string | null; message: string | null } {
+    // Strip function name and outer parens: "ValidWhen( ... )" -> "..."
+    const funcPattern = new RegExp('^' + funcName + '\\s*\\(', 'i');
+    let inner = expression.replace(funcPattern, '');
+    if (inner.endsWith(')')) inner = inner.slice(0, -1);
+    inner = inner.trim();
+
+    if (!inner) return { expr: null, message: null };
+
+    // Find the last argument that is a quoted string preceded by a comma
+    // Scan from the end to find: , "message") or , 'message')
+    let message: string | null = null;
+    let expr = inner;
+
+    // Check for trailing quoted message: ..., "msg" or ..., 'msg'
+    const trailingDoubleQuote = inner.match(/,\s*"([^"]*)"\s*$/);
+    const trailingSingleQuote = inner.match(/,\s*'([^']*)'\s*$/);
+
+    if (trailingDoubleQuote) {
+      message = trailingDoubleQuote[1];
+      expr = inner.slice(0, inner.length - trailingDoubleQuote[0].length).trim();
+    } else if (trailingSingleQuote) {
+      // Make sure this trailing single quote is actually a message, not part of the expression
+      // Heuristic: if removing it leaves a valid expression (has an operator), it's a message
+      const candidateExpr = inner.slice(0, inner.length - trailingSingleQuote[0].length).trim();
+      if (/[=!<>]|OR|AND|\|\||&&/i.test(candidateExpr)) {
+        message = trailingSingleQuote[1];
+        expr = candidateExpr;
+      }
+    }
+
+    return { expr, message };
+  }
+
   private evaluateCondition(condition: string): any {
-    // Simple condition parser for expressions like: fieldName > 0, fieldA = fieldB, etc.
-    // Support operators: =, !=, >, <, >=, <=, AND, OR
+    // Resolve @{fieldName} references first
+    let resolved = condition.replace(/@\{([^}]+)\}/g, (match, fieldName) => {
+      const value = this.form.get(fieldName.trim())?.value;
+      if (value === null || value === undefined || value === '') return "''";
+      if (typeof value === 'string') return `'${value.replace(/'/g, "\\'")}'`;
+      if (typeof value === 'boolean') return value.toString();
+      if (typeof value === 'number') return value.toString();
+      return `'${String(value)}'`;
+    });
+
+    // Normalize JS-style operators to internal format
+    // Do == before = replacement; handle && and ||
+    resolved = resolved.replace(/\|\|/g, ' OR ').replace(/&&/g, ' AND ');
 
     // Handle OR first (lower precedence)
-    if (/\s+OR\s+/i.test(condition)) {
-      const parts = condition.split(/\s+OR\s+/i);
+    if (/\s+OR\s+/i.test(resolved)) {
+      const parts = this.splitOutsideQuotes(resolved, /\s+OR\s+/i);
       for (const part of parts) {
         if (this.evaluateCondition(part.trim())) return true;
       }
@@ -4276,16 +5887,16 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     }
 
     // Handle AND
-    if (/\s+AND\s+/i.test(condition)) {
-      const parts = condition.split(/\s+AND\s+/i);
+    if (/\s+AND\s+/i.test(resolved)) {
+      const parts = this.splitOutsideQuotes(resolved, /\s+AND\s+/i);
       for (const part of parts) {
         if (!this.evaluateCondition(part.trim())) return false;
       }
       return true;
     }
 
-    // Parse comparison operators
-    const comparisonMatch = condition.match(/^(.+?)\s*(>=|<=|!=|=|>|<)\s*(.+)$/);
+    // Parse comparison operators (== before =)
+    const comparisonMatch = resolved.match(/^(.+?)\s*(===|!==|==|!=|>=|<=|>|<|=)\s*(.+)$/);
     if (comparisonMatch) {
       const leftExpr = comparisonMatch[1].trim();
       const operator = comparisonMatch[2];
@@ -4295,6 +5906,11 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       const rightValue = this.resolveValue(rightExpr);
 
       switch (operator) {
+        case '===':
+          return leftValue === rightValue;
+        case '!==':
+          return leftValue !== rightValue;
+        case '==':
         case '=':
           return leftValue == rightValue;
         case '!=':
@@ -4310,9 +5926,50 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       }
     }
 
-    // If no operator, just resolve the value
-    const resolved = this.resolveValue(condition);
-    return resolved;
+    // Try evaluating as a function expression directly (e.g. IS_PAST("2025-01-01"))
+    if (this.isFunctionExpression(resolved)) {
+      try {
+        const funcResult = this.evaluateFunction(resolved, 'TEXT');
+        // Convert string results to proper types
+        if (funcResult === 'true' || funcResult === true) return true;
+        if (funcResult === 'false' || funcResult === false) return false;
+        return funcResult;
+      } catch (e) {
+        // Fall through to resolveValue
+      }
+    }
+
+    // If no operator and not a function, just resolve the value
+    return this.resolveValue(resolved);
+  }
+
+  private splitOutsideQuotes(str: string, separator: RegExp): string[] {
+    // Split by separator but only outside quoted strings
+    const result: string[] = [];
+    let current = '';
+    let inSingle = false;
+    let inDouble = false;
+
+    for (let i = 0; i < str.length; i++) {
+      const ch = str[i];
+      if (ch === "'" && !inDouble) { inSingle = !inSingle; current += ch; continue; }
+      if (ch === '"' && !inSingle) { inDouble = !inDouble; current += ch; continue; }
+
+      if (!inSingle && !inDouble) {
+        // Check if separator matches at this position
+        const remaining = str.slice(i);
+        const match = remaining.match(separator);
+        if (match && match.index === 0) {
+          result.push(current);
+          current = '';
+          i += match[0].length - 1; // skip separator
+          continue;
+        }
+      }
+      current += ch;
+    }
+    if (current) result.push(current);
+    return result.length > 0 ? result : [str];
   }
 
   private resolveValue(expr: string): any {
@@ -4891,6 +6548,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return true;
     }
 
+    this.hasAttemptedSubmit = true;
+
     const screenId = this.currentScreen.id?.toString();
     const isFirstScreen = this.currentScreenIndex === 0;
     const fieldsOnScreen = this.fields.filter(f => {
@@ -4898,7 +6557,48 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return fieldScreenId === screenId || (isFirstScreen && !fieldScreenId);
     });
 
+    // Apply transformations for fields on this screen first
+    fieldsOnScreen.forEach(field => {
+      const transformExpr = field.customValidationRule;
+      if (!transformExpr || !transformExpr.trim()) return;
+      const control = this.form.get(field.name);
+      if (!control) return;
+      let value = control.value;
+      if (value === null || value === undefined) return;
+      try {
+        const transforms = this.splitOutsideQuotes(transformExpr, /\s+AND\s+/i).map((t: string) => t.trim());
+        for (const transform of transforms) {
+          value = this.applySingleTransform(transform, value);
+        }
+        control.setValue(value, { emitEvent: false });
+      } catch (e) { /* skip */ }
+    });
+
     let isValid = true;
+
+    // Run custom validation expressions for fields on this screen
+    fieldsOnScreen.forEach(field => {
+      if (field.validation) {
+        const error = this.evaluateValidation(field);
+        this.validationErrors[field.name] = error;
+
+        const control = this.form.get(field.name);
+        if (control) {
+          if (error) {
+            control.setErrors({ ...control.errors, customValidation: error });
+            control.markAsTouched();
+            isValid = false;
+          } else {
+            if (control.errors) {
+              const { customValidation, ...otherErrors } = control.errors;
+              control.setErrors(Object.keys(otherErrors).length > 0 ? otherErrors : null);
+            }
+          }
+        }
+      }
+    });
+
+    // Also check Angular built-in validators (required, email, etc.)
     fieldsOnScreen.forEach(field => {
       const control = this.form.get(field.name);
       if (control) {
@@ -4909,10 +6609,31 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       }
     });
 
-    if (!isValid) {
-      this.snackBar.open('Please fill in all required fields on this screen', 'Close', { duration: 3000 });
+    // Check custom validation errors for fields on this screen
+    fieldsOnScreen.forEach(field => {
+      if (this.validationErrors[field.name]) {
+        isValid = false;
+      }
+    });
+
+    // Check pending unique validations for fields on this screen
+    if (isValid) {
+      const hasPendingUnique = fieldsOnScreen.some(field =>
+        field.validation && /Unique\(/i.test(field.validation) &&
+        Array.from(this.pendingUniqueChecks.keys()).some(key => key.startsWith(field.name + ':'))
+      );
+      if (hasPendingUnique) {
+        this.snackBar.open('Please wait for validation checks to complete', 'Close', { duration: 3000 });
+        return false;
+      }
     }
 
+    if (!isValid) {
+      const firstError = this.getFirstValidationError(fieldsOnScreen);
+      this.snackBar.open(firstError || 'Please fill in all required fields on this screen', 'Close', { duration: 5000 });
+    }
+
+    this.cdr.detectChanges();
     return isValid;
   }
 
@@ -4965,6 +6686,11 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
    * Returns true by default if no expression or expression is empty/true
    */
   isFieldVisible(field: WorkflowField): boolean {
+    // API_ARRAY/API_OBJECT_ARRAY fields with apiShowInForm=false are hidden (data source only)
+    if ((field.type === 'API_ARRAY' || field.type === 'API_OBJECT_ARRAY') && (field as any).apiShowInForm === false) {
+      return false;
+    }
+
     const expression = field.visibilityExpression;
 
     // Default to visible if no expression or empty
@@ -5149,8 +6875,17 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   /**
    * Get the error message for a field
    */
+  private getFirstValidationError(fields: WorkflowField[]): string | null {
+    for (const field of fields) {
+      const msg = this.getFieldErrorMessage(field);
+      if (msg) return msg;
+    }
+    return null;
+  }
+
   getFieldErrorMessage(field: WorkflowField): string | null {
     const control = this.form.get(field.name);
+    const customMsg = field.validationMessage?.trim();
 
     // First check custom validation errors (from validation expressions)
     if (this.validationErrors[field.name]) {
@@ -5162,12 +6897,36 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       return control.getError('customValidation');
     }
 
-    // Then check form control errors
+    // Then check form control errors - custom message from builder takes precedence
     if (control?.hasError('required')) {
-      return `${field.label} is required`;
+      return customMsg || `${field.label} is required`;
     }
     if (control?.hasError('email')) {
-      return 'Please enter a valid email';
+      return customMsg || 'Please enter a valid email';
+    }
+    if (control?.hasError('minlength')) {
+      const err = control.getError('minlength');
+      return customMsg || `${field.label} must be at least ${err.requiredLength} characters`;
+    }
+    if (control?.hasError('maxlength')) {
+      const err = control.getError('maxlength');
+      return customMsg || `${field.label} must be at most ${err.requiredLength} characters`;
+    }
+    if (control?.hasError('min')) {
+      const err = control.getError('min');
+      return customMsg || `${field.label} must be at least ${err.min}`;
+    }
+    if (control?.hasError('max')) {
+      const err = control.getError('max');
+      return customMsg || `${field.label} must be at most ${err.max}`;
+    }
+    if (control?.hasError('pattern')) {
+      return customMsg || `${field.label} format is invalid`;
+    }
+
+    // Fallback for any other control error
+    if (control?.invalid) {
+      return customMsg || `${field.label} is invalid`;
     }
 
     return null;
@@ -5270,9 +7029,18 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'TRIM_LEFT':
         return toStr(args[0]).trimStart();
       case 'TRIM_RIGHT':
+      case 'RTRIM':
         return toStr(args[0]).trimEnd();
+      case 'LTRIM':
+        return toStr(args[0]).trimStart();
       case 'CONCAT':
         return args.join('');
+      case 'CONCAT_WS': {
+        // Concatenate with separator: CONCAT_WS(separator, a, b, ...)
+        const separator = toStr(args[0]);
+        const parts = args.slice(1).filter(a => a && toStr(a).trim() !== '');
+        return parts.join(separator);
+      }
       case 'LEFT':
         return toStr(args[0]).substring(0, toInt(args[1]));
       case 'RIGHT': {
@@ -5284,6 +7052,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'LENGTH':
         return toStr(args[0]).length.toString();
       case 'REPLACE':
+      case 'REPLACE_ALL':
         return toStr(args[0]).split(toStr(args[1])).join(toStr(args[2]));
       case 'REPLACE_FIRST':
         return toStr(args[0]).replace(toStr(args[1]), toStr(args[2]));
@@ -5522,6 +7291,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
       }
       case 'FORMAT_PERCENTAGE':
+      case 'FORMAT_PERCENT':
         return toNum(args[0]).toFixed(toInt(args[1])) + '%';
       case 'FORMAT_BYTES': {
         const bytes = toNum(args[0]);
@@ -5624,7 +7394,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         const d = args[0] ? toDate(args[0]) : new Date();
         return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
       }
-      case 'WEEK_NUMBER': {
+      case 'WEEK_NUMBER':
+      case 'WEEK_OF_YEAR': {
         const d = args[0] ? toDate(args[0]) : new Date();
         const oneJan = new Date(d.getFullYear(), 0, 1);
         return Math.ceil((((d.getTime() - oneJan.getTime()) / 86400000) + oneJan.getDay() + 1) / 7).toString();
@@ -5715,7 +7486,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         const day = (args[0] ? toDate(args[0]) : new Date()).getDay();
         return (day === 0 || day === 6).toString();
       }
-      case 'IS_WEEKDAY': {
+      case 'IS_WEEKDAY':
+      case 'IS_WORKDAY': {
         const day = (args[0] ? toDate(args[0]) : new Date()).getDay();
         return (day !== 0 && day !== 6).toString();
       }
@@ -5733,10 +7505,18 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         tomorrow.setDate(tomorrow.getDate() + 1);
         return (d.toDateString() === tomorrow.toDateString()).toString();
       }
-      case 'IS_PAST':
-        return ((args[0] ? toDate(args[0]) : new Date()) < new Date()).toString();
-      case 'IS_FUTURE':
-        return ((args[0] ? toDate(args[0]) : new Date()) > new Date()).toString();
+      case 'IS_PAST': {
+        const dp = args[0] ? toDate(args[0]) : new Date();
+        const todayP = new Date(); todayP.setHours(0,0,0,0);
+        const dpOnly = new Date(dp); dpOnly.setHours(0,0,0,0);
+        return (dpOnly < todayP).toString();
+      }
+      case 'IS_FUTURE': {
+        const df = args[0] ? toDate(args[0]) : new Date();
+        const todayF = new Date(); todayF.setHours(0,0,0,0);
+        const dfOnly = new Date(df); dfOnly.setHours(0,0,0,0);
+        return (dfOnly > todayF).toString();
+      }
       case 'IS_THIS_WEEK': {
         const d = args[0] ? toDate(args[0]) : new Date(), now = new Date();
         const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - (now.getDay() || 7) + 1);
@@ -5753,10 +7533,16 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       }
       case 'IS_SAME_DAY':
         return (toDate(args[0]).toDateString() === toDate(args[1]).toDateString()).toString();
-      case 'IS_BEFORE':
-        return (toDate(args[0]) < toDate(args[1])).toString();
-      case 'IS_AFTER':
-        return (toDate(args[0]) > toDate(args[1])).toString();
+      case 'IS_BEFORE': {
+        const db1 = new Date(toDate(args[0])); db1.setHours(0,0,0,0);
+        const db2 = new Date(toDate(args[1])); db2.setHours(0,0,0,0);
+        return (db1 < db2).toString();
+      }
+      case 'IS_AFTER': {
+        const da1 = new Date(toDate(args[0])); da1.setHours(0,0,0,0);
+        const da2 = new Date(toDate(args[1])); da2.setHours(0,0,0,0);
+        return (da1 > da2).toString();
+      }
       case 'IS_BETWEEN_DATES': {
         const d = toDate(args[0]), start = toDate(args[1]), end = toDate(args[2]);
         return (d >= start && d <= end).toString();
@@ -5854,20 +7640,29 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'GREATER_THAN':
         return (toNum(args[0]) > toNum(args[1])).toString();
       case 'GREATER_THAN_OR_EQUAL':
+      case 'GREATER_OR_EQUAL':
         return (toNum(args[0]) >= toNum(args[1])).toString();
       case 'LESS_THAN':
         return (toNum(args[0]) < toNum(args[1])).toString();
       case 'LESS_THAN_OR_EQUAL':
+      case 'LESS_OR_EQUAL':
         return (toNum(args[0]) <= toNum(args[1])).toString();
       case 'BETWEEN':
         return (toNum(args[0]) >= toNum(args[1]) && toNum(args[0]) <= toNum(args[2])).toString();
       case 'NOT_BETWEEN':
         return (toNum(args[0]) < toNum(args[1]) || toNum(args[0]) > toNum(args[2])).toString();
       case 'IN': {
-        try { const arr = JSON.parse(args[1]); return arr.includes(args[0]).toString(); } catch { return 'false'; }
+        if (args.length > 2) {
+          // IN(value, "a", "b", "c") — multiple args
+          return args.slice(1).includes(args[0]).toString();
+        }
+        try { const arr = JSON.parse(args[1]); return arr.includes(args[0]).toString(); } catch { return (args[0] === args[1]).toString(); }
       }
       case 'NOT_IN': {
-        try { const arr = JSON.parse(args[1]); return (!arr.includes(args[0])).toString(); } catch { return 'true'; }
+        if (args.length > 2) {
+          return (!args.slice(1).includes(args[0])).toString();
+        }
+        try { const arr = JSON.parse(args[1]); return (!arr.includes(args[0])).toString(); } catch { return (args[0] !== args[1]).toString(); }
       }
       case 'IS_NUMBER':
         return (!isNaN(parseFloat(args[0])) && isFinite(toNum(args[0]))).toString();
@@ -5885,6 +7680,10 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         return (toInt(args[0]) % 2 === 0).toString();
       case 'IS_ODD':
         return (toInt(args[0]) % 2 !== 0).toString();
+      case 'TRUE':
+        return 'true';
+      case 'FALSE':
+        return 'false';
       case 'IS_TEXT':
         return (typeof args[0] === 'string').toString();
       case 'IS_DATE':
@@ -5892,10 +7691,13 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'IS_BOOLEAN':
         return (args[0] === 'true' || args[0] === 'false' || typeof args[0] === 'boolean').toString();
       case 'IS_EMAIL':
+      case 'IS_VALID_EMAIL':
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toStr(args[0])).toString();
       case 'IS_URL':
+      case 'IS_VALID_URL':
         try { new URL(toStr(args[0])); return 'true'; } catch { return 'false'; }
       case 'IS_PHONE':
+      case 'IS_VALID_PHONE':
         return /^[\d\s\-\+\(\)]{7,20}$/.test(toStr(args[0])).toString();
       case 'IS_UUID':
         return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(toStr(args[0])).toString();
@@ -5918,6 +7720,142 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'HAS_MAX_LENGTH':
         return (toStr(args[0]).length <= toInt(args[1])).toString();
 
+      // ==================== VALIDATION FUNCTION ALIASES ====================
+      // These map validation-style names to their library equivalents
+      // so all functions work consistently in both default values and validation expressions
+
+      // String validation
+      case 'REQUIRED':
+      case 'NOT_EMPTY':
+      case 'NOTEMPTY': {
+        const v = args[0] !== undefined ? toStr(args[0]) : '';
+        return (v.trim() !== '').toString();
+      }
+      case 'MIN_LENGTH':
+      case 'MINLENGTH':
+        return (toStr(args[0]).length >= toInt(args[1])).toString();
+      case 'MAX_LENGTH':
+      case 'MAXLENGTH':
+        return (toStr(args[0]).length <= toInt(args[1])).toString();
+      case 'LENGTH_RANGE':
+      case 'LENGTHRANGE': {
+        const len = toStr(args[0]).length;
+        return (len >= toInt(args[1]) && len <= toInt(args[2])).toString();
+      }
+      case 'ALPHA':
+        return /^[a-zA-Z]*$/.test(toStr(args[0])).toString();
+      case 'ALPHA_NUMERIC':
+      case 'ALPHANUMERIC':
+        return /^[a-zA-Z0-9]*$/.test(toStr(args[0])).toString();
+      case 'DIGITS':
+        return /^\d*$/.test(toStr(args[0])).toString();
+      case 'PATTERN': {
+        try {
+          const pat = toStr(args[1]).replace(/^\/|\/[gimsuy]*$/g, '');
+          return new RegExp(pat).test(toStr(args[0])).toString();
+        } catch { return 'false'; }
+      }
+
+      // Number validation
+      case 'MIN_VALUE':
+        return (toNum(args[0]) >= toNum(args[1])).toString();
+      case 'MAX_VALUE':
+        return (toNum(args[0]) <= toNum(args[1])).toString();
+      case 'VALUE_RANGE':
+        return (toNum(args[0]) >= toNum(args[1]) && toNum(args[0]) <= toNum(args[2])).toString();
+      case 'POSITIVE':
+        return (toNum(args[0]) > 0).toString();
+      case 'NEGATIVE':
+        return (toNum(args[0]) < 0).toString();
+      case 'INTEGER':
+        return Number.isInteger(toNum(args[0])).toString();
+      case 'DECIMAL_PLACES': {
+        const str = toStr(args[0]);
+        const maxPlaces = toInt(args[1]);
+        const decPart = str.includes('.') ? str.split('.')[1] : '';
+        return (decPart.length <= maxPlaces).toString();
+      }
+
+      // Date validation
+      case 'PAST_DATE':
+      case 'PASTDATE':
+      case 'ISPAST': {
+        const d = args[0] ? toDate(args[0]) : new Date();
+        const today = new Date(); today.setHours(0,0,0,0);
+        const dOnly = new Date(d); dOnly.setHours(0,0,0,0);
+        return (dOnly < today).toString();
+      }
+      case 'FUTURE_DATE':
+      case 'FUTUREDATE':
+      case 'ISFUTURE': {
+        const d = args[0] ? toDate(args[0]) : new Date();
+        const today = new Date(); today.setHours(0,0,0,0);
+        const dOnly = new Date(d); dOnly.setHours(0,0,0,0);
+        return (dOnly > today).toString();
+      }
+      case 'DATE_BEFORE':
+      case 'DATEBEFORE': {
+        const d = args[0] ? toDate(args[0]) : new Date();
+        const target = toStr(args[1]).toLowerCase() === 'today' ? new Date() : toDate(args[1]);
+        const dOnly = new Date(d); dOnly.setHours(0,0,0,0);
+        const tOnly = new Date(target); tOnly.setHours(0,0,0,0);
+        return (dOnly < tOnly).toString();
+      }
+      case 'DATE_AFTER':
+      case 'DATEAFTER': {
+        const d = args[0] ? toDate(args[0]) : new Date();
+        const target = toStr(args[1]).toLowerCase() === 'today' ? new Date() : toDate(args[1]);
+        const dOnly = new Date(d); dOnly.setHours(0,0,0,0);
+        const tOnly = new Date(target); tOnly.setHours(0,0,0,0);
+        return (dOnly > tOnly).toString();
+      }
+
+      // Format validation
+      case 'IS_CREDIT_CARD':
+      case 'CREDITCARD':
+      case 'CREDIT_CARD': {
+        const card = toStr(args[0]).replace(/[\s-]/g, '');
+        if (!/^\d{13,19}$/.test(card)) return 'false';
+        let s = 0, even = false;
+        for (let i = card.length - 1; i >= 0; i--) {
+          let d = parseInt(card[i], 10);
+          if (even) { d *= 2; if (d > 9) d -= 9; }
+          s += d; even = !even;
+        }
+        return (s % 10 === 0).toString();
+      }
+
+      // Cross-field / list validation
+      case 'MATCH_FIELD':
+      case 'MATCHFIELD':
+        return (toStr(args[0]) === toStr(args[1])).toString();
+      case 'MIN_ITEMS':
+      case 'MINITEMS': {
+        const arr = Array.isArray(args[0]) ? args[0] : [];
+        return (arr.length >= toInt(args[1])).toString();
+      }
+      case 'MAX_ITEMS':
+      case 'MAXITEMS': {
+        const arr = Array.isArray(args[0]) ? args[0] : [];
+        return (arr.length <= toInt(args[1])).toString();
+      }
+      case 'MIN_ROWS':
+      case 'MINROWS': {
+        const rows = Array.isArray(args[0]) ? args[0] : [];
+        return (rows.length >= toInt(args[1])).toString();
+      }
+      case 'MAX_ROWS':
+      case 'MAXROWS': {
+        const rows = Array.isArray(args[0]) ? args[0] : [];
+        return (rows.length <= toInt(args[1])).toString();
+      }
+      case 'IS_TRUE':
+      case 'ISTRUE':
+        return toBool(args[0]).toString();
+      case 'IS_FALSE':
+      case 'ISFALSE':
+        return (!toBool(args[0])).toString();
+
       // ==================== USER/CONTEXT FUNCTIONS ====================
       case 'CURRENT_USER':
         return currentUser?.fullName || '';
@@ -5930,6 +7868,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'CURRENT_USER_PHONE':
         return currentUser?.phoneNumber || '';
       case 'CURRENT_USER_DEPARTMENT':
+      case 'CURRENT_USER_DEPT':
         return currentUser?.department || '';
       case 'CURRENT_USER_STAFFID':
         return currentUser?.staffId || '';
@@ -5947,6 +7886,17 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       // ==================== UTILITY FUNCTIONS ====================
       case 'UUID':
         return this.generateUUID();
+      case 'HASH': {
+        // Simple hash function for strings
+        const str = toStr(args[0]);
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          const char = str.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash = hash & hash;
+        }
+        return Math.abs(hash).toString(16);
+      }
       case 'SHORT_UUID':
         return this.generateUUID().substring(0, 8);
       case 'NANO_ID': {
@@ -6250,6 +8200,404 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         return '[]';
       }
 
+      case 'SET_TABLE_FROM_JSON': {
+        // Populate table from JSON array: SET_TABLE_FROM_JSON(tableName, jsonData, clearExisting?)
+        const tgtTableName = this.resolveTableName(args[0]);
+        const jsonData = toStr(args[1]);
+        const clearExisting = args.length > 2 ? toBool(args[2]) : true;
+
+        if (!this.tableData[tgtTableName]) {
+          this.tableData[tgtTableName] = [];
+        }
+
+        if (clearExisting) {
+          this.tableData[tgtTableName] = [];
+        }
+
+        try {
+          const parsedData = JSON.parse(jsonData);
+          if (Array.isArray(parsedData)) {
+            for (const row of parsedData) {
+              this.tableData[tgtTableName].push({ ...row });
+            }
+            return this.tableData[tgtTableName].length.toString();
+          }
+          return '0';
+        } catch (e) {
+          console.error('SET_TABLE_FROM_JSON: Invalid JSON', e);
+          return '0';
+        }
+      }
+
+      case 'CLEAR_TABLE': {
+        // Remove all rows from table: CLEAR_TABLE(tableName)
+        const tgtTableName = this.resolveTableName(args[0]);
+        if (this.tableData[tgtTableName]) {
+          const count = this.tableData[tgtTableName].length;
+          this.tableData[tgtTableName] = [];
+          return count.toString();
+        }
+        return '0';
+      }
+
+      case 'FILTER_TABLE': {
+        // Filter table rows based on condition: FILTER_TABLE(tableName, columnName, operator, value)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const operator = toStr(args[2]);
+        const value = toStr(args[3]);
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return '[]';
+
+        const filtered = tableData.filter(row => {
+          const cellValue = toStr(row[columnName] || '');
+          switch (operator) {
+            case '=': return cellValue === value;
+            case '!=': return cellValue !== value;
+            case '<': return parseFloat(cellValue) < parseFloat(value);
+            case '>': return parseFloat(cellValue) > parseFloat(value);
+            case '<=': return parseFloat(cellValue) <= parseFloat(value);
+            case '>=': return parseFloat(cellValue) >= parseFloat(value);
+            case 'contains': return cellValue.includes(value);
+            case 'startsWith': return cellValue.startsWith(value);
+            case 'endsWith': return cellValue.endsWith(value);
+            case 'empty': return !cellValue || cellValue === '';
+            case 'notEmpty': return cellValue && cellValue !== '';
+            default: return cellValue === value;
+          }
+        });
+
+        return JSON.stringify(filtered);
+      }
+
+      case 'SORT_TABLE': {
+        // Sort table by column: SORT_TABLE(tableName, columnName, order?)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const order = toStr(args[2]).toLowerCase() === 'desc' ? 'desc' : 'asc';
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return 'false';
+
+        tableData.sort((a, b) => {
+          const valA = a[columnName] || '';
+          const valB = b[columnName] || '';
+          const numA = parseFloat(valA);
+          const numB = parseFloat(valB);
+
+          let result: number;
+          if (!isNaN(numA) && !isNaN(numB)) {
+            result = numA - numB;
+          } else {
+            result = valA.localeCompare(valB);
+          }
+
+          return order === 'desc' ? -result : result;
+        });
+
+        return 'true';
+      }
+
+      case 'UNIQUE_VALUES': {
+        // Get unique values from column: UNIQUE_VALUES(tableName, columnName)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return '[]';
+
+        const values = tableData.map(row => row[columnName] || '').filter(v => v && v !== '');
+        const unique = [...new Set(values)].sort();
+        return JSON.stringify(unique);
+      }
+
+      case 'MERGE_TABLES': {
+        // Merge two tables: MERGE_TABLES(tableName1, tableName2, mode?)
+        const targetTable = this.resolveTableName(args[0]);
+        const sourceTable = this.resolveTableName(args[1]);
+        const mode = toStr(args[2]).toLowerCase() || 'append';
+
+        const targetData = this.tableData[targetTable];
+        const sourceData = this.tableData[sourceTable];
+
+        if (!targetData || !sourceData) return '0';
+
+        let count = 0;
+        if (mode === 'union') {
+          const existing = new Set(targetData.map(r => JSON.stringify(r)));
+          for (const row of sourceData) {
+            const rowStr = JSON.stringify(row);
+            if (!existing.has(rowStr)) {
+              targetData.push({ ...row });
+              count++;
+            }
+          }
+        } else {
+          for (const row of sourceData) {
+            targetData.push({ ...row });
+            count++;
+          }
+        }
+        return count.toString();
+      }
+
+      case 'DUPLICATE_ROWS': {
+        // Find or remove duplicate rows: DUPLICATE_ROWS(tableName, mode?)
+        const tableName = this.resolveTableName(args[0]);
+        const mode = toStr(args[1]).toLowerCase() || 'remove';
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return '0';
+
+        const seen = new Set<string>();
+        const duplicates: number[] = [];
+        const toRemove: number[] = [];
+
+        tableData.forEach((row, index) => {
+          const rowStr = JSON.stringify(row);
+          if (seen.has(rowStr)) {
+            duplicates.push(index + 1);
+            if (mode === 'remove') {
+              toRemove.push(index);
+            }
+          } else {
+            seen.add(rowStr);
+          }
+        });
+
+        if (mode === 'remove') {
+          // Remove in reverse order to maintain indices
+          for (let i = toRemove.length - 1; i >= 0; i--) {
+            tableData.splice(toRemove[i], 1);
+          }
+          return toRemove.length.toString();
+        } else {
+          return JSON.stringify(duplicates);
+        }
+      }
+
+      case 'INSERT_ROW': {
+        // Insert row at position: INSERT_ROW(tableName, position, valuesJson?)
+        const tableName = this.resolveTableName(args[0]);
+        const position = Math.max(0, toNum(args[1]) - 1); // Convert to 0-based
+        const valuesJson = args[2] ? toStr(args[2]) : null;
+
+        if (!this.tableData[tableName]) {
+          this.tableData[tableName] = [];
+        }
+
+        const tableField = this.fields.find(f => f.name === tableName && f.fieldType === 'TABLE');
+        let newRow: Record<string, string> = {};
+
+        if (valuesJson) {
+          try {
+            newRow = JSON.parse(valuesJson);
+          } catch { newRow = {}; }
+        } else if (tableField) {
+          const columns = this.getTableColumns(tableField);
+          columns.forEach(col => {
+            newRow[col.name] = col.defaultValue || (col.type === 'CHECKBOX' ? 'false' : '');
+          });
+        }
+
+        const insertPos = Math.min(position, this.tableData[tableName].length);
+        this.tableData[tableName].splice(insertPos, 0, newRow);
+        return (insertPos + 1).toString();
+      }
+
+      case 'MOVE_ROW': {
+        // Move row to different position: MOVE_ROW(tableName, fromPosition, toPosition)
+        const tableName = this.resolveTableName(args[0]);
+        const fromPos = Math.max(0, toNum(args[1]) - 1);
+        const toPos = Math.max(0, toNum(args[2]) - 1);
+        const tableData = this.tableData[tableName];
+
+        if (!tableData || fromPos < 0 || toPos < 0 || fromPos >= tableData.length || toPos >= tableData.length) {
+          return 'false';
+        }
+
+        const [row] = tableData.splice(fromPos, 1);
+        tableData.splice(toPos, 0, row);
+        return 'true';
+      }
+
+      case 'TABLE_EXISTS': {
+        // Check if table has any rows: TABLE_EXISTS(tableName)
+        const tableName = this.resolveTableName(args[0]);
+        const tableData = this.tableData[tableName];
+        return (tableData && tableData.length > 0) ? 'true' : 'false';
+      }
+
+      case 'TABLE_HAS_ROW': {
+        // Check if table has row with value: TABLE_HAS_ROW(tableName, columnName, value)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const value = toStr(args[2]);
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return 'false';
+
+        const found = tableData.some(row => row[columnName] === value);
+        return found ? 'true' : 'false';
+      }
+
+      case 'UPDATE_COLUMN': {
+        // Update all matching values in column: UPDATE_COLUMN(tableName, columnName, oldValue, newValue)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const oldValue = toStr(args[2]);
+        const newValue = toStr(args[3]);
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return '0';
+
+        let count = 0;
+        for (const row of tableData) {
+          if (row[columnName] === oldValue) {
+            row[columnName] = newValue;
+            count++;
+          }
+        }
+        return count.toString();
+      }
+
+      case 'DELETE_WHERE': {
+        // Delete rows matching condition: DELETE_WHERE(tableName, columnName, operator, value)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const operator = toStr(args[2]);
+        const value = toStr(args[3]);
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return '0';
+
+        const toDelete: number[] = [];
+        tableData.forEach((row, index) => {
+          const cellValue = toStr(row[columnName] || '');
+          let match = false;
+          switch (operator) {
+            case '=': match = cellValue === value; break;
+            case '!=': match = cellValue !== value; break;
+            case '<': match = parseFloat(cellValue) < parseFloat(value); break;
+            case '>': match = parseFloat(cellValue) > parseFloat(value); break;
+            case '<=': match = parseFloat(cellValue) <= parseFloat(value); break;
+            case '>=': match = parseFloat(cellValue) >= parseFloat(value); break;
+            case 'contains': match = cellValue.includes(value); break;
+            case 'empty': match = !cellValue || cellValue === ''; break;
+          }
+          if (match) toDelete.push(index);
+        });
+
+        for (let i = toDelete.length - 1; i >= 0; i--) {
+          tableData.splice(toDelete[i], 1);
+        }
+        return toDelete.length.toString();
+      }
+
+      case 'REVERSE_TABLE': {
+        // Reverse table order: REVERSE_TABLE(tableName)
+        const tableName = this.resolveTableName(args[0]);
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return 'false';
+        tableData.reverse();
+        return 'true';
+      }
+
+      case 'SWAP_ROWS': {
+        // Swap two rows: SWAP_ROWS(tableName, position1, position2)
+        const tableName = this.resolveTableName(args[0]);
+        const pos1 = Math.max(0, toNum(args[1]) - 1);
+        const pos2 = Math.max(0, toNum(args[2]) - 1);
+        const tableData = this.tableData[tableName];
+
+        if (!tableData || pos1 >= tableData.length || pos2 >= tableData.length || pos1 === pos2) {
+          return 'false';
+        }
+
+        const temp = tableData[pos1];
+        tableData[pos1] = tableData[pos2];
+        tableData[pos2] = temp;
+        return 'true';
+      }
+
+      case 'REMOVE_DUPLICATES': {
+        // Remove duplicate rows based on column: REMOVE_DUPLICATES(tableName, columnName)
+        const tableName = this.resolveTableName(args[0]);
+        const columnName = toStr(args[1]);
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return '0';
+
+        const seen = new Set<string>();
+        const uniqueRows: Record<string, any>[] = [];
+        let removedCount = 0;
+
+        tableData.forEach(row => {
+          const value = row[columnName];
+          if (!seen.has(value)) {
+            seen.add(value);
+            uniqueRows.push(row);
+          } else {
+            removedCount++;
+          }
+        });
+
+        this.tableData[tableName] = uniqueRows;
+        return removedCount.toString();
+      }
+
+      case 'GROUP_BY': {
+        // Group rows and aggregate: GROUP_BY(tableName, groupColumn, aggregateColumn, operation)
+        const tableName = this.resolveTableName(args[0]);
+        const groupColumn = toStr(args[1]);
+        const aggregateColumn = toStr(args[2]);
+        const operation = (toStr(args[3]) || 'SUM').toUpperCase();
+        const tableData = this.tableData[tableName];
+
+        if (!tableData) return '[]';
+
+        const groups: Record<string, Record<string, any>[]> = {};
+        tableData.forEach(row => {
+          const key = row[groupColumn];
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(row);
+        });
+
+        const result = Object.keys(groups).map(key => {
+          const rows = groups[key];
+          const groupResult: Record<string, any> = {};
+          groupResult[groupColumn] = key;
+
+          const values = rows.map(r => parseFloat(r[aggregateColumn])).filter(v => !isNaN(v));
+
+          switch (operation) {
+            case 'SUM':
+              groupResult[aggregateColumn] = values.reduce((a, b) => a + b, 0);
+              break;
+            case 'AVG':
+              groupResult[aggregateColumn] = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+              break;
+            case 'COUNT':
+              groupResult[aggregateColumn] = rows.length;
+              break;
+            case 'MIN':
+              groupResult[aggregateColumn] = values.length > 0 ? Math.min(...values) : 0;
+              break;
+            case 'MAX':
+              groupResult[aggregateColumn] = values.length > 0 ? Math.max(...values) : 0;
+              break;
+            default:
+              groupResult[aggregateColumn] = values.reduce((a, b) => a + b, 0);
+          }
+
+          return groupResult;
+        });
+
+        return JSON.stringify(result);
+      }
+
       case 'COALESCE':
       case 'DEFAULT':
         return args.find(a => a && toStr(a).trim() !== '') || '';
@@ -6277,6 +8625,47 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         try { return JSON.stringify(args[0]); } catch { return ''; }
       case 'FROM_JSON':
         try { return JSON.parse(toStr(args[0])); } catch { return args[0]; }
+      case 'JSON_GET': {
+        // Get value from JSON by path: JSON_GET(json, path)
+        try {
+          const json = JSON.parse(toStr(args[0]));
+          const path = toStr(args[1]).split('.');
+          let result = json;
+          for (const key of path) {
+            if (result === undefined || result === null) return '';
+            result = result[key];
+          }
+          return result !== undefined ? JSON.stringify(result) : '';
+        } catch { return ''; }
+      }
+      case 'JSON_SET': {
+        // Set value in JSON: JSON_SET(json, path, value)
+        try {
+          const json = JSON.parse(toStr(args[0]));
+          const path = toStr(args[1]).split('.');
+          const value = args[2];
+          let obj = json;
+          for (let i = 0; i < path.length - 1; i++) {
+            if (!obj[path[i]]) obj[path[i]] = {};
+            obj = obj[path[i]];
+          }
+          obj[path[path.length - 1]] = value;
+          return JSON.stringify(json);
+        } catch { return args[0]; }
+      }
+      case 'LOOKUP': {
+        // Lookup value in table: LOOKUP(tableName, searchColumn, searchValue, returnColumn)
+        const tableName = this.resolveTableName(args[0]);
+        const searchColumn = toStr(args[1]);
+        const searchValue = toStr(args[2]);
+        const returnColumn = toStr(args[3]);
+        const tableData = this.tableData[tableName];
+        if (tableData) {
+          const row = tableData.find(r => r[searchColumn] === searchValue);
+          if (row) return row[returnColumn] || '';
+        }
+        return '';
+      }
       case 'FIELD_VALUE': {
         const fieldName = toStr(args[0]);
         return this.getFieldValue(fieldName) || '';
@@ -6325,6 +8714,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
           return JSON.stringify(arr.sort((a: any, b: any) => dir === 'DESC' ? (b > a ? 1 : -1) : (a > b ? 1 : -1)));
         } catch { return '[]'; }
       case 'ARRAY_INCLUDES':
+      case 'ARRAY_CONTAINS':
         try { return JSON.parse(toStr(args[0])).includes(args[1]).toString(); } catch { return 'false'; }
       case 'ARRAY_INDEX_OF':
         try { return JSON.parse(toStr(args[0])).indexOf(args[1]).toString(); } catch { return '-1'; }
@@ -6340,12 +8730,15 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'BASE64_DECODE':
         try { return atob(toStr(args[0])); } catch { return ''; }
       case 'URL_ENCODE':
+      case 'ENCODE_URL':
         return encodeURIComponent(toStr(args[0]));
       case 'URL_DECODE':
+      case 'DECODE_URL':
         return decodeURIComponent(toStr(args[0]));
       case 'TRY':
         try { return this.evaluateFunction(toStr(args[0]), fieldType); } catch { return args[1] || ''; }
       case 'TYPEOF':
+      case 'TYPE_OF':
         return typeof args[0];
       case 'CLONE':
         try { return JSON.stringify(JSON.parse(JSON.stringify(args[0]))); } catch { return args[0]; }
@@ -6380,9 +8773,90 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'SCREEN_HEIGHT':
         return window.screen.height.toString();
 
+      // ==================== SQL FUNCTIONS ====================
+      case 'SQL_LOOKUP': {
+        // SQL_LOOKUP(table, returnColumn, whereColumn, whereValue)
+        try {
+          const result = this.executeSqlFunctionSync('SQL_LOOKUP', toStr(args[0]), toStr(args[1]), toStr(args[2]), toStr(args[3]));
+          return result != null ? String(result) : '';
+        } catch { return ''; }
+      }
+      case 'SQL_QUERY': {
+        // SQL_QUERY(table, columns, whereColumn, whereValue)
+        try {
+          const result = this.executeSqlFunctionSync('SQL_QUERY', toStr(args[0]), args[1] ? toStr(args[1]) : '*', args[2] ? toStr(args[2]) : '', args[3] ? toStr(args[3]) : '');
+          return JSON.stringify(result || []);
+        } catch { return '[]'; }
+      }
+      case 'SQL_COUNT': {
+        // SQL_COUNT(table, whereColumn, whereValue)
+        try {
+          const result = this.executeSqlFunctionSync('SQL_COUNT', toStr(args[0]), '', args[1] ? toStr(args[1]) : '', args[2] ? toStr(args[2]) : '');
+          return String(result ?? 0);
+        } catch { return '0'; }
+      }
+      case 'SQL_SUM': {
+        // SQL_SUM(table, column, whereColumn, whereValue)
+        try {
+          const result = this.executeSqlFunctionSync('SQL_SUM', toStr(args[0]), toStr(args[1]), args[2] ? toStr(args[2]) : '', args[3] ? toStr(args[3]) : '');
+          return String(result ?? 0);
+        } catch { return '0'; }
+      }
+      case 'SQL_AVG': {
+        // SQL_AVG(table, column, whereColumn, whereValue)
+        try {
+          const result = this.executeSqlFunctionSync('SQL_AVG', toStr(args[0]), toStr(args[1]), args[2] ? toStr(args[2]) : '', args[3] ? toStr(args[3]) : '');
+          return String(result ?? 0);
+        } catch { return '0'; }
+      }
+      case 'SQL_MIN': {
+        // SQL_MIN(table, column, whereColumn, whereValue)
+        try {
+          const result = this.executeSqlFunctionSync('SQL_MIN', toStr(args[0]), toStr(args[1]), args[2] ? toStr(args[2]) : '', args[3] ? toStr(args[3]) : '');
+          return String(result ?? '');
+        } catch { return ''; }
+      }
+      case 'SQL_MAX': {
+        // SQL_MAX(table, column, whereColumn, whereValue)
+        try {
+          const result = this.executeSqlFunctionSync('SQL_MAX', toStr(args[0]), toStr(args[1]), args[2] ? toStr(args[2]) : '', args[3] ? toStr(args[3]) : '');
+          return String(result ?? '');
+        } catch { return ''; }
+      }
+      case 'SQL_DISTINCT': {
+        // SQL_DISTINCT(table, column, whereColumn, whereValue)
+        try {
+          const result = this.executeSqlFunctionSync('SQL_DISTINCT', toStr(args[0]), toStr(args[1]), args[2] ? toStr(args[2]) : '', args[3] ? toStr(args[3]) : '');
+          return JSON.stringify(result || []);
+        } catch { return '[]'; }
+      }
+      case 'SQL_EXISTS': {
+        // SQL_EXISTS(table, whereColumn, whereValue)
+        try {
+          const result = this.executeSqlFunctionSync('SQL_EXISTS', toStr(args[0]), '', toStr(args[1]), toStr(args[2]));
+          return String(result ?? false);
+        } catch { return 'false'; }
+      }
+
       default:
         return expression;
     }
+  }
+
+  private executeSqlFunctionSync(func: string, table: string, column: string, whereColumn: string, whereValue: string): any {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${environment.apiUrl}/sql-objects/function-query`, false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+    xhr.send(JSON.stringify({ function: func, table, column, whereColumn, whereValue }));
+    if (xhr.status === 200) {
+      const response = JSON.parse(xhr.responseText);
+      return response?.data;
+    }
+    return null;
   }
 
   private formatDateWithPattern(date: Date, pattern: string): string {
@@ -6786,21 +9260,15 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     // Run validation first
     this.validateAllFields();
 
-    if (this.form.invalid) {
-      this.snackBar.open('Please fill in all required fields', 'Close', { duration: 3000 });
+    if (this.form.invalid || Object.values(this.validationErrors).some(e => e !== null)) {
+      const firstError = this.getFirstValidationError(this.fields);
+      this.snackBar.open(firstError || 'Please fill in all required fields', 'Close', { duration: 5000 });
       return;
     }
 
     // Check if there are pending unique validations
     if (this.pendingUniqueChecks.size > 0) {
       this.snackBar.open('Please wait for validation checks to complete', 'Close', { duration: 3000 });
-      return;
-    }
-
-    // Check for custom validation errors
-    const hasValidationErrors = Object.values(this.validationErrors).some(error => error !== null);
-    if (hasValidationErrors) {
-      this.snackBar.open('Please fix validation errors before submitting', 'Close', { duration: 3000 });
       return;
     }
 
@@ -6855,6 +9323,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   submitForm(isDraft: boolean) {
     this.submitting = true;
+
+    // Apply transformations before collecting values
+    this.applyAllTransformations();
 
     const formData = new FormData();
     formData.append('workflowCode', this.workflowCode);
@@ -7309,6 +9780,12 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   private tableData: Record<string, any[]> = {};
   private currentTableRowIndex: number = 0; // 0-based index for ROW() function
 
+  // Table search, filter, sort, pagination state
+  tableSearchTerms: Record<string, string> = {};
+  private tableColumnFilters: Record<string, Record<string, string>> = {};
+  tableSortState: Record<string, { column: string; direction: 'asc' | 'desc' }> = {};
+  private tableCurrentPage: Record<string, number> = {};
+
   getTableColumns(field: any): { name: string; label: string; type: string; width?: number; defaultValue?: string; readOnly?: boolean }[] {
     // First check the new tableColumns property
     if (field.tableColumns && Array.isArray(field.tableColumns) && field.tableColumns.length > 0) {
@@ -7384,7 +9861,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       }
 
       // If table is empty and we're creating a new submission, initialize with minimum rows
-      if (this.tableData[field.name].length === 0 && !this.isEditMode) {
+      // Skip for tables with a data source - their data comes from the API
+      if (this.tableData[field.name].length === 0 && !this.isEditMode && !field.tableDataSource) {
         const minRows = field.tableMinRows || 1; // Default to at least 1 row
         const columns = this.getTableColumns(field);
 
@@ -7465,10 +9943,24 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   removeTableRow(field: any, index: number): void {
     if (this.isFieldReadonly(field)) return;
-    if (this.tableData[field.name]) {
-      this.tableData[field.name].splice(index, 1);
-      this.updateTableValue(field);
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Row',
+        message: 'Are you sure you want to delete this row? This action cannot be undone.',
+        type: 'delete',
+        confirmText: 'Delete',
+        confirmColor: 'warn'
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed && this.tableData[field.name]) {
+        this.tableData[field.name].splice(index, 1);
+        this.updateTableValue(field);
+        this.cdr.detectChanges();
+        this.snackBar.open('Row deleted successfully', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   onTableCellChange(event: Event, field: any, rowIndex: number, columnName: string): void {
@@ -7646,6 +10138,450 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         return 'bounce-animation';
       default:
         return 'smooth-animation';
+    }
+  }
+
+  // --- API Field Methods ---
+
+  isApiFieldType(type: string): boolean {
+    return ['API_ARRAY', 'API_OBJECT_ARRAY', 'API_VALUE', 'API_OBJECT', 'API_LIST', 'OBJECT_VIEWER'].includes(type);
+  }
+
+  isAnyApiFieldLoading(): boolean {
+    return Object.values(this.apiFieldLoading).some(v => v);
+  }
+
+  fetchApiFieldData(field: any): void {
+    if (!field.apiUrl) return;
+
+    this.apiFieldLoading[field.name] = true;
+    this.apiFieldErrors[field.name] = null;
+    this.cdr.detectChanges();
+
+    let headers: {key: string, value: string}[] = [];
+    if (field.apiHeaders) {
+      if (typeof field.apiHeaders === 'string') {
+        try { headers = JSON.parse(field.apiHeaders); } catch { headers = []; }
+      } else {
+        headers = field.apiHeaders;
+      }
+    }
+
+    let params: {key: string, value: string}[] = [];
+    if (field.apiParams) {
+      if (typeof field.apiParams === 'string') {
+        try { params = JSON.parse(field.apiParams); } catch { params = []; }
+      } else {
+        params = field.apiParams;
+      }
+    }
+
+    const payload: any = {
+      url: field.apiUrl,
+      method: field.apiMethod || 'GET',
+      authType: field.apiAuthType || 'NONE',
+      authValue: field.apiAuthValue || '',
+      headers: headers.filter((h: any) => h.key && h.key.trim()),
+      params: params.filter((p: any) => p.key && p.key.trim()),
+      responsePath: field.apiResponsePath || '',
+      body: field.apiBody || null
+    };
+
+    this.http.post<any>(`${environment.apiUrl}/proxy/call`, payload).subscribe({
+      next: (res) => {
+        this.apiFieldLoading[field.name] = false;
+        if (res.success) {
+          this.apiFieldData[field.name] = res.data;
+          // Store the stringified data in the form control
+          if (this.form.controls[field.name]) {
+            this.form.controls[field.name].setValue(
+              typeof res.data === 'object' ? JSON.stringify(res.data) : String(res.data ?? '')
+            );
+          }
+          // Populate any TABLE fields that use this API field as data source
+          if ((field.type === 'API_OBJECT_ARRAY' || field.type === 'API_ARRAY') && Array.isArray(res.data)) {
+            this.populateLinkedTables(field.name, res.data);
+          }
+          // Populate any SELECT/RADIO/etc fields that use this API field as options source
+          if ((field.type === 'API_ARRAY' || field.type === 'API_OBJECT_ARRAY') && Array.isArray(res.data)) {
+            this.populateLinkedOptionFields(field.name, res.data);
+          }
+        } else {
+          this.apiFieldErrors[field.name] = res.message || 'API call failed';
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.apiFieldLoading[field.name] = false;
+        this.apiFieldErrors[field.name] = err.error?.message || 'Failed to connect to API';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  initApiFields(): void {
+    const apiFields = this.fields.filter(f => this.isApiFieldType(f.type || f.fieldType as string));
+    for (const field of apiFields) {
+      if (field.apiUrl) {
+        this.fetchApiFieldData(field);
+      }
+    }
+  }
+
+  getObjectKeys(obj: any): string[] {
+    if (!obj || typeof obj !== 'object') return [];
+    return Object.keys(obj);
+  }
+
+  isObject(val: any): boolean {
+    return val !== null && typeof val === 'object' && !Array.isArray(val);
+  }
+
+  // --- Table Search, Filter, Sort, Pagination ---
+
+  onTableSearch(event: Event, field: any): void {
+    this.tableSearchTerms[field.name] = (event.target as HTMLInputElement).value;
+    this.tableCurrentPage[field.name] = 0;
+  }
+
+  clearTableSearch(field: any): void {
+    this.tableSearchTerms[field.name] = '';
+    this.tableCurrentPage[field.name] = 0;
+  }
+
+  getColumnFilter(field: any, colName: string): string {
+    return this.tableColumnFilters[field.name]?.[colName] || '';
+  }
+
+  onColumnFilter(event: Event, field: any, colName: string): void {
+    if (!this.tableColumnFilters[field.name]) this.tableColumnFilters[field.name] = {};
+    this.tableColumnFilters[field.name][colName] = (event.target as HTMLInputElement).value;
+    this.tableCurrentPage[field.name] = 0;
+  }
+
+  hasColumnFilters(field: any): boolean {
+    const filters = this.tableColumnFilters[field.name];
+    return filters ? Object.values(filters).some(v => v && v.trim()) : false;
+  }
+
+  onTableSort(field: any, colName: string): void {
+    const current = this.tableSortState[field.name];
+    if (current?.column === colName) {
+      this.tableSortState[field.name] = { column: colName, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+    } else {
+      this.tableSortState[field.name] = { column: colName, direction: 'asc' };
+    }
+  }
+
+  getFilteredTableRows(field: any): any[] {
+    let rows = this.getTableRows(field);
+    // Apply global search
+    const search = (this.tableSearchTerms[field.name] || '').toLowerCase().trim();
+    if (search) {
+      rows = rows.filter(row => Object.values(row).some(v => String(v || '').toLowerCase().includes(search)));
+    }
+    // Apply column filters
+    const filters = this.tableColumnFilters[field.name];
+    if (filters) {
+      for (const [col, val] of Object.entries(filters)) {
+        if (val && val.trim()) {
+          const filterVal = val.toLowerCase().trim();
+          rows = rows.filter(row => String(row[col] || '').toLowerCase().includes(filterVal));
+        }
+      }
+    }
+    // Apply sort
+    const sort = this.tableSortState[field.name];
+    if (sort) {
+      rows = [...rows].sort((a, b) => {
+        const av = String(a[sort.column] || '');
+        const bv = String(b[sort.column] || '');
+        const numA = Number(av), numB = Number(bv);
+        let cmp: number;
+        if (!isNaN(numA) && !isNaN(numB) && av !== '' && bv !== '') {
+          cmp = numA - numB;
+        } else {
+          cmp = av.localeCompare(bv);
+        }
+        return sort.direction === 'asc' ? cmp : -cmp;
+      });
+    }
+    return rows;
+  }
+
+  getDisplayedTableRows(field: any): any[] {
+    const filtered = this.getFilteredTableRows(field);
+    if (!field.tablePageable) return filtered;
+    const pageSize = field.tablePageSize || 10;
+    const page = this.getTablePage(field);
+    return filtered.slice(page * pageSize, (page + 1) * pageSize);
+  }
+
+  getActualRowIndex(field: any, row: any): number {
+    return this.getTableRows(field).indexOf(row);
+  }
+
+  getTablePage(field: any): number {
+    return this.tableCurrentPage[field.name] || 0;
+  }
+
+  setTablePage(field: any, page: number): void {
+    this.tableCurrentPage[field.name] = Math.max(0, page);
+  }
+
+  getTableTotalPages(field: any): number {
+    const total = this.getFilteredTableRows(field).length;
+    const pageSize = field.tablePageSize || 10;
+    return Math.ceil(total / pageSize);
+  }
+
+  getPageInfo(field: any): string {
+    const filtered = this.getFilteredTableRows(field);
+    const pageSize = field.tablePageSize || 10;
+    const page = this.getTablePage(field);
+    const start = page * pageSize + 1;
+    const end = Math.min((page + 1) * pageSize, filtered.length);
+    return `${start}–${end} of ${filtered.length}`;
+  }
+
+  // Column resize
+  onColumnResizeStart(event: MouseEvent, field: any, col: any): void {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = col.width || 150;
+
+    const onMouseMove = (e: MouseEvent) => {
+      col.width = Math.max(60, startWidth + (e.clientX - startX));
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  // --- Object Viewer methods ---
+  private ovExpandedNodes: Set<string> = new Set();
+
+  isOvObject(data: any): boolean {
+    return data !== null && typeof data === 'object' && !Array.isArray(data);
+  }
+
+  isOvArray(data: any): boolean {
+    return Array.isArray(data);
+  }
+
+  isOvExpandable(val: any): boolean {
+    return val !== null && typeof val === 'object';
+  }
+
+  isOvExpanded(path: string): boolean {
+    return this.ovExpandedNodes.has(path);
+  }
+
+  toggleOvNode(path: string): void {
+    if (this.ovExpandedNodes.has(path)) {
+      this.ovExpandedNodes.delete(path);
+    } else {
+      this.ovExpandedNodes.add(path);
+    }
+  }
+
+  expandAllObjectViewer(fieldName: string): void {
+    const data = this.apiFieldData[fieldName];
+    if (data) this.expandOvRecursive(data, fieldName);
+  }
+
+  collapseAllObjectViewer(fieldName: string): void {
+    const toRemove = [...this.ovExpandedNodes].filter(p => p.startsWith(fieldName));
+    toRemove.forEach(p => this.ovExpandedNodes.delete(p));
+  }
+
+  private expandOvRecursive(data: any, path: string): void {
+    if (data === null || typeof data !== 'object') return;
+    if (Array.isArray(data)) {
+      data.forEach((item: any, i: number) => {
+        const childPath = path + '.' + i;
+        if (typeof item === 'object' && item !== null) {
+          this.ovExpandedNodes.add(childPath);
+          this.expandOvRecursive(item, childPath);
+        }
+      });
+    } else {
+      for (const key of Object.keys(data)) {
+        const childPath = path + '.' + key;
+        if (typeof data[key] === 'object' && data[key] !== null) {
+          this.ovExpandedNodes.add(childPath);
+          this.expandOvRecursive(data[key], childPath);
+        }
+      }
+    }
+  }
+
+  getOvTypeBadge(val: any): string {
+    if (Array.isArray(val)) return `Array[${val.length}]`;
+    if (typeof val === 'object' && val !== null) return `Object{${Object.keys(val).length}}`;
+    return '';
+  }
+
+  getOvValueType(val: any): string {
+    if (val === null || val === undefined) return 'null';
+    if (typeof val === 'boolean') return 'boolean';
+    if (typeof val === 'number') return 'number';
+    return 'string';
+  }
+
+  formatOvValue(val: any): string {
+    if (val === null) return 'null';
+    if (val === undefined) return 'undefined';
+    if (typeof val === 'string') return `"${val}"`;
+    return String(val);
+  }
+
+  getOvNodes(data: any, basePath: string, depth: number): any[] {
+    const nodes: any[] = [];
+    if (data === null || data === undefined) return nodes;
+
+    const entries: [string, any][] = Array.isArray(data)
+      ? data.map((item, i) => [`[${i}]`, item])
+      : (typeof data === 'object' ? Object.entries(data) : []);
+
+    for (const [key, val] of entries) {
+      const path = basePath + '.' + key;
+      const expandable = val !== null && typeof val === 'object';
+
+      if (expandable) {
+        const expanded = this.ovExpandedNodes.has(path);
+        nodes.push({ key, path, depth, expandable: true, expanded, badge: this.getOvTypeBadge(val) });
+        if (expanded) {
+          nodes.push(...this.getOvNodes(val, path, depth + 1));
+        }
+      } else {
+        nodes.push({ key, path, depth, expandable: false, value: this.formatOvValue(val), valueType: this.getOvValueType(val) });
+      }
+    }
+    return nodes;
+  }
+
+  onOvTreeClick(event: MouseEvent, fieldName: string): void {
+    const target = (event.target as HTMLElement).closest('.ov-expandable');
+    if (target) {
+      const path = target.getAttribute('data-path');
+      if (path) {
+        this.toggleOvNode(path);
+      }
+    }
+  }
+
+  /** Flatten nested object keys into dot-notation paths, skipping arrays */
+  flattenObjectKeys(obj: any, prefix: string = ''): string[] {
+    const keys: string[] = [];
+    if (!obj || typeof obj !== 'object') return keys;
+    for (const key of Object.keys(obj)) {
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+      const val = obj[key];
+      if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
+        keys.push(...this.flattenObjectKeys(val, fullKey));
+      } else if (!Array.isArray(val)) {
+        keys.push(fullKey);
+      }
+    }
+    return keys;
+  }
+
+  /** Resolve a dot-notation path like "ability.name" from a nested object */
+  resolveNestedValue(obj: any, path: string): any {
+    if (!obj || !path) return undefined;
+    const parts = path.split('.');
+    let current = obj;
+    for (const part of parts) {
+      if (current == null) return undefined;
+      current = current[part];
+    }
+    return current;
+  }
+
+  populateLinkedOptionFields(apiFieldName: string, data: any[]): void {
+    const optionTypes = ['SELECT', 'MULTISELECT', 'RADIO', 'CHECKBOX_GROUP'];
+    const linkedFields = this.fields.filter(
+      f => optionTypes.includes(f.type || f.fieldType as string)
+        && (f as any).optionsSource === 'API'
+        && (f as any).apiDataSourceField === apiFieldName
+    );
+
+    for (const field of linkedFields) {
+      const displayPath = (field as any).apiDisplayField || '';
+      const valuePath = (field as any).apiValueField || '';
+
+      field.options = data.map((item: any) => {
+        let label: string, value: string;
+        if (typeof item === 'object' && item !== null) {
+          label = displayPath ? String(this.resolveNestedValue(item, displayPath) ?? '') : JSON.stringify(item);
+          value = valuePath ? String(this.resolveNestedValue(item, valuePath) ?? '') : label;
+        } else {
+          label = String(item ?? '');
+          value = label;
+        }
+        return { label, value };
+      });
+    }
+  }
+
+  populateLinkedTables(apiFieldName: string, data: any[]): void {
+    // Find TABLE fields that use this API field as data source
+    const linkedTables = this.fields.filter(
+      f => (f.type === 'TABLE' || f.fieldType === 'TABLE') && f.tableDataSource === apiFieldName
+    );
+
+    for (const tableField of linkedTables) {
+      if (!data || data.length === 0) continue;
+
+      // Get configured table columns
+      let columns = tableField.tableColumns;
+      if (typeof columns === 'string') {
+        try { columns = JSON.parse(columns); } catch { columns = []; }
+      }
+
+      // Check if data is a simple array (not objects)
+      const isSimpleArray = data.length > 0 && typeof data[0] !== 'object';
+
+      // Auto-generate columns from API data if no columns configured or if columns are defaults (col1, col2, etc.)
+      const isDefaultColumns = columns && columns.length > 0 &&
+        columns.every((c: any) => /^col\d+$/.test(c.name));
+      if (!columns || columns.length === 0 || isDefaultColumns) {
+        if (isSimpleArray) {
+          columns = [{ name: 'value', label: 'Value', type: 'TEXT' as any }];
+        } else {
+          columns = this.flattenObjectKeys(data[0]).map((k: string) => ({
+            name: k, label: k.replace(/\./g, ' '), type: 'TEXT' as any
+          }));
+        }
+        tableField.tableColumns = columns;
+      }
+
+      // Map API data to table rows using column names (supports dot notation for nested values)
+      const columnNames = (columns || []).map((c: any) => c.name);
+      const rows = data.map((item: any) => {
+        const row: Record<string, string> = {};
+        if (isSimpleArray) {
+          row['value'] = String(item ?? '');
+        } else {
+          for (const colName of columnNames) {
+            const val = this.resolveNestedValue(item, colName);
+            row[colName] = val !== undefined && val !== null ? String(val) : '';
+          }
+        }
+        return row;
+      });
+
+      // Set table data
+      this.tableData[tableField.name] = rows;
+      if (this.form.controls[tableField.name]) {
+        this.form.controls[tableField.name].setValue(JSON.stringify(rows));
+      }
     }
   }
 }

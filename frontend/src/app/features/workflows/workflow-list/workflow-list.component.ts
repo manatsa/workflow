@@ -9,14 +9,17 @@ import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { WorkflowService } from '@core/services/workflow.service';
 import { Workflow } from '@core/models/workflow.model';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-workflow-list',
@@ -37,21 +40,26 @@ import { Workflow } from '@core/models/workflow.model';
     MatChipsModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    MatDividerModule
-  ],
+    MatDialogModule,
+    MatDividerModule,
+    MatTooltipModule],
   template: `
     <div class="workflow-list-container">
       <div class="header">
         <h1>Workflow Management</h1>
         <div class="header-actions">
           <input type="file" #fileInput accept=".json" (change)="onFileSelected($event)" style="display: none">
-          <button mat-stroked-button color="primary" (click)="fileInput.click()">
-            <mat-icon>upload</mat-icon>
-            Import Workflow
+          <button mat-stroked-button matTooltip="Download JSON Template" (click)="downloadTemplate()">
+            <mat-icon>description</mat-icon>
+            Template
           </button>
-          <button mat-raised-button color="primary" routerLink="/workflows/builder/new">
+          <button mat-stroked-button matTooltip="Import Workflow from JSON" color="primary" (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon>
+            Import
+          </button>
+          <button mat-raised-button matTooltip="Create New Workflow" color="primary" routerLink="/workflows/builder/new">
             <mat-icon>add</mat-icon>
-            Create Workflow
+            New Workflow
           </button>
         </div>
       </div>
@@ -130,7 +138,7 @@ import { Workflow } from '@core/models/workflow.model';
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let workflow">
-                <button mat-icon-button [matMenuTriggerFor]="menu">
+                <button mat-icon-button matTooltip="More Options" [matMenuTriggerFor]="menu">
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
@@ -230,7 +238,8 @@ export class WorkflowListComponent implements OnInit {
 
   constructor(
     private workflowService: WorkflowService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -293,6 +302,21 @@ export class WorkflowListComponent implements OnInit {
     });
   }
 
+  downloadTemplate() {
+    this.workflowService.downloadWorkflowTemplate().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'workflow_template.json';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+    });
+  }
+
   exportWorkflow(workflow: Workflow) {
     this.workflowService.exportWorkflow(workflow.id).subscribe(blob => {
       const url = window.URL.createObjectURL(blob);
@@ -327,13 +351,24 @@ export class WorkflowListComponent implements OnInit {
   }
 
   deleteWorkflow(workflow: Workflow) {
-    if (confirm(`Are you sure you want to delete the workflow "${workflow.name}"?`)) {
-      this.workflowService.deleteWorkflow(workflow.id).subscribe(res => {
-        if (res.success) {
-          this.snackBar.open('Workflow deleted successfully', 'Close', { duration: 3000 });
-          this.loadWorkflows();
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Workflow',
+        message: 'Are you sure you want to delete this workflow?',
+        itemName: workflow.name,
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.workflowService.deleteWorkflow(workflow.id).subscribe(res => {
+          if (res.success) {
+            this.snackBar.open('Workflow deleted successfully', 'Close', { duration: 3000 });
+            this.loadWorkflows();
+          }
+        });
+      }
+    });
   }
 }

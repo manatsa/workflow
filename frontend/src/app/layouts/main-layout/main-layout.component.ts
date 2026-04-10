@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
@@ -18,8 +18,11 @@ import { WorkflowService } from '@core/services/workflow.service';
 import { ThemeService } from '@core/services/theme.service';
 import { ReportService } from '@core/services/report.service';
 import { SettingService } from '@core/services/setting.service';
+import { DeadlineService } from '../../features/deadlines/services/deadline.service';
+import { LeaveService } from '../../features/leave/services/leave.service';
 import { Workflow } from '@core/models/workflow.model';
 import { ProfileDialogComponent } from '@shared/components/profile-dialog/profile-dialog.component';
+import { SignatureDialogComponent } from '../../features/signature/signature-dialog.component';
 import { ChangePasswordDialogComponent } from '@shared/components/change-password-dialog/change-password-dialog.component';
 
 interface ReportCategory {
@@ -67,7 +70,7 @@ interface ReportCategory {
     MatTooltipModule],
   template: `
     <div class="layout-container">
-      <aside class="sidebar" [class.collapsed]="!sidebarOpen">
+      <aside class="sidebar" [class.collapsed]="!sidebarOpen" [class.mobile]="isMobile">
         <div class="sidebar-header">
           <img [src]="logoUrl" alt="Sona" class="brand-logo" (error)="logoUrl = 'assets/logo.png'">
           <span class="brand-name">Sona</span>
@@ -81,7 +84,7 @@ interface ReportCategory {
           </div>
         </div>
 
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav" (click)="onNavClick($event)">
           <a class="menu-item" routerLink="/dashboard" routerLinkActive="active">
             <mat-icon>dashboard</mat-icon>
             <span>Home</span>
@@ -122,6 +125,10 @@ interface ReportCategory {
                 <a class="menu-item" routerLink="/departments" routerLinkActive="active">
                   <mat-icon>account_tree</mat-icon>
                   <span>Departments</span>
+                </a>
+                <a class="menu-item" routerLink="/stamps" routerLinkActive="active">
+                  <mat-icon>verified</mat-icon>
+                  <span>Approval Seals</span>
                 </a>
                 <a class="menu-item" routerLink="/settings" routerLinkActive="active">
                   <mat-icon>settings</mat-icon>
@@ -179,6 +186,127 @@ interface ReportCategory {
             </mat-expansion-panel>
           }
 
+          @if (leaveModuleEnabled) {
+          <mat-expansion-panel class="nav-panel">
+            <mat-expansion-panel-header>
+              <mat-icon>beach_access</mat-icon>
+              <span>Leave Management</span>
+              @if (leavePendingApprovalsCount > 0) {
+                <span class="sidebar-badge badge-leave-approvals" matTooltip="Pending approvals">{{ leavePendingApprovalsCount }}</span>
+              }
+              @if (leaveMyPendingCount > 0) {
+                <span class="sidebar-badge badge-leave-pending" matTooltip="My pending requests">{{ leaveMyPendingCount }}</span>
+              }
+              @if (leaveApprovedUpcomingCount > 0) {
+                <span class="sidebar-badge badge-leave-upcoming" matTooltip="Approved upcoming leave">{{ leaveApprovedUpcomingCount }}</span>
+              }
+            </mat-expansion-panel-header>
+            <div class="submenu">
+              <a class="menu-item" routerLink="/leave" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <mat-icon>dashboard</mat-icon>
+                <span>Dashboard</span>
+              </a>
+              <a class="menu-item" routerLink="/leave/requests" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <mat-icon>list_alt</mat-icon>
+                <span>My Requests</span>
+                @if (leaveMyPendingCount > 0) {
+                  <span class="badge-count leave-pending">{{ leaveMyPendingCount }}</span>
+                }
+              </a>
+              <a class="menu-item" routerLink="/leave/approvals" routerLinkActive="active">
+                <mat-icon>thumb_up</mat-icon>
+                <span>Approvals</span>
+                @if (leavePendingApprovalsCount > 0) {
+                  <span class="badge-count leave-approvals">{{ leavePendingApprovalsCount }}</span>
+                }
+              </a>
+              <a class="menu-item" routerLink="/leave/calendar" routerLinkActive="active">
+                <mat-icon>calendar_month</mat-icon>
+                <span>Team Calendar</span>
+              </a>
+              @if (isAdmin) {
+              <a class="menu-item" routerLink="/leave/approver-config" routerLinkActive="active">
+                <mat-icon>approval</mat-icon>
+                <span>Approval Chains</span>
+              </a>
+              <a class="menu-item" routerLink="/leave/balances" routerLinkActive="active">
+                <mat-icon>account_balance</mat-icon>
+                <span>Balances</span>
+              </a>
+              <a class="menu-item" routerLink="/leave/types" routerLinkActive="active">
+                <mat-icon>category</mat-icon>
+                <span>Leave Types</span>
+              </a>
+              <a class="menu-item" routerLink="/leave/policies" routerLinkActive="active">
+                <mat-icon>policy</mat-icon>
+                <span>Policies</span>
+              </a>
+              <a class="menu-item" routerLink="/leave/holidays" routerLinkActive="active">
+                <mat-icon>event</mat-icon>
+                <span>Public Holidays</span>
+              </a>
+              }
+            </div>
+          </mat-expansion-panel>
+          }
+
+          @if (deadlinesModuleEnabled) {
+          <mat-expansion-panel class="nav-panel">
+            <mat-expansion-panel-header>
+              <mat-icon>event_busy</mat-icon>
+              <span>Critical Deadlines</span>
+              @if (deadlineOverdueCount > 0) {
+                <span class="sidebar-badge badge-overdue" matTooltip="Overdue deadlines">{{ deadlineOverdueCount }}</span>
+              }
+              @if (deadlineDueSoonCount > 0) {
+                <span class="sidebar-badge badge-due-soon" matTooltip="Deadlines due soon">{{ deadlineDueSoonCount }}</span>
+              }
+            </mat-expansion-panel-header>
+            <div class="submenu">
+              <a class="menu-item" routerLink="/deadlines" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <mat-icon>dashboard</mat-icon>
+                <span>Dashboard</span>
+              </a>
+              <a class="menu-item" routerLink="/deadlines/categories" routerLinkActive="active">
+                <mat-icon>category</mat-icon>
+                <span>Categories</span>
+              </a>
+              <a class="menu-item" routerLink="/deadlines/items" routerLinkActive="active">
+                <mat-icon>list</mat-icon>
+                <span>Deadline Items</span>
+              </a>
+              <a class="menu-item" routerLink="/deadlines/calendar" routerLinkActive="active">
+                <mat-icon>calendar_month</mat-icon>
+                <span>Calendar</span>
+              </a>
+            </div>
+          </mat-expansion-panel>
+          }
+
+          @if (workflowModuleEnabled) {
+          <a class="menu-item" routerLink="/approvals" routerLinkActive="active">
+            <mat-icon [matBadge]="pendingApprovalsCount > 0 ? pendingApprovalsCount : null"
+                      matBadgeColor="warn"
+                      matBadgeSize="small"
+                      [matBadgeHidden]="pendingApprovalsCount === 0">thumb_up</mat-icon>
+            <span>Pending Approvals</span>
+            @if (pendingApprovalsCount > 0) {
+              <span class="badge-count">{{ pendingApprovalsCount }}</span>
+            }
+          </a>
+
+          <a class="menu-item" routerLink="/my-submissions" routerLinkActive="active">
+            <mat-icon [matBadge]="mySubmissionsCount > 0 ? mySubmissionsCount : null"
+                      matBadgeColor="primary"
+                      matBadgeSize="small"
+                      [matBadgeHidden]="mySubmissionsCount === 0">send</mat-icon>
+            <span>My Submissions</span>
+            @if (mySubmissionsCount > 0) {
+              <span class="badge-count primary">{{ mySubmissionsCount }}</span>
+            }
+          </a>
+          }
+
           <!-- Projects -->
           @if (projectsModuleEnabled) {
           <mat-expansion-panel class="nav-panel">
@@ -209,30 +337,6 @@ interface ReportCategory {
           </mat-expansion-panel>
           }
 
-          @if (workflowModuleEnabled) {
-          <a class="menu-item" routerLink="/approvals" routerLinkActive="active">
-            <mat-icon [matBadge]="pendingApprovalsCount > 0 ? pendingApprovalsCount : null"
-                      matBadgeColor="warn"
-                      matBadgeSize="small"
-                      [matBadgeHidden]="pendingApprovalsCount === 0">thumb_up</mat-icon>
-            <span>Pending Approvals</span>
-            @if (pendingApprovalsCount > 0) {
-              <span class="badge-count">{{ pendingApprovalsCount }}</span>
-            }
-          </a>
-
-          <a class="menu-item" routerLink="/my-submissions" routerLinkActive="active">
-            <mat-icon [matBadge]="mySubmissionsCount > 0 ? mySubmissionsCount : null"
-                      matBadgeColor="primary"
-                      matBadgeSize="small"
-                      [matBadgeHidden]="mySubmissionsCount === 0">send</mat-icon>
-            <span>My Submissions</span>
-            @if (mySubmissionsCount > 0) {
-              <span class="badge-count primary">{{ mySubmissionsCount }}</span>
-            }
-          </a>
-          }
-
           <!-- Reports -->
           <mat-expansion-panel class="nav-panel">
             <mat-expansion-panel-header>
@@ -245,7 +349,7 @@ interface ReportCategory {
                 <span>All Reports</span>
               </a>
               @for (category of reportCategories; track category.id) {
-                @if ((category.id === 'workflow' && workflowModuleEnabled) || (category.id === 'project' && projectsModuleEnabled)) {
+                @if ((category.id === 'workflow' && workflowModuleEnabled) || (category.id === 'project' && projectsModuleEnabled) || (category.id === 'leave' && leaveModuleEnabled) || (category.id === 'deadline' && deadlinesModuleEnabled)) {
                   <mat-expansion-panel class="nav-panel nested-panel">
                     <mat-expansion-panel-header>
                       <mat-icon>{{ category.icon }}</mat-icon>
@@ -284,6 +388,10 @@ interface ReportCategory {
         </div>
       </aside>
 
+      @if (sidebarOpen && isMobile) {
+        <div class="sidebar-backdrop" (click)="toggleSidebar()"></div>
+      }
+
       <main class="main-content" [class.expanded]="!sidebarOpen">
         <header class="main-header">
           <div class="header-left">
@@ -301,6 +409,10 @@ interface ReportCategory {
               <button mat-menu-item (click)="openProfileDialog()">
                 <mat-icon>person</mat-icon>
                 <span>Profile</span>
+              </button>
+              <button mat-menu-item (click)="openSignatureDialog()">
+                <mat-icon>draw</mat-icon>
+                <span>Signature</span>
               </button>
               <button mat-menu-item (click)="openChangePasswordDialog()">
                 <mat-icon>lock</mat-icon>
@@ -322,7 +434,7 @@ interface ReportCategory {
     </div>
   `,
   styles: [`
-    .layout-container { display: flex; min-height: 100vh; }
+    .layout-container { display: flex; min-height: 100vh; overflow: visible; position: relative; }
 
     .sidebar {
       width: 338px;
@@ -466,6 +578,44 @@ interface ReportCategory {
       background: #1976d2;
     }
 
+    .sidebar-badge {
+      margin-left: 4px;
+      color: white;
+      border-radius: 10px;
+      padding: 1px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .badge-overdue {
+      background: #f44336;
+    }
+
+    .badge-due-soon {
+      background: #ff9800;
+    }
+
+    .badge-leave-approvals {
+      background: #ff9800;
+    }
+
+    .badge-leave-pending {
+      background: #1976d2;
+    }
+
+    .badge-leave-upcoming {
+      background: #4caf50;
+    }
+
+    .badge-count.leave-approvals {
+      background: #ff9800;
+    }
+
+    .badge-count.leave-pending {
+      background: #1976d2;
+    }
+
     .sidebar-footer {
       border-top: 1px solid var(--menu-hover-bg, #37474f);
       opacity: 0.9;
@@ -578,12 +728,18 @@ interface ReportCategory {
 
     .account-btn {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 2px;
       text-transform: none;
       font-weight: 500;
-      font-size: 13px;
-      color: var(--header-text, #333);
+      font-size: 11px;
+      color: var(--header-text, #333) !important;
+      line-height: 1.2;
+
+      mat-icon, .mat-icon {
+        color: var(--header-text, #333) !important;
+      }
     }
 
     .header-left .mat-mdc-icon-button {
@@ -594,6 +750,7 @@ interface ReportCategory {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: var(--header-text, #333) !important;
     }
 
     .page-content {
@@ -617,6 +774,52 @@ interface ReportCategory {
     .main-content.expanded {
       margin-left: 0;
     }
+
+    .sidebar-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+
+    /* Mobile sidebar overlay */
+    .sidebar.mobile {
+      width: 280px;
+      z-index: 1100 !important;
+      transform: translateX(0);
+    }
+
+    .sidebar.mobile.collapsed {
+      transform: translateX(-280px) !important;
+    }
+
+    @media (max-width: 767px) {
+      .sidebar-backdrop {
+        z-index: 1099 !important;
+      }
+
+      .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+      }
+
+      .main-header {
+        padding: 0 0.5rem !important;
+        z-index: 50 !important;
+      }
+
+      .account-name {
+        font-size: 9px !important;
+        max-width: 80px;
+      }
+
+      .page-content {
+        padding: 0.75rem !important;
+      }
+    }
   `]
 })
 export class MainLayoutComponent implements OnInit {
@@ -624,6 +827,7 @@ export class MainLayoutComponent implements OnInit {
   activeWorkflows: Workflow[] = [];
   reportCategories: ReportCategory[] = [];
   sidebarOpen = true;
+  isMobile = false;
   footerCollapsed = false;
   pendingApprovalsCount = 0;
   mySubmissionsCount = 0;
@@ -631,6 +835,13 @@ export class MainLayoutComponent implements OnInit {
   logoUrl = 'assets/logo.png';
   workflowModuleEnabled = true;
   projectsModuleEnabled = true;
+  deadlinesModuleEnabled = true;
+  leaveModuleEnabled = true;
+  deadlineOverdueCount = 0;
+  deadlineDueSoonCount = 0;
+  leavePendingApprovalsCount = 0;
+  leaveMyPendingCount = 0;
+  leaveApprovedUpcomingCount = 0;
 
   constructor(
     private authService: AuthService,
@@ -638,16 +849,26 @@ export class MainLayoutComponent implements OnInit {
     private themeService: ThemeService,
     private reportService: ReportService,
     private settingService: SettingService,
+    private deadlineService: DeadlineService,
+    private leaveService: LeaveService,
     private router: Router,
     private dialog: MatDialog
   ) {}
 
+  @HostListener('window:resize')
+  onResize() {
+    this.checkMobile();
+  }
+
   ngOnInit() {
+    this.checkMobile();
     this.themeService.loadTheme();
     this.loadModuleStates();
     this.loadWorkflows();
     this.loadPendingApprovalsCount();
     this.loadMySubmissionsCount();
+    this.loadDeadlineBadgeCounts();
+    this.loadLeaveBadgeCounts();
     this.loadReportCategories();
     this.loadLogoUrl();
   }
@@ -664,6 +885,20 @@ export class MainLayoutComponent implements OnInit {
       next: (res) => {
         if (res.success) {
           this.projectsModuleEnabled = res.data !== 'false';
+        }
+      }
+    });
+    this.settingService.getSettingValue('module.deadlines.enabled').subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.deadlinesModuleEnabled = res.data !== 'false';
+        }
+      }
+    });
+    this.settingService.getSettingValue('module.leave.enabled').subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.leaveModuleEnabled = res.data !== 'false';
         }
       }
     });
@@ -717,6 +952,38 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
+  loadDeadlineBadgeCounts() {
+    this.deadlineService.getBadgeCounts().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.deadlineOverdueCount = res.data.overdue || 0;
+          this.deadlineDueSoonCount = res.data.dueSoon || 0;
+        }
+      },
+      error: () => {
+        this.deadlineOverdueCount = 0;
+        this.deadlineDueSoonCount = 0;
+      }
+    });
+  }
+
+  loadLeaveBadgeCounts() {
+    this.leaveService.getBadgeCounts().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.leavePendingApprovalsCount = res.data.pendingApprovals || 0;
+          this.leaveMyPendingCount = res.data.myPending || 0;
+          this.leaveApprovedUpcomingCount = res.data.approvedUpcoming || 0;
+        }
+      },
+      error: () => {
+        this.leavePendingApprovalsCount = 0;
+        this.leaveMyPendingCount = 0;
+        this.leaveApprovedUpcomingCount = 0;
+      }
+    });
+  }
+
   get fullName(): string {
     return this.authService.currentUser?.fullName || 'User';
   }
@@ -752,8 +1019,29 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
+  checkMobile() {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.innerWidth < 768;
+    if (this.isMobile && !wasMobile) {
+      this.sidebarOpen = false;
+    }
+    if (!this.isMobile && wasMobile) {
+      this.sidebarOpen = true;
+    }
+  }
+
   toggleSidebar() {
     this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  onNavClick(event: MouseEvent) {
+    if (!this.isMobile) return;
+    // Only close sidebar when clicking an actual navigation link, not expansion panels
+    const target = event.target as HTMLElement;
+    const anchor = target.closest('a.menu-item');
+    if (anchor) {
+      this.sidebarOpen = false;
+    }
   }
 
   toggleFooter() {
@@ -788,6 +1076,13 @@ export class MainLayoutComponent implements OnInit {
         }
       });
     }
+  }
+
+  openSignatureDialog() {
+    this.dialog.open(SignatureDialogComponent, {
+      width: '680px',
+      maxHeight: '90vh'
+    });
   }
 
   openChangePasswordDialog() {

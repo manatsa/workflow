@@ -27,6 +27,8 @@ import { HttpClient } from '@angular/common/http';
 import { ProjectSettingsService, ProjectSettingsDTO } from '../projects/services/project.service';
 import { WorkflowService } from '@core/services/workflow.service';
 import { Workflow } from '@core/models/workflow.model';
+import { StampService, StampDTO } from '../stamps/stamp.service';
+import { StampSelectorDialogComponent } from '../stamps/stamp-selector-dialog.component';
 
 interface SettingGroup {
   category: string;
@@ -198,14 +200,33 @@ interface SettingGroup {
                                   </mat-form-field>
                                 }
                                 @case ('SELECT') {
-                                  <mat-form-field appearance="outline" class="compact-field">
-                                    <mat-select [(ngModel)]="setting.value" [ngModelOptions]="{standalone: true}"
-                                                [disabled]="isTabModuleDisabled(tab)">
-                                      @for (option of getSelectOptions(setting); track option) {
-                                        <mat-option [value]="option">{{ option }}</mat-option>
+                                  @if (setting.key === 'workflow.default.seal.id') {
+                                    <mat-form-field appearance="outline" class="compact-field">
+                                      <input matInput [value]="getDefaultSealName(setting)" readonly
+                                             [disabled]="isTabModuleDisabled(tab)">
+                                      <button mat-icon-button matSuffix matTooltip="Browse seals"
+                                              [disabled]="isTabModuleDisabled(tab)"
+                                              (click)="openDefaultSealPicker(setting)">
+                                        <mat-icon>search</mat-icon>
+                                      </button>
+                                      @if (setting.value) {
+                                        <button mat-icon-button matSuffix matTooltip="Clear seal"
+                                                [disabled]="isTabModuleDisabled(tab)"
+                                                (click)="setting.value = ''; defaultSealName = ''">
+                                          <mat-icon>clear</mat-icon>
+                                        </button>
                                       }
-                                    </mat-select>
-                                  </mat-form-field>
+                                    </mat-form-field>
+                                  } @else {
+                                    <mat-form-field appearance="outline" class="compact-field">
+                                      <mat-select [(ngModel)]="setting.value" [ngModelOptions]="{standalone: true}"
+                                                  [disabled]="isTabModuleDisabled(tab)">
+                                        @for (option of getSelectOptions(setting); track option) {
+                                          <mat-option [value]="option">{{ option }}</mat-option>
+                                        }
+                                      </mat-select>
+                                    </mat-form-field>
+                                  }
                                 }
                                 @default {
                                   <mat-form-field appearance="outline" class="compact-field">
@@ -713,14 +734,16 @@ interface SettingGroup {
     </div>
   `,
   styles: [`
-    .settings-container { padding: 1rem; }
+    .settings-container { padding: 0.75rem; font-size: 13px; }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
     }
+
+    .header h1 { font-size: 1.25rem; margin: 0; }
 
     .header-actions {
       display: flex;
@@ -728,18 +751,19 @@ interface SettingGroup {
       align-items: center;
     }
 
-    .tab-content { padding: 24px; min-height: 300px; }
+    .tab-content { padding: 12px; min-height: 200px; }
 
-    .tab-label { margin-left: 4px; }
+    .tab-label { margin-left: 2px; font-size: 11px; }
 
     .tab-actions {
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       align-items: center;
-      margin-bottom: 1rem;
-      padding: 1rem;
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0.75rem;
       background: #f5f5f5;
-      border-radius: 8px;
+      border-radius: 6px;
+      font-size: 12px;
     }
 
     .test-email-field {
@@ -748,104 +772,98 @@ interface SettingGroup {
     }
 
     .tab-actions button {
-      height: 56px;
+      height: 40px;
+      font-size: 12px;
     }
 
     .tab-actions mat-spinner {
       display: inline-block;
-      margin-right: 8px;
+      margin-right: 6px;
     }
 
     .category-section {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     .category-title {
-      font-size: 1rem;
-      font-weight: 500;
+      font-size: 0.8rem;
+      font-weight: 600;
       color: #1976d2;
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.25rem;
       border-bottom: 2px solid #e0e0e0;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     .settings-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
+      gap: 0.5rem;
     }
 
-    /* Form grid for Email settings - matches Sonar */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
     .form-grid mat-form-field {
       width: 100%;
     }
 
-    /* Settings section for Email settings - matches Sonar */
     .settings-section {
-      margin-top: 24px;
-      padding: 20px;
+      margin-top: 12px;
+      padding: 12px;
       background: #fafafa;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 1px solid #e0e0e0;
     }
 
     .settings-section h4 {
-      margin: 0 0 16px 0;
+      margin: 0 0 8px 0;
       color: #333;
       font-weight: 500;
+      font-size: 13px;
     }
 
-    /* Radio/Toggle field section - matches Sonar */
     .radio-field-section {
-      padding: 16px;
+      padding: 10px;
       background: #fafafa;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 1px solid #e0e0e0;
     }
 
     .radio-hint {
-      margin-top: 8px;
+      margin-top: 4px;
       margin-bottom: 0;
-      font-size: 12px;
+      font-size: 11px;
       color: #666;
     }
 
-    /* Action buttons - matches Sonar */
     .action-buttons {
       display: flex;
-      gap: 10px;
-      margin-top: 24px;
-      padding-top: 20px;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
       border-top: 1px solid #e0e0e0;
     }
 
     @media (max-width: 768px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-      .settings-grid {
-        grid-template-columns: 1fr;
-      }
+      .form-grid { grid-template-columns: 1fr; }
+      .settings-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 1200px) {
-      .settings-grid {
-        grid-template-columns: 1fr;
-      }
+      .settings-grid { grid-template-columns: 1fr; }
     }
 
     .setting-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem;
+      padding: 0.4rem 0.5rem;
       background: #fafafa;
       border-radius: 4px;
       border: 1px solid #e0e0e0;
@@ -854,29 +872,30 @@ interface SettingGroup {
     .setting-label {
       flex: 1;
       min-width: 0;
-      padding-right: 1rem;
+      padding-right: 0.5rem;
     }
 
     .setting-label strong {
       display: block;
-      font-size: 0.875rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 0.75rem;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
     }
 
     .setting-label .description {
       display: block;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: #666;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
     }
 
     .setting-input {
-      flex-shrink: 0;
-      width: 200px;
+      flex-shrink: 1;
+      width: 180px;
+      min-width: 108px;
     }
 
     .compact-field {
@@ -889,13 +908,13 @@ interface SettingGroup {
 
     .color-input {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.35rem;
       align-items: center;
     }
 
     .color-input input[type="color"] {
-      width: 40px;
-      height: 36px;
+      width: 32px;
+      height: 28px;
       border: none;
       cursor: pointer;
       border-radius: 4px;
@@ -903,21 +922,29 @@ interface SettingGroup {
 
     .color-input .color-text {
       flex: 1;
-      font-size: 0.8rem;
+      font-size: 0.7rem;
     }
+
+    ::ng-deep app-settings .mat-mdc-form-field { font-size: 12px; }
+    ::ng-deep app-settings .mat-mdc-text-field-wrapper { padding: 0 8px !important; }
+    ::ng-deep app-settings .mat-mdc-form-field-infix { padding: 6px 0 !important; min-height: 36px !important; }
+    ::ng-deep app-settings .mdc-text-field--outlined { --mdc-outlined-text-field-container-shape: 4px; }
+    ::ng-deep app-settings .mat-mdc-slide-toggle { font-size: 12px; }
+    ::ng-deep app-settings .mat-mdc-select { font-size: 12px; }
 
     .loading-state, .error-state, .empty-state {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem;
+      padding: 2rem;
       text-align: center;
       color: #666;
+      font-size: 13px;
     }
 
     .loading-state mat-spinner {
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
     }
 
     .error-message {
@@ -943,10 +970,10 @@ interface SettingGroup {
     }
 
     .error-state mat-icon, .empty-state mat-icon {
-      font-size: 64px;
-      width: 64px;
-      height: 64px;
-      margin-bottom: 1rem;
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 0.75rem;
       opacity: 0.5;
     }
 
@@ -959,24 +986,24 @@ interface SettingGroup {
     }
 
     .empty-state .hint {
-      font-size: 0.875rem;
+      font-size: 0.75rem;
       opacity: 0.7;
-      margin-top: 0.5rem;
+      margin-top: 0.35rem;
     }
 
     mat-divider {
-      margin: 1rem 0;
+      margin: 0.5rem 0;
     }
 
     .reporting-section {
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
     }
 
     .setting-item.full-width {
       grid-column: 1 / -1;
       flex-direction: column;
       align-items: stretch;
-      gap: 0.5rem;
+      gap: 0.35rem;
     }
 
     .setting-item.full-width .setting-label {
@@ -1000,16 +1027,17 @@ interface SettingGroup {
     }
 
     .project-settings-panel {
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .project-settings-panel mat-panel-title {
       font-weight: 500;
       color: #1976d2;
+      font-size: 13px;
     }
 
     .project-settings-panel mat-panel-description {
-      font-size: 0.85rem;
+      font-size: 0.75rem;
     }
 
     .disabled-section {
@@ -1018,7 +1046,7 @@ interface SettingGroup {
     }
 
     .module-toggle-section {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     .module-toggle-item {
@@ -1061,6 +1089,9 @@ export class SettingsComponent implements OnInit {
   projectSettingsLoading = false;
   projectWorkflows: Workflow[] = [];
 
+  // Approval Seals
+  defaultSealName: string = '';
+
   private apiUrl = '/api';
 
   constructor(
@@ -1071,6 +1102,8 @@ export class SettingsComponent implements OnInit {
     private projectSettingsService: ProjectSettingsService,
     private workflowService: WorkflowService,
     private authService: AuthService,
+    private stampService: StampService,
+    private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private http: HttpClient
   ) {}
@@ -1081,6 +1114,37 @@ export class SettingsComponent implements OnInit {
     this.loadEmailSettings();
     this.loadProjectSettings();
     this.loadProjectWorkflows();
+  }
+
+  getDefaultSealName(setting: Setting): string {
+    return this.defaultSealName || (setting.value ? '(Seal selected)' : 'None');
+  }
+
+  openDefaultSealPicker(setting: Setting) {
+    const dialogRef = this.dialog.open(StampSelectorDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh'
+    });
+    dialogRef.afterClosed().subscribe((stamp: StampDTO | null | undefined) => {
+      if (stamp === null) {
+        setting.value = '';
+        this.defaultSealName = '';
+      } else if (stamp) {
+        setting.value = stamp.id!;
+        this.defaultSealName = stamp.name;
+      }
+    });
+  }
+
+  resolveDefaultSealName() {
+    const sealSetting = this.settings.find(s => s.key === 'workflow.default.seal.id');
+    if (sealSetting?.value) {
+      this.stampService.getById(sealSetting.value).subscribe({
+        next: (res: any) => {
+          if (res.success && res.data) this.defaultSealName = res.data.name;
+        }
+      });
+    }
   }
 
   loadRoles() {
@@ -1119,6 +1183,7 @@ export class SettingsComponent implements OnInit {
           this.tabs = Object.keys(res.data).filter(tab => tab !== 'Mail Settings');
           this.settings = Object.values(res.data).flat();
           this.initReportRolesFromSettings();
+          this.resolveDefaultSealName();
         } else {
           this.error = res.message || 'Failed to load settings';
         }

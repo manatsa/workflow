@@ -76,7 +76,7 @@ public class EmailService {
         } catch (Exception e) {
             log.debug("Could not get sender name from EmailSettings: {}", e.getMessage());
         }
-        return settingService.getValue("mail.from.name", "Sonar Workflow");
+        return settingService.getValue("mail.from.name", "Sona Workflow");
     }
 
     /**
@@ -128,6 +128,18 @@ public class EmailService {
                                           String approveLink, String rejectLink, String escalateLink, String reviewLink,
                                           String amount, boolean emailApprovalEnabled, List<Map<String, String>> summaryFields,
                                           String submissionLink) {
+        sendApprovalRequestEmail(toEmail, approverName, workflowName, referenceNumber, initiatorName,
+                approvalLink, approveLink, rejectLink, escalateLink, reviewLink, amount, emailApprovalEnabled,
+                summaryFields, submissionLink, null, 0, 0, null);
+    }
+
+    @Async
+    public void sendApprovalRequestEmail(String toEmail, String approverName, String workflowName,
+                                          String referenceNumber, String initiatorName, String approvalLink,
+                                          String approveLink, String rejectLink, String escalateLink, String reviewLink,
+                                          String amount, boolean emailApprovalEnabled, List<Map<String, String>> summaryFields,
+                                          String submissionLink, List<Map<String, Object>> approvalMatrix,
+                                          int currentLevel, int maxLevel, String submissionTitle) {
         try {
             Context context = new Context();
             context.setVariable("approverName", approverName);
@@ -143,9 +155,15 @@ public class EmailService {
             context.setVariable("emailApprovalEnabled", emailApprovalEnabled);
             context.setVariable("summaryFields", summaryFields);
             context.setVariable("submissionLink", submissionLink);
+            context.setVariable("approvalMatrix", approvalMatrix);
+            context.setVariable("currentLevel", currentLevel);
+            context.setVariable("maxLevel", maxLevel);
+            context.setVariable("submissionTitle", submissionTitle);
 
+            String emailSubject = "Approval Required: " + workflowName + " - " +
+                    (submissionTitle != null && !submissionTitle.isBlank() ? submissionTitle : referenceNumber);
             String htmlContent = templateEngine.process("approval-request-email", context);
-            sendHtmlEmail(toEmail, "Approval Required: " + workflowName + " - " + referenceNumber, htmlContent);
+            sendHtmlEmail(toEmail, emailSubject, htmlContent);
         } catch (Exception e) {
             log.error("Failed to send approval request email to {}", toEmail, e);
         }
@@ -166,7 +184,8 @@ public class EmailService {
             context.setVariable("submissionTitle", submissionTitle);
 
             String htmlContent = templateEngine.process("approval-notification-email", context);
-            sendHtmlEmail(toEmail, workflowName + " - " + referenceNumber + " " + action, htmlContent);
+            String subjectRef = (submissionTitle != null && !submissionTitle.isBlank()) ? submissionTitle : referenceNumber;
+            sendHtmlEmail(toEmail, workflowName + " - " + subjectRef + " " + action, htmlContent);
         } catch (Exception e) {
             log.error("Failed to send approval notification email to {}", toEmail, e);
         }
@@ -235,7 +254,7 @@ public class EmailService {
     }
 
     public void sendTestEmail(String toEmail) throws MessagingException {
-        String appName = settingService.getValue("app.name", "Sonar Workflow");
+        String appName = settingService.getValue("app.name", "Sona Workflow");
         String fromEmail = getFromEmail();
 
         String htmlContent = """

@@ -1,122 +1,129 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { MatTreeModule, MatTreeNestedDataSource } from '@angular/material/tree';
-import { NestedTreeControl } from '@angular/cdk/tree';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { UserService } from '@core/services/user.service';
 import { ImportExportService } from '@core/services/import-export.service';
 import { SBU } from '@core/models/user.model';
 import { Corporate } from '@core/models/corporate.model';
-
-interface SBUNode extends SBU {
-  children?: SBUNode[];
-}
+import { SbuDetailDialogComponent } from '../sbu-detail-dialog/sbu-detail-dialog.component';
+import { SbuEditDialogComponent } from '../sbu-edit-dialog/sbu-edit-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-sbu-list',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
     MatCardModule,
-    MatTreeModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
+    MatTableModule,
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
-    MatChipsModule
+    MatChipsModule,
+    MatTooltipModule,
+    MatDialogModule,
+    MatMenuModule
   ],
   template: `
     <div class="sbu-list-container">
       <div class="header">
         <h1>SBU Management</h1>
         <div class="header-actions">
-          <button mat-stroked-button (click)="downloadTemplate()">
+          <button mat-stroked-button matTooltip="Download Template" (click)="downloadTemplate()">
             <mat-icon>description</mat-icon> Template
           </button>
-          <button mat-stroked-button (click)="fileInput.click()">
+          <button mat-stroked-button matTooltip="Import from Excel" (click)="fileInput.click()">
             <mat-icon>upload</mat-icon> Import
           </button>
           <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
-          <button mat-stroked-button (click)="exportToExcel()">
+          <button mat-stroked-button matTooltip="Export to Excel" (click)="exportToExcel()">
             <mat-icon>download</mat-icon> Export
           </button>
-          <button mat-raised-button color="primary" (click)="showAddSbu = true">
-            <mat-icon>add</mat-icon>
-            Add SBU
+          <button mat-raised-button matTooltip="Add new SBU" color="primary" (click)="openAddSbu()">
+            <mat-icon>add</mat-icon> Add SBU
           </button>
         </div>
       </div>
 
-      <div class="content-grid">
-        <mat-card class="tree-card">
-          <mat-card-header>
-            <mat-card-title>Organization Structure</mat-card-title>
-          </mat-card-header>
+      <div class="content-area">
+        <mat-card class="table-card">
           <mat-card-content>
-            <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="sbu-tree">
-              <mat-nested-tree-node *matTreeNodeDef="let node">
-                <div class="mat-tree-node">
-                  <button mat-icon-button disabled></button>
-                  <div class="sbu-node" (click)="selectSbu(node)" [class.selected]="selectedSbu?.id === node.id">
-                    <mat-icon>business</mat-icon>
-                    <span>{{ node.name }}</span>
-                    @if (node.code) {
-                      <span class="code">({{ node.code }})</span>
-                    }
-                    @if (node.corporateName) {
-                      <mat-chip class="corporate-chip">{{ node.corporateName }}</mat-chip>
-                    }
-                  </div>
-                  <button mat-icon-button (click)="editSbu(node)">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="deleteSbu(node)" color="warn">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </div>
-              </mat-nested-tree-node>
+            <table mat-table [dataSource]="flatSbus" class="full-width">
+              <ng-container matColumnDef="code">
+                <th mat-header-cell *matHeaderCellDef>Code</th>
+                <td mat-cell *matCellDef="let row">{{ row.code }}</td>
+              </ng-container>
 
-              <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
-                <div class="mat-tree-node">
-                  <button mat-icon-button matTreeNodeToggle>
-                    <mat-icon>
-                      {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
-                    </mat-icon>
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="corporate">
+                <th mat-header-cell *matHeaderCellDef>Corporate</th>
+                <td mat-cell *matCellDef="let row">{{ row.corporateName || '-' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="parent">
+                <th mat-header-cell *matHeaderCellDef>Parent SBU</th>
+                <td mat-cell *matCellDef="let row">{{ row.parentName || row.parent?.name || '-' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="address">
+                <th mat-header-cell *matHeaderCellDef>Address</th>
+                <td mat-cell *matCellDef="let row">{{ row.address || '-' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="contactEmail">
+                <th mat-header-cell *matHeaderCellDef>Contact Email</th>
+                <td mat-cell *matCellDef="let row">{{ row.contactEmail || '-' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="contactPhone">
+                <th mat-header-cell *matHeaderCellDef>Contact Phone</th>
+                <td mat-cell *matCellDef="let row">{{ row.contactPhone || '-' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let row">
+                  <mat-chip [color]="row.isActive ? 'primary' : 'warn'" selected>
+                    {{ row.isActive ? 'Active' : 'Inactive' }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let row">
+                  <button mat-icon-button matTooltip="Actions" [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                    <mat-icon>more_vert</mat-icon>
                   </button>
-                  <div class="sbu-node" (click)="selectSbu(node)" [class.selected]="selectedSbu?.id === node.id">
-                    <mat-icon>business</mat-icon>
-                    <span>{{ node.name }}</span>
-                    @if (node.code) {
-                      <span class="code">({{ node.code }})</span>
-                    }
-                    @if (node.corporateName) {
-                      <mat-chip class="corporate-chip">{{ node.corporateName }}</mat-chip>
-                    }
-                  </div>
-                  <button mat-icon-button (click)="editSbu(node)">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="deleteSbu(node)" color="warn">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </div>
-                <div [class.hidden]="!treeControl.isExpanded(node)">
-                  <ng-container matTreeNodeOutlet></ng-container>
-                </div>
-              </mat-nested-tree-node>
-            </mat-tree>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="openEditSbu(row)">
+                      <mat-icon>edit</mat-icon> <span>Edit</span>
+                    </button>
+                    <button mat-menu-item (click)="openAddChildSbu(row)">
+                      <mat-icon>add</mat-icon> <span>Add Child SBU</span>
+                    </button>
+                    <button mat-menu-item (click)="deleteSbu(row)">
+                      <mat-icon color="warn">delete</mat-icon> <span>Delete</span>
+                    </button>
+                  </mat-menu>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="clickable-row" (click)="viewSbu(row)"></tr>
+            </table>
 
             @if (flatSbus.length === 0) {
               <div class="no-data">
@@ -126,175 +133,64 @@ interface SBUNode extends SBU {
             }
           </mat-card-content>
         </mat-card>
-
-        <mat-card class="form-card">
-          <mat-card-header>
-            <mat-card-title>{{ editingSbu ? 'Edit SBU' : (showAddSbu ? 'Add SBU' : 'SBU Details') }}</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            @if (showAddSbu || editingSbu) {
-              <form [formGroup]="sbuForm" (ngSubmit)="saveSbu()">
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Corporate</mat-label>
-                  <mat-select formControlName="corporateId">
-                    <mat-option [value]="null">-- Select Corporate --</mat-option>
-                    @for (corp of corporates; track corp.id) {
-                      <mat-option [value]="corp.id">{{ corp.name }}</mat-option>
-                    }
-                  </mat-select>
-                  @if (sbuForm.get('corporateId')?.hasError('required')) {
-                    <mat-error>Corporate is required</mat-error>
-                  }
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Name</mat-label>
-                  <input matInput formControlName="name">
-                  @if (sbuForm.get('name')?.hasError('required')) {
-                    <mat-error>Name is required</mat-error>
-                  }
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Code</mat-label>
-                  <input matInput formControlName="code">
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Description</mat-label>
-                  <textarea matInput formControlName="description" rows="3"></textarea>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Parent SBU</mat-label>
-                  <mat-select formControlName="parentId">
-                    <mat-option [value]="null">None (Root Level)</mat-option>
-                    @for (sbu of flatSbus; track sbu.id) {
-                      @if (!editingSbu || sbu.id !== editingSbu.id) {
-                        <mat-option [value]="sbu.id">{{ sbu.name }} @if (sbu.corporateName) { ({{ sbu.corporateName }}) }</mat-option>
-                      }
-                    }
-                  </mat-select>
-                </mat-form-field>
-
-                <div class="form-actions">
-                  <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="loading || sbuForm.invalid">
-                    {{ editingSbu ? 'Update' : 'Create' }}
-                  </button>
-                </div>
-              </form>
-            } @else if (selectedSbu) {
-              <div class="sbu-details">
-                @if (selectedSbu.corporateName) {
-                  <div class="detail-row">
-                    <span class="label">Corporate</span>
-                    <span class="value">{{ selectedSbu.corporateName }}</span>
-                  </div>
-                }
-                <div class="detail-row">
-                  <span class="label">Name</span>
-                  <span class="value">{{ selectedSbu.name }}</span>
-                </div>
-                @if (selectedSbu.code) {
-                  <div class="detail-row">
-                    <span class="label">Code</span>
-                    <span class="value">{{ selectedSbu.code }}</span>
-                  </div>
-                }
-                @if (selectedSbu.description) {
-                  <div class="detail-row">
-                    <span class="label">Description</span>
-                    <span class="value">{{ selectedSbu.description }}</span>
-                  </div>
-                }
-                @if (selectedSbu.parent) {
-                  <div class="detail-row">
-                    <span class="label">Parent</span>
-                    <span class="value">{{ selectedSbu.parent.name }}</span>
-                  </div>
-                }
-                <div class="detail-actions">
-                  <button mat-raised-button (click)="editSbu(selectedSbu)">
-                    <mat-icon>edit</mat-icon>
-                    Edit
-                  </button>
-                  <button mat-raised-button color="primary" (click)="addChildSbu()">
-                    <mat-icon>add</mat-icon>
-                    Add Child
-                  </button>
-                </div>
-              </div>
-            } @else {
-              <div class="no-selection">
-                <mat-icon>touch_app</mat-icon>
-                <p>Select an SBU to view details or click "Add SBU" to create a new one.</p>
-              </div>
-            }
-          </mat-card-content>
-        </mat-card>
       </div>
     </div>
   `,
   styles: [`
-    .sbu-list-container { padding: 1rem; }
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .sbu-list-container {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      box-sizing: border-box;
+    }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .header-actions {
       display: flex;
       gap: 0.5rem;
       align-items: center;
+      flex-wrap: wrap;
     }
 
-    .content-grid {
-      display: grid;
-      grid-template-columns: 1fr 400px;
-      gap: 1rem;
-    }
-
-    .sbu-tree {
-      min-height: 300px;
-    }
-
-    .mat-tree-node {
-      display: flex;
-      align-items: center;
-    }
-
-    .sbu-node {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .content-area {
       flex: 1;
-      padding: 0.5rem;
-      border-radius: 4px;
+      min-height: 0;
+    }
+
+    .table-card {
+      width: 100%;
+      height: 100%;
+    }
+
+    .full-width { width: 100%; }
+
+    .clickable-row {
       cursor: pointer;
     }
 
-    .sbu-node:hover {
-      background: #f5f5f5;
+    .clickable-row:hover {
+      background: #f0f4ff;
     }
 
-    .sbu-node.selected {
-      background: #e3f2fd;
-    }
-
-    .sbu-node .code {
-      font-size: 0.75rem;
-      color: #666;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .no-data, .no-selection {
+    .no-data {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -304,85 +200,30 @@ interface SBUNode extends SBU {
       text-align: center;
     }
 
-    .no-data mat-icon, .no-selection mat-icon {
+    .no-data mat-icon {
       font-size: 48px;
       width: 48px;
       height: 48px;
       opacity: 0.5;
     }
 
-    .form-field {
-      width: 100%;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-
-    .sbu-details {
-      padding: 0.5rem;
-    }
-
-    .detail-row {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 1rem;
-    }
-
-    .detail-row .label {
-      font-size: 0.75rem;
-      color: #666;
-    }
-
-    .detail-row .value {
-      font-weight: 500;
-    }
-
-    .detail-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1.5rem;
-    }
-
-    .corporate-chip {
-      font-size: 0.7rem;
-      min-height: 20px;
-      padding: 2px 8px;
-      margin-left: 0.5rem;
+    .mat-column-actions {
+      width: 140px;
+      text-align: center;
     }
   `]
 })
 export class SbuListComponent implements OnInit {
-  treeControl = new NestedTreeControl<SBUNode>(node => node.children);
-  dataSource = new MatTreeNestedDataSource<SBUNode>();
   flatSbus: SBU[] = [];
   corporates: Corporate[] = [];
-
-  selectedSbu: SBU | null = null;
-  editingSbu: SBU | null = null;
-  showAddSbu = false;
-  loading = false;
-
-  sbuForm: FormGroup;
+  displayedColumns = ['code', 'name', 'corporate', 'parent', 'address', 'contactEmail', 'contactPhone', 'status', 'actions'];
 
   constructor(
-    private fb: FormBuilder,
     private userService: UserService,
     private importExportService: ImportExportService,
-    private snackBar: MatSnackBar
-  ) {
-    this.sbuForm = this.fb.group({
-      corporateId: [null, Validators.required],
-      name: ['', Validators.required],
-      code: [''],
-      description: [''],
-      parentId: [null]
-    });
-  }
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit() {
     this.loadSbus();
@@ -397,123 +238,109 @@ export class SbuListComponent implements OnInit {
     });
   }
 
-  hasChild = (_: number, node: SBUNode) => !!node.children && node.children.length > 0;
-
   loadSbus() {
     this.userService.getSbus().subscribe(res => {
       if (res.success) {
         this.flatSbus = res.data;
-        this.dataSource.data = this.buildTree(res.data);
       }
     });
   }
 
-  buildTree(sbus: SBU[]): SBUNode[] {
-    const map = new Map<string, SBUNode>();
-    const roots: SBUNode[] = [];
+  // --- Dialogs ---
 
-    sbus.forEach(sbu => {
-      map.set(sbu.id, { ...sbu, children: [] });
+  viewSbu(sbu: SBU) {
+    const dialogRef = this.dialog.open(SbuDetailDialogComponent, {
+      data: sbu,
+      width: '600px',
+      maxHeight: '85vh'
     });
 
-    sbus.forEach(sbu => {
-      const node = map.get(sbu.id)!;
-      if (sbu.parent?.id) {
-        const parent = map.get(sbu.parent.id);
-        if (parent) {
-          parent.children = parent.children || [];
-          parent.children.push(node);
-        } else {
-          roots.push(node);
-        }
-      } else {
-        roots.push(node);
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'edit') {
+        this.openEditSbu(sbu);
+      } else if (result === 'addChild') {
+        this.openAddChildSbu(sbu);
       }
     });
-
-    return roots;
   }
 
-  selectSbu(sbu: SBU) {
-    this.selectedSbu = sbu;
-  }
+  openAddSbu() {
+    const dialogRef = this.dialog.open(SbuEditDialogComponent, {
+      data: { sbu: null, corporates: this.corporates, flatSbus: this.flatSbus },
+      width: '600px',
+      maxHeight: '85vh'
+    });
 
-  editSbu(sbu: SBU) {
-    this.editingSbu = sbu;
-    this.showAddSbu = false;
-    this.sbuForm.patchValue({
-      corporateId: sbu.corporateId || null,
-      name: sbu.name,
-      code: sbu.code,
-      description: sbu.description,
-      parentId: sbu.parent?.id || null
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadSbus();
+      }
     });
   }
 
-  addChildSbu() {
-    this.showAddSbu = true;
-    this.editingSbu = null;
-    this.sbuForm.reset();
-    this.sbuForm.patchValue({
-      corporateId: this.selectedSbu?.corporateId || null,
-      parentId: this.selectedSbu?.id || null
+  openEditSbu(sbu: SBU) {
+    const dialogRef = this.dialog.open(SbuEditDialogComponent, {
+      data: { sbu, corporates: this.corporates, flatSbus: this.flatSbus },
+      width: '600px',
+      maxHeight: '85vh'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadSbus();
+      }
     });
   }
 
-  cancelEdit() {
-    this.showAddSbu = false;
-    this.editingSbu = null;
-    this.sbuForm.reset();
-  }
-
-  saveSbu() {
-    if (this.sbuForm.invalid) return;
-
-    this.loading = true;
-    const sbuData = this.sbuForm.value;
-
-    const request = this.editingSbu
-      ? this.userService.updateSbu(this.editingSbu.id, sbuData)
-      : this.userService.createSbu(sbuData);
-
-    request.subscribe({
-      next: (res) => {
-        this.loading = false;
-        if (res.success) {
-          this.snackBar.open(
-            this.editingSbu ? 'SBU updated successfully' : 'SBU created successfully',
-            'Close',
-            { duration: 3000 }
-          );
-          this.cancelEdit();
-          this.loadSbus();
-        }
+  openAddChildSbu(parentSbu: SBU) {
+    const dialogRef = this.dialog.open(SbuEditDialogComponent, {
+      data: {
+        sbu: null,
+        corporates: this.corporates,
+        flatSbus: this.flatSbus,
+        parentId: parentSbu.id,
+        corporateId: parentSbu.corporateId
       },
-      error: (err) => {
-        this.loading = false;
-        this.snackBar.open(err.error?.message || 'Operation failed', 'Close', { duration: 3000 });
+      width: '600px',
+      maxHeight: '85vh'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadSbus();
       }
     });
   }
 
   deleteSbu(sbu: SBU) {
-    if (confirm(`Are you sure you want to delete "${sbu.name}"? This will also delete all child SBUs.`)) {
-      this.userService.deleteSbu(sbu.id).subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.snackBar.open('SBU deleted successfully', 'Close', { duration: 3000 });
-            if (this.selectedSbu?.id === sbu.id) {
-              this.selectedSbu = null;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete SBU',
+        message: 'Are you sure you want to delete this SBU? This will also delete all child SBUs.',
+        itemName: sbu.name,
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.userService.deleteSbu(sbu.id).subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.snackBar.open('SBU deleted successfully', 'Close', { duration: 3000 });
+              this.loadSbus();
             }
-            this.loadSbus();
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to delete SBU', 'Close', { duration: 3000 });
           }
-        },
-        error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to delete SBU', 'Close', { duration: 3000 });
-        }
-      });
-    }
+        });
+      }
+    });
   }
+
+  // --- Import/Export ---
 
   downloadTemplate() {
     this.importExportService.downloadTemplate('sbus').subscribe({
@@ -530,16 +357,19 @@ export class SbuListComponent implements OnInit {
     if (!input.files?.length) return;
     const file = input.files[0];
     this.importExportService.importFromExcel('sbus', file).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.snackBar.open(res.message || 'SBUs imported', 'Close', { duration: 3000 });
-          this.loadSbus();
-        } else {
-          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+      next: (response) => {
+        if (response.body) {
+          const filename = this.importExportService.extractFilename(response, file.name.replace('.xlsx', '') + '_Result.xlsx');
+          this.importExportService.downloadFile(response.body, filename);
         }
+        this.snackBar.open('Import complete - results downloaded', 'Close', { duration: 5000 });
+        this.loadSbus();
         input.value = '';
       },
-      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+      error: () => {
+        this.snackBar.open('Failed to import', 'Close', { duration: 5000 });
+        input.value = '';
+      }
     });
   }
 

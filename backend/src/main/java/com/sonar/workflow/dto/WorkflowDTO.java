@@ -39,7 +39,12 @@ public class WorkflowDTO {
     private Boolean commentsMandatoryOnReject;
     private Boolean commentsMandatoryOnEscalate;
     private Boolean showSummary;
+    private Boolean showApprovalMatrix;
+    private Boolean lockApproved;
+    private Boolean lockChildOnParentApproval;
     private Workflow.WorkflowCategory workflowCategory;
+    private UUID stampId;
+    private String stampName;
     private UUID parentWorkflowId;
     private String parentWorkflowName;
     private List<ChildWorkflowDTO> childWorkflows;
@@ -52,4 +57,16 @@ public class WorkflowDTO {
     private Set<UUID> roleIds;
     private Set<UUID> privilegeIds;
     private String createdBy;
+
+    // Reminder settings
+    private Boolean reminderEnabled;
+    private Integer reminderFrequencyHours;
+    private Integer reminderMaxCount;
+    private Integer reminderStartAfterHours;
+    private Boolean escalationEnabled;
+    private Integer escalationAfterHours;
+    private Workflow.EscalationAction escalationAction;
+    private Boolean reminderIncludeSubmitter;
+    private String reminderEmailSubject;
+    private String reminderEmailBody;
 }

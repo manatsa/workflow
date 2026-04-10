@@ -28,10 +28,16 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByEmail(String email);
 
-    @Query("SELECT u FROM User u WHERE u.isActive = true AND u.isLocked = false")
+    @Query("SELECT u FROM User u WHERE u.isActive = true AND u.isLocked = false AND u.username <> 'super'")
     List<User> findAllActiveUsers();
 
-    @Query("SELECT u FROM User u WHERE " +
+    @Query("SELECT u FROM User u WHERE u.username <> 'super'")
+    List<User> findAllExcludingSuper();
+
+    @Query("SELECT u FROM User u WHERE u.username <> 'super'")
+    Page<User> findAllExcludingSuper(Pageable pageable);
+
+    @Query("SELECT u FROM User u WHERE u.username <> 'super' AND " +
             "(LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

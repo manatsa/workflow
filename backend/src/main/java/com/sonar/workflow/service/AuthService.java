@@ -10,6 +10,7 @@ import com.sonar.workflow.repository.SystemStateRepository;
 import com.sonar.workflow.repository.UserRepository;
 import com.sonar.workflow.security.CustomUserDetails;
 import com.sonar.workflow.security.JwtTokenProvider;
+import com.sonar.workflow.security.SuperUserProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,8 +18,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,12 +35,19 @@ public class AuthService {
     private final SystemStateRepository systemStateRepository;
     private final UserService userService;
     private final AuditService auditService;
+    private final SettingService settingService;
+    private final SuperUserProvider superUserProvider;
 
     public AuthResponse authenticate(AuthRequest request) {
         // Check if system is locked
         SystemState systemState = systemStateRepository.findCurrentState().orElse(null);
-        if (systemState != null && systemState.getIsLocked() && !"super".equals(request.getUsername())) {
+        if (systemState != null && systemState.getIsLocked() && !superUserProvider.isSuperUsername(request.getUsername())) {
             throw new BusinessException("System is currently locked. Only super user can login.");
+        }
+
+        // Handle super user authentication entirely in code
+        if (superUserProvider.isSuperUsername(request.getUsername())) {
+            return authenticateSuperUser(request);
         }
 
         User user = userRepository.findByUsername(request.getUsername())
@@ -62,6 +72,19 @@ public class AuthService {
             String refreshToken = tokenProvider.generateRefreshToken(userDetails.getUsername());
 
             userService.recordSuccessfulLogin(user.getUsername());
+
+            // Check if password has expired based on password.change.days setting
+            boolean passwordExpired = false;
+            if (!Boolean.TRUE.equals(user.getMustChangePassword())) {
+                int changeDays = settingService.getIntValue("password.change.days", 90);
+                if (changeDays > 0 && user.getPasswordChangedAt() != null) {
+                    if (user.getPasswordChangedAt().plusDays(changeDays).isBefore(java.time.LocalDateTime.now())) {
+                        passwordExpired = true;
+                        user.setMustChangePassword(true);
+                        userRepository.save(user);
+                    }
+                }
+            }
 
             auditService.log(AuditLog.AuditAction.LOGIN, "User", user.getId(),
                     user.getUsername(), "User logged in: " + user.getUsername(), null, null);
@@ -102,12 +125,60 @@ public class AuthService {
         }
     }
 
+    private AuthResponse authenticateSuperUser(AuthRequest request) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
+
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String token = tokenProvider.generateToken(authentication);
+            String refreshToken = tokenProvider.generateRefreshToken(userDetails.getUsername());
+
+            SuperUserProvider.SuperUserDetails superDetails = (SuperUserProvider.SuperUserDetails) userDetails;
+
+            return AuthResponse.builder()
+                    .token(token)
+                    .refreshToken(refreshToken)
+                    .tokenType("Bearer")
+                    .expiresIn(tokenProvider.getExpirationTime())
+                    .userId(superDetails.getId())
+                    .username(superDetails.getUsername())
+                    .email(superDetails.getEmail())
+                    .fullName(superDetails.getFullName())
+                    .firstName("Super")
+                    .lastName("User")
+                    .userType(User.UserType.SYSTEM)
+                    .roles(superDetails.getAuthorities().stream()
+                            .filter(a -> a.getAuthority().startsWith("ROLE_"))
+                            .map(a -> a.getAuthority())
+                            .collect(Collectors.toSet()))
+                    .privileges(superDetails.getAuthorities().stream()
+                            .filter(a -> !a.getAuthority().startsWith("ROLE_"))
+                            .map(a -> a.getAuthority())
+                            .collect(Collectors.toSet()))
+                    .corporateIds(Collections.emptyList())
+                    .sbuIds(Collections.emptyList())
+                    .branchIds(Collections.emptyList())
+                    .mustChangePassword(false)
+                    .build();
+        } catch (BadCredentialsException e) {
+            throw new BusinessException("Invalid username or password");
+        }
+    }
+
     public AuthResponse refreshToken(String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken)) {
             throw new BusinessException("Invalid or expired refresh token");
         }
 
         String username = tokenProvider.getUsernameFromToken(refreshToken);
+
+        // Handle super user token refresh in code
+        if (superUserProvider.isSuperUsername(username)) {
+            return refreshSuperUserToken(username);
+        }
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException("User not found"));
 
@@ -142,7 +213,30 @@ public class AuthService {
                 .build();
     }
 
+    private AuthResponse refreshSuperUserToken(String username) {
+        String newToken = tokenProvider.generateToken(username);
+        String newRefreshToken = tokenProvider.generateRefreshToken(username);
+
+        return AuthResponse.builder()
+                .token(newToken)
+                .refreshToken(newRefreshToken)
+                .tokenType("Bearer")
+                .expiresIn(tokenProvider.getExpirationTime())
+                .userId(superUserProvider.getSuperUserId())
+                .username(SuperUserProvider.SUPER_USERNAME)
+                .email("super@sonarworks.com")
+                .fullName("Super User")
+                .firstName("Super")
+                .lastName("User")
+                .userType(User.UserType.SYSTEM)
+                .mustChangePassword(false)
+                .build();
+    }
+
     public void logout(String username) {
+        if (superUserProvider.isSuperUsername(username)) {
+            return; // No audit for super user
+        }
         userRepository.findByUsername(username).ifPresent(user -> {
             auditService.log(AuditLog.AuditAction.LOGOUT, "User", user.getId(),
                     user.getUsername(), "User logged out: " + user.getUsername(), null, null);

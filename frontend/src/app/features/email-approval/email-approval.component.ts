@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -39,8 +40,8 @@ interface TokenValidationResponse {
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatCardModule
-  ],
+    MatCardModule,
+    MatTooltipModule],
   template: `
     <div class="inline-login">
       <div class="login-header">
@@ -103,7 +104,7 @@ interface TokenValidationResponse {
           <mat-icon *ngIf="!loading">{{ getActionIcon() }}</mat-icon>
           <span *ngIf="!loading">Login & {{ actionLabel | titlecase }}</span>
         </button>
-        <button mat-button (click)="onCancel()" [disabled]="loading">
+        <button mat-button matTooltip="Cancel" (click)="onCancel()" [disabled]="loading">
           Cancel
         </button>
       </div>
@@ -350,7 +351,7 @@ export class InlineLoginComponent {
       </div>
 
       <div class="dialog-actions">
-        <button mat-button (click)="onCancel()" [disabled]="loading">Cancel</button>
+        <button mat-button matTooltip="Cancel" (click)="onCancel()" [disabled]="loading">Cancel</button>
         <button mat-raised-button color="primary" (click)="onLogin()"
                 [disabled]="loading || !username || !password || (data.actionType === 'reject' && !comments?.trim())">
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
@@ -505,6 +506,7 @@ export class LoginDialogComponent {
     MatSelectModule,
     MatSnackBarModule,
     MatDialogModule,
+    MatTooltipModule,
     LoginDialogComponent,
     InlineLoginComponent
   ],
@@ -523,10 +525,10 @@ export class LoginDialogComponent {
           <h2>Unable to Process Request</h2>
           <p>{{ error }}</p>
           <div class="action-buttons">
-            <button mat-raised-button color="primary" (click)="retry()">
+            <button mat-raised-button matTooltip="Try Again" color="primary" (click)="retry()">
               Try Again
             </button>
-            <button mat-raised-button (click)="goToDashboard()">
+            <button mat-raised-button matTooltip="Go to Dashboard" (click)="goToDashboard()">
               Go to Dashboard
             </button>
           </div>
@@ -575,29 +577,22 @@ export class LoginDialogComponent {
           </mat-form-field>
 
           <mat-form-field *ngIf="actionType === 'escalate'" appearance="outline" class="full-width comments-field">
-            <mat-label>Escalate To</mat-label>
-            <mat-select [(ngModel)]="selectedEscalateToUserId" [disabled]="loadingEscalationTargets">
-              <mat-option *ngIf="loadingEscalationTargets" disabled>Loading targets...</mat-option>
-              <mat-option *ngIf="!loadingEscalationTargets && escalationTargets.length === 0" disabled>No escalation targets available</mat-option>
-              <mat-option *ngFor="let target of escalationTargets" [value]="target.id">
-                {{ target.name }} <span *ngIf="target.email">({{ target.email }})</span>
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field *ngIf="actionType === 'escalate'" appearance="outline" class="full-width comments-field">
             <mat-label>Escalation Reason (Optional)</mat-label>
             <textarea matInput [(ngModel)]="comments" rows="3"
                       placeholder="Enter reason for escalation..."></textarea>
           </mat-form-field>
 
+          <p *ngIf="actionType === 'escalate'" class="escalation-hint">
+            This request will be escalated to the next approval level defined in the workflow.
+          </p>
+
           <div class="action-buttons">
-            <button mat-raised-button [color]="getActionButtonColor()" (click)="processAction()"
-                    [disabled]="(actionType === 'reject' && !comments?.trim()) || (actionType === 'escalate' && !selectedEscalateToUserId)">
+            <button mat-raised-button matTooltip="{{ getActionButtonLabel() }}" [color]="getActionButtonColor()" (click)="processAction()"
+                    [disabled]="(actionType === 'reject' && !comments?.trim())">
               <mat-icon>{{ getActionIcon() }}</mat-icon>
               {{ getActionButtonLabel() }}
             </button>
-            <button mat-raised-button (click)="goToDashboard()">
+            <button mat-raised-button matTooltip="Cancel" (click)="goToDashboard()">
               Cancel
             </button>
           </div>
@@ -609,11 +604,14 @@ export class LoginDialogComponent {
           <h2>{{ getSuccessTitle() }}</h2>
           <p>{{ getSuccessMessage() }}</p>
           <div class="action-buttons">
-            <button mat-raised-button color="primary" (click)="viewSubmission()">
+            <button mat-raised-button matTooltip="View Submission" color="primary" (click)="viewSubmission()">
               View Submission
             </button>
-            <button mat-raised-button (click)="goToDashboard()">
+            <button mat-raised-button matTooltip="Go to Dashboard" (click)="goToDashboard()">
               Go to Dashboard
+            </button>
+            <button mat-raised-button matTooltip="Close Tab" (click)="closeTab()">
+              Close
             </button>
           </div>
         </div>
@@ -718,6 +716,13 @@ export class LoginDialogComponent {
     .comments-field {
       margin-top: 16px;
     }
+
+    .escalation-hint {
+      color: #666;
+      font-size: 0.875rem;
+      font-style: italic;
+      margin: 8px 0 16px;
+    }
   `]
 })
 export class EmailApprovalComponent implements OnInit {
@@ -728,6 +733,7 @@ export class EmailApprovalComponent implements OnInit {
   actionType: string = 'view';
   requestInfo: TokenValidationResponse | null = null;
   success = false;
+  successResult: any = null;     // Store the processed instance result
   comments = '';
   showInlineLogin = false;       // Show inline login form
   autoProcessTriggered = false;  // Prevent multiple auto-process attempts
@@ -806,19 +812,7 @@ export class EmailApprovalComponent implements OnInit {
       return;
     }
 
-    // Escalate needs target selection + optional comments
-    if (this.actionType === 'escalate') {
-      this.loading = false;
-      if (this.authService.isAuthenticated) {
-        this.showCommentsForm = true;
-        this.loadEscalationTargets();
-      } else {
-        this.showInlineLogin = true;
-      }
-      return;
-    }
-
-    // For approve/review: auto-process if authenticated
+    // For approve/escalate/review: auto-process if authenticated
     if (this.authService.isAuthenticated) {
       this.processAction(); // Auto-process immediately
     } else {
@@ -856,13 +850,6 @@ export class EmailApprovalComponent implements OnInit {
   onInlineLoginSuccess(result: { comments: string }): void {
     this.comments = result.comments || '';
     this.showInlineLogin = false;
-
-    // For escalate, need to show target selection after login
-    if (this.actionType === 'escalate') {
-      this.showCommentsForm = true;
-      this.loadEscalationTargets();
-      return;
-    }
 
     this.loading = true;
     this.loadingMessage = `Processing your ${this.getActionLabel()}...`;
@@ -913,9 +900,7 @@ export class EmailApprovalComponent implements OnInit {
     if (this.comments) {
       params.set('comments', this.comments);
     }
-    if (this.actionType === 'escalate' && this.selectedEscalateToUserId) {
-      params.set('escalateToUserId', this.selectedEscalateToUserId);
-    }
+    // Escalation goes to next level automatically - no target needed
 
     this.http.post<any>(`${this.apiUrl}/email-approval/process?${params.toString()}`, {})
       .subscribe({
@@ -923,6 +908,7 @@ export class EmailApprovalComponent implements OnInit {
           this.loading = false;
           if (response.success) {
             this.success = true;
+            this.successResult = response.data;
           } else {
             this.error = response.message || 'Failed to process the request';
           }
@@ -972,13 +958,20 @@ export class EmailApprovalComponent implements OnInit {
   }
 
   viewSubmission(): void {
-    if (this.requestInfo?.instanceId) {
+    // Navigate to the instance detail page within the main layout
+    if (this.successResult?.workflowCode && this.successResult?.id) {
+      this.router.navigate(['/workflows', this.successResult.workflowCode, 'instances', this.successResult.id]);
+    } else if (this.requestInfo?.instanceId) {
       this.router.navigate(['/approvals', this.requestInfo.instanceId]);
     }
   }
 
   goToDashboard(): void {
     this.router.navigate(['/dashboard']);
+  }
+
+  closeTab(): void {
+    window.close();
   }
 
   getActionLabel(): string {

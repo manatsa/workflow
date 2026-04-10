@@ -72,8 +72,8 @@ public class AttachmentService {
                     throw new BusinessException("Failed to encrypt file");
                 }
 
-                CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
-                        .getAuthentication().getPrincipal();
+                String uploadUsername = SecurityContextHolder.getContext()
+                        .getAuthentication().getName();
 
                 Attachment attachment = Attachment.builder()
                         .workflowInstance(instance)
@@ -86,7 +86,7 @@ public class AttachmentService {
                         .encryptionIv(result.iv())
                         .fieldName(fieldName)
                         .description(description)
-                        .uploadedBy(userDetails.getUsername())
+                        .uploadedBy(uploadUsername)
                         .build();
 
                 Attachment saved = attachmentRepository.save(attachment);
@@ -151,5 +151,31 @@ public class AttachmentService {
                 .uploadedBy(attachment.getUploadedBy())
                 .uploadedAt(attachment.getCreatedAt())
                 .build();
+    }
+
+    @Transactional
+    public String uploadGeneralFile(MultipartFile file, String folder) {
+        if (file.isEmpty()) {
+            throw new BusinessException("File is empty");
+        }
+
+        try {
+            String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String targetFolder = folder != null && !folder.isEmpty() ? folder : "general";
+            Path directory = Paths.get(attachmentsPath, targetFolder, dateFolder);
+            Files.createDirectories(directory);
+
+            String storedFilename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            Path filePath = directory.resolve(storedFilename);
+
+            // Save file directly without encryption for logo/display files
+            file.transferTo(filePath.toFile());
+
+            // Return the URL path
+            return "/attachments/files/" + targetFolder + "/" + dateFolder + "/" + storedFilename;
+        } catch (IOException e) {
+            log.error("Failed to upload file", e);
+            throw new BusinessException("Failed to upload file: " + e.getMessage());
+        }
     }
 }

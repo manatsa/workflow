@@ -51,6 +51,13 @@ public class ApprovalHistory extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ActionSource actionSource = ActionSource.SYSTEM;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stamp_id")
+    private Stamp stamp;
+
+    @Column(name = "stamp_data", columnDefinition = "TEXT")
+    private String stampData;
+
     public enum Action {
         SUBMITTED, APPROVED, REJECTED, ESCALATED, CANCELLED, RETURNED, REASSIGNED, RECALLED
     }

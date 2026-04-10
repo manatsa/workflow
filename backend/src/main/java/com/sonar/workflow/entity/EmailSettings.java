@@ -122,7 +122,7 @@ public class EmailSettings {
     private String senderEmail;
 
     @Column(name = "sender_name", length = 100)
-    private String senderName = "Sonar Workflow";
+    private String senderName = "Sona Workflow";
 
     @Column(name = "reply_to_email", length = 255)
     private String replyToEmail;

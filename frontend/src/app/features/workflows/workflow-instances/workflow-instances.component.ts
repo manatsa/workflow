@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -49,7 +50,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
     <div class="instances-container">
       <div class="header">
         <div class="header-left">
-          <button mat-icon-button routerLink="/dashboard">
+          <button mat-icon-button matTooltip="Go Back" routerLink="/dashboard">
             <mat-icon>arrow_back</mat-icon>
           </button>
           <div>
@@ -57,10 +58,25 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
             <p class="subtitle">All submissions for this workflow</p>
           </div>
         </div>
-        <button mat-raised-button color="primary" [routerLink]="['/workflows', workflowCode, 'new']">
-          <mat-icon>add</mat-icon>
-          New Submission
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button matTooltip="Download Import Template" (click)="downloadTemplate()">
+            <mat-icon>file_download</mat-icon>
+            Template
+          </button>
+          <button mat-stroked-button matTooltip="Import Submissions from Excel" (click)="fileInput.click()">
+            <mat-icon>upload_file</mat-icon>
+            Import
+          </button>
+          <input #fileInput type="file" hidden accept=".xlsx,.xls" (change)="importSubmissions($event)">
+          <button mat-stroked-button matTooltip="Export Submissions to Excel" (click)="exportSubmissions()">
+            <mat-icon>download</mat-icon>
+            Export
+          </button>
+          <button mat-raised-button matTooltip="New Submission" color="primary" [routerLink]="['/workflows', workflowCode, 'new']">
+            <mat-icon>add</mat-icon>
+            New Submission
+          </button>
+        </div>
       </div>
 
       <mat-card>
@@ -96,7 +112,11 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
 
             <ng-container matColumnDef="title">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
-              <td mat-cell *matCellDef="let instance">{{ instance.title || '-' }}</td>
+              <td mat-cell *matCellDef="let instance">
+                <a [routerLink]="['/workflows', workflowCode, 'instances', instance.id]" class="title-link">
+                  {{ instance.title || instance.referenceNumber || '-' }}
+                </a>
+              </td>
             </ng-container>
 
             <ng-container matColumnDef="initiatorName">
@@ -176,9 +196,20 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
                   }
 
                   @if (instance.status === 'REJECTED') {
+                    <button mat-menu-item [routerLink]="['/workflows', workflowCode, 'edit', instance.id]">
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit & Resubmit</span>
+                    </button>
                     <button mat-menu-item (click)="resubmit(instance)">
                       <mat-icon>replay</mat-icon>
-                      <span>Resubmit</span>
+                      <span>Resubmit as-is</span>
+                    </button>
+                  }
+
+                  @if (instance.status === 'APPROVED' && !instance.lockApproved) {
+                    <button mat-menu-item [routerLink]="['/workflows', workflowCode, 'edit', instance.id]">
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit</span>
                     </button>
                   }
 
@@ -226,6 +257,22 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
   `,
   styles: [`
     .instances-container { padding: 1rem; }
+
+    .title-link {
+      color: #1976d2;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .title-link:hover {
+      text-decoration: underline;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
 
     .header {
       display: flex;
@@ -313,7 +360,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
   `]
 })
 export class WorkflowInstancesComponent implements OnInit, OnDestroy {
-  displayedColumns = ['referenceNumber', 'title', 'initiatorName', 'status', 'currentLevel', 'createdAt', 'updatedAt', 'actions'];
+  displayedColumns = ['title', 'initiatorName', 'status', 'currentLevel', 'createdAt', 'updatedAt', 'actions'];
   dataSource = new MatTableDataSource<WorkflowInstance>([]);
   searchTerm = '';
   statusFilter = '';
@@ -328,6 +375,7 @@ export class WorkflowInstancesComponent implements OnInit, OnDestroy {
 
   constructor(
     private workflowService: WorkflowService,
+    private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
@@ -515,5 +563,82 @@ export class WorkflowInstancesComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  downloadTemplate() {
+    this.http.get(`/api/import-export/workflow/${this.workflowCode}/submission-template`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${this.workflowCode}_Submission_Template.xlsx`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          this.snackBar.open('Template downloaded', 'Close', { duration: 3000 });
+        },
+        error: () => this.snackBar.open('Failed to download template', 'Close', { duration: 3000 })
+      });
+  }
+
+  importSubmissions(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Import Submissions',
+        message: `Import submissions from "${file.name}"?`,
+        confirmText: 'Import',
+        cancelText: 'Cancel',
+        type: 'info',
+        showCheckbox: true,
+        checkboxLabel: 'Import as APPROVED (skip approval workflow)'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        const status = result.checkboxValue ? 'APPROVED' : 'DRAFT';
+        const formData = new FormData();
+        formData.append('file', file);
+
+        this.http.post(`/api/import-export/workflow/${this.workflowCode}/import-submissions?status=${status}`, formData, { responseType: 'blob' })
+          .subscribe({
+            next: (blob) => {
+              // Download result file
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${this.workflowCode}_Import_Result.xlsx`;
+              a.click();
+              window.URL.revokeObjectURL(url);
+
+              this.snackBar.open('Import completed — check result file for details', 'Close', { duration: 5000 });
+              this.loadInstances();
+            },
+            error: () => this.snackBar.open('Import failed', 'Close', { duration: 3000 })
+          });
+      }
+      input.value = '';
+    });
+  }
+
+  exportSubmissions() {
+    this.http.get(`/api/import-export/workflow/${this.workflowCode}/export-submissions`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${this.workflowCode}_Submissions.xlsx`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          this.snackBar.open('Submissions exported', 'Close', { duration: 3000 });
+        },
+        error: () => this.snackBar.open('Failed to export submissions', 'Close', { duration: 3000 })
+      });
   }
 }

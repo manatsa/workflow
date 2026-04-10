@@ -2,6 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
@@ -33,8 +34,8 @@ export interface ProfileDialogData {
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
-    MatChipsModule
-  ],
+    MatChipsModule,
+    MatTooltipModule],
   template: `
     <div class="profile-dialog">
       <div class="profile-header">
@@ -43,7 +44,7 @@ export interface ProfileDialogData {
           <h2>{{ data.fullName }}</h2>
           <span class="user-type">{{ data.userType }}</span>
         </div>
-        <button mat-icon-button mat-dialog-close class="close-btn">
+        <button mat-icon-button matTooltip="Close" mat-dialog-close class="close-btn">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -142,7 +143,7 @@ export interface ProfileDialogData {
       <mat-divider></mat-divider>
 
       <div class="dialog-actions">
-        <button mat-button mat-dialog-close>Close</button>
+        <button mat-button matTooltip="Close" mat-dialog-close>Close</button>
       </div>
     </div>
   `,

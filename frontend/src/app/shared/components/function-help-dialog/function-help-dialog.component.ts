@@ -33,7 +33,7 @@ export interface FunctionHelpDialogData {
           <h2 class="function-title">{{ fn?.name || functionName }}</h2>
           <span class="category-tag" [attr.data-category]="fn?.category?.toLowerCase()">{{ fn?.category }}</span>
         </div>
-        <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Close">
+        <button mat-icon-button matTooltip="Close" mat-dialog-close class="close-btn" aria-label="Close">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -175,7 +175,7 @@ export interface FunctionHelpDialogData {
       </mat-dialog-content>
 
       <mat-dialog-actions align="end">
-        <button mat-button mat-dialog-close>Close</button>
+        <button mat-button matTooltip="Close" mat-dialog-close>Close</button>
       </mat-dialog-actions>
     </div>
   `,

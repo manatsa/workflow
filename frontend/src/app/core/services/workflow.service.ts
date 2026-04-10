@@ -4,7 +4,7 @@ import { ApiService } from './api.service';
 import {
   Workflow, WorkflowType, WorkflowForm, WorkflowField, FieldGroup,
   WorkflowApprover, WorkflowInstance, ApprovalRequest, Attachment, ScreenNotifier,
-  ChildWorkflow
+  ChildWorkflow, ChildParameter
 } from '../models/workflow.model';
 import { ApiResponse, PageResponse } from '../models/setting.model';
 
@@ -53,6 +53,19 @@ export class WorkflowService {
 
   getChildWorkflows(workflowId: string): Observable<ApiResponse<ChildWorkflow[]>> {
     return this.api.get<ChildWorkflow[]>(`/workflows/${workflowId}/children`);
+  }
+
+  // Child Parameters
+  getChildParameters(workflowId: string): Observable<ApiResponse<ChildParameter[]>> {
+    return this.api.get<ChildParameter[]>(`/workflows/${workflowId}/child-parameters`);
+  }
+
+  saveChildParameters(workflowId: string, parameters: ChildParameter[]): Observable<ApiResponse<ChildParameter[]>> {
+    return this.api.post<ChildParameter[]>(`/workflows/${workflowId}/child-parameters`, parameters);
+  }
+
+  deleteChildParameter(paramId: string): Observable<ApiResponse<void>> {
+    return this.api.delete<void>(`/workflows/child-parameters/${paramId}`);
   }
 
   // Forms
@@ -160,8 +173,8 @@ export class WorkflowService {
     return this.api.post<void>(`/workflow-instances/${id}/cancel${params}`, {});
   }
 
-  deleteInstance(id: string): Observable<ApiResponse<void>> {
-    return this.api.delete<void>(`/workflow-instances/${id}`);
+  deleteInstance(id: string, permanent: boolean = false): Observable<ApiResponse<void>> {
+    return this.api.delete<void>(`/workflow-instances/${id}${permanent ? '?permanent=true' : ''}`);
   }
 
   cloneInstance(id: string): Observable<ApiResponse<WorkflowInstance>> {
@@ -191,6 +204,10 @@ export class WorkflowService {
     return this.api.upload<Attachment>(`/workflow-instances/${instanceId}/attachments`, formData);
   }
 
+  uploadFile(formData: FormData): Observable<ApiResponse<string>> {
+    return this.api.upload<string>('/workflow-instances/attachments/upload', formData);
+  }
+
   downloadAttachment(attachmentId: string): Observable<Blob> {
     return this.api.download(`/workflow-instances/attachments/${attachmentId}/download`);
   }
@@ -217,7 +234,7 @@ export class WorkflowService {
   }
 
   duplicateWorkflow(id: string): Observable<ApiResponse<Workflow>> {
-    return this.api.post<Workflow>(`/workflows/${id}/duplicate`, {});
+    return this.api.post<Workflow>(`/workflows/${id}/clone`, {});
   }
 
   exportWorkflow(id: string): Observable<Blob> {
@@ -230,21 +247,32 @@ export class WorkflowService {
     return this.api.upload<Workflow>('/workflows/import', formData);
   }
 
+  cloneWorkflow(id: string): Observable<ApiResponse<Workflow>> {
+    return this.api.post<Workflow>(`/workflows/${id}/clone`, {});
+  }
+
+  downloadWorkflowTemplate(): Observable<Blob> {
+    return this.api.download('/workflows/template/json');
+  }
+
   submitInstance(data: FormData): Observable<ApiResponse<WorkflowInstance>> {
     return this.api.upload<WorkflowInstance>('/workflow-instances/submit', data);
   }
 
-  submitApproval(data: { instanceId: string; action: string; comments?: string }): Observable<ApiResponse<WorkflowInstance>> {
+  submitApproval(data: { instanceId: string; action: string; comments?: string; stampId?: string }): Observable<ApiResponse<WorkflowInstance>> {
     const actionMap: Record<string, string> = {
       'APPROVE': 'APPROVED',
       'REJECT': 'REJECTED',
       'ESCALATE': 'ESCALATED'
     };
-    const payload = {
+    const payload: any = {
       workflowInstanceId: data.instanceId,
       action: actionMap[data.action] || data.action,
       comments: data.comments
     };
+    if (data.stampId) {
+      payload.stampId = data.stampId;
+    }
     return this.api.post<WorkflowInstance>('/workflow-instances/approve', payload);
   }
 

@@ -75,9 +75,11 @@ public class SecurityConfig {
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/sbus/**"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/audit"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/audit/**"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/stamps"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/profile"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/profile/**"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/change-password"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/signature"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/forgot-password"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/reset-password"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/reports"),
@@ -95,7 +97,11 @@ public class SecurityConfig {
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/sql-objects"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/sql-objects/**"),
             org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/api/sql-objects"),
-            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/api/sql-objects/**")
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/api/sql-objects/**"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/deadlines"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/deadlines/**"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/leave"),
+            org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/leave/**")
         );
     }
 
@@ -110,6 +116,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/password/**").permitAll()
                         .requestMatchers("/api/import-export/**").permitAll()
                         .requestMatchers("/api/email-approval/validate").permitAll()
+                        .requestMatchers("/api/email-approval/process").permitAll()
                         .requestMatchers("/api/users/list").authenticated()  // Allow authenticated users to list users for USER field
                         .requestMatchers("/api/roles/list").authenticated()  // Allow authenticated users to list roles
                         .requestMatchers("/actuator/health").permitAll()

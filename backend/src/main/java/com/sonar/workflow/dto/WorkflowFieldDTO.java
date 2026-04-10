@@ -117,6 +117,11 @@ public class WorkflowFieldDTO {
     private Integer tableMaxRows;
     private Boolean tableStriped;
     private Boolean tableBordered;
+    private Boolean tableResizable;
+    private Boolean tableSearchable;
+    private Boolean tableFilterable;
+    private Boolean tablePageable;
+    private Integer tablePageSize;
 
     // ACCORDION field specific configurations
     private Boolean accordionAllowMultiple;
@@ -132,4 +137,29 @@ public class WorkflowFieldDTO {
     // Parent field ID for nested fields (collapsibles belong to accordions)
     // String type to support both temp IDs (e.g., "temp_xxx") and real UUIDs
     private String parentFieldId;
+
+    // API field type configurations
+    private String apiUrl;
+    private String apiMethod;
+    private String apiAuthType;
+    private String apiAuthValue;
+    private String apiHeaders; // JSON array of {key, value}
+    private String apiParams; // JSON array of {key, value} - query parameters
+    private String apiBody;
+    private String apiResponsePath;
+
+    // Whether API_ARRAY/API_OBJECT_ARRAY fields show their own control in the form
+    private Boolean apiShowInForm;
+
+    // API data source for SELECT/RADIO/CHECKBOX_GROUP/MULTISELECT options
+    private String apiDataSourceField;
+    private String apiDisplayField;
+    private String apiValueField;
+
+    // TABLE data source - name of an API_OBJECT_ARRAY field to populate from
+    private String tableDataSource;
+
+    // SQL_TABLE field configuration
+    private String sqlQuery;
+    private String sqlTableColumns; // JSON: [{key: "db_column", label: "Display Name"}]
 }

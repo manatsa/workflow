@@ -24,6 +24,9 @@ public class ReportService {
     private final WorkflowRepository workflowRepository;
     private final UserRepository userRepository;
     private final SBURepository sbuRepository;
+    private final com.sonar.workflow.leave.service.LeaveReportService leaveReportService;
+    private final com.sonar.workflow.deadlines.service.DeadlineReportService deadlineReportService;
+    private final AccessScopeService accessScopeService;
 
     @Transactional(readOnly = true)
     public ReportResultDTO generateReport(String reportId, Map<String, String> parameters) {
@@ -31,6 +34,28 @@ public class ReportService {
         LocalDate endDate = parseDate(parameters.get("endDate"), LocalDate.now());
 
         return switch (reportId) {
+            // New consolidated workflow reports
+            case "submission-summary" -> generateGenericReport(reportId, startDate, endDate, parameters);
+            case "approval-tracker" -> generateGenericReport(reportId, startDate, endDate, parameters);
+            case "performance-metrics" -> generateWorkflowUsage(startDate, endDate, parameters);
+            case "user-activity" -> generateUserActivitySummary(startDate, endDate, parameters);
+            case "organization-overview" -> generateSubmissionsBySbu(startDate, endDate, parameters);
+            case "financial-summary" -> generateGenericReport(reportId, startDate, endDate, parameters);
+            case "audit-compliance" -> generateGenericReport(reportId, startDate, endDate, parameters);
+            case "trends-analytics" -> generateSubmissionsByDate(startDate, endDate, parameters);
+            // Leave reports
+            case "leave-balances", "leave-taken", "leave-running",
+                 "leave-approval-delays", "leave-escalated" ->
+                    leaveReportService.generateReport(reportId, parameters);
+            // Deadline reports
+            case "deadline-status-overview", "deadline-overdue",
+                 "deadline-compliance", "deadline-reminders" ->
+                    deadlineReportService.generateReport(reportId, parameters);
+            // Project reports - signal frontend to use its own data
+            case "project-status", "project-budget", "project-tasks",
+                 "project-milestones", "project-risks-issues", "project-team" ->
+                    throw new RuntimeException("PROJECT_REPORT");
+            // Legacy report IDs (backwards compatibility)
             case "submissions-by-status" -> generateSubmissionsByStatus(startDate, endDate, parameters);
             case "submissions-by-workflow" -> generateSubmissionsByWorkflow(startDate, endDate, parameters);
             case "submissions-by-date" -> generateSubmissionsByDate(startDate, endDate, parameters);
@@ -48,6 +73,14 @@ public class ReportService {
     private List<WorkflowInstance> getFilteredInstances(LocalDate startDate, LocalDate endDate, Map<String, String> parameters) {
         List<WorkflowInstance> instances = workflowInstanceRepository.findByDateRange(
                 startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
+
+        // Apply access scope — users only see instances for workflows they can access
+        com.sonar.workflow.entity.User currentUser = accessScopeService.getCurrentUser();
+        if (currentUser != null && !accessScopeService.isAdmin(currentUser)) {
+            instances = instances.stream()
+                    .filter(i -> accessScopeService.canAccessInstance(i, currentUser))
+                    .collect(Collectors.toList());
+        }
 
         // Apply additional filters
         String status = parameters.get("status");

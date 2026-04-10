@@ -24,7 +24,7 @@ public class EmailApprovalService {
     private final EmailApprovalTokenRepository tokenRepository;
     private final SettingService settingService;
 
-    @Value("${app.base-url:http://localhost:9500}")
+    @Value("${app.base-url:}")
     private String defaultBaseUrl;
 
     private static final SecureRandom secureRandom = new SecureRandom();

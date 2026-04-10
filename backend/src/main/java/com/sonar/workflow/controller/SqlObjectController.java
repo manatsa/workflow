@@ -5,9 +5,12 @@ import com.sonar.workflow.dto.SqlObjectDTO;
 import com.sonar.workflow.service.SqlObjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -97,9 +100,52 @@ public class SqlObjectController {
         return ResponseEntity.ok(ApiResponse.success("Row deleted", null));
     }
 
+    // SQL Table query execution endpoint
+    @PostMapping("/execute-query")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> executeSqlTableQuery(@RequestBody Map<String, String> body) {
+        String query = body.get("query");
+        String columnsJson = body.get("columns");
+        return ResponseEntity.ok(ApiResponse.success(sqlObjectService.executeSqlTableQuery(query, columnsJson)));
+    }
+
+    // SQL Function query endpoint - used by library SQL functions (SQL_LOOKUP, SQL_QUERY, SQL_COUNT, SQL_SUM, etc.)
+    @PostMapping("/function-query")
+    public ResponseEntity<ApiResponse<Object>> executeFunctionQuery(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(ApiResponse.success(sqlObjectService.executeFunctionQuery(body)));
+    }
+
     // Options Endpoint for dropdown fields
     @GetMapping("/{id}/options")
     public ResponseEntity<ApiResponse<List<Map<String, String>>>> getOptions(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(sqlObjectService.getOptionsFromSqlObject(id)));
+    }
+
+    // Template / Import / Export
+    @GetMapping("/{id}/template")
+    public ResponseEntity<byte[]> downloadTemplate(@PathVariable UUID id) throws Exception {
+        byte[] template = sqlObjectService.generateTemplate(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=template.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(template);
+    }
+
+    @GetMapping("/{id}/export")
+    public ResponseEntity<byte[]> exportData(@PathVariable UUID id) throws Exception {
+        byte[] data = sqlObjectService.exportData(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=export.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(data);
+    }
+
+    @PostMapping("/{id}/import")
+    public ResponseEntity<byte[]> importData(
+            @PathVariable UUID id, @RequestParam("file") MultipartFile file) throws Exception {
+        byte[] resultExcel = sqlObjectService.importData(id, file);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=import_results.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(resultExcel);
     }
 }

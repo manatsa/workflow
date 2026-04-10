@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -46,24 +48,36 @@ public class ImportExportController {
     }
 
     @PostMapping("/import/{entity}")
-    public ResponseEntity<ApiResponse<Integer>> importFromExcel(
+    public ResponseEntity<byte[]> importFromExcel(
             @PathVariable String entity,
             @RequestParam("file") MultipartFile file) {
         try {
             if (file.isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("Please select a file to import"));
+                return ResponseEntity.badRequest().build();
             }
 
-            int count = importExportService.importFromStream(entity, file.getInputStream());
-            return ResponseEntity.ok(ApiResponse.success(
-                    String.format("Successfully imported %d %s records", count, entity),
-                    count
-            ));
+            String originalFilename = file.getOriginalFilename();
+            String baseName = "Import_Result";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                baseName = originalFilename.substring(0, originalFilename.lastIndexOf('.'));
+            }
+
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String resultFilename = baseName + "_" + timestamp + ".xlsx";
+
+            byte[] resultBytes = importExportService.importFromStreamAsExcel(entity, file.getInputStream());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", resultFilename);
+            headers.setContentLength(resultBytes.length);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resultBytes);
         } catch (Exception e) {
             log.error("Failed to import {} from Excel", entity, e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Failed to import: " + e.getMessage()));
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -140,6 +154,72 @@ public class ImportExportController {
             log.error("Failed to import settings from JSON", e);
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Failed to import: " + e.getMessage()));
+        }
+    }
+
+    // ==================== Workflow Submission Import/Export ====================
+
+    @GetMapping("/workflow/{workflowCode}/submission-template")
+    public ResponseEntity<byte[]> downloadSubmissionTemplate(@PathVariable String workflowCode) {
+        try {
+            byte[] templateBytes = importExportService.getWorkflowSubmissionTemplate(workflowCode);
+            String filename = workflowCode + "_Submission_Template.xlsx";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setContentLength(templateBytes.length);
+
+            return ResponseEntity.ok().headers(headers).body(templateBytes);
+        } catch (Exception e) {
+            log.error("Failed to generate submission template for {}", workflowCode, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/workflow/{workflowCode}/import-submissions")
+    public ResponseEntity<byte[]> importSubmissions(
+            @PathVariable String workflowCode,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(defaultValue = "DRAFT") String status) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String resultFilename = workflowCode + "_Import_Result_" + timestamp + ".xlsx";
+
+            byte[] resultBytes = importExportService.importWorkflowSubmissions(workflowCode, file.getInputStream(), status);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", resultFilename);
+            headers.setContentLength(resultBytes.length);
+
+            return ResponseEntity.ok().headers(headers).body(resultBytes);
+        } catch (Exception e) {
+            log.error("Failed to import submissions for {}", workflowCode, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/workflow/{workflowCode}/export-submissions")
+    public ResponseEntity<byte[]> exportSubmissions(@PathVariable String workflowCode) {
+        try {
+            byte[] exportBytes = importExportService.exportWorkflowSubmissions(workflowCode);
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String filename = workflowCode + "_Submissions_" + timestamp + ".xlsx";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setContentLength(exportBytes.length);
+
+            return ResponseEntity.ok().headers(headers).body(exportBytes);
+        } catch (Exception e) {
+            log.error("Failed to export submissions for {}", workflowCode, e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 

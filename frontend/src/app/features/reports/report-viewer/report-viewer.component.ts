@@ -37,6 +37,10 @@ interface ReportParameters {
   branchId: string;
   departmentId: string;
   groupBy: string;
+  leaveTypeId: string;
+  year: string;
+  categoryId: string;
+  priority: string;
 }
 
 interface LookupItem {
@@ -75,7 +79,7 @@ interface LookupItem {
     <div class="report-viewer">
       <div class="header">
         <div class="header-left">
-          <button mat-icon-button routerLink="/reports">
+          <button mat-icon-button matTooltip="Go Back" routerLink="/reports">
             <mat-icon>arrow_back</mat-icon>
           </button>
           <div class="report-title">
@@ -84,11 +88,11 @@ interface LookupItem {
           </div>
         </div>
         <div class="header-actions">
-          <button mat-raised-button color="primary" (click)="runReport()" [disabled]="loading">
+          <button mat-raised-button matTooltip="Run Report" color="primary" (click)="runReport()" [disabled]="loading">
             <mat-icon>play_arrow</mat-icon>
             Run Report
           </button>
-          <button mat-button [matMenuTriggerFor]="exportMenu" [disabled]="!reportResult || exporting">
+          <button mat-button matTooltip="{{ exporting ? 'Exporting...' : 'Export' }}" [matMenuTriggerFor]="exportMenu" [disabled]="!reportResult || exporting">
             <mat-icon>download</mat-icon>
             {{ exporting ? 'Exporting...' : 'Export' }}
           </button>
@@ -110,14 +114,13 @@ interface LookupItem {
       </div>
 
       <!-- Parameters Card -->
-      <mat-card class="parameters-card">
-        <mat-card-header>
-          <mat-card-title>
+      <mat-expansion-panel class="parameters-card" [expanded]="filtersExpanded">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
             <mat-icon>tune</mat-icon>
             Report Filters
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
           <div class="parameters-form">
             <!-- Date Captured - From -->
             <div class="filter-field">
@@ -272,14 +275,77 @@ interface LookupItem {
             </div>
           </div>
 
+          @if (isLeaveReport) {
+            <div class="parameters-form" style="margin-top: 8px;">
+              <div class="filter-field">
+                <mat-form-field appearance="outline">
+                  <mat-label>Leave Type</mat-label>
+                  <mat-select [(ngModel)]="parameters.leaveTypeId">
+                    <mat-option value="">All Types</mat-option>
+                    @for (lt of leaveTypes; track lt.id) {
+                      <mat-option [value]="lt.id">{{ lt.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="filter-field">
+                <mat-form-field appearance="outline">
+                  <mat-label>Year</mat-label>
+                  <mat-select [(ngModel)]="parameters.year">
+                    @for (y of yearOptions; track y) {
+                      <mat-option [value]="y">{{ y }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+          }
+
+          @if (isDeadlineReport) {
+            <div class="parameters-form" style="margin-top: 8px;">
+              <div class="filter-field">
+                <mat-form-field appearance="outline">
+                  <mat-label>Category</mat-label>
+                  <mat-select [(ngModel)]="parameters.categoryId">
+                    <mat-option value="">All Categories</mat-option>
+                    @for (cat of deadlineCategories; track cat.id) {
+                      <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="filter-field">
+                <mat-form-field appearance="outline">
+                  <mat-label>Priority</mat-label>
+                  <mat-select [(ngModel)]="parameters.priority">
+                    <mat-option value="">All Priorities</mat-option>
+                    @for (p of deadlinePriorities; track p.id) {
+                      <mat-option [value]="p.id">{{ p.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="filter-field">
+                <mat-form-field appearance="outline">
+                  <mat-label>Instance Status</mat-label>
+                  <mat-select [(ngModel)]="parameters.status">
+                    <mat-option value="">All Statuses</mat-option>
+                    @for (s of deadlineStatuses; track s.id) {
+                      <mat-option [value]="s.id">{{ s.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+          }
+
           <div class="filter-actions">
-            <button mat-button (click)="clearFilters()">
+            <button mat-button matTooltip="Clear Filters" (click)="clearFilters()">
               <mat-icon>clear</mat-icon>
               Clear Filters
             </button>
           </div>
-        </mat-card-content>
-      </mat-card>
+      </mat-expansion-panel>
 
       <!-- Loading State -->
       @if (loading) {
@@ -290,7 +356,7 @@ interface LookupItem {
       }
 
       <!-- Summary Cards -->
-      @if (reportResult?.summary && !loading) {
+      @if (reportResult && !loading) {
         <div class="summary-cards">
           @for (item of getSummaryItems(); track item.label) {
             <mat-card class="summary-card">
@@ -407,11 +473,12 @@ interface LookupItem {
       margin-bottom: 1.5rem;
     }
 
-    .parameters-card mat-card-title {
+    .parameters-card mat-panel-title {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       font-size: 1rem;
+      font-weight: 500;
     }
 
     .parameters-form {
@@ -635,6 +702,7 @@ export class ReportViewerComponent implements OnInit {
   reportResult: ReportResult | null = null;
   loading = false;
   exporting = false;
+  filtersExpanded = true;
   reportFontSize = '14px';
 
   parameters: ReportParameters = {
@@ -649,8 +717,40 @@ export class ReportViewerComponent implements OnInit {
     sbuId: '',
     branchId: '',
     departmentId: '',
-    groupBy: ''
+    groupBy: '',
+    leaveTypeId: '',
+    year: new Date().getFullYear().toString(),
+    categoryId: '',
+    priority: ''
   };
+
+  leaveTypes: any[] = [];
+  deadlineCategories: any[] = [];
+  deadlinePriorities = [
+    { id: 'LOW', name: 'Low' },
+    { id: 'MEDIUM', name: 'Medium' },
+    { id: 'HIGH', name: 'High' },
+    { id: 'CRITICAL', name: 'Critical' }
+  ];
+  deadlineStatuses = [
+    { id: 'UPCOMING', name: 'Upcoming' },
+    { id: 'DUE_SOON', name: 'Due Soon' },
+    { id: 'OVERDUE', name: 'Overdue' },
+    { id: 'COMPLETED', name: 'Completed' },
+    { id: 'SKIPPED', name: 'Skipped' }
+  ];
+  yearOptions: string[] = (() => {
+    const y = new Date().getFullYear();
+    return [y - 2, y - 1, y, y + 1].map(String);
+  })();
+
+  get isLeaveReport(): boolean {
+    return this.report?.category === 'leave';
+  }
+
+  get isDeadlineReport(): boolean {
+    return this.report?.category === 'deadline';
+  }
 
   // Form controls for searchable dropdowns
   statusControl = new FormControl('');
@@ -898,6 +998,24 @@ export class ReportViewerComponent implements OnInit {
         }
       }
     });
+
+    // Load leave types
+    this.http.get<any>(`${this.apiUrl}/leave/types`).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.leaveTypes = res.data;
+        }
+      }
+    });
+
+    // Load deadline categories
+    this.http.get<any>(`${this.apiUrl}/deadline-categories`).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.deadlineCategories = res.data;
+        }
+      }
+    });
   }
 
   onCorporateChange() {
@@ -933,7 +1051,11 @@ export class ReportViewerComponent implements OnInit {
       sbuId: '',
       branchId: '',
       departmentId: '',
-      groupBy: ''
+      groupBy: '',
+      leaveTypeId: '',
+      year: new Date().getFullYear().toString(),
+      categoryId: '',
+      priority: ''
     };
     // Reset form controls
     this.statusControl.setValue('');
@@ -959,6 +1081,14 @@ export class ReportViewerComponent implements OnInit {
 
   runReport() {
     this.loading = true;
+
+    // Project reports use client-side data generation
+    if (this.report?.category === 'project') {
+      this.generateMockData();
+      this.loading = false;
+      return;
+    }
+
     this.reportService.generateReport(this.reportId, this.formatParameters()).subscribe({
       next: (res) => {
         if (res.success) {
@@ -990,115 +1120,467 @@ export class ReportViewerComponent implements OnInit {
   }
 
   getMockColumns(): any[] {
-    const category = this.report?.category;
-    switch (category) {
-      case 'submissions':
+    const reportId = this.report?.id;
+    switch (reportId) {
+      case 'submission-summary':
         return [
           { field: 'referenceNumber', header: 'Reference', type: 'string' },
+          { field: 'title', header: 'Title', type: 'string' },
           { field: 'workflow', header: 'Workflow', type: 'string' },
           { field: 'submitter', header: 'Submitted By', type: 'string' },
+          { field: 'sbu', header: 'SBU', type: 'string' },
           { field: 'status', header: 'Status', type: 'status' },
-          { field: 'submittedAt', header: 'Submitted Date', type: 'date' },
-          { field: 'count', header: 'Count', type: 'number', align: 'right' }
+          { field: 'submittedAt', header: 'Submitted', type: 'date' },
+          { field: 'completedAt', header: 'Completed', type: 'date' }
         ];
-      case 'approvals':
+      case 'approval-tracker':
         return [
+          { field: 'referenceNumber', header: 'Reference', type: 'string' },
+          { field: 'title', header: 'Title', type: 'string' },
+          { field: 'workflow', header: 'Workflow', type: 'string' },
           { field: 'approver', header: 'Approver', type: 'string' },
-          { field: 'approved', header: 'Approved', type: 'number', align: 'right' },
-          { field: 'rejected', header: 'Rejected', type: 'number', align: 'right' },
-          { field: 'pending', header: 'Pending', type: 'number', align: 'right' },
-          { field: 'avgResponseTime', header: 'Avg Response (hrs)', type: 'number', align: 'right' }
+          { field: 'level', header: 'Level', type: 'number', align: 'center' },
+          { field: 'status', header: 'Status', type: 'status' },
+          { field: 'action', header: 'Action', type: 'string' },
+          { field: 'responseTime', header: 'Response (hrs)', type: 'number', align: 'right' },
+          { field: 'actionDate', header: 'Action Date', type: 'datetime' }
         ];
-      case 'performance':
+      case 'performance-metrics':
         return [
           { field: 'workflow', header: 'Workflow', type: 'string' },
+          { field: 'totalSubmissions', header: 'Total', type: 'number', align: 'right' },
           { field: 'avgProcessingTime', header: 'Avg Time (hrs)', type: 'number', align: 'right' },
-          { field: 'minTime', header: 'Min Time', type: 'number', align: 'right' },
-          { field: 'maxTime', header: 'Max Time', type: 'number', align: 'right' },
-          { field: 'completionRate', header: 'Completion %', type: 'percentage', align: 'right' }
+          { field: 'minTime', header: 'Min (hrs)', type: 'number', align: 'right' },
+          { field: 'maxTime', header: 'Max (hrs)', type: 'number', align: 'right' },
+          { field: 'completionRate', header: 'Completion %', type: 'percentage', align: 'right' },
+          { field: 'slaCompliance', header: 'SLA %', type: 'percentage', align: 'right' }
         ];
-      case 'financial':
+      case 'user-activity':
         return [
+          { field: 'user', header: 'User', type: 'string' },
+          { field: 'submissions', header: 'Submissions', type: 'number', align: 'right' },
+          { field: 'approvals', header: 'Approvals', type: 'number', align: 'right' },
+          { field: 'rejections', header: 'Rejections', type: 'number', align: 'right' },
+          { field: 'avgResponseTime', header: 'Avg Response (hrs)', type: 'number', align: 'right' },
+          { field: 'lastLogin', header: 'Last Login', type: 'datetime' }
+        ];
+      case 'organization-overview':
+        return [
+          { field: 'entity', header: 'Entity', type: 'string' },
+          { field: 'type', header: 'Type', type: 'string' },
+          { field: 'totalSubmissions', header: 'Submissions', type: 'number', align: 'right' },
+          { field: 'approved', header: 'Approved', type: 'number', align: 'right' },
+          { field: 'pending', header: 'Pending', type: 'number', align: 'right' },
+          { field: 'rejected', header: 'Rejected', type: 'number', align: 'right' },
+          { field: 'totalAmount', header: 'Total Amount', type: 'currency', align: 'right' }
+        ];
+      case 'financial-summary':
+        return [
+          { field: 'referenceNumber', header: 'Reference', type: 'string' },
+          { field: 'title', header: 'Title', type: 'string' },
+          { field: 'workflow', header: 'Workflow', type: 'string' },
+          { field: 'submitter', header: 'Submitted By', type: 'string' },
+          { field: 'amount', header: 'Amount', type: 'currency', align: 'right' },
+          { field: 'status', header: 'Status', type: 'status' },
+          { field: 'approver', header: 'Approver', type: 'string' },
+          { field: 'submittedAt', header: 'Submitted', type: 'date' }
+        ];
+      case 'audit-compliance':
+        return [
+          { field: 'timestamp', header: 'Timestamp', type: 'datetime' },
+          { field: 'user', header: 'User', type: 'string' },
+          { field: 'action', header: 'Action', type: 'string' },
+          { field: 'referenceNumber', header: 'Reference', type: 'string' },
+          { field: 'title', header: 'Title', type: 'string' },
+          { field: 'details', header: 'Details', type: 'string' }
+        ];
+      case 'trends-analytics':
+        return [
+          { field: 'period', header: 'Period', type: 'string' },
+          { field: 'submissions', header: 'Submissions', type: 'number', align: 'right' },
+          { field: 'approved', header: 'Approved', type: 'number', align: 'right' },
+          { field: 'rejected', header: 'Rejected', type: 'number', align: 'right' },
+          { field: 'avgProcessingTime', header: 'Avg Time (hrs)', type: 'number', align: 'right' },
+          { field: 'totalAmount', header: 'Total Amount', type: 'currency', align: 'right' }
+        ];
+      // Project Reports
+      case 'project-status':
+        return [
+          { field: 'code', header: 'Code', type: 'string' },
+          { field: 'name', header: 'Project Name', type: 'string' },
+          { field: 'status', header: 'Status', type: 'status' },
+          { field: 'stage', header: 'Stage', type: 'string' },
+          { field: 'priority', header: 'Priority', type: 'string' },
+          { field: 'manager', header: 'Manager', type: 'string' },
           { field: 'category', header: 'Category', type: 'string' },
-          { field: 'totalAmount', header: 'Total Amount', type: 'currency', align: 'right' },
-          { field: 'count', header: 'Count', type: 'number', align: 'right' },
-          { field: 'avgAmount', header: 'Average', type: 'currency', align: 'right' }
+          { field: 'budget', header: 'Budget', type: 'currency', align: 'right' },
+          { field: 'actualCost', header: 'Actual Cost', type: 'currency', align: 'right' },
+          { field: 'completion', header: 'Completion', type: 'percentage', align: 'right' },
+          { field: 'startDate', header: 'Start Date', type: 'date' },
+          { field: 'endDate', header: 'End Date', type: 'date' }
+        ];
+      case 'project-budget':
+        return [
+          { field: 'projectCode', header: 'Project', type: 'string' },
+          { field: 'projectName', header: 'Project Name', type: 'string' },
+          { field: 'lineCategory', header: 'Budget Category', type: 'string' },
+          { field: 'description', header: 'Description', type: 'string' },
+          { field: 'estimated', header: 'Estimated', type: 'currency', align: 'right' },
+          { field: 'actual', header: 'Actual', type: 'currency', align: 'right' },
+          { field: 'variance', header: 'Variance', type: 'currency', align: 'right' },
+          { field: 'variancePct', header: 'Variance %', type: 'percentage', align: 'right' }
+        ];
+      case 'project-tasks':
+        return [
+          { field: 'projectCode', header: 'Project', type: 'string' },
+          { field: 'taskName', header: 'Task', type: 'string' },
+          { field: 'status', header: 'Status', type: 'status' },
+          { field: 'priority', header: 'Priority', type: 'string' },
+          { field: 'assignee', header: 'Assignee', type: 'string' },
+          { field: 'startDate', header: 'Start', type: 'date' },
+          { field: 'dueDate', header: 'Due', type: 'date' },
+          { field: 'completion', header: 'Completion', type: 'percentage', align: 'right' },
+          { field: 'overdue', header: 'Overdue', type: 'string' }
+        ];
+      case 'project-milestones':
+        return [
+          { field: 'projectCode', header: 'Project', type: 'string' },
+          { field: 'milestone', header: 'Milestone', type: 'string' },
+          { field: 'status', header: 'Status', type: 'status' },
+          { field: 'dueDate', header: 'Due Date', type: 'date' },
+          { field: 'completedDate', header: 'Completed', type: 'date' },
+          { field: 'critical', header: 'Critical', type: 'string' },
+          { field: 'owner', header: 'Owner', type: 'string' }
+        ];
+      case 'project-risks-issues':
+        return [
+          { field: 'projectCode', header: 'Project', type: 'string' },
+          { field: 'type', header: 'Type', type: 'string' },
+          { field: 'title', header: 'Title', type: 'string' },
+          { field: 'probability', header: 'Probability', type: 'string' },
+          { field: 'impact', header: 'Impact', type: 'string' },
+          { field: 'status', header: 'Status', type: 'status' },
+          { field: 'owner', header: 'Owner', type: 'string' },
+          { field: 'category', header: 'Category', type: 'string' },
+          { field: 'identifiedDate', header: 'Identified', type: 'date' }
+        ];
+      case 'project-team':
+        return [
+          { field: 'projectCode', header: 'Project', type: 'string' },
+          { field: 'projectName', header: 'Project Name', type: 'string' },
+          { field: 'member', header: 'Member', type: 'string' },
+          { field: 'role', header: 'Role', type: 'string' },
+          { field: 'email', header: 'Email', type: 'string' },
+          { field: 'taskCount', header: 'Tasks', type: 'number', align: 'right' }
         ];
       default:
         return [
-          { field: 'name', header: 'Name', type: 'string' },
-          { field: 'value', header: 'Value', type: 'number', align: 'right' },
-          { field: 'percentage', header: 'Percentage', type: 'percentage', align: 'right' }
+          { field: 'referenceNumber', header: 'Reference', type: 'string' },
+          { field: 'title', header: 'Title', type: 'string' },
+          { field: 'workflow', header: 'Workflow', type: 'string' },
+          { field: 'status', header: 'Status', type: 'status' },
+          { field: 'submittedAt', header: 'Date', type: 'date' }
         ];
     }
   }
 
   getMockData(): any[] {
-    const category = this.report?.category;
-    const statuses = ['PENDING', 'APPROVED', 'REJECTED', 'DRAFT'];
+    const reportId = this.report?.id;
+    const statuses = ['PENDING', 'APPROVED', 'REJECTED', 'DRAFT', 'ESCALATED'];
     const workflows = ['Leave Request', 'Expense Claim', 'Purchase Order', 'Travel Request', 'Overtime Request'];
     const users = ['John Smith', 'Jane Doe', 'Bob Wilson', 'Alice Brown', 'Charlie Davis'];
+    const titles = ['Annual Leave - Dec 2026', 'Office Supplies Q1', 'Client Travel - Harare', 'Server Upgrade Request', 'Team Building Budget'];
+    const sbus = ['Head Office', 'Finance', 'Operations', 'IT', 'HR'];
+    const actions = ['APPROVED', 'REJECTED', 'ESCALATED', 'SUBMITTED', 'RECALLED'];
 
-    switch (category) {
-      case 'submissions':
+    switch (reportId) {
+      case 'submission-summary':
         return Array.from({ length: 20 }, (_, i) => ({
-          referenceNumber: `REF-2024-${String(i + 1).padStart(4, '0')}`,
+          referenceNumber: `REF-2026-${String(i + 1).padStart(4, '0')}`,
+          title: titles[i % titles.length],
           workflow: workflows[i % workflows.length],
           submitter: users[i % users.length],
+          sbu: sbus[i % sbus.length],
           status: statuses[i % statuses.length],
           submittedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-          count: Math.floor(Math.random() * 50) + 1
+          completedAt: Math.random() > 0.5 ? new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000) : null
         }));
-      case 'approvals':
-        return users.map(user => ({
-          approver: user,
-          approved: Math.floor(Math.random() * 50) + 10,
-          rejected: Math.floor(Math.random() * 10),
-          pending: Math.floor(Math.random() * 15),
-          avgResponseTime: (Math.random() * 24 + 1).toFixed(1)
+      case 'approval-tracker':
+        return Array.from({ length: 15 }, (_, i) => ({
+          referenceNumber: `REF-2026-${String(i + 1).padStart(4, '0')}`,
+          title: titles[i % titles.length],
+          workflow: workflows[i % workflows.length],
+          approver: users[i % users.length],
+          level: (i % 3) + 1,
+          status: statuses[i % 3],
+          action: actions[i % actions.length],
+          responseTime: +(Math.random() * 48 + 1).toFixed(1),
+          actionDate: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000)
         }));
-      case 'performance':
+      case 'performance-metrics':
         return workflows.map(wf => ({
           workflow: wf,
-          avgProcessingTime: (Math.random() * 48 + 2).toFixed(1),
-          minTime: (Math.random() * 2 + 0.5).toFixed(1),
-          maxTime: (Math.random() * 72 + 24).toFixed(1),
-          completionRate: (Math.random() * 30 + 70).toFixed(1)
+          totalSubmissions: Math.floor(Math.random() * 200) + 20,
+          avgProcessingTime: +(Math.random() * 48 + 2).toFixed(1),
+          minTime: +(Math.random() * 2 + 0.5).toFixed(1),
+          maxTime: +(Math.random() * 72 + 24).toFixed(1),
+          completionRate: +(Math.random() * 30 + 70).toFixed(1),
+          slaCompliance: +(Math.random() * 20 + 80).toFixed(1)
         }));
-      case 'financial':
-        return workflows.map(wf => ({
-          category: wf,
-          totalAmount: Math.floor(Math.random() * 100000) + 10000,
-          count: Math.floor(Math.random() * 100) + 20,
-          avgAmount: Math.floor(Math.random() * 5000) + 500
+      case 'user-activity':
+        return users.map(user => ({
+          user,
+          submissions: Math.floor(Math.random() * 80) + 5,
+          approvals: Math.floor(Math.random() * 50) + 10,
+          rejections: Math.floor(Math.random() * 10),
+          avgResponseTime: +(Math.random() * 24 + 1).toFixed(1),
+          lastLogin: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
         }));
+      case 'organization-overview':
+        return sbus.map(s => ({
+          entity: s,
+          type: 'SBU',
+          totalSubmissions: Math.floor(Math.random() * 150) + 10,
+          approved: Math.floor(Math.random() * 100) + 5,
+          pending: Math.floor(Math.random() * 30),
+          rejected: Math.floor(Math.random() * 20),
+          totalAmount: Math.floor(Math.random() * 500000) + 10000
+        }));
+      case 'financial-summary':
+        return Array.from({ length: 15 }, (_, i) => ({
+          referenceNumber: `REF-2026-${String(i + 1).padStart(4, '0')}`,
+          title: titles[i % titles.length],
+          workflow: workflows[i % workflows.length],
+          submitter: users[i % users.length],
+          amount: Math.floor(Math.random() * 50000) + 500,
+          status: statuses[i % 3],
+          approver: users[(i + 2) % users.length],
+          submittedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+        }));
+      case 'audit-compliance':
+        return Array.from({ length: 20 }, (_, i) => ({
+          timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+          user: users[i % users.length],
+          action: actions[i % actions.length],
+          referenceNumber: `REF-2026-${String(i + 1).padStart(4, '0')}`,
+          title: titles[i % titles.length],
+          details: `${actions[i % actions.length]} by ${users[i % users.length]}`
+        }));
+      case 'trends-analytics':
+        return ['Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026', 'May 2026', 'Jun 2026'].map(period => ({
+          period,
+          submissions: Math.floor(Math.random() * 200) + 50,
+          approved: Math.floor(Math.random() * 150) + 30,
+          rejected: Math.floor(Math.random() * 30) + 5,
+          avgProcessingTime: +(Math.random() * 24 + 4).toFixed(1),
+          totalAmount: Math.floor(Math.random() * 500000) + 50000
+        }));
+      // Project Reports
+      case 'project-status': {
+        const projStatuses = ['ACTIVE', 'COMPLETED', 'ON_HOLD', 'DRAFT', 'CANCELLED'];
+        const stages = ['INITIATION', 'PLANNING', 'EXECUTION', 'MONITORING', 'CLOSURE'];
+        const priorities = ['HIGH', 'MEDIUM', 'LOW', 'CRITICAL'];
+        const managers = ['John Smith', 'Jane Doe', 'Bob Wilson', 'Alice Brown'];
+        const cats = ['IT', 'Operations', 'Finance', 'HR', 'Marketing'];
+        return Array.from({ length: 12 }, (_, i) => ({
+          code: `PRJ-${String(i + 1).padStart(3, '0')}`,
+          name: ['ERP Upgrade', 'Office Renovation', 'Mobile App', 'Data Migration', 'Security Audit', 'CRM Implementation', 'Website Redesign', 'Cloud Migration', 'Training Program', 'Compliance Review', 'Network Upgrade', 'Brand Refresh'][i],
+          status: projStatuses[i % projStatuses.length],
+          stage: stages[i % stages.length],
+          priority: priorities[i % priorities.length],
+          manager: managers[i % managers.length],
+          category: cats[i % cats.length],
+          budget: Math.floor(Math.random() * 500000) + 50000,
+          actualCost: Math.floor(Math.random() * 400000) + 30000,
+          completion: +(Math.random() * 100).toFixed(0),
+          startDate: new Date(2026, i % 12, 1),
+          endDate: new Date(2026, (i % 12) + 3, 28)
+        }));
+      }
+      case 'project-budget': {
+        const budgetCats = ['Personnel', 'Equipment', 'Software', 'Travel', 'Consulting', 'Infrastructure'];
+        return Array.from({ length: 15 }, (_, i) => {
+          const est = Math.floor(Math.random() * 100000) + 10000;
+          const act = Math.floor(Math.random() * 120000) + 5000;
+          return {
+            projectCode: `PRJ-${String((i % 4) + 1).padStart(3, '0')}`,
+            projectName: ['ERP Upgrade', 'Office Renovation', 'Mobile App', 'Data Migration'][i % 4],
+            lineCategory: budgetCats[i % budgetCats.length],
+            description: `${budgetCats[i % budgetCats.length]} costs`,
+            estimated: est,
+            actual: act,
+            variance: est - act,
+            variancePct: +(((est - act) / est) * 100).toFixed(1)
+          };
+        });
+      }
+      case 'project-tasks': {
+        const taskStatuses = ['TODO', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED'];
+        const taskPriorities = ['HIGH', 'MEDIUM', 'LOW'];
+        const assignees = ['John Smith', 'Jane Doe', 'Bob Wilson', 'Alice Brown', 'Charlie Davis'];
+        return Array.from({ length: 20 }, (_, i) => {
+          const due = new Date(Date.now() + (Math.random() * 60 - 30) * 24 * 60 * 60 * 1000);
+          return {
+            projectCode: `PRJ-${String((i % 5) + 1).padStart(3, '0')}`,
+            taskName: `Task ${i + 1} - ${['Design', 'Development', 'Testing', 'Review', 'Deployment'][i % 5]}`,
+            status: taskStatuses[i % taskStatuses.length],
+            priority: taskPriorities[i % taskPriorities.length],
+            assignee: assignees[i % assignees.length],
+            startDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+            dueDate: due,
+            completion: +(Math.random() * 100).toFixed(0),
+            overdue: due < new Date() ? 'Yes' : 'No'
+          };
+        });
+      }
+      case 'project-milestones': {
+        const msStatuses = ['PENDING', 'COMPLETED', 'OVERDUE', 'IN_PROGRESS'];
+        const owners = ['John Smith', 'Jane Doe', 'Bob Wilson'];
+        return Array.from({ length: 10 }, (_, i) => ({
+          projectCode: `PRJ-${String((i % 4) + 1).padStart(3, '0')}`,
+          milestone: ['Requirements Sign-off', 'Design Complete', 'Beta Release', 'UAT Complete', 'Go Live', 'Phase 1 Delivery', 'Security Review', 'Training Complete', 'Data Migration', 'Final Handover'][i],
+          status: msStatuses[i % msStatuses.length],
+          dueDate: new Date(2026, i % 12, 15),
+          completedDate: i % 3 === 1 ? new Date(2026, i % 12, 12) : null,
+          critical: i % 3 === 0 ? 'Yes' : 'No',
+          owner: owners[i % owners.length]
+        }));
+      }
+      case 'project-risks-issues': {
+        const riStatuses = ['OPEN', 'MITIGATED', 'CLOSED', 'ESCALATED'];
+        const probabilities = ['HIGH', 'MEDIUM', 'LOW'];
+        const impacts = ['HIGH', 'MEDIUM', 'LOW', 'CRITICAL'];
+        const riCats = ['Technical', 'Financial', 'Resource', 'Schedule', 'External'];
+        return Array.from({ length: 12 }, (_, i) => ({
+          projectCode: `PRJ-${String((i % 4) + 1).padStart(3, '0')}`,
+          type: i % 2 === 0 ? 'Risk' : 'Issue',
+          title: ['Budget Overrun', 'Key Resource Leaving', 'Vendor Delay', 'Scope Creep', 'Security Vulnerability', 'Integration Failure', 'Regulatory Change', 'Timeline Slip', 'Quality Issue', 'Dependency Delay', 'Skills Gap', 'Data Loss'][i],
+          probability: probabilities[i % probabilities.length],
+          impact: impacts[i % impacts.length],
+          status: riStatuses[i % riStatuses.length],
+          owner: ['John Smith', 'Jane Doe', 'Bob Wilson'][i % 3],
+          category: riCats[i % riCats.length],
+          identifiedDate: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000)
+        }));
+      }
+      case 'project-team': {
+        const roles = ['Project Manager', 'Developer', 'Designer', 'QA Engineer', 'Business Analyst', 'DevOps'];
+        const members = ['John Smith', 'Jane Doe', 'Bob Wilson', 'Alice Brown', 'Charlie Davis', 'Eve Taylor'];
+        return Array.from({ length: 12 }, (_, i) => ({
+          projectCode: `PRJ-${String((i % 4) + 1).padStart(3, '0')}`,
+          projectName: ['ERP Upgrade', 'Office Renovation', 'Mobile App', 'Data Migration'][i % 4],
+          member: members[i % members.length],
+          role: roles[i % roles.length],
+          email: `${members[i % members.length].toLowerCase().replace(' ', '.')}@company.com`,
+          taskCount: Math.floor(Math.random() * 15) + 1
+        }));
+      }
       default:
         return Array.from({ length: 10 }, (_, i) => ({
-          name: `Item ${i + 1}`,
-          value: Math.floor(Math.random() * 1000),
-          percentage: (Math.random() * 100).toFixed(1)
+          referenceNumber: `REF-2026-${String(i + 1).padStart(4, '0')}`,
+          title: titles[i % titles.length],
+          workflow: workflows[i % workflows.length],
+          status: statuses[i % statuses.length],
+          submittedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
         }));
     }
   }
 
   getMockSummary(): Record<string, any> {
-    return {
-      totalRecords: Math.floor(Math.random() * 500) + 100,
-      totalAmount: Math.floor(Math.random() * 500000) + 50000,
-      avgProcessingTime: (Math.random() * 24 + 4).toFixed(1),
-      completionRate: (Math.random() * 20 + 80).toFixed(1)
-    };
+    // Summary is computed dynamically from data in getSummaryItems()
+    return {};
   }
 
   getSummaryItems() {
-    if (!this.reportResult?.summary) return [];
-    const summary = this.reportResult.summary;
-    return [
-      { label: 'Total Records', value: summary['totalRecords']?.toLocaleString() || '0', icon: 'description', color: '#1976d2' },
-      { label: 'Total Amount', value: '$' + (summary['totalAmount']?.toLocaleString() || '0'), icon: 'attach_money', color: '#2e7d32' },
-      { label: 'Avg Processing Time', value: (summary['avgProcessingTime'] || '0') + ' hrs', icon: 'schedule', color: '#ed6c02' },
-      { label: 'Completion Rate', value: (summary['completionRate'] || '0') + '%', icon: 'check_circle', color: '#9c27b0' }
-    ];
+    if (!this.reportResult?.data) return [];
+    const data = this.reportResult.data;
+    const reportId = this.report?.id;
+    const totalRecords = data.length;
+
+    switch (reportId) {
+      case 'financial-summary':
+        return [
+          { label: 'Total Records', value: totalRecords.toLocaleString(), icon: 'description', color: '#1976d2' },
+          { label: 'Total Amount', value: '$' + data.reduce((sum: number, r: any) => sum + (r.amount || 0), 0).toLocaleString(), icon: 'attach_money', color: '#2e7d32' },
+          { label: 'Avg Amount', value: '$' + (totalRecords > 0 ? Math.round(data.reduce((sum: number, r: any) => sum + (r.amount || 0), 0) / totalRecords) : 0).toLocaleString(), icon: 'payments', color: '#ed6c02' },
+          { label: 'Approved Amount', value: '$' + data.filter((r: any) => r.status === 'APPROVED').reduce((sum: number, r: any) => sum + (r.amount || 0), 0).toLocaleString(), icon: 'check_circle', color: '#9c27b0' }
+        ];
+      case 'submission-summary':
+        return [
+          { label: 'Total Submissions', value: totalRecords.toLocaleString(), icon: 'description', color: '#1976d2' },
+          { label: 'Approved', value: data.filter((r: any) => r.status === 'APPROVED').length.toLocaleString(), icon: 'check_circle', color: '#2e7d32' },
+          { label: 'Pending', value: data.filter((r: any) => r.status === 'PENDING').length.toLocaleString(), icon: 'hourglass_empty', color: '#ed6c02' },
+          { label: 'Rejected', value: data.filter((r: any) => r.status === 'REJECTED').length.toLocaleString(), icon: 'cancel', color: '#d32f2f' }
+        ];
+      case 'approval-tracker':
+        return [
+          { label: 'Total Actions', value: totalRecords.toLocaleString(), icon: 'description', color: '#1976d2' },
+          { label: 'Approved', value: data.filter((r: any) => r.action === 'APPROVED').length.toLocaleString(), icon: 'check_circle', color: '#2e7d32' },
+          { label: 'Avg Response', value: (totalRecords > 0 ? (data.reduce((sum: number, r: any) => sum + (+(r.responseTime) || 0), 0) / totalRecords).toFixed(1) : '0') + ' hrs', icon: 'schedule', color: '#ed6c02' },
+          { label: 'Escalated', value: data.filter((r: any) => r.action === 'ESCALATED').length.toLocaleString(), icon: 'trending_up', color: '#d32f2f' }
+        ];
+      case 'performance-metrics':
+        return [
+          { label: 'Workflows', value: totalRecords.toLocaleString(), icon: 'account_tree', color: '#1976d2' },
+          { label: 'Total Submissions', value: data.reduce((sum: number, r: any) => sum + (r.totalSubmissions || 0), 0).toLocaleString(), icon: 'description', color: '#2e7d32' },
+          { label: 'Avg Processing', value: (totalRecords > 0 ? (data.reduce((sum: number, r: any) => sum + (+(r.avgProcessingTime) || 0), 0) / totalRecords).toFixed(1) : '0') + ' hrs', icon: 'schedule', color: '#ed6c02' },
+          { label: 'Avg Completion', value: (totalRecords > 0 ? (data.reduce((sum: number, r: any) => sum + (+(r.completionRate) || 0), 0) / totalRecords).toFixed(1) : '0') + '%', icon: 'check_circle', color: '#9c27b0' }
+        ];
+      case 'user-activity':
+        return [
+          { label: 'Total Users', value: totalRecords.toLocaleString(), icon: 'people', color: '#1976d2' },
+          { label: 'Total Submissions', value: data.reduce((sum: number, r: any) => sum + (r.submissions || 0), 0).toLocaleString(), icon: 'send', color: '#2e7d32' },
+          { label: 'Total Approvals', value: data.reduce((sum: number, r: any) => sum + (r.approvals || 0), 0).toLocaleString(), icon: 'thumb_up', color: '#ed6c02' },
+          { label: 'Total Rejections', value: data.reduce((sum: number, r: any) => sum + (r.rejections || 0), 0).toLocaleString(), icon: 'cancel', color: '#d32f2f' }
+        ];
+      case 'organization-overview':
+        return [
+          { label: 'Total Entities', value: totalRecords.toLocaleString(), icon: 'corporate_fare', color: '#1976d2' },
+          { label: 'Total Submissions', value: data.reduce((sum: number, r: any) => sum + (r.totalSubmissions || 0), 0).toLocaleString(), icon: 'description', color: '#2e7d32' },
+          { label: 'Total Amount', value: '$' + data.reduce((sum: number, r: any) => sum + (r.totalAmount || 0), 0).toLocaleString(), icon: 'attach_money', color: '#ed6c02' },
+          { label: 'Total Pending', value: data.reduce((sum: number, r: any) => sum + (r.pending || 0), 0).toLocaleString(), icon: 'hourglass_empty', color: '#9c27b0' }
+        ];
+      case 'trends-analytics':
+        return [
+          { label: 'Periods', value: totalRecords.toLocaleString(), icon: 'date_range', color: '#1976d2' },
+          { label: 'Total Submissions', value: data.reduce((sum: number, r: any) => sum + (r.submissions || 0), 0).toLocaleString(), icon: 'description', color: '#2e7d32' },
+          { label: 'Total Amount', value: '$' + data.reduce((sum: number, r: any) => sum + (r.totalAmount || 0), 0).toLocaleString(), icon: 'attach_money', color: '#ed6c02' },
+          { label: 'Total Approved', value: data.reduce((sum: number, r: any) => sum + (r.approved || 0), 0).toLocaleString(), icon: 'check_circle', color: '#9c27b0' }
+        ];
+      case 'project-status':
+        return [
+          { label: 'Total Projects', value: totalRecords.toLocaleString(), icon: 'folder', color: '#1976d2' },
+          { label: 'Total Budget', value: '$' + data.reduce((sum: number, r: any) => sum + (r.budget || 0), 0).toLocaleString(), icon: 'account_balance', color: '#2e7d32' },
+          { label: 'Total Cost', value: '$' + data.reduce((sum: number, r: any) => sum + (r.actualCost || 0), 0).toLocaleString(), icon: 'attach_money', color: '#ed6c02' },
+          { label: 'Avg Completion', value: (totalRecords > 0 ? (data.reduce((sum: number, r: any) => sum + (+(r.completion) || 0), 0) / totalRecords).toFixed(0) : '0') + '%', icon: 'check_circle', color: '#9c27b0' }
+        ];
+      case 'project-budget':
+        return [
+          { label: 'Budget Lines', value: totalRecords.toLocaleString(), icon: 'receipt', color: '#1976d2' },
+          { label: 'Total Estimated', value: '$' + data.reduce((sum: number, r: any) => sum + (r.estimated || 0), 0).toLocaleString(), icon: 'account_balance', color: '#2e7d32' },
+          { label: 'Total Actual', value: '$' + data.reduce((sum: number, r: any) => sum + (r.actual || 0), 0).toLocaleString(), icon: 'attach_money', color: '#ed6c02' },
+          { label: 'Total Variance', value: '$' + data.reduce((sum: number, r: any) => sum + (r.variance || 0), 0).toLocaleString(), icon: 'trending_up', color: '#9c27b0' }
+        ];
+      case 'project-tasks':
+        return [
+          { label: 'Total Tasks', value: totalRecords.toLocaleString(), icon: 'checklist', color: '#1976d2' },
+          { label: 'Completed', value: data.filter((r: any) => r.status === 'COMPLETED').length.toLocaleString(), icon: 'check_circle', color: '#2e7d32' },
+          { label: 'In Progress', value: data.filter((r: any) => r.status === 'IN_PROGRESS').length.toLocaleString(), icon: 'hourglass_empty', color: '#ed6c02' },
+          { label: 'Overdue', value: data.filter((r: any) => r.overdue === 'Yes').length.toLocaleString(), icon: 'warning', color: '#d32f2f' }
+        ];
+      case 'project-risks-issues':
+        return [
+          { label: 'Total Items', value: totalRecords.toLocaleString(), icon: 'warning', color: '#1976d2' },
+          { label: 'Risks', value: data.filter((r: any) => r.type === 'Risk').length.toLocaleString(), icon: 'report_problem', color: '#ed6c02' },
+          { label: 'Issues', value: data.filter((r: any) => r.type === 'Issue').length.toLocaleString(), icon: 'bug_report', color: '#d32f2f' },
+          { label: 'Open', value: data.filter((r: any) => r.status === 'OPEN').length.toLocaleString(), icon: 'lock_open', color: '#9c27b0' }
+        ];
+      default:
+        return [
+          { label: 'Total Records', value: totalRecords.toLocaleString(), icon: 'description', color: '#1976d2' },
+          { label: 'Records Shown', value: Math.min(totalRecords, this.pageSize || 10).toLocaleString(), icon: 'table_chart', color: '#2e7d32' }
+        ];
+    }
   }
 
   formatParameters(): Record<string, string> {
@@ -1138,6 +1620,18 @@ export class ReportViewerComponent implements OnInit {
     }
     if (this.parameters.groupBy) {
       params['groupBy'] = this.parameters.groupBy;
+    }
+    if (this.parameters.leaveTypeId) {
+      params['leaveTypeId'] = this.parameters.leaveTypeId;
+    }
+    if (this.parameters.year) {
+      params['year'] = this.parameters.year;
+    }
+    if (this.parameters.categoryId) {
+      params['categoryId'] = this.parameters.categoryId;
+    }
+    if (this.parameters.priority) {
+      params['priority'] = this.parameters.priority;
     }
     return params;
   }

@@ -1,87 +1,59 @@
 ========================================
   SONAR WORKFLOW SYSTEM
-  Version 1.1.0
+  Version 1.5.0
 ========================================
 
 INSTALLATION INSTRUCTIONS
 -------------------------
 
-1. PREREQUISITES
-   - Windows 10 or later
-   - Java 25 or later (Download from https://adoptium.net/)
+WINDOWS:
+  1. Prerequisites: Java 21+ (https://adoptium.net/), PostgreSQL 14+
+  2. Run Setup.bat (double-click) and follow prompts
+  3. Desktop and Start Menu shortcuts will be created
+  4. Open browser at http://<your-ip>:9500
 
-2. INSTALLATION
-   - Run Setup.bat (double-click)
-   - Follow the on-screen prompts
-   - The installer will create:
-     * Desktop shortcut
-     * Start Menu entry
-     * Entry in Programs and Features
+LINUX:
+  1. Prerequisites: Java 21+, PostgreSQL 14+
+  2. chmod +x install.sh && sudo ./install.sh
+  3. Manage with: sudo systemctl start|stop|restart|status sonar-workflow
+  4. Open browser at http://<your-ip>:9500
 
-3. RUNNING THE APPLICATION
-   - Double-click the "Sonar Workflow System" shortcut on your desktop
-   - Or use Start Menu > Sonar > Sonar Workflow System
-   - Open your browser and go to: http://localhost:8080
+DEFAULT LOGIN
+  Username: super
+  Password: Cryp20@!
+  (Change after first login!)
 
-4. DEFAULT LOGIN
-   - Username: admin
-   - Password: admin123
-   (Change these after first login!)
-
-5. UNINSTALLATION
-   - Use "Add or Remove Programs" in Windows Settings
-   - Or run Uninstall.ps1 from the installation folder
+UNINSTALLATION
+  Windows: Use "Add or Remove Programs" or run Uninstall.ps1
+  Linux:   sudo ./install.sh --uninstall
+           or: sudo systemctl stop sonar-workflow && sudo rm -rf /opt/sonar/workflow
 
 KEY FEATURES
 ------------
-
-* Visual Workflow Builder
-  - Drag-and-drop form design
-  - 30+ field types (text, numbers, dates, files, signatures, etc.)
-  - Accordion and Collapsible sections for organized forms
-  - SQL Object fields for dynamic database-driven dropdowns
-
-* Multi-Step Workflows
-  - Create workflows with multiple screens/steps
-  - Summary screens for submission review
-  - Step-by-step navigation with validation
-
-* Approval Management
-  - Multi-level approval hierarchies
-  - Amount-based routing
-  - Email notifications with approval links
-  - SBU-specific approvers
-
-* Access Control
-  - Organization-based restrictions (Corporate, SBU, Branch, Department)
-  - Role and Privilege-based workflow access
-  - Comprehensive audit logging
-
-* Additional Features
-  - Dark mode support
-  - Command console for power users
-  - Reports and dashboards
-  - File attachments with configurable limits
+* Visual Workflow Builder (30+ field types, drag-and-drop)
+* Multi-Step Workflows with summary screens
+* Multi-Level Approval Hierarchies (amount-based routing, email approval)
+* Project Management (tasks, milestones, risks, budgets, Gantt charts)
+* Organization-Based Access Control (Corporate, SBU, Branch, Department)
+* Reports & Analytics (workflow + project reports, Excel/CSV/PDF export)
+* Submission Import/Export (Excel templates per workflow)
+* Dark mode, command console, file attachments
 
 TROUBLESHOOTING
 ---------------
-
 Problem: "Java is not installed" error
-Solution: Download and install Java 25+ from https://adoptium.net/
+  -> Install Java 21+ from https://adoptium.net/
 
 Problem: Application won't start
-Solution: Make sure port 8080 is not in use by another application
+  -> Check port 9500 is free: netstat -an | grep 9500
+  -> Check PostgreSQL is running and database 'workflow' exists
 
-Problem: Can't access http://localhost:8080
-Solution: Wait a few seconds for the application to fully start
+Problem: Can't access the application
+  -> Wait 10-15 seconds for full startup
+  -> Check firewall allows port 9500
 
-Problem: Login not working
-Solution: Ensure you're using the correct credentials. Default is admin/admin123
-
-SUPPORT
--------
-For issues and feature requests, please contact your system administrator.
+Linux: Check logs with: journalctl -u sonar-workflow -f
 
 ========================================
-  (c) 2025 Sonar - All Rights Reserved
+  (c) 2026 Sonar - All Rights Reserved
 ========================================

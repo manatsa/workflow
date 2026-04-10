@@ -35,4 +35,5 @@ public class SettingDTO {
     private String validationRegex;
     private String defaultValue;
     private String options; // Comma-separated values for SELECT type
+    private Boolean isSuperOnly;
 }

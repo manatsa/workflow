@@ -97,4 +97,19 @@ export class SqlObjectService {
       map(response => response.data)
     );
   }
+
+  // Template / Import / Export
+  downloadTemplate(sqlObjectId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${sqlObjectId}/template`, { responseType: 'blob' });
+  }
+
+  exportData(sqlObjectId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${sqlObjectId}/export`, { responseType: 'blob' });
+  }
+
+  importData(sqlObjectId: string, file: File): Observable<Blob> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${sqlObjectId}/import`, formData, { responseType: 'blob' });
+  }
 }

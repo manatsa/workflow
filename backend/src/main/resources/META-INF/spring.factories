@@ -1,0 +1,1 @@
+org.springframework.boot.env.EnvironmentPostProcessor=com.sonar.workflow.config.SonaConfigLoader

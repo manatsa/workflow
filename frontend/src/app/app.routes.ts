@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { authGuard, workflowModuleGuard, projectsModuleGuard, deadlinesModuleGuard, leaveModuleGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -35,6 +35,10 @@ export const routes: Routes = [
       {
         path: 'profile',
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
+      },
+      {
+        path: 'signature',
+        loadComponent: () => import('./features/signature/signature.component').then(m => m.SignatureComponent)
       },
       {
         path: 'change-password',
@@ -83,6 +87,11 @@ export const routes: Routes = [
         path: 'departments',
         loadComponent: () => import('./features/departments/department-list/department-list.component').then(m => m.DepartmentListComponent)
       },
+      // Stamps
+      {
+        path: 'stamps',
+        loadComponent: () => import('./features/stamps/stamp-list.component').then(m => m.StampListComponent)
+      },
       // Settings
       {
         path: 'settings',
@@ -101,46 +110,56 @@ export const routes: Routes = [
       // Workflows
       {
         path: 'workflows',
-        loadComponent: () => import('./features/workflows/workflow-list/workflow-list.component').then(m => m.WorkflowListComponent)
+        loadComponent: () => import('./features/workflows/workflow-list/workflow-list.component').then(m => m.WorkflowListComponent),
+        canActivate: [workflowModuleGuard]
       },
       {
         path: 'workflows/builder/new',
-        loadComponent: () => import('./features/workflows/workflow-builder/workflow-builder.component').then(m => m.WorkflowBuilderComponent)
+        loadComponent: () => import('./features/workflows/workflow-builder/workflow-builder.component').then(m => m.WorkflowBuilderComponent),
+        canActivate: [workflowModuleGuard]
       },
       {
         path: 'workflows/builder/:id',
         loadComponent: () => import('./features/workflows/workflow-builder/workflow-builder.component').then(m => m.WorkflowBuilderComponent),
+        canActivate: [workflowModuleGuard],
         runGuardsAndResolvers: 'paramsChange'
       },
       {
         path: 'workflows/:workflowCode/instances',
-        loadComponent: () => import('./features/workflows/workflow-instances/workflow-instances.component').then(m => m.WorkflowInstancesComponent)
+        loadComponent: () => import('./features/workflows/workflow-instances/workflow-instances.component').then(m => m.WorkflowInstancesComponent),
+        canActivate: [workflowModuleGuard]
       },
       {
         path: 'workflows/:workflowCode/new',
-        loadComponent: () => import('./features/workflows/workflow-form/workflow-form.component').then(m => m.WorkflowFormComponent)
+        loadComponent: () => import('./features/workflows/workflow-form/workflow-form.component').then(m => m.WorkflowFormComponent),
+        canActivate: [workflowModuleGuard]
       },
       {
         path: 'workflows/:workflowCode/edit/:instanceId',
-        loadComponent: () => import('./features/workflows/workflow-form/workflow-form.component').then(m => m.WorkflowFormComponent)
+        loadComponent: () => import('./features/workflows/workflow-form/workflow-form.component').then(m => m.WorkflowFormComponent),
+        canActivate: [workflowModuleGuard]
       },
       {
         path: 'workflows/:workflowCode/instances/:instanceId',
-        loadComponent: () => import('./features/workflows/instance-detail/instance-detail.component').then(m => m.InstanceDetailComponent)
+        loadComponent: () => import('./features/workflows/instance-detail/instance-detail.component').then(m => m.InstanceDetailComponent),
+        canActivate: [workflowModuleGuard]
       },
       // Approvals
       {
         path: 'approvals',
-        loadComponent: () => import('./features/approvals/approval-list/approval-list.component').then(m => m.ApprovalListComponent)
+        loadComponent: () => import('./features/approvals/approval-list/approval-list.component').then(m => m.ApprovalListComponent),
+        canActivate: [workflowModuleGuard]
       },
       {
         path: 'approvals/:id',
-        loadComponent: () => import('./features/approvals/approval-detail/approval-detail.component').then(m => m.ApprovalDetailComponent)
+        loadComponent: () => import('./features/approvals/approval-detail/approval-detail.component').then(m => m.ApprovalDetailComponent),
+        canActivate: [workflowModuleGuard]
       },
       // My Submissions
       {
         path: 'my-submissions',
-        loadComponent: () => import('./features/my-submissions/my-submissions.component').then(m => m.MySubmissionsComponent)
+        loadComponent: () => import('./features/my-submissions/my-submissions.component').then(m => m.MySubmissionsComponent),
+        canActivate: [workflowModuleGuard]
       },
       // Reports
       {
@@ -150,6 +169,24 @@ export const routes: Routes = [
       {
         path: 'reports/:reportId',
         loadComponent: () => import('./features/reports/report-viewer/report-viewer.component').then(m => m.ReportViewerComponent)
+      },
+      // Projects
+      {
+        path: 'projects',
+        loadChildren: () => import('./features/projects/projects.routes').then(m => m.PROJECT_ROUTES),
+        canActivate: [projectsModuleGuard]
+      },
+      // Critical Deadlines
+      {
+        path: 'deadlines',
+        loadChildren: () => import('./features/deadlines/deadlines.routes').then(m => m.DEADLINE_ROUTES),
+        canActivate: [deadlinesModuleGuard]
+      },
+      // Leave Management
+      {
+        path: 'leave',
+        loadChildren: () => import('./features/leave/leave.routes').then(m => m.LEAVE_ROUTES),
+        canActivate: [leaveModuleGuard]
       }
     ]
   },

@@ -1,59 +1,59 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { UserService } from '@core/services/user.service';
 import { ImportExportService } from '@core/services/import-export.service';
 import { Category } from '@core/models/category.model';
+import { CategoryEditDialogComponent } from '../category-edit-dialog/category-edit-dialog.component';
+import { CategoryDetailDialogComponent } from '../category-detail-dialog/category-detail-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-category-list',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
     MatCardModule,
     MatTableModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
     MatChipsModule,
-    MatDialogModule
+    MatTooltipModule,
+    MatDialogModule,
+    MatMenuModule
   ],
   template: `
     <div class="category-list-container">
       <div class="header">
         <h1>Categories (Industries)</h1>
         <div class="header-actions">
-          <button mat-stroked-button (click)="downloadTemplate()">
+          <button mat-stroked-button matTooltip="Download Template" (click)="downloadTemplate()">
             <mat-icon>description</mat-icon> Template
           </button>
-          <button mat-stroked-button (click)="fileInput.click()">
+          <button mat-stroked-button matTooltip="Import from Excel" (click)="fileInput.click()">
             <mat-icon>upload</mat-icon> Import
           </button>
           <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
-          <button mat-stroked-button (click)="exportToExcel()">
+          <button mat-stroked-button matTooltip="Export to Excel" (click)="exportToExcel()">
             <mat-icon>download</mat-icon> Export
           </button>
-          <button mat-raised-button color="primary" (click)="showForm = true; editingCategory = null; categoryForm.reset()">
+          <button mat-raised-button matTooltip="Add new Category" color="primary" (click)="openAddCategory()">
             <mat-icon>add</mat-icon>
             Add Category
           </button>
         </div>
       </div>
 
-      <div class="content-grid">
+      <div class="content-area">
         <mat-card class="table-card">
           <mat-card-content>
             <table mat-table [dataSource]="categories" class="full-width">
@@ -82,22 +82,28 @@ import { Category } from '@core/models/category.model';
               </ng-container>
 
               <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let row">
-                  <button mat-icon-button (click)="editCategory(row)">
-                    <mat-icon>edit</mat-icon>
+                  <button mat-icon-button matTooltip="Actions" [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                    <mat-icon>more_vert</mat-icon>
                   </button>
-                  <button mat-icon-button (click)="toggleStatus(row)">
-                    <mat-icon>{{ row.isActive ? 'visibility_off' : 'visibility' }}</mat-icon>
-                  </button>
-                  <button mat-icon-button color="warn" (click)="deleteCategory(row)">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="openEditCategory(row)">
+                      <mat-icon>edit</mat-icon> <span>Edit</span>
+                    </button>
+                    <button mat-menu-item (click)="toggleStatus(row)">
+                      <mat-icon>{{ row.isActive ? 'visibility_off' : 'visibility' }}</mat-icon>
+                      <span>{{ row.isActive ? 'Deactivate' : 'Activate' }}</span>
+                    </button>
+                    <button mat-menu-item (click)="deleteCategory(row)">
+                      <mat-icon color="warn">delete</mat-icon> <span>Delete</span>
+                    </button>
+                  </mat-menu>
                 </td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="clickable-row" (click)="viewCategory(row)"></tr>
             </table>
 
             @if (categories.length === 0) {
@@ -108,56 +114,32 @@ import { Category } from '@core/models/category.model';
             }
           </mat-card-content>
         </mat-card>
-
-        @if (showForm) {
-          <mat-card class="form-card">
-            <mat-card-header>
-              <mat-card-title>{{ editingCategory ? 'Edit Category' : 'Add Category' }}</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Code</mat-label>
-                  <input matInput formControlName="code">
-                  @if (categoryForm.get('code')?.hasError('required')) {
-                    <mat-error>Code is required</mat-error>
-                  }
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Name</mat-label>
-                  <input matInput formControlName="name">
-                  @if (categoryForm.get('name')?.hasError('required')) {
-                    <mat-error>Name is required</mat-error>
-                  }
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field">
-                  <mat-label>Description</mat-label>
-                  <textarea matInput formControlName="description" rows="3"></textarea>
-                </mat-form-field>
-
-                <div class="form-actions">
-                  <button mat-button type="button" (click)="showForm = false">Cancel</button>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="loading || categoryForm.invalid">
-                    {{ editingCategory ? 'Update' : 'Create' }}
-                  </button>
-                </div>
-              </form>
-            </mat-card-content>
-          </mat-card>
-        }
       </div>
     </div>
   `,
   styles: [`
-    .category-list-container { padding: 1rem; }
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .category-list-container {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      box-sizing: border-box;
+    }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      flex-shrink: 0;
     }
 
     .header-actions {
@@ -166,19 +148,25 @@ import { Category } from '@core/models/category.model';
       align-items: center;
     }
 
-    .content-grid {
-      display: grid;
-      grid-template-columns: 1fr 400px;
-      gap: 1rem;
+    .content-area {
+      flex: 1;
+      min-height: 0;
     }
 
-    @media (max-width: 900px) {
-      .content-grid {
-        grid-template-columns: 1fr;
-      }
+    .table-card {
+      width: 100%;
+      height: 100%;
     }
 
     .full-width { width: 100%; }
+
+    .clickable-row {
+      cursor: pointer;
+    }
+
+    .clickable-row:hover {
+      background: #f0f4ff;
+    }
 
     .no-data {
       display: flex;
@@ -195,40 +183,18 @@ import { Category } from '@core/models/category.model';
       height: 48px;
       opacity: 0.5;
     }
-
-    .form-field {
-      width: 100%;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
   `]
 })
 export class CategoryListComponent implements OnInit {
   categories: Category[] = [];
   displayedColumns = ['code', 'name', 'description', 'status', 'actions'];
-  showForm = false;
-  editingCategory: Category | null = null;
-  loading = false;
-  categoryForm: FormGroup;
 
   constructor(
-    private fb: FormBuilder,
     private userService: UserService,
     private importExportService: ImportExportService,
-    private snackBar: MatSnackBar
-  ) {
-    this.categoryForm = this.fb.group({
-      code: ['', Validators.required],
-      name: ['', Validators.required],
-      description: ['']
-    });
-  }
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit() {
     this.loadCategories();
@@ -242,44 +208,44 @@ export class CategoryListComponent implements OnInit {
     });
   }
 
-  editCategory(category: Category) {
-    this.editingCategory = category;
-    this.showForm = true;
-    this.categoryForm.patchValue({
-      code: category.code,
-      name: category.name,
-      description: category.description
+  viewCategory(category: Category) {
+    const dialogRef = this.dialog.open(CategoryDetailDialogComponent, {
+      data: category,
+      width: '550px',
+      maxHeight: '85vh'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'edit') {
+        this.openEditCategory(category);
+      }
     });
   }
 
-  saveCategory() {
-    if (this.categoryForm.invalid) return;
+  openAddCategory() {
+    const dialogRef = this.dialog.open(CategoryEditDialogComponent, {
+      data: { category: null },
+      width: '550px',
+      maxHeight: '85vh'
+    });
 
-    this.loading = true;
-    const data = this.categoryForm.value;
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadCategories();
+      }
+    });
+  }
 
-    const request = this.editingCategory
-      ? this.userService.updateCategory(this.editingCategory.id, data)
-      : this.userService.createCategory(data);
+  openEditCategory(category: Category) {
+    const dialogRef = this.dialog.open(CategoryEditDialogComponent, {
+      data: { category },
+      width: '550px',
+      maxHeight: '85vh'
+    });
 
-    request.subscribe({
-      next: (res) => {
-        this.loading = false;
-        if (res.success) {
-          this.snackBar.open(
-            this.editingCategory ? 'Category updated' : 'Category created',
-            'Close',
-            { duration: 3000 }
-          );
-          this.showForm = false;
-          this.editingCategory = null;
-          this.categoryForm.reset();
-          this.loadCategories();
-        }
-      },
-      error: (err) => {
-        this.loading = false;
-        this.snackBar.open(err.error?.message || 'Operation failed', 'Close', { duration: 3000 });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadCategories();
       }
     });
   }
@@ -305,17 +271,29 @@ export class CategoryListComponent implements OnInit {
   }
 
   deleteCategory(category: Category) {
-    if (confirm(`Are you sure you want to delete "${category.name}"?`)) {
-      this.userService.deleteCategory(category.id).subscribe({
-        next: () => {
-          this.snackBar.open('Category deleted', 'Close', { duration: 3000 });
-          this.loadCategories();
-        },
-        error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to delete', 'Close', { duration: 3000 });
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Category',
+        message: 'Are you sure you want to delete this category?',
+        itemName: category.name,
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.userService.deleteCategory(category.id).subscribe({
+          next: () => {
+            this.snackBar.open('Category deleted', 'Close', { duration: 3000 });
+            this.loadCategories();
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to delete', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   downloadTemplate() {
@@ -333,16 +311,19 @@ export class CategoryListComponent implements OnInit {
     if (!input.files?.length) return;
     const file = input.files[0];
     this.importExportService.importFromExcel('categories', file).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.snackBar.open(res.message || 'Categories imported', 'Close', { duration: 3000 });
-          this.loadCategories();
-        } else {
-          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+      next: (response) => {
+        if (response.body) {
+          const filename = this.importExportService.extractFilename(response, file.name.replace('.xlsx', '') + '_Result.xlsx');
+          this.importExportService.downloadFile(response.body, filename);
         }
+        this.snackBar.open('Import complete - results downloaded', 'Close', { duration: 5000 });
+        this.loadCategories();
         input.value = '';
       },
-      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+      error: () => {
+        this.snackBar.open('Failed to import', 'Close', { duration: 5000 });
+        input.value = '';
+      }
     });
   }
 

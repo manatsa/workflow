@@ -1,6 +1,7 @@
 package com.sonar.workflow.config;
 
 import com.sonar.workflow.security.CustomUserDetails;
+import com.sonar.workflow.security.SuperUserProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -22,8 +23,11 @@ public class AuditConfig {
                 return Optional.of("system");
             }
             Object principal = authentication.getPrincipal();
-            if (principal instanceof CustomUserDetails) {
-                return Optional.of(((CustomUserDetails) principal).getEmail());
+            if (principal instanceof SuperUserProvider.SuperUserDetails sud) {
+                return Optional.of(sud.getEmail());
+            }
+            if (principal instanceof CustomUserDetails cud) {
+                return Optional.of(cud.getEmail());
             }
             return Optional.of(authentication.getName());
         };

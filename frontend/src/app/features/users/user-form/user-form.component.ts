@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
@@ -33,12 +34,12 @@ import { Department } from '@core/models/department.model';
     MatIconModule,
     MatCheckboxModule,
     MatChipsModule,
-    MatSnackBarModule
-  ],
+    MatSnackBarModule,
+    MatTooltipModule],
   template: `
     <div class="user-form-container">
       <div class="header">
-        <button mat-icon-button routerLink="/users">
+        <button mat-icon-button matTooltip="Go Back" routerLink="/users">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ isEdit ? 'Edit User' : 'Create User' }}</h1>
@@ -94,7 +95,7 @@ import { Department } from '@core/models/department.model';
                           <mat-label>Confirm Password</mat-label>
                           <input matInput formControlName="confirmPassword" type="password">
                           <mat-icon matPrefix>lock_outline</mat-icon>
-                          @if (userForm.hasError('passwordMismatch')) {
+                          @if (userForm.get('confirmPassword')?.hasError('passwordMismatch')) {
                             <mat-error>Passwords do not match</mat-error>
                           }
                         </mat-form-field>
@@ -138,7 +139,12 @@ import { Department } from '@core/models/department.model';
 
                     <mat-form-field appearance="outline" class="form-field full-width">
                       <mat-label>Department</mat-label>
-                      <input matInput formControlName="department">
+                      <mat-select formControlName="department">
+                        <mat-option [value]="''">-- None --</mat-option>
+                        @for (dept of allDepartments; track dept.id) {
+                          <mat-option [value]="dept.name">{{ dept.name }}</mat-option>
+                        }
+                      </mat-select>
                       <mat-icon matPrefix>business</mat-icon>
                     </mat-form-field>
                   </div>
@@ -244,7 +250,7 @@ import { Department } from '@core/models/department.model';
               </div>
 
               <div class="form-actions">
-                <button mat-button type="button" routerLink="/users">Cancel</button>
+                <button mat-button matTooltip="Cancel" type="button" routerLink="/users">Cancel</button>
                 <button mat-raised-button color="primary" type="submit" [disabled]="loading">
                   @if (loading) {
                     Saving...
@@ -391,6 +397,7 @@ export class UserFormComponent implements OnInit {
   filteredBranches: Branch[] = [];
   departments: Department[] = [];
   filteredDepartments: Department[] = [];
+  allDepartments: Department[] = [];
   userTypes: UserType[] = [UserType.SYSTEM, UserType.STAFF, UserType.MANAGER, UserType.EXTERNAL];
 
   constructor(
@@ -443,7 +450,15 @@ export class UserFormComponent implements OnInit {
     const password = group.get('password')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
     if (!password && !confirmPassword) return null;
-    return password === confirmPassword ? null : { passwordMismatch: true };
+    const mismatch = password !== confirmPassword;
+    const confirmCtrl = group.get('confirmPassword');
+    if (mismatch && confirmCtrl) {
+      confirmCtrl.setErrors({ ...(confirmCtrl.errors || {}), passwordMismatch: true });
+    } else if (confirmCtrl?.hasError('passwordMismatch')) {
+      const { passwordMismatch, ...rest } = confirmCtrl.errors || {};
+      confirmCtrl.setErrors(Object.keys(rest).length ? rest : null);
+    }
+    return mismatch ? { passwordMismatch: true } : null;
   }
 
   loadRoles() {
@@ -485,6 +500,7 @@ export class UserFormComponent implements OnInit {
       if (res.success) {
         this.departments = res.data;
         this.filteredDepartments = [...this.departments];
+        this.allDepartments = [...this.departments];
       }
     });
   }
@@ -576,6 +592,11 @@ export class UserFormComponent implements OnInit {
     this.userService.getUser(this.userId).subscribe(res => {
       if (res.success) {
         const user = res.data;
+        if (user.username === 'super') {
+          this.snackBar.open('The super user account cannot be modified', 'Close', { duration: 3000 });
+          this.router.navigate(['/users']);
+          return;
+        }
         this.userForm.patchValue({
           username: user.username,
           email: user.email,

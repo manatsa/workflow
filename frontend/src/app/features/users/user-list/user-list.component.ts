@@ -9,6 +9,7 @@ import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatChipsModule } from '@angular/material/chips';
@@ -18,6 +19,9 @@ import { UserService } from '@core/services/user.service';
 import { ImportExportService } from '@core/services/import-export.service';
 import { User } from '@core/models/user.model';
 import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog/user-detail-dialog.component';
+import { ResetPasswordDialogComponent } from '@shared/components/reset-password-dialog/reset-password-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
+
 
 @Component({
   selector: 'app-user-list',
@@ -37,24 +41,24 @@ import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog
     MatMenuModule,
     MatChipsModule,
     MatSnackBarModule,
-    MatDialogModule
-  ],
+    MatDialogModule,
+    MatTooltipModule],
   template: `
     <div class="user-list-container">
       <div class="header">
         <h1>Users</h1>
         <div class="header-actions">
-          <button mat-stroked-button (click)="downloadTemplate()">
+          <button mat-stroked-button matTooltip="Template" (click)="downloadTemplate()">
             <mat-icon>description</mat-icon> Template
           </button>
-          <button mat-stroked-button (click)="fileInput.click()">
+          <button mat-stroked-button matTooltip="Import" (click)="fileInput.click()">
             <mat-icon>upload</mat-icon> Import
           </button>
           <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
-          <button mat-stroked-button (click)="exportToExcel()">
+          <button mat-stroked-button matTooltip="Export" (click)="exportToExcel()">
             <mat-icon>download</mat-icon> Export
           </button>
-          <button mat-raised-button color="primary" routerLink="/users/new">
+          <button mat-raised-button matTooltip="Add User" color="primary" routerLink="/users/new">
             <mat-icon>add</mat-icon>
             Add User
           </button>
@@ -73,17 +77,14 @@ import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog
           </div>
 
           <table mat-table [dataSource]="dataSource" matSort class="data-table">
-            <ng-container matColumnDef="fullName">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-              <td mat-cell *matCellDef="let user">
-                <div class="user-info">
-                  <div class="avatar">{{ getInitials(user) }}</div>
-                  <div>
-                    <div class="name">{{ user.fullName }}</div>
-                    <div class="email">{{ user.email }}</div>
-                  </div>
-                </div>
-              </td>
+            <ng-container matColumnDef="firstName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>First Name</th>
+              <td mat-cell *matCellDef="let user">{{ user.firstName }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="lastName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Name</th>
+              <td mat-cell *matCellDef="let user">{{ user.lastName }}</td>
             </ng-container>
 
             <ng-container matColumnDef="username">
@@ -133,7 +134,7 @@ import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let user">
-                <button mat-icon-button [matMenuTriggerFor]="menu">
+                <button mat-icon-button matTooltip="More Options" [matMenuTriggerFor]="menu">
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
@@ -141,29 +142,31 @@ import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog
                     <mat-icon>visibility</mat-icon>
                     <span>View</span>
                   </button>
-                  <button mat-menu-item [routerLink]="['/users', user.id]">
-                    <mat-icon>edit</mat-icon>
-                    <span>Edit</span>
-                  </button>
-                  @if (user.locked) {
-                    <button mat-menu-item (click)="unlockUser(user)">
-                      <mat-icon>lock_open</mat-icon>
-                      <span>Unlock</span>
+                  @if (user.username !== 'super') {
+                    <button mat-menu-item [routerLink]="['/users', user.id]">
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit</span>
                     </button>
-                  } @else {
-                    <button mat-menu-item (click)="lockUser(user)">
-                      <mat-icon>lock</mat-icon>
-                      <span>Lock</span>
+                    @if (user.locked) {
+                      <button mat-menu-item (click)="unlockUser(user)">
+                        <mat-icon>lock_open</mat-icon>
+                        <span>Unlock</span>
+                      </button>
+                    } @else {
+                      <button mat-menu-item (click)="lockUser(user)">
+                        <mat-icon>lock</mat-icon>
+                        <span>Lock</span>
+                      </button>
+                    }
+                    <button mat-menu-item (click)="resetPassword(user)">
+                      <mat-icon>vpn_key</mat-icon>
+                      <span>Reset Password</span>
+                    </button>
+                    <button mat-menu-item (click)="deleteUser(user)" class="delete-action">
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete</span>
                     </button>
                   }
-                  <button mat-menu-item (click)="resetPassword(user)">
-                    <mat-icon>vpn_key</mat-icon>
-                    <span>Reset Password</span>
-                  </button>
-                  <button mat-menu-item (click)="deleteUser(user)" class="delete-action">
-                    <mat-icon>delete</mat-icon>
-                    <span>Delete</span>
-                  </button>
                 </mat-menu>
               </td>
             </ng-container>
@@ -181,6 +184,9 @@ import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog
   `,
   styles: [`
     .user-list-container { padding: 1rem; }
+
+    .clickable-row { cursor: pointer; }
+    .clickable-row:hover { background: #f5f5f5; }
 
     .header {
       display: flex;
@@ -262,7 +268,7 @@ import { UserDetailDialogComponent } from '@shared/components/user-detail-dialog
   `]
 })
 export class UserListComponent implements OnInit {
-  displayedColumns = ['fullName', 'username', 'userType', 'roles', 'status', 'lastLogin', 'actions'];
+  displayedColumns = ['firstName', 'lastName', 'username', 'userType', 'roles', 'status', 'lastLogin', 'actions'];
   dataSource = new MatTableDataSource<User>([]);
   searchTerm = '';
 
@@ -334,22 +340,46 @@ export class UserListComponent implements OnInit {
   }
 
   resetPassword(user: User) {
-    this.userService.adminResetPassword(user.id).subscribe(res => {
-      if (res.success) {
-        this.snackBar.open('Password reset email sent', 'Close', { duration: 3000 });
-      }
+    const dialogRef = this.dialog.open(ResetPasswordDialogComponent, {
+      width: '450px',
+      data: { fullName: user.fullName }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+      this.userService.resetPassword(user.id, result.password, result.mustChangePassword).subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.snackBar.open('Password reset successfully', 'Close', { duration: 3000 });
+          }
+        },
+        error: (err) => {
+          this.snackBar.open(err.error?.message || 'Failed to reset password', 'Close', { duration: 5000 });
+        }
+      });
     });
   }
 
   deleteUser(user: User) {
-    if (confirm(`Are you sure you want to delete ${user.fullName}?`)) {
-      this.userService.deleteUser(user.id).subscribe(res => {
-        if (res.success) {
-          this.snackBar.open('User deleted successfully', 'Close', { duration: 3000 });
-          this.loadUsers();
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete User',
+        message: 'Are you sure you want to delete this user?',
+        itemName: user.fullName,
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.userService.deleteUser(user.id).subscribe(res => {
+          if (res.success) {
+            this.snackBar.open('User deleted successfully', 'Close', { duration: 3000 });
+            this.loadUsers();
+          }
+        });
+      }
+    });
   }
 
   downloadTemplate() {
@@ -367,17 +397,17 @@ export class UserListComponent implements OnInit {
     if (!input.files?.length) return;
     const file = input.files[0];
     this.importExportService.importFromExcel('users', file).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.snackBar.open(res.message || 'Users imported successfully', 'Close', { duration: 3000 });
-          this.loadUsers();
-        } else {
-          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+      next: (response) => {
+        if (response.body) {
+          const filename = this.importExportService.extractFilename(response, file.name.replace('.xlsx', '') + '_Result.xlsx');
+          this.importExportService.downloadFile(response.body, filename);
         }
+        this.snackBar.open('Import complete - results downloaded', 'Close', { duration: 5000 });
+        this.loadUsers();
         input.value = '';
       },
-      error: (err) => {
-        this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 });
+      error: () => {
+        this.snackBar.open('Failed to import', 'Close', { duration: 5000 });
         input.value = '';
       }
     });

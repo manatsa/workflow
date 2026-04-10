@@ -93,22 +93,32 @@ public class WorkflowService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PrivilegeRepository privilegeRepository;
+    private final StampRepository stampRepository;
     private final AuditService auditService;
     private final SettingService settingService;
     private final SqlObjectService sqlObjectService;
+    private final AccessScopeService accessScopeService;
 
     @Transactional(readOnly = true)
     public List<WorkflowDTO> getAllWorkflows() {
+        User currentUser = accessScopeService.getCurrentUser();
+        if (currentUser != null && !accessScopeService.isUnrestricted(currentUser)) {
+            return workflowRepository.findAll().stream()
+                    .filter(wf -> accessScopeService.canAccessWorkflow(wf, currentUser))
+                    .map(this::toFullDTO)
+                    .collect(Collectors.toList());
+        }
         return workflowRepository.findAll().stream()
                 .map(this::toFullDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<WorkflowDTO> getActivePublishedWorkflows() {
-        User currentUser = getCurrentUser();
+        User currentUser = accessScopeService.getCurrentUser();
 
         return workflowRepository.findActivePublishedWorkflows().stream()
-                .filter(workflow -> hasWorkflowAccess(workflow, currentUser))
+                .filter(workflow -> accessScopeService.canAccessWorkflow(workflow, currentUser))
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -204,18 +214,20 @@ public class WorkflowService {
         return false;
     }
 
+    @Transactional(readOnly = true)
     public List<WorkflowDTO> getWorkflowsForUser(List<UUID> sbuIds) {
-        User currentUser = getCurrentUser();
+        User currentUser = accessScopeService.getCurrentUser();
 
         if (sbuIds == null || sbuIds.isEmpty()) {
             return getActivePublishedWorkflows();
         }
         return workflowRepository.findBySbuIds(sbuIds).stream()
-                .filter(workflow -> hasWorkflowAccess(workflow, currentUser))
+                .filter(workflow -> accessScopeService.canAccessWorkflow(workflow, currentUser))
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<WorkflowDTO> searchWorkflows(String search, Pageable pageable) {
         return workflowRepository.searchWorkflows(search, pageable).map(this::toDTO);
     }
@@ -255,83 +267,8 @@ public class WorkflowService {
      * If workflow has restrictions, user must match at least one corporate, SBU, branch, or department.
      */
     private void checkWorkflowAccess(Workflow workflow) {
-        // If no restrictions, everyone has access
-        if (workflow.getCorporates().isEmpty() &&
-            workflow.getSbus().isEmpty() &&
-            workflow.getBranches().isEmpty() &&
-            workflow.getDepartments().isEmpty() &&
-            workflow.getRoles().isEmpty() &&
-            workflow.getPrivileges().isEmpty()) {
-            return;
-        }
-
-        // Get current user
-        User currentUser = getCurrentUser();
-        if (currentUser == null) {
-            throw new BusinessException("This workflow is restricted. Please consult your system administrator.");
-        }
-
-        // Super users (ADMIN role) bypass access restrictions
-        if (currentUser.getRoles() != null && currentUser.getRoles().stream()
-                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()) || "ROLE_ADMIN".equalsIgnoreCase(role.getName()))) {
-            return;
-        }
-
-        // Check if user matches any of the workflow's access restrictions (OR logic)
-        boolean hasAccess = false;
-
-        // Check corporates
-        if (!workflow.getCorporates().isEmpty() && currentUser.getCorporates() != null) {
-            hasAccess = workflow.getCorporates().stream()
-                    .anyMatch(wfCorp -> currentUser.getCorporates().stream()
-                            .anyMatch(userCorp -> userCorp.getId().equals(wfCorp.getId())));
-        }
-
-        // Check SBUs
-        if (!hasAccess && !workflow.getSbus().isEmpty() && currentUser.getSbus() != null) {
-            hasAccess = workflow.getSbus().stream()
-                    .anyMatch(wfSbu -> currentUser.getSbus().stream()
-                            .anyMatch(userSbu -> userSbu.getId().equals(wfSbu.getId())));
-        }
-
-        // Check branches
-        if (!hasAccess && !workflow.getBranches().isEmpty() && currentUser.getBranches() != null) {
-            hasAccess = workflow.getBranches().stream()
-                    .anyMatch(wfBranch -> currentUser.getBranches().stream()
-                            .anyMatch(userBranch -> userBranch.getId().equals(wfBranch.getId())));
-        }
-
-        // Check departments
-        if (!hasAccess && !workflow.getDepartments().isEmpty() && currentUser.getDepartments() != null) {
-            hasAccess = workflow.getDepartments().stream()
-                    .anyMatch(wfDept -> currentUser.getDepartments().stream()
-                            .anyMatch(userDept -> userDept.getId().equals(wfDept.getId())));
-        }
-
-        // Check privileges first - if privileges are specified, they take precedence over roles
-        // (user privileges come from their roles)
-        if (!hasAccess && !workflow.getPrivileges().isEmpty() && currentUser.getRoles() != null) {
-            Set<UUID> userPrivilegeIds = currentUser.getRoles().stream()
-                    .flatMap(role -> role.getPrivileges().stream())
-                    .map(Privilege::getId)
-                    .collect(Collectors.toSet());
-            hasAccess = workflow.getPrivileges().stream()
-                    .anyMatch(wfPriv -> userPrivilegeIds.contains(wfPriv.getId()));
-            // If privileges are specified, don't check roles - privileges take precedence
-            if (!hasAccess) {
-                throw new BusinessException("This workflow is restricted. Please consult your system administrator.");
-            }
-            return;
-        }
-
-        // Check roles only if no privileges are specified
-        if (!hasAccess && !workflow.getRoles().isEmpty() && currentUser.getRoles() != null) {
-            hasAccess = workflow.getRoles().stream()
-                    .anyMatch(wfRole -> currentUser.getRoles().stream()
-                            .anyMatch(userRole -> userRole.getId().equals(wfRole.getId())));
-        }
-
-        if (!hasAccess) {
+        User currentUser = accessScopeService.getCurrentUser();
+        if (!accessScopeService.canAccessWorkflow(workflow, currentUser)) {
             throw new BusinessException("This workflow is restricted. Please consult your system administrator.");
         }
     }
@@ -383,15 +320,38 @@ public class WorkflowService {
                 .requiresApproval(dto.getRequiresApproval() != null ? dto.getRequiresApproval() : true)
                 .isPublished(false)
                 .versionNumber(1)
-                .commentsMandatory(dto.getCommentsMandatory() != null ? dto.getCommentsMandatory() : false)
-                .commentsMandatoryOnReject(dto.getCommentsMandatoryOnReject() != null ? dto.getCommentsMandatoryOnReject() : true)
-                .commentsMandatoryOnEscalate(dto.getCommentsMandatoryOnEscalate() != null ? dto.getCommentsMandatoryOnEscalate() : true)
-                .showSummary(dto.getShowSummary() != null ? dto.getShowSummary() : false)
+                .commentsMandatory(dto.getCommentsMandatory() != null ? dto.getCommentsMandatory() :
+                        settingService.getBooleanValue("workflow.comments.mandatory", false))
+                .commentsMandatoryOnReject(dto.getCommentsMandatoryOnReject() != null ? dto.getCommentsMandatoryOnReject() :
+                        settingService.getBooleanValue("workflow.comments.mandatory.reject", true))
+                .commentsMandatoryOnEscalate(dto.getCommentsMandatoryOnEscalate() != null ? dto.getCommentsMandatoryOnEscalate() :
+                        settingService.getBooleanValue("workflow.comments.mandatory.escalate", true))
+                .showSummary(dto.getShowSummary() != null ? dto.getShowSummary() :
+                        settingService.getBooleanValue("workflow.show.summary", true))
+                .showApprovalMatrix(dto.getShowApprovalMatrix() != null ? dto.getShowApprovalMatrix() :
+                        settingService.getBooleanValue("workflow.email.show.approval.matrix", true))
+                .lockApproved(dto.getLockApproved() != null ? dto.getLockApproved() : false)
+                .lockChildOnParentApproval(dto.getLockChildOnParentApproval() != null ? dto.getLockChildOnParentApproval() : false)
                 .workflowCategory(dto.getWorkflowCategory() != null ? dto.getWorkflowCategory() : Workflow.WorkflowCategory.NON_FINANCIAL)
+                .reminderEnabled(dto.getReminderEnabled() != null ? dto.getReminderEnabled() : false)
+                .reminderFrequencyHours(dto.getReminderFrequencyHours() != null ? dto.getReminderFrequencyHours() : 24)
+                .reminderMaxCount(dto.getReminderMaxCount() != null ? dto.getReminderMaxCount() : 3)
+                .reminderStartAfterHours(dto.getReminderStartAfterHours() != null ? dto.getReminderStartAfterHours() : 24)
+                .escalationEnabled(dto.getEscalationEnabled() != null ? dto.getEscalationEnabled() : false)
+                .escalationAfterHours(dto.getEscalationAfterHours() != null ? dto.getEscalationAfterHours() : 72)
+                .escalationAction(dto.getEscalationAction() != null ? dto.getEscalationAction() : Workflow.EscalationAction.NOTIFY_ADMIN)
+                .reminderIncludeSubmitter(dto.getReminderIncludeSubmitter() != null ? dto.getReminderIncludeSubmitter() : false)
+                .reminderEmailSubject(dto.getReminderEmailSubject())
+                .reminderEmailBody(dto.getReminderEmailBody())
                 .build();
 
         // Set isActive from DTO (defaults to true)
         workflow.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
+
+        // Set stamp if specified
+        if (dto.getStampId() != null) {
+            stampRepository.findById(dto.getStampId()).ifPresent(workflow::setStamp);
+        }
 
         if (dto.getWorkflowTypeId() != null) {
             WorkflowType type = workflowTypeRepository.findById(dto.getWorkflowTypeId())
@@ -456,6 +416,9 @@ public class WorkflowService {
             processApproversForWorkflow(saved, dto.getApprovers());
         }
 
+        // Re-fetch to ensure all relationships are fresh
+        saved = workflowRepository.findById(saved.getId()).orElse(saved);
+
         auditService.log(AuditLog.AuditAction.CREATE, "Workflow", saved.getId(),
                 saved.getName(), "Workflow created: " + saved.getName(), null, toDTO(saved));
 
@@ -481,8 +444,30 @@ public class WorkflowService {
         workflow.setCommentsMandatoryOnReject(dto.getCommentsMandatoryOnReject());
         workflow.setCommentsMandatoryOnEscalate(dto.getCommentsMandatoryOnEscalate());
         workflow.setShowSummary(dto.getShowSummary() != null ? dto.getShowSummary() : false);
+        workflow.setShowApprovalMatrix(dto.getShowApprovalMatrix() != null ? dto.getShowApprovalMatrix() : false);
+        workflow.setLockApproved(dto.getLockApproved() != null ? dto.getLockApproved() : false);
+        workflow.setLockChildOnParentApproval(dto.getLockChildOnParentApproval() != null ? dto.getLockChildOnParentApproval() : false);
         if (dto.getWorkflowCategory() != null) {
             workflow.setWorkflowCategory(dto.getWorkflowCategory());
+        }
+
+        // Update reminder settings
+        workflow.setReminderEnabled(dto.getReminderEnabled() != null ? dto.getReminderEnabled() : false);
+        workflow.setReminderFrequencyHours(dto.getReminderFrequencyHours() != null ? dto.getReminderFrequencyHours() : 24);
+        workflow.setReminderMaxCount(dto.getReminderMaxCount() != null ? dto.getReminderMaxCount() : 3);
+        workflow.setReminderStartAfterHours(dto.getReminderStartAfterHours() != null ? dto.getReminderStartAfterHours() : 24);
+        workflow.setEscalationEnabled(dto.getEscalationEnabled() != null ? dto.getEscalationEnabled() : false);
+        workflow.setEscalationAfterHours(dto.getEscalationAfterHours() != null ? dto.getEscalationAfterHours() : 72);
+        workflow.setEscalationAction(dto.getEscalationAction() != null ? dto.getEscalationAction() : Workflow.EscalationAction.NOTIFY_ADMIN);
+        workflow.setReminderIncludeSubmitter(dto.getReminderIncludeSubmitter() != null ? dto.getReminderIncludeSubmitter() : false);
+        workflow.setReminderEmailSubject(dto.getReminderEmailSubject());
+        workflow.setReminderEmailBody(dto.getReminderEmailBody());
+
+        // Update stamp - allow setting to null to clear
+        if (dto.getStampId() != null) {
+            stampRepository.findById(dto.getStampId()).ifPresent(workflow::setStamp);
+        } else {
+            workflow.setStamp(null);
         }
 
         if (dto.getWorkflowTypeId() != null) {
@@ -538,10 +523,13 @@ public class WorkflowService {
             processFormsForWorkflow(saved, dto.getForms());
         }
 
-        // Process approvers from DTO
-        if (dto.getApprovers() != null && !dto.getApprovers().isEmpty()) {
+        // Process approvers from DTO (including empty list to allow deletion of all approvers)
+        if (dto.getApprovers() != null) {
             processApproversForWorkflow(saved, dto.getApprovers());
         }
+
+        // Re-fetch to ensure all relationships (including approvers) are fresh
+        saved = workflowRepository.findById(saved.getId()).orElse(saved);
 
         auditService.log(AuditLog.AuditAction.UPDATE, "Workflow", saved.getId(),
                 saved.getName(), "Workflow updated: " + saved.getName(), oldValues, toDTO(saved));
@@ -664,6 +652,8 @@ public class WorkflowService {
         field.setIsTitle(dto.getIsTitle() != null ? dto.getIsTitle() : false);
         field.setIsLimited(dto.getIsLimited() != null ? dto.getIsLimited() : false);
         field.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0);
+        field.setColumnSpan(dto.getColumnSpan());
+        field.setInSummary(dto.getInSummary() != null ? dto.getInSummary() : false);
         field.setDefaultValue(dto.getDefaultValue());
         field.setMinValue(dto.getMinValue());
         field.setMaxValue(dto.getMaxValue());
@@ -699,6 +689,11 @@ public class WorkflowService {
         field.setTableMaxRows(dto.getTableMaxRows());
         field.setTableStriped(dto.getTableStriped() != null ? dto.getTableStriped() : true);
         field.setTableBordered(dto.getTableBordered() != null ? dto.getTableBordered() : true);
+        field.setTableResizable(dto.getTableResizable() != null ? dto.getTableResizable() : false);
+        field.setTableSearchable(dto.getTableSearchable() != null ? dto.getTableSearchable() : false);
+        field.setTableFilterable(dto.getTableFilterable() != null ? dto.getTableFilterable() : false);
+        field.setTablePageable(dto.getTablePageable() != null ? dto.getTablePageable() : false);
+        field.setTablePageSize(dto.getTablePageSize() != null ? dto.getTablePageSize() : 10);
         field.setAccordionAllowMultiple(dto.getAccordionAllowMultiple() != null ? dto.getAccordionAllowMultiple() : false);
         field.setAccordionDefaultOpenIndex(dto.getAccordionDefaultOpenIndex() != null ? dto.getAccordionDefaultOpenIndex() : 0);
         field.setAccordionAnimationType(dto.getAccordionAnimationType() != null ? dto.getAccordionAnimationType() : "smooth");
@@ -713,6 +708,22 @@ public class WorkflowService {
         } else {
             field.setParentFieldId(null);
         }
+        // API field type configurations
+        field.setApiUrl(dto.getApiUrl());
+        field.setApiMethod(dto.getApiMethod());
+        field.setApiAuthType(dto.getApiAuthType());
+        field.setApiAuthValue(dto.getApiAuthValue());
+        field.setApiHeaders(dto.getApiHeaders());
+        field.setApiParams(dto.getApiParams());
+        field.setApiBody(dto.getApiBody());
+        field.setApiResponsePath(dto.getApiResponsePath());
+        field.setApiShowInForm(dto.getApiShowInForm() != null ? dto.getApiShowInForm() : true);
+        field.setApiDataSourceField(dto.getApiDataSourceField());
+        field.setApiDisplayField(dto.getApiDisplayField());
+        field.setApiValueField(dto.getApiValueField());
+        field.setTableDataSource(dto.getTableDataSource());
+        field.setSqlQuery(dto.getSqlQuery());
+        field.setSqlTableColumns(dto.getSqlTableColumns());
 
         WorkflowField saved = workflowFieldRepository.save(field);
 
@@ -1103,6 +1114,7 @@ public class WorkflowService {
                     field.setIsTitle(fieldDto.getIsTitle() != null ? fieldDto.getIsTitle() : false);
                     field.setIsLimited(fieldDto.getIsLimited() != null ? fieldDto.getIsLimited() : false);
                     field.setDisplayOrder(fieldDto.getDisplayOrder() != null ? fieldDto.getDisplayOrder() : 0);
+                    field.setColumnSpan(fieldDto.getColumnSpan());
                     field.setDefaultValue(fieldDto.getDefaultValue());
                     field.setMinValue(fieldDto.getMinValue());
                     field.setMaxValue(fieldDto.getMaxValue());
@@ -1110,6 +1122,9 @@ public class WorkflowService {
                     field.setMaxLength(fieldDto.getMaxLength());
                     field.setValidationRegex(fieldDto.getValidationRegex());
                     field.setValidationMessage(fieldDto.getValidationMessage());
+                    field.setCustomValidationRule(fieldDto.getCustomValidationRule());
+                    field.setCustomValidationMessage(fieldDto.getCustomValidationMessage());
+                    field.setInSummary(fieldDto.getInSummary() != null ? fieldDto.getInSummary() : false);
                     field.setWidth(fieldDto.getWidth());
                     field.setCssClass(fieldDto.getCssClass());
                     field.setOptionsLayout(fieldDto.getOptionsLayout() != null ? fieldDto.getOptionsLayout() : "vertical");
@@ -1136,6 +1151,11 @@ public class WorkflowService {
                     field.setTableMaxRows(fieldDto.getTableMaxRows());
                     field.setTableStriped(fieldDto.getTableStriped() != null ? fieldDto.getTableStriped() : true);
                     field.setTableBordered(fieldDto.getTableBordered() != null ? fieldDto.getTableBordered() : true);
+                    field.setTableResizable(fieldDto.getTableResizable() != null ? fieldDto.getTableResizable() : false);
+                    field.setTableSearchable(fieldDto.getTableSearchable() != null ? fieldDto.getTableSearchable() : false);
+                    field.setTableFilterable(fieldDto.getTableFilterable() != null ? fieldDto.getTableFilterable() : false);
+                    field.setTablePageable(fieldDto.getTablePageable() != null ? fieldDto.getTablePageable() : false);
+                    field.setTablePageSize(fieldDto.getTablePageSize() != null ? fieldDto.getTablePageSize() : 10);
                     field.setAccordionAllowMultiple(fieldDto.getAccordionAllowMultiple() != null ? fieldDto.getAccordionAllowMultiple() : false);
                     field.setAccordionDefaultOpenIndex(fieldDto.getAccordionDefaultOpenIndex() != null ? fieldDto.getAccordionDefaultOpenIndex() : 0);
                     field.setAccordionAnimationType(fieldDto.getAccordionAnimationType() != null ? fieldDto.getAccordionAnimationType() : "smooth");
@@ -1148,6 +1168,19 @@ public class WorkflowService {
                     field.setValidation(fieldDto.getValidation());
                     field.setCustomValidationRule(fieldDto.getCustomValidationRule());
                     field.setVisibilityExpression(fieldDto.getVisibilityExpression() != null ? fieldDto.getVisibilityExpression() : "true");
+                    // API field type configurations
+                    field.setApiUrl(fieldDto.getApiUrl());
+                    field.setApiMethod(fieldDto.getApiMethod());
+                    field.setApiAuthType(fieldDto.getApiAuthType());
+                    field.setApiAuthValue(fieldDto.getApiAuthValue());
+                    field.setApiHeaders(fieldDto.getApiHeaders());
+                    field.setApiParams(fieldDto.getApiParams());
+                    field.setApiBody(fieldDto.getApiBody());
+                    field.setApiResponsePath(fieldDto.getApiResponsePath());
+                    field.setApiShowInForm(fieldDto.getApiShowInForm() != null ? fieldDto.getApiShowInForm() : true);
+                    field.setTableDataSource(fieldDto.getTableDataSource());
+                    field.setSqlQuery(fieldDto.getSqlQuery());
+                    field.setSqlTableColumns(fieldDto.getSqlTableColumns());
 
                     WorkflowField savedField = workflowFieldRepository.save(field);
                     fieldIdsToKeepByForm.get(savedForm.getId()).add(savedField.getId());
@@ -1294,28 +1327,44 @@ public class WorkflowService {
      * Process approvers for a workflow from DTOs.
      */
     private void processApproversForWorkflow(Workflow workflow, List<WorkflowApproverDTO> approverDtos) {
+        // Build set of incoming IDs to determine which existing approvers to remove
+        Set<UUID> incomingIds = approverDtos.stream()
+                .map(dto -> parseUuid(dto.getId()))
+                .filter(id -> id != null)
+                .collect(java.util.stream.Collectors.toSet());
+
+        // Remove approvers no longer in the incoming list
+        workflow.getApprovers().removeIf(existing -> !incomingIds.contains(existing.getId()));
+        workflowRepository.saveAndFlush(workflow);
+
         for (WorkflowApproverDTO dto : approverDtos) {
             if (dto.getLevel() == null) {
                 continue; // Skip approvers without level
             }
 
             WorkflowApprover approver;
+            boolean isNew = false;
             UUID approverId = parseUuid(dto.getId());
             if (approverId != null) {
                 approver = workflowApproverRepository.findById(approverId).orElse(null);
                 if (approver == null) {
                     approver = new WorkflowApprover();
                     approver.setWorkflow(workflow);
+                    isNew = true;
                 }
             } else {
                 approver = new WorkflowApprover();
                 approver.setWorkflow(workflow);
+                isNew = true;
             }
 
-            // Always use specific user as approver - get user ID from various possible fields
-            UUID userIdToUse = dto.getUserId();
-            if (userIdToUse == null && dto.getApproverId() != null && !dto.getApproverId().isEmpty()) {
+            // Resolve user ID — prefer approverId (the dropdown selection), then userId, then approverIds
+            UUID userIdToUse = null;
+            if (dto.getApproverId() != null && !dto.getApproverId().isEmpty()) {
                 userIdToUse = parseUuid(dto.getApproverId());
+            }
+            if (userIdToUse == null) {
+                userIdToUse = dto.getUserId();
             }
             if (userIdToUse == null && dto.getApproverIds() != null && !dto.getApproverIds().isEmpty()) {
                 userIdToUse = parseUuid(dto.getApproverIds().get(0));
@@ -1327,6 +1376,15 @@ public class WorkflowService {
                     approver.setUser(user);
                     approver.setApproverName(user.getFullName());
                     approver.setApproverEmail(user.getEmail());
+                }
+            } else {
+                // Fallback: use email from DTO if no user ID provided
+                String email = dto.getApproverEmail() != null ? dto.getApproverEmail() : dto.getEmail();
+                if (email != null && !email.isBlank()) {
+                    approver.setApproverEmail(email);
+                }
+                if (dto.getApproverName() != null && !dto.getApproverName().isBlank()) {
+                    approver.setApproverName(dto.getApproverName());
                 }
             }
 
@@ -1351,9 +1409,16 @@ public class WorkflowService {
             if (dto.getSbuId() != null) {
                 SBU sbu = sbuRepository.findById(dto.getSbuId()).orElse(null);
                 approver.setSbu(sbu);
+            } else {
+                approver.setSbu(null);
             }
 
-            workflowApproverRepository.save(approver);
+            WorkflowApprover saved = workflowApproverRepository.saveAndFlush(approver);
+
+            // Ensure new approvers are added to the workflow's collection
+            if (isNew) {
+                workflow.getApprovers().add(saved);
+            }
         }
     }
 
@@ -1375,7 +1440,12 @@ public class WorkflowService {
                 .commentsMandatoryOnReject(workflow.getCommentsMandatoryOnReject())
                 .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
                 .showSummary(workflow.getShowSummary())
+                .showApprovalMatrix(workflow.getShowApprovalMatrix())
+                .lockApproved(workflow.getLockApproved())
+                .lockChildOnParentApproval(workflow.getLockChildOnParentApproval())
                 .workflowCategory(workflow.getWorkflowCategory())
+                .stampId(workflow.getStamp() != null ? workflow.getStamp().getId() : null)
+                .stampName(workflow.getStamp() != null ? workflow.getStamp().getName() : null)
                 .parentWorkflowId(workflow.getParentWorkflow() != null ? workflow.getParentWorkflow().getId() : null)
                 .parentWorkflowName(workflow.getParentWorkflow() != null ? workflow.getParentWorkflow().getName() : null)
                 .corporateIds(workflow.getCorporates().stream().map(Corporate::getId).collect(Collectors.toSet()))
@@ -1385,6 +1455,16 @@ public class WorkflowService {
                 .roleIds(workflow.getRoles().stream().map(Role::getId).collect(Collectors.toSet()))
                 .privilegeIds(workflow.getPrivileges().stream().map(Privilege::getId).collect(Collectors.toSet()))
                 .createdBy(workflow.getCreatedBy())
+                .reminderEnabled(workflow.getReminderEnabled())
+                .reminderFrequencyHours(workflow.getReminderFrequencyHours())
+                .reminderMaxCount(workflow.getReminderMaxCount())
+                .reminderStartAfterHours(workflow.getReminderStartAfterHours())
+                .escalationEnabled(workflow.getEscalationEnabled())
+                .escalationAfterHours(workflow.getEscalationAfterHours())
+                .escalationAction(workflow.getEscalationAction())
+                .reminderIncludeSubmitter(workflow.getReminderIncludeSubmitter())
+                .reminderEmailSubject(workflow.getReminderEmailSubject())
+                .reminderEmailBody(workflow.getReminderEmailBody())
                 .build();
     }
 
@@ -1613,6 +1693,7 @@ public class WorkflowService {
                 .isTitle(field.getIsTitle())
                 .isLimited(field.getIsLimited())
                 .displayOrder(field.getDisplayOrder())
+                .columnSpan(field.getColumnSpan())
                 .defaultValue(field.getDefaultValue())
                 .minValue(field.getMinValue())
                 .maxValue(field.getMaxValue())
@@ -1649,6 +1730,11 @@ public class WorkflowService {
                 .tableMaxRows(field.getTableMaxRows())
                 .tableStriped(field.getTableStriped())
                 .tableBordered(field.getTableBordered())
+                .tableResizable(field.getTableResizable())
+                .tableSearchable(field.getTableSearchable())
+                .tableFilterable(field.getTableFilterable())
+                .tablePageable(field.getTablePageable())
+                .tablePageSize(field.getTablePageSize())
                 .accordionAllowMultiple(field.getAccordionAllowMultiple())
                 .accordionDefaultOpenIndex(field.getAccordionDefaultOpenIndex())
                 .accordionAnimationType(field.getAccordionAnimationType())
@@ -1657,6 +1743,21 @@ public class WorkflowService {
                 .collapsibleIcon(field.getCollapsibleIcon())
                 .collapsibleDefaultExpanded(field.getCollapsibleDefaultExpanded())
                 .parentFieldId(field.getParentFieldId() != null ? field.getParentFieldId().toString() : null)
+                .apiUrl(field.getApiUrl())
+                .apiMethod(field.getApiMethod())
+                .apiAuthType(field.getApiAuthType())
+                .apiAuthValue(field.getApiAuthValue())
+                .apiHeaders(field.getApiHeaders())
+                .apiParams(field.getApiParams())
+                .apiBody(field.getApiBody())
+                .apiResponsePath(field.getApiResponsePath())
+                .apiShowInForm(field.getApiShowInForm())
+                .apiDataSourceField(field.getApiDataSourceField())
+                .apiDisplayField(field.getApiDisplayField())
+                .apiValueField(field.getApiValueField())
+                .tableDataSource(field.getTableDataSource())
+                .sqlQuery(field.getSqlQuery())
+                .sqlTableColumns(field.getSqlTableColumns())
                 .build();
     }
 
@@ -1739,6 +1840,7 @@ public class WorkflowService {
                 .notifyOnPending(approver.getNotifyOnPending())
                 .notifyOnApproval(approver.getNotifyOnApproval())
                 .notifyOnRejection(approver.getNotifyOnRejection())
+                .emailNotification(Boolean.TRUE.equals(approver.getNotifyOnPending()) || Boolean.TRUE.equals(approver.getNotifyOnApproval()) || Boolean.TRUE.equals(approver.getNotifyOnRejection()))
                 .sbuId(sbuId)
                 .sbuName(sbuName)
                 .displayOrder(approver.getDisplayOrder())
@@ -1779,7 +1881,11 @@ public class WorkflowService {
                 .commentsMandatoryOnReject(workflow.getCommentsMandatoryOnReject())
                 .commentsMandatoryOnEscalate(workflow.getCommentsMandatoryOnEscalate())
                 .showSummary(workflow.getShowSummary())
+                .showApprovalMatrix(workflow.getShowApprovalMatrix())
+                .lockApproved(workflow.getLockApproved())
+                .lockChildOnParentApproval(workflow.getLockChildOnParentApproval())
                 .workflowCategory(workflow.getWorkflowCategory())
+                .stampId(workflow.getStampId())
                 .build();
 
         // Export forms without IDs
@@ -1803,6 +1909,7 @@ public class WorkflowService {
                                             .tooltip(field.getTooltip())
                                             .defaultValue(field.getDefaultValue())
                                             .displayOrder(field.getDisplayOrder())
+                                            .columnSpan(field.getColumnSpan())
                                             .isMandatory(field.getIsMandatory())
                                             .isReadonly(field.getIsReadonly())
                                             .isHidden(field.getIsHidden())
@@ -1866,6 +1973,235 @@ public class WorkflowService {
     }
 
     @Transactional
+    public WorkflowDTO cloneWorkflow(UUID id) {
+        byte[] exported = exportWorkflow(id);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            WorkflowDTO dto = mapper.readValue(exported, WorkflowDTO.class);
+
+            // Make name unique
+            String baseName = dto.getName().replace(" (Imported)", "") + " (Clone)";
+            String uniqueName = baseName;
+            int counter = 1;
+            while (workflowRepository.existsByName(uniqueName)) {
+                uniqueName = baseName + " " + counter;
+                counter++;
+            }
+            dto.setName(uniqueName);
+            dto.setCode(null);
+            dto.setId(null);
+            dto.setIsActive(false);
+            dto.setIsPublished(false);
+            if (dto.getForms() != null) {
+                dto.getForms().forEach(form -> {
+                    form.setId(null);
+                    if (form.getFields() != null) form.getFields().forEach(f -> f.setId(null));
+                    if (form.getFieldGroups() != null) form.getFieldGroups().forEach(g -> g.setId(null));
+                    if (form.getScreens() != null) form.getScreens().forEach(s -> s.setId(null));
+                });
+            }
+            if (dto.getApprovers() != null) {
+                dto.getApprovers().forEach(a -> { a.setId(null); a.setUserId(null); });
+            }
+
+            return createWorkflow(dto);
+        } catch (IOException e) {
+            throw new BusinessException("Failed to clone workflow: " + e.getMessage());
+        }
+    }
+
+    public byte[] generateWorkflowJsonTemplate() {
+        try {
+            // Build a comprehensive template with all possible sections
+            Map<String, Object> template = new LinkedHashMap<>();
+            template.put("_comment", "Sona Workflow JSON Template - Fill in your workflow definition and import");
+            template.put("name", "My Workflow");
+            template.put("description", "Description of the workflow");
+            template.put("icon", "description");
+            template.put("displayOrder", 0);
+            template.put("requiresApproval", true);
+            template.put("commentsMandatory", settingService.getBooleanValue("workflow.comments.mandatory", false));
+            template.put("commentsMandatoryOnReject", settingService.getBooleanValue("workflow.comments.mandatory.reject", true));
+            template.put("commentsMandatoryOnEscalate", settingService.getBooleanValue("workflow.comments.mandatory.escalate", true));
+            template.put("showSummary", settingService.getBooleanValue("workflow.show.summary", true));
+            template.put("showApprovalMatrix", settingService.getBooleanValue("workflow.email.show.approval.matrix", true));
+            template.put("workflowCategory", "NON_FINANCIAL");
+
+            // Forms
+            List<Map<String, Object>> forms = new ArrayList<>();
+            Map<String, Object> form = new LinkedHashMap<>();
+            form.put("name", "Main Form");
+            form.put("displayOrder", 0);
+
+            // Screens
+            List<Map<String, Object>> screens = new ArrayList<>();
+            Map<String, Object> screen = new LinkedHashMap<>();
+            screen.put("title", "Screen 1");
+            screen.put("description", "First screen");
+            screen.put("displayOrder", 0);
+            screen.put("icon", "edit");
+            screens.add(screen);
+            form.put("screens", screens);
+
+            // Field Groups
+            List<Map<String, Object>> fieldGroups = new ArrayList<>();
+            Map<String, Object> group = new LinkedHashMap<>();
+            group.put("title", "General Information");
+            group.put("description", "");
+            group.put("displayOrder", 0);
+            group.put("columns", 2);
+            group.put("isCollapsible", false);
+            group.put("isCollapsedByDefault", false);
+            fieldGroups.add(group);
+            form.put("fieldGroups", fieldGroups);
+
+            // Fields - one example of each type
+            List<Map<String, Object>> fields = new ArrayList<>();
+
+            // Text field
+            Map<String, Object> textField = new LinkedHashMap<>();
+            textField.put("name", "fullName");
+            textField.put("label", "Full Name");
+            textField.put("fieldType", "TEXT");
+            textField.put("placeholder", "Enter full name");
+            textField.put("tooltip", "Your legal full name");
+            textField.put("defaultValue", "");
+            textField.put("isMandatory", true);
+            textField.put("isReadonly", false);
+            textField.put("isHidden", false);
+            textField.put("isUnique", false);
+            textField.put("isTitle", true);
+            textField.put("isLimited", false);
+            textField.put("inSummary", true);
+            textField.put("displayOrder", 0);
+            textField.put("columnSpan", 1);
+            textField.put("minLength", null);
+            textField.put("maxLength", null);
+            textField.put("validation", "Required() AND MinLength(3)");
+            textField.put("validationMessage", "Please enter a valid name");
+            textField.put("customValidationRule", "TRIM() AND CAPITALIZE()");
+            textField.put("visibilityExpression", "true");
+            textField.put("options", List.of());
+            fields.add(textField);
+
+            // Email field
+            Map<String, Object> emailField = new LinkedHashMap<>();
+            emailField.put("name", "email");
+            emailField.put("label", "Email Address");
+            emailField.put("fieldType", "EMAIL");
+            emailField.put("isMandatory", true);
+            emailField.put("displayOrder", 1);
+            emailField.put("validation", "Required() AND Email()");
+            fields.add(emailField);
+
+            // Number field
+            Map<String, Object> numberField = new LinkedHashMap<>();
+            numberField.put("name", "amount");
+            numberField.put("label", "Amount");
+            numberField.put("fieldType", "NUMBER");
+            numberField.put("displayOrder", 2);
+            numberField.put("validation", "Min(0) AND Max(999999)");
+            numberField.put("customValidationRule", "ROUND(2)");
+            fields.add(numberField);
+
+            // Date field
+            Map<String, Object> dateField = new LinkedHashMap<>();
+            dateField.put("name", "startDate");
+            dateField.put("label", "Start Date");
+            dateField.put("fieldType", "DATE");
+            dateField.put("displayOrder", 3);
+            dateField.put("defaultValue", "TODAY()");
+            dateField.put("validation", "Required()");
+            fields.add(dateField);
+
+            // Select field
+            Map<String, Object> selectField = new LinkedHashMap<>();
+            selectField.put("name", "category");
+            selectField.put("label", "Category");
+            selectField.put("fieldType", "SELECT");
+            selectField.put("displayOrder", 4);
+            selectField.put("options", List.of(
+                Map.of("label", "Option A", "value", "A", "displayOrder", 0),
+                Map.of("label", "Option B", "value", "B", "displayOrder", 1),
+                Map.of("label", "Option C", "value", "C", "displayOrder", 2)
+            ));
+            fields.add(selectField);
+
+            // Checkbox field
+            Map<String, Object> checkField = new LinkedHashMap<>();
+            checkField.put("name", "agree");
+            checkField.put("label", "I agree to the terms");
+            checkField.put("fieldType", "CHECKBOX");
+            checkField.put("displayOrder", 5);
+            checkField.put("validation", "IsTrue(\"You must agree to the terms\")");
+            fields.add(checkField);
+
+            // Textarea field
+            Map<String, Object> textareaField = new LinkedHashMap<>();
+            textareaField.put("name", "description");
+            textareaField.put("label", "Description");
+            textareaField.put("fieldType", "TEXTAREA");
+            textareaField.put("displayOrder", 6);
+            textareaField.put("validation", "MaxLength(500)");
+            fields.add(textareaField);
+
+            // File field
+            Map<String, Object> fileField = new LinkedHashMap<>();
+            fileField.put("name", "attachment");
+            fileField.put("label", "Attachment");
+            fileField.put("fieldType", "FILE");
+            fileField.put("displayOrder", 7);
+            fileField.put("isAttachment", true);
+            fileField.put("allowedFileTypes", ".pdf,.doc,.docx,.xlsx");
+            fileField.put("maxFileSize", 10);
+            fileField.put("maxFiles", 3);
+            fields.add(fileField);
+
+            // Comment: all supported field types
+            Map<String, Object> typesComment = new LinkedHashMap<>();
+            typesComment.put("_fieldTypes", "TEXT, TEXTAREA, NUMBER, CURRENCY, DATE, DATETIME, TIME, " +
+                "CHECKBOX, CHECKBOX_GROUP, RADIO, SELECT, MULTISELECT, FILE, EMAIL, PHONE, URL, " +
+                "PASSWORD, HIDDEN, LABEL, DIVIDER, COLOR, USER, TOGGLE, YES_NO, IMAGE, ICON, " +
+                "RATING, SIGNATURE, RICH_TEXT, SLIDER, BARCODE, LOCATION, TABLE, SQL_OBJECT, " +
+                "ACCORDION, COLLAPSIBLE");
+            fields.add(typesComment);
+
+            form.put("fields", fields);
+            forms.add(form);
+            template.put("forms", forms);
+
+            // Approvers
+            List<Map<String, Object>> approvers = new ArrayList<>();
+            Map<String, Object> approver1 = new LinkedHashMap<>();
+            approver1.put("level", 1);
+            approver1.put("approverName", "Level 1 Approver");
+            approver1.put("approverEmail", "approver1@company.com");
+            approver1.put("canEscalate", true);
+            approver1.put("notifyOnPending", true);
+            approver1.put("notifyOnApproval", true);
+            approver1.put("notifyOnRejection", true);
+            approver1.put("displayOrder", 1);
+            approvers.add(approver1);
+
+            Map<String, Object> approver2 = new LinkedHashMap<>();
+            approver2.put("level", 2);
+            approver2.put("approverName", "Level 2 Approver");
+            approver2.put("approverEmail", "approver2@company.com");
+            approver2.put("canEscalate", true);
+            approver2.put("displayOrder", 2);
+            approvers.add(approver2);
+            template.put("approvers", approvers);
+
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            return mapper.writeValueAsBytes(template);
+        } catch (IOException e) {
+            throw new BusinessException("Failed to generate template: " + e.getMessage());
+        }
+    }
+
+    @Transactional
     public WorkflowDTO importWorkflow(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new BusinessException("No file provided for import");
@@ -1926,5 +2262,100 @@ public class WorkflowService {
             log.error("Failed to parse import file", e);
             throw new BusinessException("Failed to parse import file: " + e.getMessage());
         }
+    }
+
+    // ========== Child Parameter Methods ==========
+
+    private final WorkflowChildParameterRepository workflowChildParameterRepository;
+
+    /**
+     * Get all child parameters for a workflow
+     */
+    public List<WorkflowChildParameterDTO> getChildParameters(UUID childWorkflowId) {
+        List<WorkflowChildParameter> params = workflowChildParameterRepository.findByChildWorkflowId(childWorkflowId);
+        return params.stream().map(this::toChildParameterDTO).collect(Collectors.toList());
+    }
+
+    /**
+     * Save child parameter
+     */
+    @Transactional
+    public WorkflowChildParameterDTO saveChildParameter(WorkflowChildParameterDTO dto) {
+        WorkflowChildParameter param = new WorkflowChildParameter();
+
+        if (dto.getId() != null) {
+            param = workflowChildParameterRepository.findById(dto.getId())
+                    .orElseThrow(() -> new BusinessException("Child parameter not found"));
+        }
+
+        if (dto.getChildWorkflowId() != null) {
+            Workflow childWorkflow = workflowRepository.findById(dto.getChildWorkflowId())
+                    .orElseThrow(() -> new BusinessException("Child workflow not found"));
+            param.setChildWorkflow(childWorkflow);
+        }
+
+        param.setSourceField(dto.getSourceField());
+        param.setTargetField(dto.getTargetField());
+        param.setShowInSummary(dto.getShowInSummary() != null ? dto.getShowInSummary() : true);
+        param.setShowInEmailSummary(dto.getShowInEmailSummary() != null ? dto.getShowInEmailSummary() : true);
+        param.setDefaultValue(dto.getDefaultValue());
+        param.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0);
+
+        WorkflowChildParameter saved = workflowChildParameterRepository.save(param);
+        return toChildParameterDTO(saved);
+    }
+
+    /**
+     * Delete child parameter
+     */
+    @Transactional
+    public void deleteChildParameter(UUID paramId) {
+        workflowChildParameterRepository.deleteById(paramId);
+    }
+
+    /**
+     * Save multiple child parameters for a workflow
+     */
+    @Transactional
+    public List<WorkflowChildParameterDTO> saveChildParameters(UUID childWorkflowId, List<WorkflowChildParameterDTO> parameters) {
+        // Delete existing parameters
+        workflowChildParameterRepository.deleteByChildWorkflowId(childWorkflowId);
+
+        // Save new parameters
+        List<WorkflowChildParameterDTO> savedParams = new ArrayList<>();
+        Workflow childWorkflow = workflowRepository.findById(childWorkflowId)
+                .orElseThrow(() -> new BusinessException("Child workflow not found"));
+
+        int order = 0;
+        for (WorkflowChildParameterDTO dto : parameters) {
+            WorkflowChildParameter param = new WorkflowChildParameter();
+            param.setChildWorkflow(childWorkflow);
+            param.setSourceField(dto.getSourceField());
+            param.setTargetField(dto.getTargetField());
+            param.setShowInSummary(dto.getShowInSummary() != null ? dto.getShowInSummary() : true);
+            param.setShowInEmailSummary(dto.getShowInEmailSummary() != null ? dto.getShowInEmailSummary() : true);
+            param.setDefaultValue(dto.getDefaultValue());
+            param.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : order++);
+
+            WorkflowChildParameter saved = workflowChildParameterRepository.save(param);
+            savedParams.add(toChildParameterDTO(saved));
+        }
+
+        return savedParams;
+    }
+
+    private WorkflowChildParameterDTO toChildParameterDTO(WorkflowChildParameter param) {
+        return WorkflowChildParameterDTO.builder()
+                .id(param.getId())
+                .childWorkflowId(param.getChildWorkflow().getId())
+                .childWorkflowName(param.getChildWorkflow().getName())
+                .childWorkflowCode(param.getChildWorkflow().getCode())
+                .sourceField(param.getSourceField())
+                .targetField(param.getTargetField())
+                .showInSummary(param.getShowInSummary())
+                .showInEmailSummary(param.getShowInEmailSummary())
+                .defaultValue(param.getDefaultValue())
+                .displayOrder(param.getDisplayOrder())
+                .build();
     }
 }

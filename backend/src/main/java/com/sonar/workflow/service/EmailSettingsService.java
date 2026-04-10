@@ -35,7 +35,7 @@ public class EmailSettingsService {
                     defaultSettings.setSmtpPort(587);
                     defaultSettings.setSmtpSecurity(SmtpSecurity.TLS);
                     defaultSettings.setSmtpAuthRequired(true);
-                    defaultSettings.setSenderName("Sonar Workflow");
+                    defaultSettings.setSenderName("Sona Workflow");
                     defaultSettings.setConnectionTimeout(5000);
                     defaultSettings.setReadTimeout(5000);
                     defaultSettings.setWriteTimeout(5000);
@@ -304,8 +304,8 @@ public class EmailSettingsService {
 
                 helper.setFrom(settings.getSenderEmail(), settings.getSenderName());
                 helper.setTo(recipient);
-                helper.setSubject("Sonar Workflow Email Test");
-                helper.setText("<html><body><h2>Email Configuration Test</h2><p>This is a test email from Sonar Workflow.</p><p>If you received this email, your email configuration is working correctly.</p><p>Sent at: " + LocalDateTime.now() + "</p></body></html>", true);
+                helper.setSubject("Sona Workflow Email Test");
+                helper.setText("<html><body><h2>Email Configuration Test</h2><p>This is a test email from Sona Workflow.</p><p>If you received this email, your email configuration is working correctly.</p><p>Sent at: " + LocalDateTime.now() + "</p></body></html>", true);
 
                 if (StringUtils.hasText(settings.getReplyToEmail())) {
                     helper.setReplyTo(settings.getReplyToEmail());

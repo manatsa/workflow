@@ -18,4 +18,5 @@ public class SqlColumnDTO {
     private Boolean isPrimaryKey;
     private String defaultValue;
     private Integer displayOrder;
+    private String booleanControl;
 }

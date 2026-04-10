@@ -2,6 +2,8 @@ package com.sonar.workflow.controller;
 
 import com.sonar.workflow.dto.ApiResponse;
 import com.sonar.workflow.dto.UserDTO;
+import com.sonar.workflow.entity.User;
+import com.sonar.workflow.security.SuperUserProvider;
 import com.sonar.workflow.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +14,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -21,6 +25,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final SuperUserProvider superUserProvider;
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN') or hasRole('ROLE_ADMIN')")
@@ -30,7 +35,7 @@ public class UserController {
 
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsersList() {
-        return ResponseEntity.ok(ApiResponse.success(userService.getAllActiveUsers()));
+        return ResponseEntity.ok(ApiResponse.success(userService.getAllUsers()));
     }
 
     @GetMapping("/search")
@@ -48,6 +53,30 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserDTO>> getCurrentUser(Authentication authentication) {
+        if (superUserProvider.isSuperUsername(authentication.getName())) {
+            UserDTO superDto = UserDTO.builder()
+                    .id(superUserProvider.getSuperUserId())
+                    .username(SuperUserProvider.SUPER_USERNAME)
+                    .email("super@sonarworks.com")
+                    .firstName("Super")
+                    .lastName("User")
+                    .fullName("Super User")
+                    .userType(User.UserType.SYSTEM)
+                    .enabled(true)
+                    .isActive(true)
+                    .locked(false)
+                    .isLocked(false)
+                    .mustChangePassword(false)
+                    .roles(Set.of("ROLE_ADMIN"))
+                    .privileges(Set.of("ADMIN", "SYSTEM"))
+                    .roleIds(Collections.emptySet())
+                    .corporateIds(Collections.emptySet())
+                    .sbuIds(Collections.emptySet())
+                    .branchIds(Collections.emptySet())
+                    .departmentIds(Collections.emptySet())
+                    .build();
+            return ResponseEntity.ok(ApiResponse.success(superDto));
+        }
         return ResponseEntity.ok(ApiResponse.success(userService.getUserByUsername(authentication.getName())));
     }
 
@@ -68,6 +97,9 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDTO>> updateProfile(
             Authentication authentication,
             @Valid @RequestBody UserDTO dto) {
+        if (superUserProvider.isSuperUsername(authentication.getName())) {
+            throw new com.sonar.workflow.exception.BusinessException("The super user account cannot be modified");
+        }
         UserDTO currentUser = userService.getUserByUsername(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("Profile updated",
                 userService.updateUser(currentUser.getId(), dto)));
@@ -107,8 +139,17 @@ public class UserController {
     @PostMapping("/{id}/reset-password")
     @PreAuthorize("hasAuthority('ADMIN') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> adminResetPassword(
-            @PathVariable UUID id, @RequestParam String newPassword) {
-        userService.adminResetPassword(id, newPassword);
+            @PathVariable UUID id,
+            @RequestParam String newPassword,
+            @RequestParam(defaultValue = "true") boolean mustChangePassword) {
+        userService.adminResetPassword(id, newPassword, mustChangePassword);
         return ResponseEntity.ok(ApiResponse.success("Password reset", null));
+    }
+
+    @PostMapping("/{id}/admin-reset-password")
+    @PreAuthorize("hasAuthority('ADMIN') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> adminResetPasswordAuto(@PathVariable UUID id) {
+        String tempPassword = userService.adminResetPasswordAuto(id);
+        return ResponseEntity.ok(ApiResponse.success("Password has been reset. Temporary password: " + tempPassword, tempPassword));
     }
 }

@@ -1,6 +1,8 @@
 package com.sonar.workflow.controller;
 
 import com.sonar.workflow.dto.*;
+import com.sonar.workflow.exception.BusinessException;
+import com.sonar.workflow.security.SuperUserProvider;
 import com.sonar.workflow.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class PasswordController {
 
     private final UserService userService;
+    private final SuperUserProvider superUserProvider;
 
     @PostMapping("/forgot")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody PasswordResetRequest request) {
@@ -31,6 +34,9 @@ public class PasswordController {
     public ResponseEntity<ApiResponse<Void>> changePassword(
             Authentication authentication,
             @Valid @RequestBody PasswordChangeRequest request) {
+        if (superUserProvider.isSuperUsername(authentication.getName())) {
+            throw new BusinessException("The super user account cannot be modified");
+        }
         userService.changePassword(authentication.getName(), request);
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
     }

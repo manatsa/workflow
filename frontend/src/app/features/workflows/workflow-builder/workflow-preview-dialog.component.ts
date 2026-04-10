@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
@@ -50,8 +51,8 @@ export interface PreviewDialogData {
     MatStepperModule,
     MatSlideToggleModule,
     MatButtonToggleModule,
-    MatSliderModule
-  ],
+    MatSliderModule,
+    MatTooltipModule],
   template: `
     <div class="preview-dialog">
       <div class="dialog-header">
@@ -162,19 +163,19 @@ export interface PreviewDialogData {
 
               <!-- Screen Navigation -->
               <div class="screen-navigation">
-                <button mat-button (click)="prevScreen()" [disabled]="currentScreenIndex === 0">
+                <button mat-button matTooltip="Previous" (click)="prevScreen()" [disabled]="currentScreenIndex === 0">
                   <mat-icon>chevron_left</mat-icon>
                   Previous
                 </button>
                 <span class="screen-counter">Step {{ currentScreenIndex + 1 }} of {{ sortedScreens.length }}</span>
                 @if (currentScreenIndex < sortedScreens.length - 1) {
-                  <button mat-raised-button color="primary" (click)="nextScreen()">
+                  <button mat-raised-button matTooltip="Next" color="primary" (click)="nextScreen()">
                     Next
                     <mat-icon iconPositionEnd>chevron_right</mat-icon>
                   </button>
                 } @else {
                   <!-- On last screen, show submit button -->
-                  <button mat-raised-button color="primary" type="button" disabled>
+                  <button mat-raised-button matTooltip="Submit for Approval" color="primary" type="button" disabled>
                     <mat-icon>send</mat-icon>
                     Submit for Approval
                   </button>
@@ -255,11 +256,11 @@ export interface PreviewDialogData {
 
               <!-- Action Buttons Preview -->
               <div class="form-actions">
-                <button mat-button type="button" disabled>
+                <button mat-button matTooltip="Save as Draft" type="button" disabled>
                   <mat-icon>drafts</mat-icon>
                   Save as Draft
                 </button>
-                <button mat-raised-button color="primary" type="button" disabled>
+                <button mat-raised-button matTooltip="Submit for Approval" color="primary" type="button" disabled>
                   <mat-icon>send</mat-icon>
                   Submit for Approval
                 </button>
@@ -270,7 +271,7 @@ export interface PreviewDialogData {
       </mat-dialog-content>
 
       <mat-dialog-actions align="end">
-        <button mat-button (click)="close()">Close Preview</button>
+        <button mat-button matTooltip="Close Preview" (click)="close()">Close Preview</button>
       </mat-dialog-actions>
     </div>
 
@@ -394,7 +395,7 @@ export interface PreviewDialogData {
           <div class="file-field" [class.readonly-field]="isFieldReadonly(field)">
             <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> } @if (isFieldReadonly(field)) { <span class="readonly-badge">(Read Only)</span> }</label>
             <div class="file-input-wrapper">
-              <button mat-stroked-button type="button" [disabled]="isFieldReadonly(field)">
+              <button mat-stroked-button matTooltip="Choose File" type="button" [disabled]="isFieldReadonly(field)">
                 <mat-icon>attach_file</mat-icon>
                 Choose File
               </button>
@@ -499,7 +500,7 @@ export interface PreviewDialogData {
               <div class="signature-canvas-preview">
                 <span class="signature-placeholder-text">Sign here</span>
               </div>
-              <button mat-icon-button type="button" class="clear-btn" [disabled]="isFieldReadonly(field)">
+              <button mat-icon-button matTooltip="Clear" type="button" class="clear-btn" [disabled]="isFieldReadonly(field)">
                 <mat-icon>clear</mat-icon>
               </button>
             </div>
@@ -513,12 +514,12 @@ export interface PreviewDialogData {
             <label class="field-label">{{ field.label }} @if (field.isMandatory) { <span class="required">*</span> }</label>
             <div class="rich-text-preview">
               <div class="rich-text-toolbar-preview">
-                <button mat-icon-button type="button" disabled><mat-icon>format_bold</mat-icon></button>
-                <button mat-icon-button type="button" disabled><mat-icon>format_italic</mat-icon></button>
-                <button mat-icon-button type="button" disabled><mat-icon>format_underlined</mat-icon></button>
+                <button mat-icon-button matTooltip="Format Bold" type="button" disabled><mat-icon>format_bold</mat-icon></button>
+                <button mat-icon-button matTooltip="Format Italic" type="button" disabled><mat-icon>format_italic</mat-icon></button>
+                <button mat-icon-button matTooltip="Format Underlined" type="button" disabled><mat-icon>format_underlined</mat-icon></button>
                 <span class="toolbar-divider"></span>
-                <button mat-icon-button type="button" disabled><mat-icon>format_list_bulleted</mat-icon></button>
-                <button mat-icon-button type="button" disabled><mat-icon>format_list_numbered</mat-icon></button>
+                <button mat-icon-button matTooltip="Format List Bulleted" type="button" disabled><mat-icon>format_list_bulleted</mat-icon></button>
+                <button mat-icon-button matTooltip="Format List Numbered" type="button" disabled><mat-icon>format_list_numbered</mat-icon></button>
               </div>
               <div class="rich-text-content-preview" contenteditable="false">
                 <p>Rich text content area...</p>
@@ -550,7 +551,7 @@ export interface PreviewDialogData {
               <mat-form-field appearance="outline" class="barcode-form-field">
                 <mat-label>Barcode/QR Code</mat-label>
                 <input matInput [formControl]="getFormControl(field.name)" [placeholder]="field.placeholder || 'Enter or scan code'" [readonly]="isFieldReadonly(field)">
-                <button mat-icon-button matSuffix type="button" [disabled]="isFieldReadonly(field)">
+                <button mat-icon-button matTooltip="Qr Code Scanner" matSuffix type="button" [disabled]="isFieldReadonly(field)">
                   <mat-icon>qr_code_scanner</mat-icon>
                 </button>
               </mat-form-field>
@@ -572,7 +573,7 @@ export interface PreviewDialogData {
                 <mat-label>Longitude</mat-label>
                 <input matInput type="number" placeholder="0.000000" [readonly]="isFieldReadonly(field)">
               </mat-form-field>
-              <button mat-icon-button type="button" [disabled]="isFieldReadonly(field)">
+              <button mat-icon-button matTooltip="My Location" type="button" [disabled]="isFieldReadonly(field)">
                 <mat-icon>my_location</mat-icon>
               </button>
             </div>
@@ -601,7 +602,7 @@ export interface PreviewDialogData {
                 </tbody>
               </table>
               <div class="table-actions-preview">
-                <button mat-stroked-button type="button" class="add-row-btn" [disabled]="isFieldReadonly(field)">
+                <button mat-stroked-button matTooltip="Add Row" type="button" class="add-row-btn" [disabled]="isFieldReadonly(field)">
                   <mat-icon>add</mat-icon> Add Row
                 </button>
                 @if (field.tableMaxRows) {
@@ -735,6 +736,42 @@ export interface PreviewDialogData {
               </div>
             </mat-expansion-panel>
           }
+        }
+        @case ('API_ARRAY') {
+          <div class="api-preview-field">
+            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
+            <div class="api-preview-hint"><mat-icon>api</mat-icon> API Array — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
+          </div>
+        }
+        @case ('API_OBJECT_ARRAY') {
+          <div class="api-preview-field">
+            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
+            <div class="api-preview-hint"><mat-icon>data_object</mat-icon> API Object Array — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
+          </div>
+        }
+        @case ('API_VALUE') {
+          <div class="api-preview-field">
+            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
+            <div class="api-preview-hint"><mat-icon>output</mat-icon> API Value — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
+          </div>
+        }
+        @case ('API_OBJECT') {
+          <div class="api-preview-field">
+            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
+            <div class="api-preview-hint"><mat-icon>dataset</mat-icon> API Object — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
+          </div>
+        }
+        @case ('API_LIST') {
+          <div class="api-preview-field">
+            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
+            <div class="api-preview-hint"><mat-icon>list_alt</mat-icon> API List — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
+          </div>
+        }
+        @case ('OBJECT_VIEWER') {
+          <div class="api-preview-field">
+            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
+            <div class="api-preview-hint"><mat-icon>account_tree</mat-icon> Object Viewer — nested object data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
+          </div>
         }
         @default {
           <mat-form-field appearance="outline" class="full-width" [class.readonly-field]="isFieldReadonly(field)">
@@ -1711,6 +1748,28 @@ export interface PreviewDialogData {
       visibility: visible !important;
       opacity: 1 !important;
       display: flex !important;
+    }
+
+    .api-preview-field {
+      padding: 8px 0;
+    }
+
+    .api-preview-hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #e8f5e9;
+      border: 1px dashed #81c784;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #2e7d32;
+    }
+
+    :host-context(.dark-mode) .api-preview-hint {
+      background: #1b3a1b;
+      border-color: #4caf50;
+      color: #a5d6a7;
     }
   `]
 })

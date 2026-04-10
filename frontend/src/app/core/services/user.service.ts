@@ -63,12 +63,12 @@ export class UserService {
     return this.api.post<void>(`/users/${id}/unlock`, {});
   }
 
-  resetPassword(id: string, newPassword: string): Observable<ApiResponse<void>> {
-    return this.api.post<void>(`/users/${id}/reset-password?newPassword=${newPassword}`, {});
+  resetPassword(id: string, newPassword: string, mustChangePassword: boolean = true): Observable<ApiResponse<void>> {
+    return this.api.post<void>(`/users/${id}/reset-password?newPassword=${encodeURIComponent(newPassword)}&mustChangePassword=${mustChangePassword}`, {});
   }
 
-  adminResetPassword(id: string): Observable<ApiResponse<void>> {
-    return this.api.post<void>(`/users/${id}/admin-reset-password`, {});
+  adminResetPassword(id: string): Observable<ApiResponse<string>> {
+    return this.api.post<string>(`/users/${id}/admin-reset-password`, {});
   }
 
   deleteUser(id: string): Observable<ApiResponse<void>> {
@@ -115,6 +115,10 @@ export class UserService {
 
   createPrivilege(privilege: Partial<Privilege>): Observable<ApiResponse<Privilege>> {
     return this.api.post<Privilege>('/privileges', privilege);
+  }
+
+  updatePrivilege(id: string, privilege: Partial<Privilege>): Observable<ApiResponse<Privilege>> {
+    return this.api.put<Privilege>(`/privileges/${id}`, privilege);
   }
 
   deletePrivilege(id: string): Observable<ApiResponse<void>> {

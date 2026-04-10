@@ -3,17 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { SettingService } from '@core/services/setting.service';
 
 @Component({
   selector: 'app-command-console',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatButtonModule,
+    MatTooltipModule],
   template: `
     <div class="command-console">
       <div class="command-console-header">
         <span>Command Console</span>
-        <button mat-icon-button (click)="close.emit()">
+        <button mat-icon-button matTooltip="Close" (click)="close.emit()">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -94,7 +96,7 @@ export class CommandConsoleComponent implements AfterViewInit {
 
   command = '';
   output: { text: string; type: string }[] = [
-    { text: 'Sonar Command Console', type: 'info' },
+    { text: 'Sona Command Console', type: 'info' },
     { text: 'Type "help" for available commands', type: 'info' },
     { text: '', type: 'output' }
   ];

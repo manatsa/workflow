@@ -121,9 +121,22 @@ public class Workflow extends BaseEntity {
     @Column(name = "show_summary")
     private Boolean showSummary = false;
 
+    @Column(name = "show_approval_matrix")
+    private Boolean showApprovalMatrix = false;
+
+    @Column(name = "lock_approved")
+    private Boolean lockApproved = false;
+
+    @Column(name = "lock_child_on_parent_approval")
+    private Boolean lockChildOnParentApproval = false;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "workflow_category")
     private WorkflowCategory workflowCategory = WorkflowCategory.NON_FINANCIAL;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stamp_id")
+    private Stamp stamp;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_workflow_id")
@@ -134,7 +147,48 @@ public class Workflow extends BaseEntity {
     @Builder.Default
     private List<Workflow> childWorkflows = new ArrayList<>();
 
+    @OneToMany(mappedBy = "childWorkflow", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("displayOrder ASC")
+    @Builder.Default
+    private List<WorkflowChildParameter> childParameters = new ArrayList<>();
+
+    // Reminder settings
+    @Column(name = "reminder_enabled")
+    private Boolean reminderEnabled = false;
+
+    @Column(name = "reminder_frequency_hours")
+    private Integer reminderFrequencyHours = 24;
+
+    @Column(name = "reminder_max_count")
+    private Integer reminderMaxCount = 3;
+
+    @Column(name = "reminder_start_after_hours")
+    private Integer reminderStartAfterHours = 24;
+
+    @Column(name = "escalation_enabled")
+    private Boolean escalationEnabled = false;
+
+    @Column(name = "escalation_after_hours")
+    private Integer escalationAfterHours = 72;
+
+    @Column(name = "escalation_action")
+    @Enumerated(EnumType.STRING)
+    private EscalationAction escalationAction = EscalationAction.NOTIFY_ADMIN;
+
+    @Column(name = "reminder_include_submitter")
+    private Boolean reminderIncludeSubmitter = false;
+
+    @Column(name = "reminder_email_subject")
+    private String reminderEmailSubject;
+
+    @Column(name = "reminder_email_body", columnDefinition = "TEXT")
+    private String reminderEmailBody;
+
     public enum WorkflowCategory {
         FINANCIAL, NON_FINANCIAL
+    }
+
+    public enum EscalationAction {
+        NOTIFY_ADMIN, AUTO_APPROVE, REASSIGN_NEXT_LEVEL
     }
 }

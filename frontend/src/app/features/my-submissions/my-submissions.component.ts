@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
@@ -38,8 +39,8 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
     MatChipsModule,
     MatMenuModule,
     MatDialogModule,
-    MatSnackBarModule
-  ],
+    MatSnackBarModule,
+    MatTooltipModule],
   template: `
     <div class="my-submissions-container">
       <div class="header">
@@ -83,7 +84,9 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
             <ng-container matColumnDef="title">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
               <td mat-cell *matCellDef="let item">
-                {{ item.title || '-' }}
+                <a [routerLink]="['/workflows', item.workflowCode, 'instances', item.id]" class="title-link">
+                  {{ item.title || item.referenceNumber || '-' }}
+                </a>
               </td>
             </ng-container>
 
@@ -134,7 +137,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let item">
-                <button mat-icon-button [matMenuTriggerFor]="menu">
+                <button mat-icon-button matTooltip="More Options" [matMenuTriggerFor]="menu">
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
@@ -167,7 +170,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
               <mat-icon>send</mat-icon>
               <h3>No Submissions Yet</h3>
               <p>Start by submitting a new workflow request.</p>
-              <button mat-raised-button color="primary" routerLink="/dashboard">
+              <button mat-raised-button matTooltip="Go to Home" color="primary" routerLink="/dashboard">
                 Go to Home
               </button>
             </div>
@@ -208,13 +211,13 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
       width: 100%;
     }
 
-    .reference-link {
+    .reference-link, .title-link {
       color: #1976d2;
       text-decoration: none;
       font-weight: 500;
     }
 
-    .reference-link:hover {
+    .reference-link:hover, .title-link:hover {
       text-decoration: underline;
     }
 
@@ -274,7 +277,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
   `]
 })
 export class MySubmissionsComponent implements OnInit {
-  displayedColumns = ['referenceNumber', 'title', 'workflowName', 'status', 'currentApprovalLevel', 'createdAt', 'updatedAt', 'actions'];
+  displayedColumns = ['title', 'workflowName', 'status', 'currentApprovalLevel', 'createdAt', 'updatedAt', 'actions'];
   dataSource = new MatTableDataSource<WorkflowInstance>([]);
   searchTerm = '';
   statusFilter = '';
@@ -341,19 +344,23 @@ export class MySubmissionsComponent implements OnInit {
       width: '400px',
       data: {
         title: 'Delete Submission',
-        message: `Are you sure you want to delete submission "${item.referenceNumber}"? This action cannot be undone.`,
+        message: `Are you sure you want to delete submission "${item.referenceNumber}"?`,
         confirmText: 'Delete',
         cancelText: 'Cancel',
-        confirmColor: 'warn'
+        confirmColor: 'warn',
+        type: 'delete' as any,
+        showCheckbox: true,
+        checkboxLabel: 'Delete permanently (cannot be undone)'
       }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.workflowService.deleteInstance(item.id).subscribe({
+      if (result?.confirmed) {
+        const permanent = result.checkboxValue || false;
+        this.workflowService.deleteInstance(item.id, permanent).subscribe({
           next: (res) => {
             if (res.success) {
-              this.snackBar.open('Submission deleted successfully', 'Close', { duration: 3000 });
+              this.snackBar.open(permanent ? 'Submission permanently deleted' : 'Submission deleted successfully', 'Close', { duration: 3000 });
               this.loadSubmissions();
             }
           },

@@ -53,7 +53,7 @@ import { ReportService, ReportDefinition } from '@core/services/report.service';
                      placeholder="Search by name or description">
               <mat-icon matPrefix>search</mat-icon>
               @if (searchTerm) {
-                <button matSuffix mat-icon-button (click)="clearSearch()">
+                <button matSuffix mat-icon-button matTooltip="Clear" (click)="clearSearch()">
                   <mat-icon>clear</mat-icon>
                 </button>
               }
@@ -99,7 +99,7 @@ import { ReportService, ReportDefinition } from '@core/services/report.service';
           <mat-icon>search_off</mat-icon>
           <h3>No Reports Found</h3>
           <p>Try adjusting your search or filter criteria</p>
-          <button mat-raised-button color="primary" (click)="clearSearch()">Clear Filters</button>
+          <button mat-raised-button matTooltip="Clear Filters" color="primary" (click)="clearSearch()">Clear Filters</button>
         </div>
       } @else {
         <div class="reports-grid">
@@ -422,16 +422,12 @@ export class ReportListComponent implements OnInit {
     this.allReports = this.reportService.getAllReports();
     this.filteredReports = [...this.allReports];
 
-    // Set popular reports
+    // Set popular reports (top 4 most commonly used)
     this.popularReports = [
-      this.allReports.find(r => r.id === 'executive-dashboard')!,
-      this.allReports.find(r => r.id === 'submissions-by-status')!,
-      this.allReports.find(r => r.id === 'pending-approvals-aging')!,
-      this.allReports.find(r => r.id === 'average-processing-time')!,
-      this.allReports.find(r => r.id === 'user-activity-summary')!,
-      this.allReports.find(r => r.id === 'workflow-usage')!,
-      this.allReports.find(r => r.id === 'monthly-trends')!,
-      this.allReports.find(r => r.id === 'audit-trail')!
+      this.allReports.find(r => r.id === 'submission-summary')!,
+      this.allReports.find(r => r.id === 'approval-tracker')!,
+      this.allReports.find(r => r.id === 'performance-metrics')!,
+      this.allReports.find(r => r.id === 'audit-compliance')!
     ].filter(r => r);
   }
 

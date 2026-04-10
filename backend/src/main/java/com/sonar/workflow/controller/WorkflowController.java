@@ -2,6 +2,7 @@ package com.sonar.workflow.controller;
 
 import com.sonar.workflow.dto.*;
 import com.sonar.workflow.security.CustomUserDetails;
+import com.sonar.workflow.security.SuperUserProvider;
 import com.sonar.workflow.service.WorkflowService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,12 +33,7 @@ public class WorkflowController {
 
     @GetMapping("/active")
     public ResponseEntity<ApiResponse<List<WorkflowDTO>>> getActiveWorkflows(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        if (userDetails.isSuperUser() || userDetails.getSbuIds().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.success(workflowService.getActivePublishedWorkflows()));
-        }
-        return ResponseEntity.ok(ApiResponse.success(
-                workflowService.getWorkflowsForUser(userDetails.getSbuIds().stream().toList())));
+        return ResponseEntity.ok(ApiResponse.success(workflowService.getActivePublishedWorkflows()));
     }
 
     @GetMapping("/search")
@@ -169,8 +165,47 @@ public class WorkflowController {
         return ResponseEntity.ok(ApiResponse.success("Workflow imported successfully", imported));
     }
 
+    @PostMapping("/{id}/clone")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('WORKFLOW_BUILDER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<WorkflowDTO>> cloneWorkflow(@PathVariable UUID id) {
+        WorkflowDTO cloned = workflowService.cloneWorkflow(id);
+        return ResponseEntity.ok(ApiResponse.success("Workflow cloned successfully", cloned));
+    }
+
+    @GetMapping("/template/json")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('WORKFLOW_BUILDER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<byte[]> downloadWorkflowTemplate() {
+        byte[] template = workflowService.generateWorkflowJsonTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentDispositionFormData("attachment", "workflow_template.json");
+        return ResponseEntity.ok().headers(headers).body(template);
+    }
+
     @GetMapping("/{id}/children")
     public ResponseEntity<ApiResponse<List<ChildWorkflowDTO>>> getChildWorkflows(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(workflowService.getChildWorkflows(id)));
+    }
+
+    // ========== Child Parameter Endpoints ==========
+
+    @GetMapping("/{id}/child-parameters")
+    public ResponseEntity<ApiResponse<List<WorkflowChildParameterDTO>>> getChildParameters(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(workflowService.getChildParameters(id)));
+    }
+
+    @PostMapping("/{id}/child-parameters")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('WORKFLOW_BUILDER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<List<WorkflowChildParameterDTO>>> saveChildParameters(
+            @PathVariable UUID id, @RequestBody List<WorkflowChildParameterDTO> parameters) {
+        return ResponseEntity.ok(ApiResponse.success("Child parameters saved",
+                workflowService.saveChildParameters(id, parameters)));
+    }
+
+    @DeleteMapping("/child-parameters/{paramId}")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('WORKFLOW_BUILDER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteChildParameter(@PathVariable UUID paramId) {
+        workflowService.deleteChildParameter(paramId);
+        return ResponseEntity.ok(ApiResponse.success("Child parameter deleted", null));
     }
 }

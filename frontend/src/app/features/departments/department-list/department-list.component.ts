@@ -1,21 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { DepartmentService } from '@core/services/department.service';
 import { UserService } from '@core/services/user.service';
 import { ImportExportService } from '@core/services/import-export.service';
 import { Department } from '@core/models/department.model';
 import { Corporate } from '@core/models/corporate.model';
+import { DepartmentEditDialogComponent } from '../department-edit-dialog/department-edit-dialog.component';
+import { DepartmentDetailDialogComponent } from '../department-detail-dialog/department-detail-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-department-list',
@@ -23,34 +27,34 @@ import { Corporate } from '@core/models/corporate.model';
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule,
     MatCardModule,
     MatTableModule,
     MatFormFieldModule,
-    MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
     MatChipsModule,
     MatSelectModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatDialogModule,
+    MatMenuModule
   ],
   template: `
     <div class="department-list-container">
       <div class="header">
         <h1>Departments</h1>
         <div class="header-actions">
-          <button mat-stroked-button (click)="downloadTemplate()">
+          <button mat-stroked-button matTooltip="Download Template" (click)="downloadTemplate()">
             <mat-icon>description</mat-icon> Template
           </button>
-          <button mat-stroked-button (click)="fileInput.click()">
+          <button mat-stroked-button matTooltip="Import from Excel" (click)="fileInput.click()">
             <mat-icon>upload</mat-icon> Import
           </button>
           <input hidden #fileInput type="file" accept=".xlsx" (change)="importFromExcel($event)">
-          <button mat-stroked-button (click)="exportToExcel()">
+          <button mat-stroked-button matTooltip="Export to Excel" (click)="exportToExcel()">
             <mat-icon>download</mat-icon> Export
           </button>
-          <button mat-raised-button color="primary" (click)="openNewForm()">
+          <button mat-raised-button matTooltip="Add new Department" color="primary" (click)="openAddDepartment()">
             <mat-icon>add</mat-icon>
             Add Department
           </button>
@@ -71,7 +75,7 @@ import { Corporate } from '@core/models/corporate.model';
               </mat-select>
             </mat-form-field>
 
-            <button mat-button (click)="clearFilters()">
+            <button mat-button matTooltip="Clear Filters" (click)="clearFilters()">
               <mat-icon>clear</mat-icon>
               Clear Filters
             </button>
@@ -79,7 +83,7 @@ import { Corporate } from '@core/models/corporate.model';
         </mat-card-content>
       </mat-card>
 
-      <div class="content-grid" [class.with-form]="showForm">
+      <div class="content-area">
         <mat-card class="table-card">
           <mat-card-content>
             <table mat-table [dataSource]="displayedDepartments" class="full-width">
@@ -113,19 +117,24 @@ import { Corporate } from '@core/models/corporate.model';
               </ng-container>
 
               <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let row">
-                  <button mat-icon-button (click)="editDepartment(row)" matTooltip="Edit">
-                    <mat-icon>edit</mat-icon>
+                  <button mat-icon-button matTooltip="Actions" [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                    <mat-icon>more_vert</mat-icon>
                   </button>
-                  <button mat-icon-button color="warn" (click)="deleteDepartment(row)" matTooltip="Delete">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="openEditDepartment(row)">
+                      <mat-icon>edit</mat-icon> <span>Edit</span>
+                    </button>
+                    <button mat-menu-item (click)="deleteDepartment(row)">
+                      <mat-icon color="warn">delete</mat-icon> <span>Delete</span>
+                    </button>
+                  </mat-menu>
                 </td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="clickable-row" (click)="viewDepartment(row)"></tr>
             </table>
 
             @if (displayedDepartments.length === 0) {
@@ -136,89 +145,32 @@ import { Corporate } from '@core/models/corporate.model';
             }
           </mat-card-content>
         </mat-card>
-
-        @if (showForm) {
-          <mat-card class="form-card">
-            <mat-card-header>
-              <mat-card-title>{{ editingDepartment ? 'Edit Department' : 'Add Department' }}</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <form [formGroup]="departmentForm" (ngSubmit)="saveDepartment()">
-                <div class="form-row">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Code</mat-label>
-                    <input matInput formControlName="code">
-                    @if (departmentForm.get('code')?.hasError('required')) {
-                      <mat-error>Code is required</mat-error>
-                    }
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Name</mat-label>
-                    <input matInput formControlName="name">
-                    @if (departmentForm.get('name')?.hasError('required')) {
-                      <mat-error>Name is required</mat-error>
-                    }
-                  </mat-form-field>
-                </div>
-
-                <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Corporate (Optional)</mat-label>
-                  <mat-select formControlName="corporateId">
-                    <mat-option [value]="null">-- Global (All Corporates) --</mat-option>
-                    @for (corp of corporates; track corp.id) {
-                      <mat-option [value]="corp.id">{{ corp.name }}</mat-option>
-                    }
-                  </mat-select>
-                  <mat-hint>Leave empty for global department accessible to all corporates</mat-hint>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Description</mat-label>
-                  <textarea matInput formControlName="description" rows="2"></textarea>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Head of Department</mat-label>
-                  <input matInput formControlName="headOfDepartment">
-                </mat-form-field>
-
-                <div class="form-row">
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Contact Email</mat-label>
-                    <input matInput formControlName="contactEmail" type="email">
-                    @if (departmentForm.get('contactEmail')?.hasError('email')) {
-                      <mat-error>Invalid email format</mat-error>
-                    }
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Contact Phone</mat-label>
-                    <input matInput formControlName="contactPhone">
-                  </mat-form-field>
-                </div>
-
-                <div class="form-actions">
-                  <button mat-button type="button" (click)="showForm = false">Cancel</button>
-                  <button mat-raised-button color="primary" type="submit" [disabled]="loading || departmentForm.invalid">
-                    {{ editingDepartment ? 'Update' : 'Create' }}
-                  </button>
-                </div>
-              </form>
-            </mat-card-content>
-          </mat-card>
-        }
       </div>
     </div>
   `,
   styles: [`
-    .department-list-container { padding: 1rem; }
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .department-list-container {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      box-sizing: border-box;
+    }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      flex-shrink: 0;
     }
 
     .header-actions {
@@ -229,6 +181,7 @@ import { Corporate } from '@core/models/corporate.model';
 
     .filter-card {
       margin-bottom: 1rem;
+      flex-shrink: 0;
     }
 
     .filter-row {
@@ -242,20 +195,14 @@ import { Corporate } from '@core/models/corporate.model';
       min-width: 200px;
     }
 
-    .content-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
+    .content-area {
+      flex: 1;
+      min-height: 0;
     }
 
-    .content-grid.with-form {
-      grid-template-columns: 1fr 500px;
-    }
-
-    @media (max-width: 1100px) {
-      .content-grid.with-form {
-        grid-template-columns: 1fr;
-      }
+    .table-card {
+      width: 100%;
+      height: 100%;
     }
 
     .full-width { width: 100%; }
@@ -276,29 +223,12 @@ import { Corporate } from '@core/models/corporate.model';
       opacity: 0.5;
     }
 
-    .form-row {
-      display: flex;
-      gap: 1rem;
+    .clickable-row {
+      cursor: pointer;
     }
 
-    .form-field {
-      flex: 1;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-field.full-width {
-      width: 100%;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-
-    table {
-      width: 100%;
+    .clickable-row:hover {
+      background: #f0f4ff;
     }
 
     .mat-column-actions {
@@ -313,31 +243,17 @@ export class DepartmentListComponent implements OnInit {
   corporates: Corporate[] = [];
 
   displayedColumns = ['code', 'name', 'corporate', 'headOfDepartment', 'status', 'actions'];
-  showForm = false;
-  editingDepartment: Department | null = null;
-  loading = false;
-  departmentForm: FormGroup;
 
   // Filters
   filterCorporateId: string | null = null;
 
   constructor(
-    private fb: FormBuilder,
     private departmentService: DepartmentService,
     private userService: UserService,
     private importExportService: ImportExportService,
-    private snackBar: MatSnackBar
-  ) {
-    this.departmentForm = this.fb.group({
-      code: ['', Validators.required],
-      name: ['', Validators.required],
-      description: [''],
-      corporateId: [null],
-      headOfDepartment: [''],
-      contactEmail: ['', Validators.email],
-      contactPhone: ['']
-    });
-  }
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit() {
     this.loadDepartments();
@@ -363,11 +279,9 @@ export class DepartmentListComponent implements OnInit {
 
   applyFilters() {
     let result = [...this.departments];
-
     if (this.filterCorporateId) {
       result = result.filter(d => d.corporateId === this.filterCorporateId);
     }
-
     this.displayedDepartments = result;
   }
 
@@ -376,71 +290,72 @@ export class DepartmentListComponent implements OnInit {
     this.applyFilters();
   }
 
-  openNewForm() {
-    this.showForm = true;
-    this.editingDepartment = null;
-    this.departmentForm.reset();
-  }
+  viewDepartment(department: Department) {
+    const dialogRef = this.dialog.open(DepartmentDetailDialogComponent, {
+      data: department,
+      width: '650px',
+      maxHeight: '85vh'
+    });
 
-  editDepartment(department: Department) {
-    this.editingDepartment = department;
-    this.showForm = true;
-
-    this.departmentForm.patchValue({
-      code: department.code,
-      name: department.name,
-      description: department.description,
-      corporateId: department.corporateId || null,
-      headOfDepartment: department.headOfDepartment,
-      contactEmail: department.contactEmail,
-      contactPhone: department.contactPhone
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'edit') {
+        this.openEditDepartment(department);
+      }
     });
   }
 
-  saveDepartment() {
-    if (this.departmentForm.invalid) return;
+  openAddDepartment() {
+    const dialogRef = this.dialog.open(DepartmentEditDialogComponent, {
+      data: { department: null, corporates: this.corporates },
+      width: '650px',
+      maxHeight: '85vh'
+    });
 
-    this.loading = true;
-    const formData = this.departmentForm.value;
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadDepartments();
+      }
+    });
+  }
 
-    const request = this.editingDepartment
-      ? this.departmentService.updateDepartment(this.editingDepartment.id, formData)
-      : this.departmentService.createDepartment(formData);
+  openEditDepartment(department: Department) {
+    const dialogRef = this.dialog.open(DepartmentEditDialogComponent, {
+      data: { department, corporates: this.corporates },
+      width: '650px',
+      maxHeight: '85vh'
+    });
 
-    request.subscribe({
-      next: (res) => {
-        this.loading = false;
-        if (res.success) {
-          this.snackBar.open(
-            this.editingDepartment ? 'Department updated' : 'Department created',
-            'Close',
-            { duration: 3000 }
-          );
-          this.showForm = false;
-          this.editingDepartment = null;
-          this.departmentForm.reset();
-          this.loadDepartments();
-        }
-      },
-      error: (err) => {
-        this.loading = false;
-        this.snackBar.open(err.error?.message || 'Operation failed', 'Close', { duration: 3000 });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'saved') {
+        this.loadDepartments();
       }
     });
   }
 
   deleteDepartment(department: Department) {
-    if (confirm(`Are you sure you want to delete "${department.name}"?`)) {
-      this.departmentService.deleteDepartment(department.id).subscribe({
-        next: () => {
-          this.snackBar.open('Department deleted', 'Close', { duration: 3000 });
-          this.loadDepartments();
-        },
-        error: (err) => {
-          this.snackBar.open(err.error?.message || 'Failed to delete', 'Close', { duration: 3000 });
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Department',
+        message: 'Are you sure you want to delete this department?',
+        itemName: department.name,
+        type: 'delete'
+      } as ConfirmDialogData,
+      width: '420px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.departmentService.deleteDepartment(department.id).subscribe({
+          next: () => {
+            this.snackBar.open('Department deleted', 'Close', { duration: 3000 });
+            this.loadDepartments();
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to delete', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   downloadTemplate() {
@@ -458,16 +373,19 @@ export class DepartmentListComponent implements OnInit {
     if (!input.files?.length) return;
     const file = input.files[0];
     this.importExportService.importFromExcel('departments', file).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.snackBar.open(res.message || 'Departments imported', 'Close', { duration: 3000 });
-          this.loadDepartments();
-        } else {
-          this.snackBar.open(res.message || 'Failed to import', 'Close', { duration: 3000 });
+      next: (response) => {
+        if (response.body) {
+          const filename = this.importExportService.extractFilename(response, file.name.replace('.xlsx', '') + '_Result.xlsx');
+          this.importExportService.downloadFile(response.body, filename);
         }
+        this.snackBar.open('Import complete - results downloaded', 'Close', { duration: 5000 });
+        this.loadDepartments();
         input.value = '';
       },
-      error: (err) => { this.snackBar.open(err.error?.message || 'Failed to import', 'Close', { duration: 3000 }); input.value = ''; }
+      error: () => {
+        this.snackBar.open('Failed to import', 'Close', { duration: 5000 });
+        input.value = '';
+      }
     });
   }
 

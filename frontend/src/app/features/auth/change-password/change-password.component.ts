@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -23,8 +24,8 @@ import { AuthService } from '@core/services/auth.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
-  ],
+    MatSnackBarModule,
+    MatTooltipModule],
   template: `
     <div class="change-password-container">
       <mat-card class="change-password-card">
@@ -45,7 +46,7 @@ import { AuthService } from '@core/services/auth.service';
               <input matInput [type]="hideCurrentPassword ? 'password' : 'text'"
                      formControlName="currentPassword" autocomplete="current-password">
               <mat-icon matPrefix>lock</mat-icon>
-              <button mat-icon-button matSuffix type="button"
+              <button mat-icon-button matTooltip="{{ hideCurrentPassword ? 'Hide Password' : 'Show Password' }}" matSuffix type="button"
                       (click)="hideCurrentPassword = !hideCurrentPassword">
                 <mat-icon>{{ hideCurrentPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
@@ -59,7 +60,7 @@ import { AuthService } from '@core/services/auth.service';
               <input matInput [type]="hideNewPassword ? 'password' : 'text'"
                      formControlName="newPassword" autocomplete="new-password">
               <mat-icon matPrefix>lock_outline</mat-icon>
-              <button mat-icon-button matSuffix type="button"
+              <button mat-icon-button matTooltip="{{ hideNewPassword ? 'Hide Password' : 'Show Password' }}" matSuffix type="button"
                       (click)="hideNewPassword = !hideNewPassword">
                 <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
@@ -76,7 +77,7 @@ import { AuthService } from '@core/services/auth.service';
               <input matInput [type]="hideConfirmPassword ? 'password' : 'text'"
                      formControlName="confirmPassword" autocomplete="new-password">
               <mat-icon matPrefix>lock_outline</mat-icon>
-              <button mat-icon-button matSuffix type="button"
+              <button mat-icon-button matTooltip="{{ hideConfirmPassword ? 'Hide Password' : 'Show Password' }}" matSuffix type="button"
                       (click)="hideConfirmPassword = !hideConfirmPassword">
                 <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>

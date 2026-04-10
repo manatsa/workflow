@@ -83,6 +83,15 @@ public class WorkflowInstance extends BaseEntity {
     @Builder.Default
     private List<Attachment> attachments = new ArrayList<>();
 
+    @Column(name = "reminder_count")
+    private Integer reminderCount = 0;
+
+    @Column(name = "last_reminder_sent_at")
+    private LocalDateTime lastReminderSentAt;
+
+    @Column(name = "escalated_at")
+    private LocalDateTime escalatedAt;
+
     public enum Status {
         DRAFT, PENDING, APPROVED, REJECTED, ESCALATED, CANCELLED, ON_HOLD
     }

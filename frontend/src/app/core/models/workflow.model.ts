@@ -20,6 +20,9 @@ export interface Workflow {
   requireAttachments: boolean;
   requireComments: boolean;
   showSummary: boolean;
+  showApprovalMatrix?: boolean;
+  stampId?: string;
+  stampName?: string;
   parentWorkflowId?: string;
   parentWorkflowName?: string;
   childWorkflows?: ChildWorkflow[];
@@ -31,6 +34,16 @@ export interface Workflow {
   departmentIds?: string[];
   roleIds?: string[];
   privilegeIds?: string[];
+  reminderEnabled?: boolean;
+  reminderFrequencyHours?: number;
+  reminderMaxCount?: number;
+  reminderStartAfterHours?: number;
+  escalationEnabled?: boolean;
+  escalationAfterHours?: number;
+  escalationAction?: string;
+  reminderIncludeSubmitter?: boolean;
+  reminderEmailSubject?: string;
+  reminderEmailBody?: string;
 }
 
 export interface WorkflowType {
@@ -148,7 +161,7 @@ export interface WorkflowField {
   dropdownValueField?: string;
   // SQL Object based options
   sqlObjectId?: string;
-  optionsSource?: 'STATIC' | 'SQL';
+  optionsSource?: 'STATIC' | 'SQL' | 'API';
   viewType?: 'SELECT' | 'MULTISELECT' | 'RADIO' | 'CHECKBOX_GROUP';
   isAttachment: boolean;
   allowedFileTypes?: string;
@@ -167,6 +180,11 @@ export interface WorkflowField {
   tableMaxRows?: number;
   tableStriped?: boolean;
   tableBordered?: boolean;
+  tableResizable?: boolean;
+  tableSearchable?: boolean;
+  tableFilterable?: boolean;
+  tablePageable?: boolean;
+  tablePageSize?: number;
   // ACCORDION field specific configurations
   accordionAllowMultiple?: boolean;
   accordionDefaultOpenIndex?: number;
@@ -178,6 +196,26 @@ export interface WorkflowField {
   collapsibleDefaultExpanded?: boolean;
   // Parent field ID for nested fields (collapsibles belong to accordions)
   parentFieldId?: string;
+  // API field type configurations
+  apiUrl?: string;
+  apiMethod?: string; // GET, POST, PUT, DELETE
+  apiAuthType?: string; // NONE, BASIC, BEARER, API_KEY
+  apiAuthValue?: string;
+  apiHeaders?: string; // JSON array of {key, value}
+  apiParams?: string; // JSON array of {key, value} - query parameters
+  apiBody?: string;
+  apiResponsePath?: string; // dot notation to extract data from response
+  // Whether API_ARRAY/API_OBJECT_ARRAY fields show their own control in the form
+  apiShowInForm?: boolean;
+  // API data source for SELECT/RADIO/CHECKBOX_GROUP/MULTISELECT options
+  apiDataSourceField?: string; // name of API_ARRAY or API_OBJECT_ARRAY field
+  apiDisplayField?: string; // dot-notation path for display label (for object arrays)
+  apiValueField?: string; // dot-notation path for value (for object arrays)
+  // TABLE data source - name of an API_OBJECT_ARRAY field to populate from
+  tableDataSource?: string;
+  // SQL_TABLE field
+  sqlQuery?: string;
+  sqlTableColumns?: string; // JSON: [{key: "db_column", label: "Display Name"}]
 }
 
 export interface TableColumn {
@@ -236,7 +274,15 @@ export enum FieldType {
   SQL_OBJECT = 'SQL_OBJECT',
   // Container field types
   ACCORDION = 'ACCORDION',
-  COLLAPSIBLE = 'COLLAPSIBLE'
+  COLLAPSIBLE = 'COLLAPSIBLE',
+  // API field types - fetch data from external APIs
+  API_ARRAY = 'API_ARRAY',
+  API_OBJECT_ARRAY = 'API_OBJECT_ARRAY',
+  API_VALUE = 'API_VALUE',
+  API_OBJECT = 'API_OBJECT',
+  API_LIST = 'API_LIST',
+  OBJECT_VIEWER = 'OBJECT_VIEWER',
+  SQL_TABLE = 'SQL_TABLE'
 }
 
 // View type for SQL_OBJECT field - how to display the options
@@ -300,6 +346,9 @@ export interface WorkflowInstance {
   workflowName: string;
   workflowCode: string;
   workflowIcon?: string;
+  lockApproved?: boolean;
+  lockChildOnParentApproval?: boolean;
+  parentApproved?: boolean;
   referenceNumber: string;
   title?: string;
   summary?: string;
@@ -309,6 +358,7 @@ export interface WorkflowInstance {
   initiatorName: string;
   initiatorEmail: string;
   currentLevel: number;
+  maxLevel?: number;
   currentApprovalLevel: number;
   currentApproverOrder?: number;
   totalApproversAtLevel?: number;
@@ -334,6 +384,7 @@ export interface WorkflowInstance {
   commentsMandatory?: boolean;
   commentsMandatoryOnReject?: boolean;
   commentsMandatoryOnEscalate?: boolean;
+  workflowStampId?: string;
 }
 
 export interface ChildWorkflow {
@@ -346,6 +397,19 @@ export interface ChildWorkflow {
   isActive: boolean;
   displayOrder: number;
   screenCount?: number;
+}
+
+export interface ChildParameter {
+  id?: string;
+  childWorkflowId?: string;
+  childWorkflowName?: string;
+  childWorkflowCode?: string;
+  sourceField: string;
+  targetField: string;
+  showInSummary?: boolean;
+  showInEmailSummary?: boolean;
+  defaultValue?: string;
+  displayOrder?: number;
 }
 
 export interface ChildInstance {
@@ -388,6 +452,9 @@ export interface ApprovalHistory {
   actionDate?: string;
   createdAt: string;
   actionSource?: ActionSource;
+  stampId?: string;
+  stampName?: string;
+  stampData?: string;
 }
 
 export enum ApprovalAction {
@@ -456,6 +523,7 @@ export interface SqlColumn {
   isPrimaryKey: boolean;
   defaultValue?: string;
   displayOrder: number;
+  booleanControl?: 'TOGGLE' | 'CHECKBOX' | 'DROPDOWN' | 'RADIO';
 }
 
 export enum SqlColumnDataType {

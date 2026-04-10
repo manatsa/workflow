@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, FormControl, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
@@ -18,15 +18,20 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDividerModule } from '@angular/material/divider';
 import { WorkflowService } from '@core/services/workflow.service';
 import { UserService } from '@core/services/user.service';
 import { DepartmentService } from '@core/services/department.service';
 import { SqlObjectService } from '@core/services/sql-object.service';
+import { StampDTO } from '../../stamps/stamp.service';
+import { SettingService } from '@core/services/setting.service';
+import { StampSelectorDialogComponent } from '../../stamps/stamp-selector-dialog.component';
 import { Workflow, FieldType, WorkflowField, FieldGroup, WorkflowCategory, SqlObject } from '@core/models/workflow.model';
 import { User, SBU, Corporate, Branch, Role, Privilege } from '@core/models/user.model';
 import { Department } from '@core/models/department.model';
 import { WorkflowPreviewDialogComponent } from './workflow-preview-dialog.component';
-import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData, ConfirmDialogType } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { FunctionHelpDialogComponent } from '@shared/components/function-help-dialog/function-help-dialog.component';
 
 @Component({
@@ -51,7 +56,9 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
     MatSnackBarModule,
     MatDialogModule,
     MatTooltipModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatSlideToggleModule,
+    MatDividerModule
   ],
   template: `
     <div class="workflow-builder-container">
@@ -133,6 +140,20 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                       </mat-select>
                       <mat-hint>Set a parent to make this a sub-workflow</mat-hint>
                     </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Approval Seal</mat-label>
+                      <input matInput [value]="selectedStampName || 'Use Default Seal'" readonly>
+                      <button mat-icon-button matSuffix matTooltip="Browse seals" (click)="openSealPicker()">
+                        <mat-icon>search</mat-icon>
+                      </button>
+                      @if (basicForm.get('stampId')?.value) {
+                        <button mat-icon-button matSuffix matTooltip="Clear seal" (click)="clearSeal()">
+                          <mat-icon>clear</mat-icon>
+                        </button>
+                      }
+                      <mat-hint>Seal stamped on documents at final approval (leave blank to use default)</mat-hint>
+                    </mat-form-field>
                   </div>
 
                   <div class="checkbox-row">
@@ -142,6 +163,8 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                     <mat-checkbox formControlName="commentsMandatoryOnReject">Comments Mandatory on Reject</mat-checkbox>
                     <mat-checkbox formControlName="commentsMandatoryOnEscalate">Comments Mandatory on Escalate</mat-checkbox>
                     <mat-checkbox formControlName="showApprovalMatrix">Show Approval Matrix in Emails</mat-checkbox>
+                    <mat-checkbox formControlName="lockApproved">No Editing Approved Submissions</mat-checkbox>
+                    <mat-checkbox formControlName="lockChildOnParentApproval">Lock Editing When Parent Approved</mat-checkbox>
                   </div>
                 </form>
               </mat-card-content>
@@ -642,6 +665,25 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 </div>
                               </mat-expansion-panel>
 
+                              <mat-expansion-panel [expanded]="expandedCategories['sql']" (opened)="expandedCategories['sql']=true" (closed)="expandedCategories['sql']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>storage</mat-icon> SQL Functions ({{ sqlFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of sqlFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
+
                               <mat-expansion-panel [expanded]="expandedCategories['other']" (opened)="expandedCategories['other']=true" (closed)="expandedCategories['other']=false">
                                 <mat-expansion-panel-header>
                                   <mat-panel-title><mat-icon>more_horiz</mat-icon> Other Functions ({{ otherFunctions.length }})</mat-panel-title>
@@ -758,8 +800,9 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                             @if (hasValueOption(field.type)) {
                               <mat-form-field appearance="outline" class="form-field full-width">
                                 <mat-label>Value</mat-label>
-                                <input matInput [(ngModel)]="field.value" placeholder="Static value or function e.g. TODAY(), CURRENT_USER()">
-                                <mat-hint>Enter a preset value or use a function (click Functions tab to copy syntax)</mat-hint>
+                                <textarea matInput [(ngModel)]="field.value" rows="1"
+                                          placeholder="Static value or function: TODAY(), NOW(), CURRENT_USER(), CONCAT(), SUM(), UUID(), etc."></textarea>
+                                <mat-hint>Supports all functions from the Functions tab: text (CONCAT, UPPER, LOWER, TRIM), math (SUM, MULTIPLY, ROUND), date (TODAY, NOW, DATE_ADD), user (CURRENT_USER, CURRENT_USER_EMAIL), and more</mat-hint>
                               </mat-form-field>
                             }
 
@@ -769,11 +812,12 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 <mat-select [(ngModel)]="field.optionsSource" (selectionChange)="onOptionsSourceChange(field)">
                                   <mat-option value="STATIC">Static Options</mat-option>
                                   <mat-option value="SQL">SQL Object</mat-option>
+                                  <mat-option value="API">API Data Source</mat-option>
                                 </mat-select>
                                 <mat-hint>Choose where to get options from</mat-hint>
                               </mat-form-field>
 
-                              @if (field.optionsSource !== 'SQL') {
+                              @if (field.optionsSource !== 'SQL' && field.optionsSource !== 'API') {
                                 <mat-form-field appearance="outline" class="form-field full-width">
                                   <mat-label>Options (one per line)</mat-label>
                                   <textarea matInput [(ngModel)]="field.optionsText" rows="4"
@@ -800,6 +844,46 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 @if (sqlObjects.length === 0) {
                                   <p class="sql-hint">No SQL Objects available. <a routerLink="/sql-objects">Create one</a></p>
                                 }
+                              }
+
+                              @if (field.optionsSource === 'API') {
+                                <div class="api-datasource-config">
+                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                    <mat-label>API Data Source Field</mat-label>
+                                    <mat-select [(ngModel)]="field.apiDataSourceField">
+                                      <mat-option [value]="''">-- Select API Field --</mat-option>
+                                      @for (apiField of getApiArrayFields(); track apiField.name) {
+                                        <mat-option [value]="apiField.name">
+                                          <mat-icon>{{ apiField.type === 'API_OBJECT_ARRAY' ? 'data_object' : 'api' }}</mat-icon>
+                                          {{ apiField.label || apiField.name }} ({{ apiField.type === 'API_OBJECT_ARRAY' ? 'Object Array' : 'Array' }})
+                                        </mat-option>
+                                      }
+                                    </mat-select>
+                                    <mat-hint>Select an API Array or API Object Array field as the data source</mat-hint>
+                                  </mat-form-field>
+
+                                  @if (field.apiDataSourceField) {
+                                    <div class="form-row">
+                                      <mat-form-field appearance="outline" class="form-field">
+                                        <mat-label>Value Field</mat-label>
+                                        <input matInput [(ngModel)]="field.apiValueField" placeholder="e.g. id, ability.name">
+                                        <mat-hint>Dot-notation path for the option value (leave empty for simple arrays)</mat-hint>
+                                      </mat-form-field>
+                                      <mat-form-field appearance="outline" class="form-field">
+                                        <mat-label>Display Field</mat-label>
+                                        <input matInput [(ngModel)]="field.apiDisplayField" placeholder="e.g. name, ability.name">
+                                        <mat-hint>Dot-notation path for the display label (leave empty for simple arrays)</mat-hint>
+                                      </mat-form-field>
+                                    </div>
+                                  }
+
+                                  @if (getApiArrayFields().length === 0) {
+                                    <p class="sql-hint warning">
+                                      <mat-icon>warning</mat-icon>
+                                      No API Array or API Object Array fields found. Add one first.
+                                    </p>
+                                  }
+                                </div>
                               }
                             }
 
@@ -982,6 +1066,243 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                               </div>
                             }
 
+                            <!-- SQL_TABLE field config -->
+                            @if (field.type === 'SQL_TABLE') {
+                              <div class="sql-table-config">
+                                <h4 class="config-section-title">
+                                  <mat-icon>grid_on</mat-icon>
+                                  SQL Table Configuration
+                                </h4>
+
+                                <mat-form-field appearance="outline" class="full-width">
+                                  <mat-label>SQL Query</mat-label>
+                                  <textarea matInput [(ngModel)]="field.sqlQuery" rows="4"
+                                            placeholder="SELECT id, name, email FROM users WHERE active = true"></textarea>
+                                  <mat-hint>Only SELECT queries allowed. The results will be displayed as a read-only table.</mat-hint>
+                                </mat-form-field>
+
+                                <h4 class="config-section-title" style="margin-top: 16px;">
+                                  <mat-icon>view_column</mat-icon>
+                                  Column Definitions (Optional)
+                                </h4>
+                                <p class="config-hint">Define columns to control display names. Leave empty to auto-detect from query results.</p>
+
+                                @if (!field.sqlTableColumnsDef) {
+                                  <button mat-stroked-button (click)="field.sqlTableColumnsDef = [{key: '', label: ''}]">
+                                    <mat-icon>add</mat-icon> Define Columns
+                                  </button>
+                                } @else {
+                                  @for (col of field.sqlTableColumnsDef; track $index) {
+                                    <div class="sql-col-row">
+                                      <mat-form-field appearance="outline" class="form-field">
+                                        <mat-label>Column Key</mat-label>
+                                        <input matInput [(ngModel)]="col.key" placeholder="db_column_name">
+                                        <mat-hint>Column name in the query result</mat-hint>
+                                      </mat-form-field>
+                                      <mat-form-field appearance="outline" class="form-field">
+                                        <mat-label>Display Label</mat-label>
+                                        <input matInput [(ngModel)]="col.label" placeholder="Friendly Name">
+                                      </mat-form-field>
+                                      <button mat-icon-button color="warn" (click)="field.sqlTableColumnsDef.splice($index, 1); syncSqlTableColumns(field)">
+                                        <mat-icon>delete</mat-icon>
+                                      </button>
+                                    </div>
+                                  }
+                                  <button mat-stroked-button (click)="field.sqlTableColumnsDef.push({key: '', label: ''})" style="margin-top: 8px;">
+                                    <mat-icon>add</mat-icon> Add Column
+                                  </button>
+                                  <button mat-button color="warn" (click)="field.sqlTableColumnsDef = null; field.sqlTableColumns = null" style="margin-top: 8px; margin-left: 8px;">
+                                    Clear Columns (Auto-detect)
+                                  </button>
+                                }
+
+                                <h4 class="config-section-title" style="margin-top: 16px;">
+                                  <mat-icon>tune</mat-icon>
+                                  Display Options
+                                </h4>
+                                <div class="checkbox-row" style="flex-wrap: wrap; gap: 16px;">
+                                  <mat-checkbox [(ngModel)]="field.tableStriped">Striped Rows</mat-checkbox>
+                                  <mat-checkbox [(ngModel)]="field.tableBordered">Bordered</mat-checkbox>
+                                  <mat-checkbox [(ngModel)]="field.tableSearchable">Searchable</mat-checkbox>
+                                  <mat-checkbox [(ngModel)]="field.tablePageable">Paginated</mat-checkbox>
+                                </div>
+                                @if (field.tablePageable) {
+                                  <mat-form-field appearance="outline" style="width: 150px; margin-top: 8px;">
+                                    <mat-label>Page Size</mat-label>
+                                    <mat-select [(ngModel)]="field.tablePageSize">
+                                      <mat-option [value]="5">5</mat-option>
+                                      <mat-option [value]="10">10</mat-option>
+                                      <mat-option [value]="25">25</mat-option>
+                                      <mat-option [value]="50">50</mat-option>
+                                      <mat-option [value]="100">100</mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+                                }
+                              </div>
+                            }
+
+                            <!-- API field types config -->
+                            @if (field.type === 'API_ARRAY' || field.type === 'API_OBJECT_ARRAY' || field.type === 'API_VALUE' || field.type === 'API_OBJECT' || field.type === 'API_LIST' || field.type === 'OBJECT_VIEWER') {
+                              <div class="api-config">
+                                <h4 class="config-section-title">
+                                  <mat-icon>api</mat-icon>
+                                  API Configuration
+                                </h4>
+
+                                @if (field.type === 'API_ARRAY' || field.type === 'API_OBJECT_ARRAY') {
+                                  <div class="api-show-toggle">
+                                    <mat-slide-toggle [(ngModel)]="field.apiShowInForm" color="primary">
+                                      Show in form
+                                    </mat-slide-toggle>
+                                    <span class="toggle-hint">
+                                      @if (field.apiShowInForm) {
+                                        Displays its own control in the form
+                                      } @else {
+                                        Hidden — acts as a data source for other fields (e.g. Table)
+                                      }
+                                    </span>
+                                  </div>
+                                }
+
+                                <div class="form-row">
+                                  <mat-form-field appearance="outline" class="form-field" style="flex: 2">
+                                    <mat-label>API URL</mat-label>
+                                    <input matInput [(ngModel)]="field.apiUrl" placeholder="https://api.example.com/data" required>
+                                    <mat-hint>The endpoint URL to fetch data from</mat-hint>
+                                  </mat-form-field>
+
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>HTTP Method</mat-label>
+                                    <mat-select [(ngModel)]="field.apiMethod">
+                                      <mat-option value="GET">GET</mat-option>
+                                      <mat-option value="POST">POST</mat-option>
+                                      <mat-option value="PUT">PUT</mat-option>
+                                      <mat-option value="DELETE">DELETE</mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+                                </div>
+
+                                <div class="form-row">
+                                  <mat-form-field appearance="outline" class="form-field">
+                                    <mat-label>Authentication Type</mat-label>
+                                    <mat-select [(ngModel)]="field.apiAuthType">
+                                      <mat-option value="NONE">None</mat-option>
+                                      <mat-option value="BASIC">Basic Auth</mat-option>
+                                      <mat-option value="BEARER">Bearer Token (JWT)</mat-option>
+                                      <mat-option value="API_KEY">API Key</mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+
+                                  @if (field.apiAuthType && field.apiAuthType !== 'NONE') {
+                                    <mat-form-field appearance="outline" class="form-field" style="flex: 2">
+                                      <mat-label>
+                                        @switch (field.apiAuthType) {
+                                          @case ('BASIC') { Base64 Credentials (user:pass) }
+                                          @case ('BEARER') { Bearer Token }
+                                          @case ('API_KEY') { Header:Value (e.g. X-API-Key:abc123) }
+                                        }
+                                      </mat-label>
+                                      <input matInput [(ngModel)]="field.apiAuthValue" type="password">
+                                      <mat-hint>
+                                        @switch (field.apiAuthType) {
+                                          @case ('BASIC') { Base64 encoded username:password }
+                                          @case ('BEARER') { JWT or OAuth token }
+                                          @case ('API_KEY') { Format: HeaderName:Value }
+                                        }
+                                      </mat-hint>
+                                    </mat-form-field>
+                                  }
+                                </div>
+
+                                <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-label>Response Path</mat-label>
+                                  <input matInput [(ngModel)]="field.apiResponsePath" placeholder="data.results">
+                                  <mat-hint>Dot notation path to extract data (e.g. data.items, response.results)</mat-hint>
+                                </mat-form-field>
+
+                                @if (field.apiMethod === 'POST' || field.apiMethod === 'PUT') {
+                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                    <mat-label>Request Body (JSON)</mat-label>
+                                    <textarea matInput [(ngModel)]="field.apiBody" rows="3" placeholder='{"key": "value"}'></textarea>
+                                    <mat-hint>JSON body to send with the request</mat-hint>
+                                  </mat-form-field>
+                                }
+
+                                <!-- Parameters -->
+                                <div class="api-headers-section">
+                                  <div class="columns-header">
+                                    <span class="columns-title">Parameters</span>
+                                    <button mat-stroked-button matTooltip="Add Parameter" type="button" (click)="addApiParam(field)" class="add-column-btn">
+                                      <mat-icon>add</mat-icon> Add Parameter
+                                    </button>
+                                  </div>
+                                  @for (param of getApiParams(field); track $index; let i = $index) {
+                                    <div class="column-row">
+                                      <mat-form-field appearance="outline" class="col-type-field">
+                                        <mat-label>Type</mat-label>
+                                        <mat-select [(ngModel)]="param.type">
+                                          <mat-option value="QUERY">
+                                            <mat-icon class="param-type-icon">search</mat-icon> Query
+                                          </mat-option>
+                                          <mat-option value="PATH">
+                                            <mat-icon class="param-type-icon">route</mat-icon> Path
+                                          </mat-option>
+                                          <mat-option value="BODY">
+                                            <mat-icon class="param-type-icon">data_object</mat-icon> Body
+                                          </mat-option>
+                                          <mat-option value="HEADER">
+                                            <mat-icon class="param-type-icon">title</mat-icon> Header
+                                          </mat-option>
+                                        </mat-select>
+                                      </mat-form-field>
+                                      <mat-form-field appearance="outline" class="col-name-field">
+                                        <mat-label>Name</mat-label>
+                                        <input matInput [(ngModel)]="param.key" [placeholder]="param.type === 'PATH' ? 'e.g. id, userId' : 'e.g. page, limit'">
+                                      </mat-form-field>
+                                      <mat-form-field appearance="outline" class="col-label-field">
+                                        <mat-label>Value</mat-label>
+                                        <input matInput [(ngModel)]="param.value" [placeholder]="param.type === 'PATH' ? 'e.g. 123' : 'e.g. 1, active'">
+                                      </mat-form-field>
+                                      <button mat-icon-button matTooltip="Remove" color="warn" (click)="removeApiParam(field, i)">
+                                        <mat-icon>delete</mat-icon>
+                                      </button>
+                                    </div>
+                                    @if (param.type === 'PATH') {
+                                      <div class="param-hint">
+                                        <mat-icon>info</mat-icon>
+                                        Use <code>{{"{"}}{{ param.key || 'name' }}{{"}" }}</code> or <code>:{{ param.key || 'name' }}</code> in the URL to mark the placeholder
+                                      </div>
+                                    }
+                                  }
+                                </div>
+
+                                <!-- Custom Headers -->
+                                <div class="api-headers-section">
+                                  <div class="columns-header">
+                                    <span class="columns-title">Custom Headers</span>
+                                    <button mat-stroked-button matTooltip="Add Header" type="button" (click)="addApiHeader(field)" class="add-column-btn">
+                                      <mat-icon>add</mat-icon> Add Header
+                                    </button>
+                                  </div>
+                                  @for (header of getApiHeaders(field); track $index; let i = $index) {
+                                    <div class="column-row">
+                                      <mat-form-field appearance="outline" class="col-name-field">
+                                        <mat-label>Header Name</mat-label>
+                                        <input matInput [(ngModel)]="header.key" placeholder="Content-Type">
+                                      </mat-form-field>
+                                      <mat-form-field appearance="outline" class="col-label-field">
+                                        <mat-label>Header Value</mat-label>
+                                        <input matInput [(ngModel)]="header.value" placeholder="application/json">
+                                      </mat-form-field>
+                                      <button mat-icon-button matTooltip="Remove" color="warn" (click)="removeApiHeader(field, i)">
+                                        <mat-icon>delete</mat-icon>
+                                      </button>
+                                    </div>
+                                  }
+                                </div>
+                              </div>
+                            }
+
                             <!-- TABLE field specific config -->
                             @if (field.type === 'TABLE') {
                               <div class="table-config">
@@ -989,6 +1310,23 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                   <mat-icon>table_chart</mat-icon>
                                   Table Configuration
                                 </h4>
+
+                                <!-- Data Source -->
+                                <div class="form-row">
+                                  <mat-form-field appearance="outline" class="form-field full-width">
+                                    <mat-label>Data Source</mat-label>
+                                    <mat-select [(ngModel)]="field.tableDataSource">
+                                      <mat-option [value]="''">Manual Entry (no data source)</mat-option>
+                                      @for (apiField of getApiArrayFields(); track apiField.name) {
+                                        <mat-option [value]="apiField.name">
+                                          <mat-icon>{{ apiField.type === 'API_OBJECT_ARRAY' ? 'data_object' : 'api' }}</mat-icon>
+                                          {{ apiField.label || apiField.name }} ({{ apiField.type === 'API_OBJECT_ARRAY' ? 'Object Array' : 'Array' }})
+                                        </mat-option>
+                                      }
+                                    </mat-select>
+                                    <mat-hint>Optionally populate this table from an API Object Array field</mat-hint>
+                                  </mat-form-field>
+                                </div>
 
                                 <!-- Column definitions -->
                                 <div class="columns-section">
@@ -1068,12 +1406,36 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 <!-- Styling options -->
                                 <div class="table-styling">
                                   <mat-checkbox [(ngModel)]="field.tableStriped">
-                                    Striped rows (alternating background)
+                                    Striped rows
                                   </mat-checkbox>
                                   <mat-checkbox [(ngModel)]="field.tableBordered">
-                                    Show cell borders
+                                    Cell borders
+                                  </mat-checkbox>
+                                  <mat-checkbox [(ngModel)]="field.tableResizable">
+                                    Resizable columns
+                                  </mat-checkbox>
+                                  <mat-checkbox [(ngModel)]="field.tableSearchable">
+                                    Global search
+                                  </mat-checkbox>
+                                  <mat-checkbox [(ngModel)]="field.tableFilterable">
+                                    Column filters
+                                  </mat-checkbox>
+                                  <mat-checkbox [(ngModel)]="field.tablePageable">
+                                    Pagination
                                   </mat-checkbox>
                                 </div>
+                                @if (field.tablePageable) {
+                                  <mat-form-field appearance="outline" class="form-field" style="max-width: 200px; margin-top: 8px;">
+                                    <mat-label>Page Size</mat-label>
+                                    <mat-select [(ngModel)]="field.tablePageSize">
+                                      <mat-option [value]="5">5 rows</mat-option>
+                                      <mat-option [value]="10">10 rows</mat-option>
+                                      <mat-option [value]="15">15 rows</mat-option>
+                                      <mat-option [value]="25">25 rows</mat-option>
+                                      <mat-option [value]="50">50 rows</mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+                                }
                               </div>
                             }
 
@@ -1297,7 +1659,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                             }
 
                             <div class="field-actions">
-                              <button mat-button matTooltip="Remove" color="warn" (click)="removeField(i)">
+                              <button mat-button matTooltip="Remove" color="warn" (click)="removeField(field)">
                                 <mat-icon>delete</mat-icon>
                                 Remove
                               </button>
@@ -1412,14 +1774,14 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
           </div>
         </mat-tab>
 
-        <!-- Access Restrictions Tab -->
-        <mat-tab label="Access Restrictions">
+        <!-- Access Tab -->
+        <mat-tab label="Access">
           <div class="tab-content">
             <mat-card>
               <mat-card-header>
                 <mat-card-title>
                   <mat-icon>lock</mat-icon>
-                  Access Restrictions
+                  Access
                 </mat-card-title>
               </mat-card-header>
               <mat-card-content>
@@ -1515,6 +1877,124 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
             </mat-card>
           </div>
         </mat-tab>
+
+        <!-- Reminders Tab -->
+        <mat-tab label="Reminders">
+          <div class="tab-content">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>notifications_active</mat-icon>
+                  Approval Reminders
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <form [formGroup]="basicForm">
+                  <div class="reminder-section">
+                    <h4>Reminder Settings</h4>
+                    <div class="access-info">
+                      <mat-icon>info</mat-icon>
+                      <p>Configure automatic email reminders for pending approvals. Reminders are sent to approvers at the current level who have not yet acted.</p>
+                    </div>
+
+                    <div class="form-row">
+                      <mat-slide-toggle formControlName="reminderEnabled" color="primary">
+                        Enable Approval Reminders
+                      </mat-slide-toggle>
+                    </div>
+
+                    @if (basicForm.get('reminderEnabled')?.value) {
+                      <div class="form-row">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Start Reminders After (hours)</mat-label>
+                          <input matInput type="number" formControlName="reminderStartAfterHours" min="1">
+                          <mat-hint>Hours after submission before the first reminder is sent</mat-hint>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Reminder Frequency (hours)</mat-label>
+                          <input matInput type="number" formControlName="reminderFrequencyHours" min="1">
+                          <mat-hint>Hours between each subsequent reminder</mat-hint>
+                        </mat-form-field>
+                      </div>
+
+                      <div class="form-row">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Maximum Reminders</mat-label>
+                          <input matInput type="number" formControlName="reminderMaxCount" min="1" max="20">
+                          <mat-hint>Maximum number of reminders per pending approval</mat-hint>
+                        </mat-form-field>
+
+                        <div class="form-field" style="display: flex; align-items: center;">
+                          <mat-slide-toggle formControlName="reminderIncludeSubmitter" color="primary">
+                            Also Notify Submitter
+                          </mat-slide-toggle>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <mat-divider style="margin: 24px 0;"></mat-divider>
+
+                  <div class="reminder-section">
+                    <h4>Escalation</h4>
+                    <div class="access-info">
+                      <mat-icon>info</mat-icon>
+                      <p>Automatically escalate if an approval remains pending beyond the configured time. Escalation occurs after all reminders are exhausted.</p>
+                    </div>
+
+                    <div class="form-row">
+                      <mat-slide-toggle formControlName="escalationEnabled" color="warn">
+                        Enable Auto-Escalation
+                      </mat-slide-toggle>
+                    </div>
+
+                    @if (basicForm.get('escalationEnabled')?.value) {
+                      <div class="form-row">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Escalate After (hours)</mat-label>
+                          <input matInput type="number" formControlName="escalationAfterHours" min="1">
+                          <mat-hint>Hours after submission before escalation triggers</mat-hint>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Escalation Action</mat-label>
+                          <mat-select formControlName="escalationAction">
+                            <mat-option value="NOTIFY_ADMIN">Notify Admin</mat-option>
+                            <mat-option value="AUTO_APPROVE">Auto-Approve</mat-option>
+                            <mat-option value="REASSIGN_NEXT_LEVEL">Reassign to Next Level</mat-option>
+                          </mat-select>
+                          <mat-hint>Action to take when escalation triggers</mat-hint>
+                        </mat-form-field>
+                      </div>
+                    }
+                  </div>
+
+                  <mat-divider style="margin: 24px 0;"></mat-divider>
+
+                  <div class="reminder-section">
+                    <h4>Custom Email Template (Optional)</h4>
+                    <div class="access-info">
+                      <mat-icon>info</mat-icon>
+                      <p>Customize the reminder email. Leave blank to use the default template. Use placeholders: {{'{'+'{'}}approverName{{'}'+'}'}} {{'{'+'{'}}workflowName{{'}'+'}'}} {{'{'+'{'}}submitterName{{'}'+'}'}} {{'{'+'{'}}referenceNumber{{'}'+'}'}} {{'{'+'{'}}submittedDate{{'}'+'}'}} </p>
+                    </div>
+
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Email Subject</mat-label>
+                      <input matInput formControlName="reminderEmailSubject" [placeholder]="'Reminder: Pending approval for ' + '{'+'{' + 'workflowName' + '}' + '}'">
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Email Body</mat-label>
+                      <textarea matInput formControlName="reminderEmailBody" rows="5"
+                                [placeholder]="reminderBodyPlaceholder"></textarea>
+                    </mat-form-field>
+                  </div>
+                </form>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
       </mat-tab-group>
     </div>
   `,
@@ -1536,6 +2016,35 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
     }
 
     .tab-content { padding: 1rem 0; }
+
+    ::ng-deep .mat-mdc-tab {
+      min-width: 0 !important;
+      padding: 0 12px !important;
+      font-size: 13px;
+    }
+
+    .sql-col-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+
+    .sql-col-row .form-field { flex: 1; }
+
+    .config-hint {
+      font-size: 12px;
+      color: #666;
+      margin: 0 0 12px;
+    }
+
+    .reminder-section h4 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .full-width { width: 100%; }
 
     .form-row {
       display: flex;
@@ -2231,6 +2740,71 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       text-decoration: underline;
     }
 
+    .param-hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #1976d2;
+      margin: -8px 0 8px 0;
+      padding: 4px 8px;
+    }
+
+    .param-hint code {
+      background: #e3f2fd;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85em;
+    }
+
+    .param-hint mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    :host-context(.dark-mode) .param-hint {
+      color: #90caf9;
+    }
+
+    :host-context(.dark-mode) .param-hint code {
+      background: #1a3a5c;
+    }
+
+    .api-show-toggle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      background: #f0f4ff;
+      border-radius: 8px;
+      border: 1px solid #c5cae9;
+    }
+
+    .toggle-hint {
+      font-size: 0.8rem;
+      color: #666;
+      font-style: italic;
+    }
+
+    :host-context(.dark-mode) .api-show-toggle {
+      background: #1a2744;
+      border-color: #3949ab;
+    }
+
+    :host-context(.dark-mode) .toggle-hint {
+      color: #aaa;
+    }
+
+    .param-type-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      margin-right: 4px;
+    }
+
     /* TABLE field configuration styles */
     .table-config {
       margin-top: 1rem;
@@ -2669,6 +3243,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   loading = false;
   workflowId: string | null = null;
   workflowName: string = '';  // Store workflow name for header display
+  reminderBodyPlaceholder = 'Dear {{approverName}}, you have a pending approval for {{workflowName}} (Ref: {{referenceNumber}}) submitted by {{submitterName}} on {{submittedDate}}.';
   formId: string | null = null;  // Track the main form ID
   private destroy$ = new Subject<void>();
 
@@ -2680,6 +3255,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
 
   workflowTypes: any[] = [];
   availableParentWorkflows: Workflow[] = [];
+  selectedStampName: string = '';
   users: User[] = [];
   roles: Role[] = [];
   privileges: Privilege[] = [];
@@ -2735,11 +3311,18 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { value: 'TABLE', label: 'Table/Grid', icon: 'table_chart' },
     { value: 'USER', label: 'User Select', icon: 'person_search' },
     { value: 'SQL_OBJECT', label: 'SQL Object', icon: 'storage', description: 'Dynamic options from SQL Object tables' },
+    { value: 'SQL_TABLE', label: 'SQL Table', icon: 'grid_on', description: 'Execute SQL query and display results as a read-only table' },
     { value: 'ACCORDION', label: 'Accordion', icon: 'view_agenda', description: 'Container for collapsible panels' },
     { value: 'COLLAPSIBLE', label: 'Collapsible', icon: 'expand_more', description: 'Collapsible panel for grouping fields' },
     { value: 'HIDDEN', label: 'Hidden Field', icon: 'visibility_off' },
     { value: 'LABEL', label: 'Label/Text', icon: 'label' },
-    { value: 'DIVIDER', label: 'Divider', icon: 'horizontal_rule' }
+    { value: 'DIVIDER', label: 'Divider', icon: 'horizontal_rule' },
+    { value: 'API_ARRAY', label: 'API Array', icon: 'api', description: 'Fetch an array of values from an API' },
+    { value: 'API_OBJECT_ARRAY', label: 'API Object Array', icon: 'data_object', description: 'Fetch an array of objects from an API' },
+    { value: 'API_VALUE', label: 'API Value', icon: 'output', description: 'Fetch a single value from an API' },
+    { value: 'API_OBJECT', label: 'API Object', icon: 'dataset', description: 'Fetch an object from an API' },
+    { value: 'API_LIST', label: 'API List', icon: 'list_alt', description: 'Fetch a list of values/objects from an API' },
+    { value: 'OBJECT_VIEWER', label: 'Object Viewer', icon: 'account_tree', description: 'View nested JSON objects with expand/collapse' }
   ];
 
   // View types for SQL_OBJECT field
@@ -2949,6 +3532,18 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   ];
 
   // Other Functions
+  sqlFunctions = [
+    { name: 'SQL_LOOKUP(table, col, where, val)', description: 'Look up a single value from an SQL Object table', syntax: 'SQL_LOOKUP("employees", "email", "emp_id", "E001")' },
+    { name: 'SQL_QUERY(table, cols, where, val)', description: 'Query rows from an SQL Object table', syntax: 'SQL_QUERY("employees", "name, email", "department", "IT")' },
+    { name: 'SQL_COUNT(table, where, val)', description: 'Count rows in an SQL Object table', syntax: 'SQL_COUNT("employees", "department", "IT")' },
+    { name: 'SQL_SUM(table, col, where, val)', description: 'Sum a numeric column in an SQL Object table', syntax: 'SQL_SUM("orders", "amount", "status", "completed")' },
+    { name: 'SQL_AVG(table, col, where, val)', description: 'Average a numeric column in an SQL Object table', syntax: 'SQL_AVG("products", "price", "category", "Electronics")' },
+    { name: 'SQL_MIN(table, col, where, val)', description: 'Get minimum value from an SQL Object table', syntax: 'SQL_MIN("products", "price")' },
+    { name: 'SQL_MAX(table, col, where, val)', description: 'Get maximum value from an SQL Object table', syntax: 'SQL_MAX("products", "price")' },
+    { name: 'SQL_DISTINCT(table, col, where, val)', description: 'Get distinct values from an SQL Object table column', syntax: 'SQL_DISTINCT("employees", "department")' },
+    { name: 'SQL_EXISTS(table, where, val)', description: 'Check if a row exists in an SQL Object table', syntax: 'SQL_EXISTS("employees", "emp_id", "E001")' }
+  ];
+
   otherFunctions = [
     { name: 'ARRAY_LENGTH(field)', description: 'Get length of array', syntax: 'ARRAY_LENGTH(arrayField)' },
     { name: 'ARRAY_FIRST(field)', description: 'Get first element of array', syntax: 'ARRAY_FIRST(arrayField)' },
@@ -2974,6 +3569,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private departmentService: DepartmentService,
     private sqlObjectService: SqlObjectService,
+    private settingService: SettingService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
@@ -2987,9 +3583,12 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       workflowTypeId: [null],
       workflowCategory: ['NON_FINANCIAL'],
       parentWorkflowId: [null],
+      stampId: [null],
       isActive: [true],
       showSummary: [false],
       showApprovalMatrix: [false],
+      lockApproved: [false],
+      lockChildOnParentApproval: [false],
       commentsMandatory: [false],
       commentsMandatoryOnReject: [true],
       commentsMandatoryOnEscalate: [true],
@@ -2998,7 +3597,17 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       branchIds: [[]],
       departmentIds: [[]],
       roleIds: [[]],
-      privilegeIds: [[]]
+      privilegeIds: [[]],
+      reminderEnabled: [false],
+      reminderFrequencyHours: [24],
+      reminderMaxCount: [3],
+      reminderStartAfterHours: [24],
+      escalationEnabled: [false],
+      escalationAfterHours: [72],
+      escalationAction: ['NOTIFY_ADMIN'],
+      reminderIncludeSubmitter: [false],
+      reminderEmailSubject: [''],
+      reminderEmailBody: ['']
     });
   }
 
@@ -3026,6 +3635,22 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           this.loadWorkflow();
         } else {
           this.isEdit = false;
+          // Inherit defaults from workflow settings for new workflows
+          forkJoin({
+            commentsMandatory: this.settingService.getSettingValue('workflow.comments.mandatory'),
+            commentsMandatoryOnReject: this.settingService.getSettingValue('workflow.comments.mandatory.reject'),
+            commentsMandatoryOnEscalate: this.settingService.getSettingValue('workflow.comments.mandatory.escalate'),
+            showSummary: this.settingService.getSettingValue('workflow.show.summary'),
+            showApprovalMatrix: this.settingService.getSettingValue('workflow.email.show.approval.matrix')
+          }).subscribe((results: any) => {
+            const patch: any = {};
+            if (results.commentsMandatory?.success) patch.commentsMandatory = results.commentsMandatory.data === 'true';
+            if (results.commentsMandatoryOnReject?.success) patch.commentsMandatoryOnReject = results.commentsMandatoryOnReject.data === 'true';
+            if (results.commentsMandatoryOnEscalate?.success) patch.commentsMandatoryOnEscalate = results.commentsMandatoryOnEscalate.data === 'true';
+            if (results.showSummary?.success) patch.showSummary = results.showSummary.data === 'true';
+            if (results.showApprovalMatrix?.success) patch.showApprovalMatrix = results.showApprovalMatrix.data === 'true';
+            this.basicForm.patchValue(patch);
+          });
         }
       }
     });
@@ -3072,6 +3697,28 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         this.workflowTypes = res.data;
       }
     });
+  }
+
+  openSealPicker() {
+    const dialogRef = this.dialog.open(StampSelectorDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh'
+    });
+    dialogRef.afterClosed().subscribe((stamp: StampDTO | null | undefined) => {
+      if (stamp === null) {
+        // Clear selection clicked
+        this.basicForm.patchValue({ stampId: null });
+        this.selectedStampName = '';
+      } else if (stamp) {
+        this.basicForm.patchValue({ stampId: stamp.id });
+        this.selectedStampName = stamp.name;
+      }
+    });
+  }
+
+  clearSeal() {
+    this.basicForm.patchValue({ stampId: null });
+    this.selectedStampName = '';
   }
 
   loadAvailableParentWorkflows() {
@@ -3312,13 +3959,25 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           commentsMandatoryOnEscalate: workflow.commentsMandatoryOnEscalate ?? true,
           workflowCategory: workflow.workflowCategory || 'NON_FINANCIAL',
           parentWorkflowId: workflow.parentWorkflowId || null,
+          stampId: workflow.stampId || null,
           corporateIds: workflow.corporateIds || [],
           sbuIds: workflow.sbuIds || [],
           branchIds: workflow.branchIds || [],
           departmentIds: workflow.departmentIds || [],
           roleIds: workflow.roleIds || [],
-          privilegeIds: workflow.privilegeIds || []
+          privilegeIds: workflow.privilegeIds || [],
+          reminderEnabled: workflow.reminderEnabled ?? false,
+          reminderFrequencyHours: workflow.reminderFrequencyHours ?? 24,
+          reminderMaxCount: workflow.reminderMaxCount ?? 3,
+          reminderStartAfterHours: workflow.reminderStartAfterHours ?? 24,
+          escalationEnabled: workflow.escalationEnabled ?? false,
+          escalationAfterHours: workflow.escalationAfterHours ?? 72,
+          escalationAction: workflow.escalationAction ?? 'NOTIFY_ADMIN',
+          reminderIncludeSubmitter: workflow.reminderIncludeSubmitter ?? false,
+          reminderEmailSubject: workflow.reminderEmailSubject || '',
+          reminderEmailBody: workflow.reminderEmailBody || ''
         });
+        this.selectedStampName = workflow.stampName || '';
 
         // Apply cascading filters after loading workflow data
         setTimeout(() => {
@@ -3343,7 +4002,11 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
             optionsText: f.options?.map((o: any) => o.value).join('\n') || '',
             optionsLayout: f.optionsLayout || 'vertical',
             // Parse tableColumns JSON string back to array
-            tableColumns: f.tableColumns ? (typeof f.tableColumns === 'string' ? JSON.parse(f.tableColumns) : f.tableColumns) : []
+            tableColumns: f.tableColumns ? (typeof f.tableColumns === 'string' ? JSON.parse(f.tableColumns) : f.tableColumns) : [],
+            // Default apiShowInForm to true for existing API_ARRAY/API_OBJECT_ARRAY fields
+            apiShowInForm: f.apiShowInForm ?? true,
+            // Parse sqlTableColumns JSON string back to array for SQL_TABLE fields
+            sqlTableColumnsDef: f.sqlTableColumns ? (typeof f.sqlTableColumns === 'string' ? (() => { try { return JSON.parse(f.sqlTableColumns); } catch(e) { return null; } })() : f.sqlTableColumns) : null
           })) || [];
           this.fieldGroups = workflow.forms[0].fieldGroups || [];
           this.screens = workflow.forms[0].screens || [];
@@ -3383,7 +4046,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       this.knownFunctions = new Set<string>();
       const allFnArrays = [
         this.validationFunctions, this.stringFunctions, this.numberFunctions,
-        this.dateFunctions, this.booleanFunctions, this.tableFunctions, this.utilityFunctions
+        this.dateFunctions, this.booleanFunctions, this.tableFunctions, this.utilityFunctions,
+        this.sqlFunctions
       ];
       for (const arr of allFnArrays) {
         for (const fn of arr) {
@@ -3523,8 +4187,17 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       ] : undefined,
       tableMinRows: type === 'TABLE' ? 0 : undefined,
       tableMaxRows: type === 'TABLE' ? null : undefined,
-      tableStriped: type === 'TABLE' ? true : undefined,
-      tableBordered: type === 'TABLE' ? true : undefined,
+      tableStriped: (type === 'TABLE' || type === 'SQL_TABLE') ? true : undefined,
+      tableBordered: (type === 'TABLE' || type === 'SQL_TABLE') ? true : undefined,
+      tableResizable: type === 'TABLE' ? false : undefined,
+      tableSearchable: (type === 'TABLE' || type === 'SQL_TABLE') ? false : undefined,
+      tableFilterable: type === 'TABLE' ? false : undefined,
+      tablePageable: (type === 'TABLE' || type === 'SQL_TABLE') ? false : undefined,
+      tablePageSize: (type === 'TABLE' || type === 'SQL_TABLE') ? 10 : undefined,
+      // SQL_TABLE specific defaults
+      sqlQuery: type === 'SQL_TABLE' ? '' : undefined,
+      sqlTableColumns: type === 'SQL_TABLE' ? null : undefined,
+      sqlTableColumnsDef: type === 'SQL_TABLE' ? null : undefined,
       // ACCORDION specific defaults
       accordionAllowMultiple: type === 'ACCORDION' ? false : undefined,
       accordionDefaultOpenIndex: type === 'ACCORDION' ? 0 : undefined,
@@ -3534,13 +4207,22 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       collapsibleTitle: type === 'COLLAPSIBLE' ? '' : undefined,
       collapsibleIcon: type === 'COLLAPSIBLE' ? '' : undefined,
       collapsibleDefaultExpanded: type === 'COLLAPSIBLE' ? false : undefined,
-      parentFieldId: type === 'COLLAPSIBLE' ? null : undefined
+      parentFieldId: type === 'COLLAPSIBLE' ? null : undefined,
+      // API field type defaults
+      apiShowInForm: ['API_ARRAY','API_OBJECT_ARRAY'].includes(type) ? true : undefined,
+      apiUrl: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? '' : undefined,
+      apiMethod: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? 'GET' : undefined,
+      apiAuthType: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? 'NONE' : undefined,
+      apiAuthValue: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? '' : undefined,
+      apiHeaders: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? [] : undefined,
+      apiParams: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? [] : undefined,
+      apiBody: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? '' : undefined,
+      apiResponsePath: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? '' : undefined
     };
     this.fields.push(field);
   }
 
-  removeField(index: number) {
-    const field = this.fields[index];
+  removeField(field: any) {
     const fieldName = field.label || field.name || 'this field';
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -3556,7 +4238,10 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result?.confirmed) {
-        this.fields.splice(index, 1);
+        const index = this.fields.indexOf(field);
+        if (index >= 0) {
+          this.fields.splice(index, 1);
+        }
         this.snackBar.open(`Field "${fieldName}" has been removed. Save the workflow to apply changes.`, 'Close', {
           duration: 4000,
           panelClass: ['info-snackbar']
@@ -3579,6 +4264,14 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     });
   }
 
+  syncSqlTableColumns(field: any): void {
+    if (field.sqlTableColumnsDef && field.sqlTableColumnsDef.length > 0) {
+      field.sqlTableColumns = JSON.stringify(field.sqlTableColumnsDef.filter((c: any) => c.key));
+    } else {
+      field.sqlTableColumns = null;
+    }
+  }
+
   removeTableColumn(field: any, index: number): void {
     if (field.tableColumns && field.tableColumns.length > 1) {
       field.tableColumns.splice(index, 1);
@@ -3590,6 +4283,62 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         panelClass: ['warning-snackbar']
       });
     }
+  }
+
+  getApiHeaders(field: any): {key: string, value: string}[] {
+    if (!field.apiHeaders) return [];
+    if (typeof field.apiHeaders === 'string') {
+      try {
+        field.apiHeaders = JSON.parse(field.apiHeaders);
+      } catch {
+        field.apiHeaders = [];
+      }
+    }
+    return field.apiHeaders;
+  }
+
+  addApiHeader(field: any): void {
+    const headers = this.getApiHeaders(field);
+    headers.push({ key: '', value: '' });
+    field.apiHeaders = headers;
+  }
+
+  removeApiHeader(field: any, index: number): void {
+    const headers = this.getApiHeaders(field);
+    headers.splice(index, 1);
+    field.apiHeaders = headers;
+  }
+
+  getApiParams(field: any): {key: string, value: string, type: string}[] {
+    if (!field.apiParams) return [];
+    if (typeof field.apiParams === 'string') {
+      try {
+        field.apiParams = JSON.parse(field.apiParams);
+      } catch {
+        field.apiParams = [];
+      }
+    }
+    return field.apiParams;
+  }
+
+  addApiParam(field: any): void {
+    const params = this.getApiParams(field);
+    params.push({ key: '', value: '', type: 'QUERY' });
+    field.apiParams = params;
+  }
+
+  removeApiParam(field: any, index: number): void {
+    const params = this.getApiParams(field);
+    params.splice(index, 1);
+    field.apiParams = params;
+  }
+
+  getApiObjectArrayFields(): any[] {
+    return this.fields.filter((f: any) => f.type === 'API_OBJECT_ARRAY');
+  }
+
+  getApiArrayFields(): any[] {
+    return this.fields.filter((f: any) => f.type === 'API_ARRAY' || f.type === 'API_OBJECT_ARRAY');
   }
 
   /**
@@ -3892,6 +4641,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       ...this.booleanFunctions.map(f => ({ ...f, category: 'Boolean/Logic' })),
       ...this.utilityFunctions.map(f => ({ ...f, category: 'Utility' })),
       ...this.tableFunctions.map(f => ({ ...f, category: 'Table' })),
+      ...this.sqlFunctions.map(f => ({ ...f, category: 'SQL' })),
       ...this.otherFunctions.map(f => ({ ...f, category: 'Other' }))
     ];
 
@@ -3957,9 +4707,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
    * Check if a field type supports placeholder text
    */
   hasPlaceholderOption(type: string): boolean {
-    // Field types that support placeholder text (TEXT excluded - view-only field)
     const placeholderTypes = [
-      'TEXTAREA', 'NUMBER', 'CURRENCY', 'EMAIL', 'PHONE', 'URL', 'PASSWORD',
+      'TEXT', 'TEXTAREA', 'NUMBER', 'CURRENCY', 'EMAIL', 'PHONE', 'URL', 'PASSWORD',
       'SELECT', 'MULTISELECT', 'USER', 'BARCODE', 'RICH_TEXT'
     ];
     return placeholderTypes.includes(type);
@@ -4088,8 +4837,31 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   }
 
   removeApprover(index: number) {
-    this.approvers.splice(index, 1);
-    // Don't auto-renumber levels - users set levels manually
+    const approver = this.approvers[index];
+    const approverName = this.getApproverDisplayName(approver) || `Level ${approver.level || index + 1}`;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Remove Approver',
+        message: `Are you sure you want to remove approver "${approverName}"? This will remove this approval level from the workflow.`,
+        confirmText: 'Remove',
+        cancelText: 'Cancel',
+        confirmColor: 'warn',
+        type: 'delete' as ConfirmDialogType
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.approvers.splice(index, 1);
+        // Don't auto-renumber levels - users set levels manually
+        this.snackBar.open(`Approver "${approverName}" has been removed. Save the workflow to apply changes.`, 'Close', {
+          duration: 4000,
+          panelClass: ['info-snackbar']
+        });
+      }
+    });
   }
 
   dropApprover(event: CdkDragDrop<any[]>) {
@@ -4144,6 +4916,11 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       parentFieldId: f.parentFieldId || null,
       // Convert tableColumns array to JSON string for backend storage
       tableColumns: f.tableColumns ? JSON.stringify(f.tableColumns) : null,
+      // Convert sqlTableColumnsDef to JSON string for SQL_TABLE fields
+      sqlTableColumns: f.sqlTableColumnsDef ? JSON.stringify(f.sqlTableColumnsDef.filter((c: any) => c.key)) : f.sqlTableColumns || null,
+      // Convert apiHeaders/apiParams arrays to JSON string for backend storage
+      apiHeaders: f.apiHeaders && Array.isArray(f.apiHeaders) ? JSON.stringify(f.apiHeaders) : f.apiHeaders || null,
+      apiParams: f.apiParams && Array.isArray(f.apiParams) ? JSON.stringify(f.apiParams) : f.apiParams || null,
       options: f.optionsText?.split('\n').filter((o: string) => o.trim()).map((value: string, index: number) => ({
         value: value.trim(),
         label: value.trim(),
@@ -4160,7 +4937,12 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         fieldGroups: this.fieldGroups,
         screens: this.screens
       }],
-      approvers: this.approvers
+      approvers: this.approvers.map(a => ({
+        ...a,
+        // Sync userId from approverId (dropdown value) so backend always gets the current selection
+        userId: a.approverId || a.userId || null,
+        approverId: a.approverId || a.userId || null
+      }))
     };
 
     const request = this.isEdit

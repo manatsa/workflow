@@ -3,9 +3,13 @@ package com.sonar.workflow.service;
 import com.sonar.workflow.dto.SettingDTO;
 import com.sonar.workflow.entity.Setting;
 import com.sonar.workflow.repository.SettingRepository;
+import com.sonar.workflow.security.SuperUserProvider;
 import com.sonar.workflow.util.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,10 +73,14 @@ public class SettingService {
         // Define the desired tab order
         List<String> tabOrder = List.of(
             "General",
-            "Theme Settings",
-            "User Settings",
-            "Workflow Settings",
-            "Mail Settings"
+            "Users",
+            "Theme",
+            "Workflow",
+            "Email",
+            "Projects",
+            "Deadlines",
+            "Leave",
+            "Reports"
         );
 
         // Group settings by tab
@@ -103,8 +111,24 @@ public class SettingService {
         return orderedMap;
     }
 
+    private boolean isModuleToggleKey(String key) {
+        return key != null && key.startsWith("module.") && key.endsWith(".enabled");
+    }
+
+    private boolean isCurrentUserSuper() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getName() != null) {
+            return SuperUserProvider.SUPER_USERNAME.equalsIgnoreCase(auth.getName());
+        }
+        return false;
+    }
+
     @Transactional
     public SettingDTO saveSetting(SettingDTO dto) {
+        if (isModuleToggleKey(dto.getKey()) && !isCurrentUserSuper()) {
+            throw new AccessDeniedException("Only super user can modify module toggle settings");
+        }
+
         Setting setting = settingRepository.findByKey(dto.getKey())
                 .orElse(new Setting());
 
@@ -120,11 +144,19 @@ public class SettingService {
         setting.setIsSystem(dto.getIsSystem() != null ? dto.getIsSystem() : false);
 
         if (dto.getIsEncrypted() != null && dto.getIsEncrypted()) {
-            setting.setValue(encryptionUtil.encrypt(dto.getValue()));
+            // Don't overwrite encrypted values with the masked placeholder
+            if (dto.getValue() != null && !dto.getValue().equals("********")) {
+                setting.setValue(encryptionUtil.encrypt(dto.getValue()));
+            }
             setting.setIsEncrypted(true);
         } else {
-            setting.setValue(dto.getValue());
-            setting.setIsEncrypted(false);
+            // Don't overwrite existing encrypted values if sent back masked
+            if (Boolean.TRUE.equals(setting.getIsEncrypted()) && "********".equals(dto.getValue())) {
+                // Keep existing encrypted value
+            } else {
+                setting.setValue(dto.getValue());
+                setting.setIsEncrypted(false);
+            }
         }
 
         Setting saved = settingRepository.save(setting);
@@ -133,7 +165,15 @@ public class SettingService {
 
     @Transactional
     public List<SettingDTO> saveSettings(List<SettingDTO> settings) {
+        boolean isSuperUser = isCurrentUserSuper();
         return settings.stream()
+                .filter(dto -> {
+                    // Skip module toggle keys for non-super users
+                    if (isModuleToggleKey(dto.getKey()) && !isSuperUser) {
+                        return false;
+                    }
+                    return true;
+                })
                 .map(this::saveSetting)
                 .collect(Collectors.toList());
     }
@@ -163,6 +203,7 @@ public class SettingService {
 
     private SettingDTO toDTO(Setting setting) {
         boolean isEncrypted = Boolean.TRUE.equals(setting.getIsEncrypted());
+        boolean superOnly = isModuleToggleKey(setting.getKey());
         return SettingDTO.builder()
                 .id(setting.getId())
                 .key(setting.getKey())
@@ -178,6 +219,7 @@ public class SettingService {
                 .validationRegex(setting.getValidationRegex())
                 .defaultValue(setting.getDefaultValue())
                 .options(setting.getOptions())
+                .isSuperOnly(superOnly ? true : null)
                 .build();
     }
 }
