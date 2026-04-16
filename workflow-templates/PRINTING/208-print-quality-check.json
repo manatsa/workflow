@@ -1,0 +1,67 @@
+{
+  "_comment": "Print Quality Inspection — inspect and approve print quality before delivery to client.",
+  "name": "Print Quality Inspection",
+  "code": "PQI",
+  "description": "Conduct and approve print quality inspections covering colour accuracy, registration, finishing, and defect assessment before client delivery.",
+  "icon": "verified",
+  "displayOrder": 208,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "PRINTING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{inspectionRef} - @{jobName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 8, "reminderMaxCount": 3, "reminderStartAfterHours": 8,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Job Identification", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Quality Checks", "displayOrder": 1, "icon": "checklist" },
+      { "id": "temp_screen_3", "title": "Defects & Evidence", "displayOrder": 2, "icon": "report_problem" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Job Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Colour & Registration", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Material & Finishing", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Defect Details", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Evidence & Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "inspectionRef", "label": "Inspection Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"PQI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "inspectionDate", "label": "Inspection Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "jobName", "label": "Job Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "printRun", "label": "Print Run Quantity", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "sampleSize", "label": "Sample Size Inspected", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "colourAccuracy", "label": "Colour Accuracy", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "PASS", "label": "Pass - Within Tolerance", "displayOrder": 0 }, { "value": "MARGINAL", "label": "Marginal - Minor Deviation", "displayOrder": 1 }, { "value": "FAIL", "label": "Fail - Out of Tolerance", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "deltaE", "label": "Delta E Value", "fieldType": "NUMBER", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "registrationCheck", "label": "Registration Alignment", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "PASS", "label": "Pass", "displayOrder": 0 }, { "value": "MARGINAL", "label": "Marginal", "displayOrder": 1 }, { "value": "FAIL", "label": "Fail", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "inkDensity", "label": "Ink Density Check", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "PASS", "label": "Pass", "displayOrder": 0 }, { "value": "FAIL", "label": "Fail", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "paperCondition", "label": "Paper / Substrate Condition", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "GOOD", "label": "Good", "displayOrder": 0 }, { "value": "ACCEPTABLE", "label": "Acceptable", "displayOrder": 1 }, { "value": "DAMAGED", "label": "Damaged", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "finishingQuality", "label": "Finishing Quality", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "PASS", "label": "Pass", "displayOrder": 0 }, { "value": "REWORK", "label": "Needs Rework", "displayOrder": 1 }, { "value": "FAIL", "label": "Fail", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "trimAccuracy", "label": "Trim / Cut Accuracy", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "PASS", "label": "Pass", "displayOrder": 0 }, { "value": "FAIL", "label": "Fail", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "bindingCheck", "label": "Binding / Stitching Check", "fieldType": "SELECT", "displayOrder": 17, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "NA", "label": "N/A", "displayOrder": 0 }, { "value": "PASS", "label": "Pass", "displayOrder": 1 }, { "value": "FAIL", "label": "Fail", "displayOrder": 2 } ] },
+      { "name": "defectsFound", "label": "Defects Found", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "defectCount", "label": "Number of Defective Units", "fieldType": "NUMBER", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "defectDescription", "label": "Defect Description", "fieldType": "TEXTAREA", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "overallVerdict", "label": "Overall Verdict", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "APPROVED", "label": "Approved for Delivery", "displayOrder": 0 }, { "value": "REWORK", "label": "Rework Required", "displayOrder": 1 }, { "value": "REJECTED", "label": "Rejected - Reprint", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "samplePhotos", "label": "Sample Photographs", "fieldType": "FILE", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,png,pdf", "maxFileSize": 20971520 },
+      { "name": "inspectionReport", "label": "Detailed Inspection Report", "fieldType": "FILE", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Quality Control Inspector", "approverType": "ROLE", "roleName": "QC_INSPECTOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Production Manager", "approverType": "ROLE", "roleName": "PRODUCTION_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true }
+  ]
+}

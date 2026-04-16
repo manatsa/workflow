@@ -1,0 +1,64 @@
+{
+  "_comment": "New Recipe Development Approval — approve new bakery recipe for trial and production.",
+  "name": "New Recipe Development Approval",
+  "code": "BRD",
+  "description": "Submit and approve new bread, pastry or confectionery recipes through development, tasting and cost analysis stages.",
+  "icon": "menu_book",
+  "displayOrder": 255,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "BAKERY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{recipeRef} - @{recipeName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Recipe Details", "displayOrder": 0, "icon": "menu_book" },
+      { "id": "temp_screen_2", "title": "Ingredients & Method", "displayOrder": 1, "icon": "kitchen" },
+      { "id": "temp_screen_3", "title": "Testing & Documents", "displayOrder": 2, "icon": "science" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Recipe Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Ingredients", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Method & Costing", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Testing Results", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "recipeRef", "label": "Recipe Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"BRD-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "recipeName", "label": "Recipe Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(3)" },
+      { "name": "productCategory", "label": "Product Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "BREAD", "label": "Bread / Rolls", "displayOrder": 0 }, { "value": "PASTRY", "label": "Pastries", "displayOrder": 1 }, { "value": "CAKE", "label": "Cakes", "displayOrder": 2 }, { "value": "COOKIE", "label": "Cookies / Biscuits", "displayOrder": 3 }, { "value": "CONFECTION", "label": "Confectionery", "displayOrder": 4 }, { "value": "SAVOURY", "label": "Savoury Items", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "developmentType", "label": "Development Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "NEW", "label": "Entirely New", "displayOrder": 0 }, { "value": "VARIATION", "label": "Variation of Existing", "displayOrder": 1 }, { "value": "SEASONAL", "label": "Seasonal Special", "displayOrder": 2 }, { "value": "IMPROVEMENT", "label": "Recipe Improvement", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "batchYield", "label": "Batch Yield (units)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "shelfLifeDays", "label": "Expected Shelf Life (days)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "allergenInfo", "label": "Allergen Information", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 7, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "ingredients", "label": "Ingredients List", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"ingredient\",\"label\":\"Ingredient\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"uom\",\"label\":\"UOM\",\"type\":\"SELECT\",\"width\":90,\"options\":[\"g\",\"kg\",\"ml\",\"L\",\"tsp\",\"tbsp\",\"cups\",\"pcs\"],\"required\":true},{\"name\":\"costPerUnit\",\"label\":\"Cost/Unit\",\"type\":\"NUMBER\",\"width\":110},{\"name\":\"lineCost\",\"label\":\"Line Cost\",\"type\":\"NUMBER\",\"width\":110}]", "validation": "MinRows(1, \"At least one ingredient required\")" },
+      { "name": "preparationMethod", "label": "Preparation Method", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(20)" },
+      { "name": "bakingTemperature", "label": "Baking Temperature (C)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(50)" },
+      { "name": "bakingTimeMinutes", "label": "Baking Time (minutes)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "totalIngredientCost", "label": "Total Ingredient Cost", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM_COLUMN(\"ingredients\", \"lineCost\")" },
+      { "name": "costPerUnit", "label": "Cost per Unit", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "DIVIDE(@{totalIngredientCost}, @{batchYield})" },
+      { "name": "tastePanelPassed", "label": "Taste Panel Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{tastePanelPassed} == true, \"Taste panel must pass before approval\")" },
+      { "name": "tastePanelScore", "label": "Taste Panel Score (1-10)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "foodSafetyCleared", "label": "Food Safety Cleared", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{foodSafetyCleared} == true, \"Food safety clearance required\")" },
+      { "name": "trialBatchNotes", "label": "Trial Batch Notes", "fieldType": "TEXTAREA", "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "recipeDocument", "label": "Full Recipe Document", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "trialPhotos", "label": "Trial Batch Photos", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Head Baker / Pastry Chef", "approverType": "ROLE", "roleName": "HEAD_BAKER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Quality Assurance Manager", "approverType": "ROLE", "roleName": "QA_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Bakery Owner / Director", "approverType": "ROLE", "roleName": "BAKERY_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

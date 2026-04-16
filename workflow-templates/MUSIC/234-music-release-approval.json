@@ -1,0 +1,68 @@
+{
+  "_comment": "Music Release / Distribution Approval — approve music releases for distribution to streaming platforms and stores.",
+  "name": "Music Release / Distribution Approval",
+  "code": "MRA",
+  "description": "Review and approve music releases for distribution including metadata verification, artwork approval, rights clearance, and release scheduling.",
+  "icon": "album",
+  "displayOrder": 234,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "MUSIC",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{releaseRef} - @{artistName} - @{releaseTitle}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Artist & Release", "displayOrder": 0, "icon": "album" },
+      { "id": "temp_screen_2", "title": "Track Listing & Rights", "displayOrder": 1, "icon": "queue_music" },
+      { "id": "temp_screen_3", "title": "Distribution & Artwork", "displayOrder": 2, "icon": "cloud_upload" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Artist Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Release Details", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Track Listing", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Rights & Clearances", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Distribution", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Artwork & Assets", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "releaseRef", "label": "Release Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MRA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "artistName", "label": "Artist / Band Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "labelName", "label": "Record Label", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "artistEmail", "label": "Artist / Manager Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "releaseTitle", "label": "Release Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(1)" },
+      { "name": "releaseType", "label": "Release Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "SINGLE", "label": "Single", "displayOrder": 0 }, { "value": "EP", "label": "EP", "displayOrder": 1 }, { "value": "ALBUM", "label": "Album", "displayOrder": 2 }, { "value": "COMPILATION", "label": "Compilation", "displayOrder": 3 }, { "value": "REMIX", "label": "Remix", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "genre", "label": "Primary Genre", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "POP", "label": "Pop", "displayOrder": 0 }, { "value": "ROCK", "label": "Rock", "displayOrder": 1 }, { "value": "HIPHOP", "label": "Hip-Hop / Rap", "displayOrder": 2 }, { "value": "RNB", "label": "R&B / Soul", "displayOrder": 3 }, { "value": "JAZZ", "label": "Jazz", "displayOrder": 4 }, { "value": "ELECTRONIC", "label": "Electronic / EDM", "displayOrder": 5 }, { "value": "AFROBEATS", "label": "Afrobeats", "displayOrder": 6 }, { "value": "GOSPEL", "label": "Gospel", "displayOrder": 7 }, { "value": "CLASSICAL", "label": "Classical", "displayOrder": 8 }, { "value": "OTHER", "label": "Other", "displayOrder": 9 } ], "validation": "Required()" },
+      { "name": "upcBarcode", "label": "UPC / Barcode", "fieldType": "TEXT", "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "trackListing", "label": "Track Listing", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 30, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"trackNo\",\"label\":\"#\",\"type\":\"NUMBER\",\"width\":60,\"required\":true},{\"name\":\"title\",\"label\":\"Track Title\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"duration\",\"label\":\"Duration\",\"type\":\"TEXT\",\"width\":80,\"required\":true},{\"name\":\"isrc\",\"label\":\"ISRC\",\"type\":\"TEXT\",\"width\":140},{\"name\":\"writers\",\"label\":\"Writers\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"explicit\",\"label\":\"Explicit\",\"type\":\"SELECT\",\"width\":80,\"options\":[\"No\",\"Yes\"]}]", "validation": "MinRows(1, \"At least one track required\")" },
+      { "name": "allSamplesCleared", "label": "All Samples Cleared", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{allSamplesCleared} == true, \"All samples must be cleared before release\")" },
+      { "name": "publishingRegistered", "label": "Publishing Registered", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{publishingRegistered} == true, \"Publishing must be registered\")" },
+      { "name": "masterOwner", "label": "Master Recording Owner", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "featuringArtistsCleared", "label": "Featuring Artists Cleared", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "releaseDate", "label": "Target Release Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND DateAfter(\"today\", \"Release date must be in the future\")" },
+      { "name": "distributionPlatforms", "label": "Distribution Platforms", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "ALL", "label": "All Major Platforms", "displayOrder": 0 }, { "value": "STREAMING_ONLY", "label": "Streaming Only", "displayOrder": 1 }, { "value": "DOWNLOAD_ONLY", "label": "Download Only", "displayOrder": 2 }, { "value": "SELECTIVE", "label": "Selective Platforms", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "preSaveEnabled", "label": "Pre-Save Enabled", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "territories", "label": "Release Territories", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "WORLDWIDE", "label": "Worldwide", "displayOrder": 0 }, { "value": "SPECIFIC", "label": "Specific Territories", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "coverArtwork", "label": "Cover Artwork (3000x3000 min)", "fieldType": "FILE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "jpg,jpeg,png,tiff", "maxFileSize": 20971520, "validation": "Required()" },
+      { "name": "masterAudioFiles", "label": "Master Audio Files", "fieldType": "FILE", "isMandatory": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "wav,flac,aiff", "maxFileSize": 524288000, "validation": "Required()" },
+      { "name": "metadataVerified", "label": "All Metadata Verified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "ValidWhen(@{metadataVerified} == true, \"Metadata must be verified before submission\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "A&R Coordinator", "approverType": "ROLE", "roleName": "AR_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Label Manager", "approverType": "ROLE", "roleName": "LABEL_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Music / CEO", "approverType": "ROLE", "roleName": "HEAD_OF_MUSIC", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

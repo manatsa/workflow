@@ -1,0 +1,61 @@
+{
+  "_comment": "CPD Accreditation Application — apply to accredit a training course or event for Continuing Professional Development points.",
+  "name": "CPD Accreditation Application",
+  "code": "CPD",
+  "description": "Submit a training course, seminar or event for CPD accreditation review, allocating points and verifying content meets professional standards.",
+  "icon": "school",
+  "displayOrder": 294,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "ASSOCIATIONS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{cpdRef} - @{courseName} (@{providerName})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Course & Provider", "displayOrder": 0, "icon": "school" },
+      { "id": "temp_screen_2", "title": "Content & Points", "displayOrder": 1, "icon": "stars" },
+      { "id": "temp_screen_3", "title": "Documents", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Provider & Course", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Content & Assessment", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "CPD Points", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Attachments", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "cpdRef", "label": "CPD Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CPD-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "providerName", "label": "Training Provider", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "providerEmail", "label": "Provider Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "courseName", "label": "Course / Event Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "deliveryMode", "label": "Delivery Mode", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "IN_PERSON", "label": "In-Person", "displayOrder": 0 }, { "value": "ONLINE_LIVE", "label": "Online (Live)", "displayOrder": 1 }, { "value": "ONLINE_SELF", "label": "Online (Self-Paced)", "displayOrder": 2 }, { "value": "BLENDED", "label": "Blended", "displayOrder": 3 }, { "value": "CONFERENCE", "label": "Conference / Seminar", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "durationHours", "label": "Duration (hours)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "targetAudience", "label": "Target Audience", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "learningObjectives", "label": "Learning Objectives", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "contentSummary", "label": "Content Summary", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "assessmentIncluded", "label": "Assessment Included", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "assessmentMethod", "label": "Assessment Method", "fieldType": "TEXT", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "visibilityExpression": "@{assessmentIncluded} == true" },
+      { "name": "qualifiedFacilitators", "label": "Facilitator Qualifications Verified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "cpdPointsRequested", "label": "CPD Points Requested", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "cpdPointsAwarded", "label": "CPD Points Awarded", "fieldType": "NUMBER", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "accreditationPeriod", "label": "Accreditation Valid Until", "fieldType": "DATE", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "accreditationFee", "label": "Accreditation Fee", "fieldType": "CURRENCY", "isLimited": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "remarks", "label": "Reviewer Remarks", "fieldType": "TEXTAREA", "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "courseSyllabus", "label": "Course Syllabus / Outline", "fieldType": "FILE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "facilitatorCVs", "label": "Facilitator CVs", "fieldType": "FILE", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 },
+      { "name": "sampleMaterial", "label": "Sample Course Material", "fieldType": "FILE", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,pptx,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "CPD Coordinator", "approverType": "ROLE", "roleName": "CPD_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Standards / Education Committee", "approverType": "ROLE", "roleName": "EDUCATION_COMMITTEE", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Registrar / CEO", "approverType": "ROLE", "roleName": "REGISTRAR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

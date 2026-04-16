@@ -1,0 +1,57 @@
+{
+  "_comment": "Cleaning Chemical / Supplies Requisition — request and approve cleaning chemicals and consumable supplies.",
+  "name": "Cleaning Chemical / Supplies Requisition",
+  "code": "CCR",
+  "description": "Request cleaning chemicals, detergents, consumables, and equipment supplies with safety data sheet verification and budget approval.",
+  "icon": "science",
+  "displayOrder": 211,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "CLEANING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{requisitionRef} - @{siteName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Requisition Details", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Items & Safety", "displayOrder": 1, "icon": "inventory" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Site & Urgency", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Items Requested", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Costing", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Safety & Compliance", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "requisitionRef", "label": "Requisition Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CCR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "siteName", "label": "Site Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "department", "label": "Department / Team", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "urgency", "label": "Urgency", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ROUTINE", "label": "Routine Restock", "displayOrder": 0 }, { "value": "URGENT", "label": "Urgent - Within 48hrs", "displayOrder": 1 }, { "value": "EMERGENCY", "label": "Emergency - Same Day", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "requiredByDate", "label": "Required By Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Required date must be in the future\")" },
+      { "name": "justification", "label": "Justification / Reason", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 6, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(10)" },
+      { "name": "items", "label": "Items Requested", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"itemName\",\"label\":\"Item Name\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"category\",\"label\":\"Category\",\"type\":\"SELECT\",\"width\":140,\"options\":[\"Chemical\",\"Detergent\",\"Disinfectant\",\"Consumable\",\"Equipment\",\"PPE\"],\"required\":true},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":80,\"required\":true},{\"name\":\"uom\",\"label\":\"UOM\",\"type\":\"SELECT\",\"width\":80,\"options\":[\"pcs\",\"litres\",\"kg\",\"boxes\",\"rolls\",\"packs\"],\"required\":true},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":100},{\"name\":\"lineTotal\",\"label\":\"Total\",\"type\":\"NUMBER\",\"width\":100}]", "validation": "MinRows(1, \"At least one item required\")" },
+      { "name": "estimatedTotal", "label": "Estimated Total Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"items\", \"lineTotal\")" },
+      { "name": "budgetCode", "label": "Budget Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "preferredSupplier", "label": "Preferred Supplier", "fieldType": "TEXT", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "sdsAvailable", "label": "Safety Data Sheets Available", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{sdsAvailable} == true, \"Safety Data Sheets must be available for chemical items\")" },
+      { "name": "hazardousGoods", "label": "Contains Hazardous Goods", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "storageRequirements", "label": "Special Storage Requirements", "fieldType": "TEXTAREA", "displayOrder": 16, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "sdsFile", "label": "Safety Data Sheet (SDS)", "fieldType": "FILE", "displayOrder": 17, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Site Supervisor", "approverType": "ROLE", "roleName": "SITE_SUPERVISOR", "amountLimit": 2000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPS_MANAGER", "amountLimit": 10000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Finance Manager", "approverType": "ROLE", "roleName": "FINANCE_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

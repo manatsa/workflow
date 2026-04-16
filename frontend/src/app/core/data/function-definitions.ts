@@ -4267,6 +4267,136 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
     relatedFunctions: ['MinRows']
   },
 
+  'MinFiles': {
+    name: 'MinFiles',
+    syntax: 'MinFiles(n, "message")',
+    category: 'Validation',
+    description: 'File field must have at least n files attached',
+    explanation: 'For FILE fields. Validates that the minimum number of files have been uploaded. Counts both existing and newly selected files.',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Minimum number of files required', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MinFiles(1, "Please attach at least one document")', result: 'Min 1 file', description: 'Require at least one file' }],
+    relatedFunctions: ['MaxFiles', 'Required']
+  },
+
+  'MaxFiles': {
+    name: 'MaxFiles',
+    syntax: 'MaxFiles(n, "message")',
+    category: 'Validation',
+    description: 'File field must have at most n files attached',
+    explanation: 'For FILE fields. Validates that no more than the specified number of files have been uploaded.',
+    parameters: [
+      { name: 'n', type: 'number', description: 'Maximum number of files allowed', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MaxFiles(5)', result: 'Max 5 files', description: 'Limit to 5 files' }],
+    relatedFunctions: ['MinFiles']
+  },
+
+  'FilesRequired': {
+    name: 'FilesRequired',
+    syntax: 'FilesRequired("message")',
+    category: 'Validation',
+    description: 'At least one file must be attached',
+    explanation: 'For FILE fields. Shorthand for MinFiles(1). Validates that the user has attached at least one file.',
+    parameters: [
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'FilesRequired("Please upload your ID document")', result: 'Requires file', description: 'Require at least one upload' }],
+    relatedFunctions: ['MinFiles', 'Required']
+  },
+
+  'FileType': {
+    name: 'FileType',
+    syntax: 'FileType("extensions", "message")',
+    category: 'Validation',
+    description: 'Only allow specific file extensions',
+    explanation: 'For FILE fields. Validates that all uploaded files match the allowed extensions. Extensions are comma-separated and can include or omit the leading dot.',
+    parameters: [
+      { name: 'extensions', type: 'string', description: 'Comma-separated list of allowed extensions (e.g. "pdf,docx,xlsx")', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'FileType("pdf,docx")', result: 'Only PDF and Word', description: 'Allow only PDF and Word files' },
+      { usage: 'FileType("jpg,jpeg,png", "Only image files please")', result: 'Only images', description: 'Allow only image files' }
+    ],
+    relatedFunctions: ['MinFiles', 'MaxFiles']
+  },
+
+  'MaxFileSize': {
+    name: 'MaxFileSize',
+    syntax: 'MaxFileSize(mb, "message")',
+    category: 'Validation',
+    description: 'Maximum size per individual file in MB',
+    explanation: 'For FILE fields. Validates that each uploaded file does not exceed the specified size in megabytes.',
+    parameters: [
+      { name: 'mb', type: 'number', description: 'Maximum file size in megabytes', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MaxFileSize(10, "Each file must be under 10MB")', result: 'Max 10MB each', description: 'Limit individual file size' }],
+    relatedFunctions: ['MinFileSize', 'TotalFileSize']
+  },
+
+  'MinFileSize': {
+    name: 'MinFileSize',
+    syntax: 'MinFileSize(mb, "message")',
+    category: 'Validation',
+    description: 'Minimum size per individual file in MB',
+    explanation: 'For FILE fields. Validates that each uploaded file is at least the specified size. Useful to reject empty or corrupt files.',
+    parameters: [
+      { name: 'mb', type: 'number', description: 'Minimum file size in megabytes (e.g. 0.01 for ~10KB)', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'MinFileSize(0.01, "File appears to be empty")', result: 'Min 10KB', description: 'Reject very small or empty files' }],
+    relatedFunctions: ['MaxFileSize', 'TotalFileSize']
+  },
+
+  'TotalFileSize': {
+    name: 'TotalFileSize',
+    syntax: 'TotalFileSize(mb, "message")',
+    category: 'Validation',
+    description: 'Maximum combined size of all files in MB',
+    explanation: 'For FILE fields. Validates that the total size of all uploaded files combined does not exceed the specified limit.',
+    parameters: [
+      { name: 'mb', type: 'number', description: 'Maximum total size in megabytes', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'TotalFileSize(50, "Total uploads must not exceed 50MB")', result: 'Max 50MB total', description: 'Limit combined upload size' }],
+    relatedFunctions: ['MaxFileSize', 'MinFileSize']
+  },
+
+  'FileNamePattern': {
+    name: 'FileNamePattern',
+    syntax: 'FileNamePattern("regex", "message")',
+    category: 'Validation',
+    description: 'File names must match a regex pattern',
+    explanation: 'For FILE fields. Validates that all uploaded file names match the specified regular expression. Useful for enforcing naming conventions.',
+    parameters: [
+      { name: 'regex', type: 'string', description: 'Regular expression pattern to match file names against', required: true },
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'FileNamePattern("^INV-\\d+", "File must start with INV- followed by numbers")', result: 'Name pattern', description: 'Enforce invoice naming convention' },
+      { usage: 'FileNamePattern("^[A-Z]", "File name must start with uppercase")', result: 'Uppercase start', description: 'Require uppercase first character' }
+    ],
+    relatedFunctions: ['FileType', 'NoDuplicateFiles']
+  },
+
+  'NoDuplicateFiles': {
+    name: 'NoDuplicateFiles',
+    syntax: 'NoDuplicateFiles("message")',
+    category: 'Validation',
+    description: 'No two files can have the same name',
+    explanation: 'For FILE fields. Validates that all uploaded files (including previously uploaded ones) have unique names. Comparison is case-insensitive.',
+    parameters: [
+      { name: 'message', type: 'string', description: 'Custom error message (optional)', required: false }
+    ],
+    examples: [{ usage: 'NoDuplicateFiles("Each file must have a unique name")', result: 'No duplicates', description: 'Prevent duplicate uploads' }],
+    relatedFunctions: ['FileNamePattern', 'MaxFiles']
+  },
+
   'LengthRange': {
     name: 'LengthRange',
     syntax: 'LengthRange(min, max, "message")',

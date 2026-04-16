@@ -1,0 +1,66 @@
+{
+  "_comment": "Cold Chain Compliance Audit — audit and approve cold chain compliance across dairy operations.",
+  "name": "Cold Chain Compliance Audit",
+  "code": "DCA",
+  "description": "Conduct and approve cold chain compliance audits covering storage, transport and retail temperature monitoring for dairy products.",
+  "icon": "ac_unit",
+  "displayOrder": 262,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "DAIRY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{auditRef} - @{facilityName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Audit Details", "displayOrder": 0, "icon": "assignment" },
+      { "id": "temp_screen_2", "title": "Temperature Checks", "displayOrder": 1, "icon": "thermostat" },
+      { "id": "temp_screen_3", "title": "Findings & Documents", "displayOrder": 2, "icon": "checklist" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Facility & Scope", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Temperature Readings", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Equipment Checks", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Findings & Corrective Actions", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "auditRef", "label": "Audit Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"DCA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "auditDate", "label": "Audit Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "facilityName", "label": "Facility / Location", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "auditType", "label": "Audit Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SCHEDULED", "label": "Scheduled", "displayOrder": 0 }, { "value": "UNANNOUNCED", "label": "Unannounced", "displayOrder": 1 }, { "value": "FOLLOW_UP", "label": "Follow-up", "displayOrder": 2 }, { "value": "COMPLAINT", "label": "Complaint-driven", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "auditScope", "label": "Audit Scope", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "STORAGE", "label": "Cold Storage Facility", "displayOrder": 0 }, { "value": "TRANSPORT", "label": "Transport / Distribution", "displayOrder": 1 }, { "value": "RETAIL", "label": "Retail Point", "displayOrder": 2 }, { "value": "PRODUCTION", "label": "Production Floor", "displayOrder": 3 }, { "value": "FULL_CHAIN", "label": "Full Cold Chain", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "auditorName", "label": "Auditor Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "facilityManager", "label": "Facility Manager Present", "fieldType": "TEXT", "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "temperatureReadings", "label": "Temperature Readings", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 30, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"location\",\"label\":\"Location / Zone\",\"type\":\"TEXT\",\"width\":180,\"required\":true},{\"name\":\"equipmentId\",\"label\":\"Equipment ID\",\"type\":\"TEXT\",\"width\":130},{\"name\":\"setTemp\",\"label\":\"Set Temp (C)\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"actualTemp\",\"label\":\"Actual Temp (C)\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"compliant\",\"label\":\"Compliant\",\"type\":\"SELECT\",\"width\":100,\"options\":[\"Yes\",\"No\"],\"required\":true},{\"name\":\"remarks\",\"label\":\"Remarks\",\"type\":\"TEXT\",\"width\":160}]", "validation": "MinRows(1, \"At least one temperature reading required\")" },
+      { "name": "dataLoggersCalibrated", "label": "Data Loggers Calibrated", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "alarmSystemFunctional", "label": "Alarm System Functional", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{alarmSystemFunctional} == true, \"Alarm system must be functional\")" },
+      { "name": "backupPowerAvailable", "label": "Backup Power Available", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "doorSealsCondition", "label": "Door Seals Condition", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "GOOD", "label": "Good", "displayOrder": 0 }, { "value": "FAIR", "label": "Fair – Minor Wear", "displayOrder": 1 }, { "value": "POOR", "label": "Poor – Replacement Needed", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "temperatureRecordsKept", "label": "Temperature Records Up to Date", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "overallCompliance", "label": "Overall Compliance Rating", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "COMPLIANT", "label": "Compliant", "displayOrder": 0 }, { "value": "MINOR_NC", "label": "Minor Non-Conformance", "displayOrder": 1 }, { "value": "MAJOR_NC", "label": "Major Non-Conformance", "displayOrder": 2 }, { "value": "CRITICAL", "label": "Critical Non-Conformance", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "nonConformances", "label": "Non-Conformances Found", "fieldType": "TEXTAREA", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "correctiveActions", "label": "Corrective Actions Required", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "followUpDate", "label": "Follow-up Audit Date", "fieldType": "DATE", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "auditReport", "label": "Audit Report", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "temperatureLogs", "label": "Temperature Logs / Data", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,xls,xlsx,csv", "maxFileSize": 10485760 },
+      { "name": "photos", "label": "Audit Photos", "fieldType": "FILE", "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "QA Auditor", "approverType": "ROLE", "roleName": "QA_AUDITOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Quality Assurance Manager", "approverType": "ROLE", "roleName": "QA_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Plant / Operations Manager", "approverType": "ROLE", "roleName": "PLANT_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

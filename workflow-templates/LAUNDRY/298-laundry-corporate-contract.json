@@ -1,0 +1,64 @@
+{
+  "_comment": "Corporate Laundry Contract — onboard and approve a new corporate laundry service contract.",
+  "name": "Corporate Laundry Contract",
+  "code": "CLC",
+  "description": "Process a new corporate or institutional laundry service contract covering service frequency, pricing, SLAs and delivery logistics.",
+  "icon": "local_laundry_service",
+  "displayOrder": 298,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "LAUNDRY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{contractRef} - @{clientName} (@{serviceType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Client & Service", "displayOrder": 0, "icon": "business" },
+      { "id": "temp_screen_2", "title": "Pricing & Terms", "displayOrder": 1, "icon": "attach_money" },
+      { "id": "temp_screen_3", "title": "Documents", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client & Service", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Pricing", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Contract Terms", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Attachments", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "contractRef", "label": "Contract Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CLC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submitDate", "label": "Submit Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client / Company Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactPerson", "label": "Contact Person", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactEmail", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactPhone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "serviceType", "label": "Service Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "HOTEL", "label": "Hotel Linen", "displayOrder": 0 }, { "value": "HOSPITAL", "label": "Hospital / Healthcare", "displayOrder": 1 }, { "value": "RESTAURANT", "label": "Restaurant / Catering", "displayOrder": 2 }, { "value": "UNIFORM", "label": "Uniform / Workwear", "displayOrder": 3 }, { "value": "SPA", "label": "Spa / Salon Towels", "displayOrder": 4 }, { "value": "INDUSTRIAL", "label": "Industrial Cleaning", "displayOrder": 5 }, { "value": "MIXED", "label": "Mixed", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "frequency", "label": "Collection Frequency", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "DAILY", "label": "Daily", "displayOrder": 0 }, { "value": "3_WEEK", "label": "3x per Week", "displayOrder": 1 }, { "value": "2_WEEK", "label": "2x per Week", "displayOrder": 2 }, { "value": "WEEKLY", "label": "Weekly", "displayOrder": 3 }, { "value": "ON_DEMAND", "label": "On Demand", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "estimatedVolume", "label": "Estimated Monthly Volume (kg)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "deliveryAddress", "label": "Delivery / Collection Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 9, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "priceItems", "label": "Price Schedule", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 20, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"item\",\"label\":\"Item\",\"type\":\"TEXT\",\"width\":180,\"required\":true},{\"name\":\"unit\",\"label\":\"Unit\",\"type\":\"SELECT\",\"width\":90,\"options\":[\"per kg\",\"per piece\",\"per set\",\"flat rate\"],\"required\":true},{\"name\":\"price\",\"label\":\"Price\",\"type\":\"NUMBER\",\"width\":100,\"required\":true}]", "validation": "MinRows(1, \"At least one price item required\")" },
+      { "name": "estimatedMonthlyValue", "label": "Estimated Monthly Value", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "contractStartDate", "label": "Contract Start Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "contractDuration", "label": "Contract Duration", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "3_MONTHS", "label": "3 Months", "displayOrder": 0 }, { "value": "6_MONTHS", "label": "6 Months", "displayOrder": 1 }, { "value": "12_MONTHS", "label": "12 Months", "displayOrder": 2 }, { "value": "24_MONTHS", "label": "24 Months", "displayOrder": 3 }, { "value": "OPEN", "label": "Open-Ended (30-day notice)", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "paymentTerms", "label": "Payment Terms", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "COD", "label": "Cash on Delivery", "displayOrder": 0 }, { "value": "WEEKLY", "label": "Weekly Invoice", "displayOrder": 1 }, { "value": "MONTHLY", "label": "Monthly Invoice", "displayOrder": 2 }, { "value": "NET30", "label": "Net 30 Days", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "turnaroundSLA", "label": "Turnaround SLA (hours)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "contractDocument", "label": "Contract Document", "fieldType": "FILE", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 },
+      { "name": "priceList", "label": "Detailed Price List", "fieldType": "FILE", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Sales Manager", "approverType": "ROLE", "roleName": "SALES_MANAGER", "amountLimit": 20000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPERATIONS_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GENERAL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

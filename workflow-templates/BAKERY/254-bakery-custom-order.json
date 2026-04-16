@@ -1,0 +1,69 @@
+{
+  "_comment": "Custom Cake / Order — process and approve custom bakery orders with specifications and pricing.",
+  "name": "Custom Cake / Order",
+  "code": "BCO",
+  "description": "Capture and approve custom cake or pastry orders with design specifications, dietary requirements and pricing.",
+  "icon": "cake",
+  "displayOrder": 254,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "BAKERY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{orderRef} - @{customerName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Customer & Order", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Design & Specifications", "displayOrder": 1, "icon": "palette" },
+      { "id": "temp_screen_3", "title": "Pricing & Delivery", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Cake Specifications", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Design Details", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Pricing", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Delivery", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Attachments", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "orderRef", "label": "Order Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"BCO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "customerPhone", "label": "Phone Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "customerEmail", "label": "Email Address", "fieldType": "TEXT", "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "occasion", "label": "Occasion", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "BIRTHDAY", "label": "Birthday", "displayOrder": 0 }, { "value": "WEDDING", "label": "Wedding", "displayOrder": 1 }, { "value": "ANNIVERSARY", "label": "Anniversary", "displayOrder": 2 }, { "value": "CORPORATE", "label": "Corporate Event", "displayOrder": 3 }, { "value": "BABY_SHOWER", "label": "Baby Shower", "displayOrder": 4 }, { "value": "GRADUATION", "label": "Graduation", "displayOrder": 5 }, { "value": "OTHER", "label": "Other", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "cakeType", "label": "Cake Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "ROUND", "label": "Round Cake", "displayOrder": 0 }, { "value": "SQUARE", "label": "Square Cake", "displayOrder": 1 }, { "value": "TIERED", "label": "Tiered / Multi-layer", "displayOrder": 2 }, { "value": "CUPCAKES", "label": "Cupcake Set", "displayOrder": 3 }, { "value": "SHEET", "label": "Sheet Cake", "displayOrder": 4 }, { "value": "SCULPTED", "label": "Sculpted / 3D", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "servings", "label": "Number of Servings", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "flavour", "label": "Flavour", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "VANILLA", "label": "Vanilla", "displayOrder": 0 }, { "value": "CHOCOLATE", "label": "Chocolate", "displayOrder": 1 }, { "value": "RED_VELVET", "label": "Red Velvet", "displayOrder": 2 }, { "value": "CARROT", "label": "Carrot", "displayOrder": 3 }, { "value": "LEMON", "label": "Lemon", "displayOrder": 4 }, { "value": "MARBLE", "label": "Marble", "displayOrder": 5 }, { "value": "CUSTOM", "label": "Custom Flavour", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "fillingType", "label": "Filling", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "BUTTERCREAM", "label": "Buttercream", "displayOrder": 0 }, { "value": "GANACHE", "label": "Ganache", "displayOrder": 1 }, { "value": "CREAM_CHEESE", "label": "Cream Cheese", "displayOrder": 2 }, { "value": "FRUIT", "label": "Fruit Compote", "displayOrder": 3 }, { "value": "MOUSSE", "label": "Mousse", "displayOrder": 4 }, { "value": "NONE", "label": "None", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "dietaryRequirements", "label": "Dietary Requirements", "fieldType": "SELECT", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "NONE", "label": "None", "displayOrder": 0 }, { "value": "GLUTEN_FREE", "label": "Gluten Free", "displayOrder": 1 }, { "value": "DAIRY_FREE", "label": "Dairy Free", "displayOrder": 2 }, { "value": "VEGAN", "label": "Vegan", "displayOrder": 3 }, { "value": "NUT_FREE", "label": "Nut Free", "displayOrder": 4 }, { "value": "SUGAR_FREE", "label": "Sugar Free", "displayOrder": 5 } ] },
+      { "name": "allergenWarning", "label": "Allergen Warning", "fieldType": "TEXTAREA", "displayOrder": 15, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "designDescription", "label": "Design Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(10)" },
+      { "name": "inscriptionText", "label": "Inscription / Message", "fieldType": "TEXT", "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "colourScheme", "label": "Colour Scheme", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "basePrice", "label": "Base Price", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "customisationSurcharge", "label": "Customisation Surcharge", "fieldType": "CURRENCY", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "deliveryFee", "label": "Delivery Fee", "fieldType": "CURRENCY", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "totalPrice", "label": "Total Price", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "depositPaid", "label": "Deposit Paid", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "collectionDate", "label": "Collection / Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND DateAfter(\"today\", \"Collection date must be in the future\")" },
+      { "name": "deliveryRequired", "label": "Delivery Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "deliveryAddress", "label": "Delivery Address", "fieldType": "TEXTAREA", "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "referenceImage", "label": "Reference Image / Sketch", "fieldType": "FILE", "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Head Baker", "approverType": "ROLE", "roleName": "HEAD_BAKER", "amountLimit": 2000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Bakery Manager", "approverType": "ROLE", "roleName": "BAKERY_MGR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

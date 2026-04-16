@@ -1,0 +1,60 @@
+{
+  "_comment": "Plate / Die Making Request — request creation of printing plates or dies for a print job.",
+  "name": "Plate / Die Making Request",
+  "code": "PMR",
+  "description": "Request and approve the creation of printing plates, dies, or screens for offset, flexographic, or screen printing jobs.",
+  "icon": "layers",
+  "displayOrder": 207,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "PRINTING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{plateRef} - @{jobName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Request Details", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Technical Specs", "displayOrder": 1, "icon": "build" },
+      { "id": "temp_screen_3", "title": "Artwork & Files", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Job Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Plate / Die Specifications", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Colour Separations", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Artwork Files", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "plateRef", "label": "Plate Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"PMR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "jobName", "label": "Job Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "plateType", "label": "Plate / Die Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CTP", "label": "CTP Plate (Offset)", "displayOrder": 0 }, { "value": "FLEXO_PLATE", "label": "Flexo Plate (Photopolymer)", "displayOrder": 1 }, { "value": "SCREEN_STENCIL", "label": "Screen Stencil", "displayOrder": 2 }, { "value": "DIE_CUT", "label": "Die (Cutting)", "displayOrder": 3 }, { "value": "EMBOSS_DIE", "label": "Embossing Die", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "priority", "label": "Priority", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "STANDARD", "label": "Standard", "displayOrder": 0 }, { "value": "URGENT", "label": "Urgent", "displayOrder": 1 }, { "value": "CRITICAL", "label": "Critical", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "requiredByDate", "label": "Required By Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Required date must be in the future\")" },
+      { "name": "plateSize", "label": "Plate Size (mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "resolution", "label": "Resolution (LPI / DPI)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "screenAngle", "label": "Screen Angle / Ruling", "fieldType": "TEXT", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "dotShape", "label": "Dot Shape", "fieldType": "SELECT", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "ROUND", "label": "Round", "displayOrder": 0 }, { "value": "ELLIPTICAL", "label": "Elliptical", "displayOrder": 1 }, { "value": "SQUARE", "label": "Square", "displayOrder": 2 }, { "value": "STOCHASTIC", "label": "Stochastic (FM)", "displayOrder": 3 } ] },
+      { "name": "numberOfColours", "label": "Number of Colour Separations", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "colourList", "label": "Colour Breakdown", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 15, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "trapping", "label": "Trapping Applied", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "proofApproved", "label": "Proof Approved by Client", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 17, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{proofApproved} == true, \"Client proof approval is required before plate making\")" },
+      { "name": "artworkFile", "label": "Print-Ready Artwork", "fieldType": "FILE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,ai,eps", "maxFileSize": 104857600, "validation": "Required()" },
+      { "name": "proofFile", "label": "Approved Proof", "fieldType": "FILE", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,png", "maxFileSize": 52428800, "validation": "Required()" },
+      { "name": "notes", "label": "Additional Notes", "fieldType": "TEXTAREA", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Pre-Press Technician", "approverType": "ROLE", "roleName": "PREPRESS_TECH", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Production Manager", "approverType": "ROLE", "roleName": "PRODUCTION_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Quality Control Manager", "approverType": "ROLE", "roleName": "QC_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "_comment": "Catch / Landing Report — record and approve fish catch and landing data for regulatory compliance.",
+  "name": "Catch / Landing Report",
+  "code": "FCR",
+  "description": "Record fish catch and landing data including species, quantities, location, vessel details and compliance with quota allocations.",
+  "icon": "phishing",
+  "displayOrder": 263,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "FISHERIES",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{catchRef} - @{vesselName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Voyage & Vessel", "displayOrder": 0, "icon": "sailing" },
+      { "id": "temp_screen_2", "title": "Catch Data", "displayOrder": 1, "icon": "phishing" },
+      { "id": "temp_screen_3", "title": "Landing & Documents", "displayOrder": 2, "icon": "anchor" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Vessel & Voyage", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Catch Details", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Totals & Compliance", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Landing Details", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "catchRef", "label": "Catch Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FCR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "vesselName", "label": "Vessel Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "vesselRegistration", "label": "Vessel Registration Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "skipper", "label": "Skipper / Captain", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "crewCount", "label": "Crew Count", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "departureDate", "label": "Departure Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "returnDate", "label": "Return Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "fishingZone", "label": "Fishing Zone / Area", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ZONE_A", "label": "Zone A – Coastal", "displayOrder": 0 }, { "value": "ZONE_B", "label": "Zone B – Inshore", "displayOrder": 1 }, { "value": "ZONE_C", "label": "Zone C – Offshore", "displayOrder": 2 }, { "value": "ZONE_D", "label": "Zone D – Deep Sea", "displayOrder": 3 }, { "value": "EEZ", "label": "Exclusive Economic Zone", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "gearType", "label": "Gear Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 9, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "TRAWL", "label": "Trawl Net", "displayOrder": 0 }, { "value": "PURSE_SEINE", "label": "Purse Seine", "displayOrder": 1 }, { "value": "LONGLINE", "label": "Longline", "displayOrder": 2 }, { "value": "GILLNET", "label": "Gill Net", "displayOrder": 3 }, { "value": "POT_TRAP", "label": "Pot / Trap", "displayOrder": 4 }, { "value": "HANDLINE", "label": "Handline / Rod", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "catchItems", "label": "Catch by Species", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 30, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"species\",\"label\":\"Species\",\"type\":\"TEXT\",\"width\":180,\"required\":true},{\"name\":\"faoCode\",\"label\":\"FAO Code\",\"type\":\"TEXT\",\"width\":100},{\"name\":\"weightKg\",\"label\":\"Weight (kg)\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"quantity\",\"label\":\"Count\",\"type\":\"NUMBER\",\"width\":90},{\"name\":\"condition\",\"label\":\"Condition\",\"type\":\"SELECT\",\"width\":110,\"options\":[\"Fresh\",\"Frozen\",\"Damaged\",\"Bycatch\"],\"required\":true},{\"name\":\"presentation\",\"label\":\"Presentation\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"Whole\",\"Gutted\",\"Headed\",\"Filleted\"]}]", "validation": "MinRows(1, \"At least one species required\")" },
+      { "name": "totalCatchKg", "label": "Total Catch (kg)", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM_COLUMN(\"catchItems\", \"weightKg\")" },
+      { "name": "bycatchKg", "label": "Bycatch Weight (kg)", "fieldType": "NUMBER", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "discardedKg", "label": "Discarded Weight (kg)", "fieldType": "NUMBER", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "withinQuota", "label": "Within Quota Allocation", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{withinQuota} == true, \"Catch must be within quota allocation\")" },
+      { "name": "landingPort", "label": "Landing Port", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "landingDateTime", "label": "Landing Date & Time", "fieldType": "DATE", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "inspectorPresent", "label": "Inspector Present at Landing", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "storageMethod", "label": "Storage Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "ICE", "label": "Iced", "displayOrder": 0 }, { "value": "FROZEN", "label": "Frozen at Sea", "displayOrder": 1 }, { "value": "CHILLED", "label": "Chilled", "displayOrder": 2 }, { "value": "LIVE", "label": "Live Tank", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "logbook", "label": "Fishing Logbook / E-logbook", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "landingPhotos", "label": "Landing Photos", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Harbour Master / Landing Officer", "approverType": "ROLE", "roleName": "HARBOUR_MASTER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Fisheries Compliance Officer", "approverType": "ROLE", "roleName": "COMPLIANCE_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Fisheries Director", "approverType": "ROLE", "roleName": "FISHERIES_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

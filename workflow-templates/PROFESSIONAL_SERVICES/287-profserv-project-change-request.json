@@ -1,0 +1,56 @@
+{
+  "_comment": "Project Change Request — request and approve a scope, timeline or fee change on an active engagement.",
+  "name": "Project Change Request",
+  "code": "PCR",
+  "description": "Submit a change request for an active client engagement covering scope changes, timeline extensions or fee adjustments requiring client and management approval.",
+  "icon": "swap_horiz",
+  "displayOrder": 287,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "PROFESSIONAL_SERVICES",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{changeRef} - @{clientName} (@{changeType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Change Details", "displayOrder": 0, "icon": "swap_horiz" },
+      { "id": "temp_screen_2", "title": "Impact & Justification", "displayOrder": 1, "icon": "assessment" },
+      { "id": "temp_screen_3", "title": "Documents", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Engagement & Change", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Impact Analysis", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Justification", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Attachments", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "changeRef", "label": "Change Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"PCR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "engagementRef", "label": "Original Engagement Ref", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "changeType", "label": "Change Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SCOPE", "label": "Scope Change", "displayOrder": 0 }, { "value": "TIMELINE", "label": "Timeline Extension", "displayOrder": 1 }, { "value": "FEE", "label": "Fee Adjustment", "displayOrder": 2 }, { "value": "RESOURCE", "label": "Resource Change", "displayOrder": 3 }, { "value": "MULTIPLE", "label": "Multiple Changes", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "changeDescription", "label": "Change Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 5, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "originalFee", "label": "Original Fee", "fieldType": "CURRENCY", "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "additionalFee", "label": "Additional Fee Requested", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "revisedEndDate", "label": "Revised End Date", "fieldType": "DATE", "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "additionalResources", "label": "Additional Resources Needed", "fieldType": "NUMBER", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "clientApproved", "label": "Client Verbally Approved", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "riskImpact", "label": "Risk Impact", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "LOW", "label": "Low", "displayOrder": 0 }, { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 }, { "value": "HIGH", "label": "High", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "justification", "label": "Business Justification", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "changeRequestDoc", "label": "Change Request Document", "fieldType": "FILE", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 },
+      { "name": "clientCorrespondence", "label": "Client Correspondence", "fieldType": "FILE", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,doc,docx,msg,eml", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Engagement Manager", "approverType": "ROLE", "roleName": "ENGAGEMENT_MANAGER", "amountLimit": 20000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Partner", "approverType": "ROLE", "roleName": "PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

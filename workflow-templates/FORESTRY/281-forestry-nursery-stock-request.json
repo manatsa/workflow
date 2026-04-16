@@ -1,0 +1,57 @@
+{
+  "_comment": "Nursery Stock Request — request and approve seedlings or saplings from a forestry nursery.",
+  "name": "Nursery Stock Request",
+  "code": "NSR",
+  "description": "Request seedlings, saplings or cuttings from the forestry nursery for reforestation, afforestation or sale, with species, quantity and delivery scheduling.",
+  "icon": "yard",
+  "displayOrder": 281,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FORESTRY",
+  "workflowTypeCode": "REQUISITION",
+  "titleTemplate": "@{requestRef} - @{purpose} (@{requesterName})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Request Details", "displayOrder": 0, "icon": "yard" },
+      { "id": "temp_screen_2", "title": "Species & Quantities", "displayOrder": 1, "icon": "eco" },
+      { "id": "temp_screen_3", "title": "Delivery & Documents", "displayOrder": 2, "icon": "local_shipping" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Requester & Purpose", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Stock Items", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Delivery", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Attachments", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "requestRef", "label": "Request Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"NSR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requesterName", "label": "Requester Name / Organisation", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactPhone", "label": "Contact Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "purpose", "label": "Purpose", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "REFORESTATION", "label": "Reforestation", "displayOrder": 0 }, { "value": "AFFORESTATION", "label": "Afforestation", "displayOrder": 1 }, { "value": "AGROFORESTRY", "label": "Agroforestry", "displayOrder": 2 }, { "value": "WOODLOT", "label": "Woodlot Establishment", "displayOrder": 3 }, { "value": "COMMERCIAL_SALE", "label": "Commercial Sale", "displayOrder": 4 }, { "value": "RESEARCH", "label": "Research", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "plantingSite", "label": "Planting Site / Location", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "siteAreaHectares", "label": "Site Area (hectares)", "fieldType": "NUMBER", "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "stockItems", "label": "Stock Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 15, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"species\",\"label\":\"Species\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"stockType\",\"label\":\"Stock Type\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"Seedling\",\"Sapling\",\"Cutting\",\"Grafted\",\"Tube Stock\"],\"required\":true},{\"name\":\"ageMonths\",\"label\":\"Age (months)\",\"type\":\"NUMBER\",\"width\":90},{\"name\":\"quantity\",\"label\":\"Quantity\",\"type\":\"NUMBER\",\"width\":90,\"required\":true},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":100},{\"name\":\"lineTotal\",\"label\":\"Total\",\"type\":\"NUMBER\",\"width\":100,\"computed\":\"quantity * unitPrice\"}]", "validation": "MinRows(1, \"At least one stock item required\")" },
+      { "name": "totalQuantity", "label": "Total Seedlings / Plants", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "defaultValue": "SUM_COLUMN(\"stockItems\", \"quantity\")" },
+      { "name": "totalCost", "label": "Total Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "defaultValue": "SUM_COLUMN(\"stockItems\", \"lineTotal\")" },
+      { "name": "requiredDeliveryDate", "label": "Required Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Delivery must be in the future\")" },
+      { "name": "deliveryAddress", "label": "Delivery Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "transportNeeded", "label": "Nursery Transport Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "plantingPlan", "label": "Planting Plan / Map", "fieldType": "FILE", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "purchaseOrder", "label": "Purchase Order", "fieldType": "FILE", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Nursery Manager", "approverType": "ROLE", "roleName": "NURSERY_MANAGER", "amountLimit": 20000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Forestry Manager", "approverType": "ROLE", "roleName": "FOREST_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

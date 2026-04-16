@@ -1,0 +1,59 @@
+{
+  "_comment": "Fleet Maintenance Request — schedule and approve vehicle maintenance or repair.",
+  "name": "Fleet Maintenance Request",
+  "code": "FMR",
+  "description": "Schedule routine or unplanned maintenance for a fleet vehicle including parts, labour, cost approval and service provider selection.",
+  "icon": "build",
+  "displayOrder": 296,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FLEET_MGMT",
+  "workflowTypeCode": "REQUISITION",
+  "titleTemplate": "@{maintRef} - @{registration} (@{maintenanceType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Vehicle & Issue", "displayOrder": 0, "icon": "directions_car" },
+      { "id": "temp_screen_2", "title": "Service & Cost", "displayOrder": 1, "icon": "build" },
+      { "id": "temp_screen_3", "title": "Documents", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Vehicle & Maintenance", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Service Items", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Cost & Provider", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Attachments", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "maintRef", "label": "Maintenance Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FMR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "registration", "label": "Registration Number", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "vehicleMake", "label": "Make / Model", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "currentOdometer", "label": "Current Odometer (km)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "maintenanceType", "label": "Maintenance Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ROUTINE", "label": "Routine Service", "displayOrder": 0 }, { "value": "REPAIR", "label": "Repair", "displayOrder": 1 }, { "value": "TYRES", "label": "Tyre Replacement", "displayOrder": 2 }, { "value": "BODY", "label": "Body Work / Panel", "displayOrder": 3 }, { "value": "ELECTRICAL", "label": "Electrical", "displayOrder": 4 }, { "value": "ACCIDENT", "label": "Accident Repair", "displayOrder": 5 }, { "value": "COF", "label": "Certificate of Fitness", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "priority", "label": "Priority", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "URGENT", "label": "Urgent – Vehicle Off Road", "displayOrder": 0 }, { "value": "HIGH", "label": "High – Affects Safety", "displayOrder": 1 }, { "value": "NORMAL", "label": "Normal – Scheduled", "displayOrder": 2 }, { "value": "LOW", "label": "Low – Cosmetic", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "issueDescription", "label": "Issue / Work Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 7, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "serviceItems", "label": "Service Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 15, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"item\",\"label\":\"Item / Service\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"type\",\"label\":\"Type\",\"type\":\"SELECT\",\"width\":100,\"options\":[\"Parts\",\"Labour\",\"Other\"],\"required\":true},{\"name\":\"amount\",\"label\":\"Amount\",\"type\":\"NUMBER\",\"width\":110,\"required\":true}]", "validation": "MinRows(1, \"At least one service item required\")" },
+      { "name": "totalCost", "label": "Total Estimated Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM_COLUMN(\"serviceItems\", \"amount\")" },
+      { "name": "serviceProvider", "label": "Service Provider / Workshop", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "estimatedDays", "label": "Estimated Days Off Road", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "warrantyApplicable", "label": "Under Warranty", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "quotation", "label": "Quotation", "fieldType": "FILE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "photos", "label": "Vehicle Photos", "fieldType": "FILE", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Fleet Coordinator", "approverType": "ROLE", "roleName": "FLEET_COORDINATOR", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Fleet Manager", "approverType": "ROLE", "roleName": "FLEET_MANAGER", "amountLimit": 50000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Finance Manager", "approverType": "ROLE", "roleName": "FINANCE_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

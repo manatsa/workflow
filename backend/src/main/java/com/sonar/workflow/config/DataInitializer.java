@@ -753,6 +753,10 @@ public class DataInitializer implements CommandLineRunner {
         // Religious / membership
         createIndustryIfNotExists("RELIGIOUS",             "Religious Organisations",         "Churches, mosques, temples and faith-based organisations");
         createIndustryIfNotExists("ASSOCIATIONS",          "Associations & Membership Bodies","Trade associations, professional bodies and unions");
+
+        // Fleet & services
+        createIndustryIfNotExists("FLEET_MGMT",            "Fleet Management",                "Vehicle fleet operations, maintenance and logistics");
+        createIndustryIfNotExists("LAUNDRY",               "Laundry & Dry Cleaning",          "Commercial laundry, dry cleaning and textile care services");
     }
 
     private void createIndustryIfNotExists(String code, String name, String description) {
@@ -809,6 +813,56 @@ public class DataInitializer implements CommandLineRunner {
         templateMap.put("Policy Reinstatement",               new String[]{"FUNERAL",       "FINANCE"});
         templateMap.put("Funeral Service Delivery",           new String[]{"FUNERAL",       "FINANCE"});
         templateMap.put("Premium Refund Request",             new String[]{"FUNERAL",       "FINANCE"});
+
+        // Aerospace (271-273)
+        templateMap.put("Airworthiness Directive Compliance", new String[]{"AEROSPACE",     "APPROVAL"});
+        templateMap.put("MRO Work Order",                     new String[]{"AEROSPACE",     "REQUISITION"});
+        templateMap.put("Flight Test Report",                 new String[]{"AEROSPACE",     "APPROVAL"});
+
+        // Chemicals (274-276)
+        templateMap.put("Safety Data Sheet Approval",         new String[]{"CHEMICALS",     "APPROVAL"});
+        templateMap.put("Chemical Batch Production Record",   new String[]{"CHEMICALS",     "APPROVAL"});
+        templateMap.put("Hazardous Material Incident Report", new String[]{"CHEMICALS",     "APPROVAL"});
+
+        // Textiles (277-279)
+        templateMap.put("Fabric Inspection Report",           new String[]{"TEXTILES",      "APPROVAL"});
+        templateMap.put("Dye Lot Approval",                   new String[]{"TEXTILES",      "APPROVAL"});
+        templateMap.put("Textile Production Order",           new String[]{"TEXTILES",      "REQUISITION"});
+
+        // Forestry (280-282)
+        templateMap.put("Timber Harvest Permit",              new String[]{"FORESTRY",      "APPROVAL"});
+        templateMap.put("Nursery Stock Request",              new String[]{"FORESTRY",      "REQUISITION"});
+        templateMap.put("Forest Fire Incident Report",        new String[]{"FORESTRY",      "APPROVAL"});
+
+        // Furniture (283-285)
+        templateMap.put("Custom Furniture Order",             new String[]{"FURNITURE",     "REQUISITION"});
+        templateMap.put("Furniture Quality Inspection",       new String[]{"FURNITURE",     "APPROVAL"});
+        templateMap.put("Furniture Warranty Claim",           new String[]{"FURNITURE",     "APPROVAL"});
+
+        // Professional Services (286-288)
+        templateMap.put("Client Engagement Letter",           new String[]{"PROFESSIONAL_SERVICES", "APPROVAL"});
+        templateMap.put("Project Change Request",             new String[]{"PROFESSIONAL_SERVICES", "APPROVAL"});
+        templateMap.put("Client Invoice Approval",            new String[]{"PROFESSIONAL_SERVICES", "FINANCE"});
+
+        // Religious (289-291)
+        templateMap.put("Religious Event Request",            new String[]{"RELIGIOUS",     "APPROVAL"});
+        templateMap.put("Facility Booking",                   new String[]{"RELIGIOUS",     "APPROVAL"});
+        templateMap.put("Benevolence Request",                new String[]{"RELIGIOUS",     "FINANCE"});
+
+        // Associations (292-294)
+        templateMap.put("Membership Application",             new String[]{"ASSOCIATIONS",  "APPROVAL"});
+        templateMap.put("Event Sponsorship Application",      new String[]{"ASSOCIATIONS",  "FINANCE"});
+        templateMap.put("CPD Accreditation Application",      new String[]{"ASSOCIATIONS",  "APPROVAL"});
+
+        // Fleet Management (295-297)
+        templateMap.put("Vehicle Requisition",                new String[]{"FLEET_MGMT",    "REQUISITION"});
+        templateMap.put("Fleet Maintenance Request",          new String[]{"FLEET_MGMT",    "REQUISITION"});
+        templateMap.put("Fleet Accident Report",              new String[]{"FLEET_MGMT",    "APPROVAL"});
+
+        // Laundry (298-300)
+        templateMap.put("Corporate Laundry Contract",         new String[]{"LAUNDRY",       "APPROVAL"});
+        templateMap.put("Laundry Quality Complaint",          new String[]{"LAUNDRY",       "APPROVAL"});
+        templateMap.put("Laundry Equipment Maintenance",      new String[]{"LAUNDRY",       "REQUISITION"});
 
         int updated = 0;
         for (com.sonar.workflow.entity.Workflow wf : workflowRepository.findAll()) {

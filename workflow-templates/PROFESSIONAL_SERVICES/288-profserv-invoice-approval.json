@@ -1,0 +1,58 @@
+{
+  "_comment": "Client Invoice Approval — prepare and approve a client invoice before dispatch.",
+  "name": "Client Invoice Approval",
+  "code": "CIA",
+  "description": "Prepare a client invoice for an active engagement, verify hours and deliverables, and route for partner approval before sending to the client.",
+  "icon": "receipt_long",
+  "displayOrder": 288,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "PROFESSIONAL_SERVICES",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{invoiceRef} - @{clientName} (@{invoiceAmount})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Invoice Details", "displayOrder": 0, "icon": "receipt_long" },
+      { "id": "temp_screen_2", "title": "Line Items", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Approval & Documents", "displayOrder": 2, "icon": "verified" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client & Engagement", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Invoice Lines", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Totals", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Dispatch", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "invoiceRef", "label": "Invoice Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"INV-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "invoiceDate", "label": "Invoice Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "engagementRef", "label": "Engagement Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "billingPeriod", "label": "Billing Period", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "invoiceType", "label": "Invoice Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "PROGRESS", "label": "Progress Invoice", "displayOrder": 0 }, { "value": "MILESTONE", "label": "Milestone Invoice", "displayOrder": 1 }, { "value": "FINAL", "label": "Final Invoice", "displayOrder": 2 }, { "value": "RETAINER", "label": "Retainer Invoice", "displayOrder": 3 }, { "value": "DISBURSEMENT", "label": "Disbursement Only", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "lineItems", "label": "Invoice Line Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 20, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"description\",\"label\":\"Description\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"hours\",\"label\":\"Hours\",\"type\":\"NUMBER\",\"width\":80},{\"name\":\"rate\",\"label\":\"Rate\",\"type\":\"NUMBER\",\"width\":100},{\"name\":\"amount\",\"label\":\"Amount\",\"type\":\"NUMBER\",\"width\":120,\"required\":true}]", "validation": "MinRows(1, \"At least one line item required\")" },
+      { "name": "subtotal", "label": "Subtotal", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM_COLUMN(\"lineItems\", \"amount\")" },
+      { "name": "taxAmount", "label": "Tax / VAT", "fieldType": "CURRENCY", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "invoiceAmount", "label": "Total Invoice Amount", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "ADD(@{subtotal}, @{taxAmount})" },
+      { "name": "dueDate", "label": "Payment Due Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "sendToClient", "label": "Send to Client After Approval", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "clientEmailAddress", "label": "Client Email for Invoice", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "invoiceDraft", "label": "Invoice Document (PDF)", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "timesheets", "label": "Timesheets / Supporting Docs", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,xls,xlsx,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Billing Coordinator", "approverType": "ROLE", "roleName": "BILLING_COORDINATOR", "amountLimit": 20000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Engagement Partner", "approverType": "ROLE", "roleName": "PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "_comment": "Interior Design Project Brief — approve an interior design project brief with scope, style, and budget.",
+  "name": "Interior Design Project Brief",
+  "code": "IPB",
+  "description": "Approve interior design project briefs including client requirements, design concept, space planning, material palette, and project budget allocation.",
+  "icon": "design_services",
+  "displayOrder": 218,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "INTERIOR_DESIGN",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{briefRef} - @{clientName} - @{projectName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Project Details", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Design Brief", "displayOrder": 1, "icon": "brush" },
+      { "id": "temp_screen_3", "title": "Budget & Timeline", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client & Space", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Design Concept", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Scope of Work", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Budget", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Timeline & Documents", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "briefRef", "label": "Brief Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"IPB-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "projectName", "label": "Project Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(3)" },
+      { "name": "projectAddress", "label": "Project Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 4, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "spaceType", "label": "Space Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "RESIDENTIAL", "label": "Residential", "displayOrder": 0 }, { "value": "OFFICE", "label": "Office / Corporate", "displayOrder": 1 }, { "value": "RETAIL", "label": "Retail / Showroom", "displayOrder": 2 }, { "value": "HOSPITALITY", "label": "Hospitality", "displayOrder": 3 }, { "value": "RESTAURANT", "label": "Restaurant / Cafe", "displayOrder": 4 }, { "value": "HEALTHCARE", "label": "Healthcare", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "areaSqm", "label": "Total Area (sq m)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "numberOfRooms", "label": "Number of Rooms / Zones", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "designStyle", "label": "Design Style", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "CONTEMPORARY", "label": "Contemporary", "displayOrder": 0 }, { "value": "MODERN", "label": "Modern", "displayOrder": 1 }, { "value": "MINIMALIST", "label": "Minimalist", "displayOrder": 2 }, { "value": "INDUSTRIAL", "label": "Industrial", "displayOrder": 3 }, { "value": "TRADITIONAL", "label": "Traditional / Classic", "displayOrder": 4 }, { "value": "SCANDINAVIAN", "label": "Scandinavian", "displayOrder": 5 }, { "value": "ECLECTIC", "label": "Eclectic / Mixed", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "colourScheme", "label": "Colour Scheme", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "conceptDescription", "label": "Design Concept Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(20)" },
+      { "name": "clientRequirements", "label": "Client Special Requirements", "fieldType": "TEXTAREA", "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "furnitureIncluded", "label": "Furniture Procurement Included", "fieldType": "YES_NO", "defaultValue": "true", "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "lightingDesign", "label": "Lighting Design Included", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "ceilingWork", "label": "Ceiling Work Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "flooringWork", "label": "Flooring Work Required", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 17, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "scopeNotes", "label": "Detailed Scope Notes", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 18, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(10)" },
+      { "name": "designFee", "label": "Design Fee", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "furnitureBudget", "label": "Furniture Budget", "fieldType": "CURRENCY", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "constructionBudget", "label": "Construction / Fit-Out Budget", "fieldType": "CURRENCY", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "contingency", "label": "Contingency (%)", "fieldType": "NUMBER", "defaultValue": "10", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "totalProjectBudget", "label": "Total Project Budget", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM(@{designFee}, @{furnitureBudget}, @{constructionBudget})" },
+      { "name": "startDate", "label": "Proposed Start Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND DateAfter(\"today\", \"Start date must be in the future\")" },
+      { "name": "completionDate", "label": "Target Completion Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 26, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND DateAfter(\"today\", \"Completion date must be in the future\")" },
+      { "name": "moodBoard", "label": "Mood Board / Concept Images", "fieldType": "FILE", "displayOrder": 27, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,png", "maxFileSize": 52428800 },
+      { "name": "floorPlan", "label": "Floor Plan", "fieldType": "FILE", "isMandatory": true, "displayOrder": 28, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,dwg,dxf,jpg,png", "maxFileSize": 52428800, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Lead Designer", "approverType": "ROLE", "roleName": "LEAD_DESIGNER", "amountLimit": 100000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Design Director", "approverType": "ROLE", "roleName": "DESIGN_DIRECTOR", "amountLimit": 500000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Director", "approverType": "ROLE", "roleName": "MANAGING_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

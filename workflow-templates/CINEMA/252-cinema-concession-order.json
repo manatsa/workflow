@@ -1,0 +1,62 @@
+{
+  "_comment": "Concession Stock Order — order food, beverage and merchandise stock for cinema concession stands.",
+  "name": "Concession Stock Order",
+  "code": "CSO",
+  "description": "Request and approve concession stand inventory orders including food, beverages, packaging and merchandise.",
+  "icon": "fastfood",
+  "displayOrder": 252,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "CINEMA",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{orderRef} - @{supplierName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Order Details", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Line Items", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Delivery & Attachments", "displayOrder": 2, "icon": "local_shipping" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Supplier", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Order Lines", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Totals", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Delivery", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "orderRef", "label": "Order Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CSO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "supplierName", "label": "Supplier Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "orderCategory", "label": "Order Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FOOD", "label": "Food Items", "displayOrder": 0 }, { "value": "BEVERAGES", "label": "Beverages", "displayOrder": 1 }, { "value": "PACKAGING", "label": "Packaging / Cups", "displayOrder": 2 }, { "value": "MERCHANDISE", "label": "Merchandise", "displayOrder": 3 }, { "value": "MIXED", "label": "Mixed Order", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "urgency", "label": "Urgency", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "NORMAL", "label": "Normal", "displayOrder": 0 }, { "value": "URGENT", "label": "Urgent", "displayOrder": 1 }, { "value": "EMERGENCY", "label": "Emergency", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "paymentTerms", "label": "Payment Terms", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "COD", "label": "Cash on Delivery", "displayOrder": 0 }, { "value": "NET30", "label": "Net 30", "displayOrder": 1 }, { "value": "NET60", "label": "Net 60", "displayOrder": 2 }, { "value": "PREPAID", "label": "Prepaid", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "items", "label": "Order Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"itemName\",\"label\":\"Item\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"sku\",\"label\":\"SKU\",\"type\":\"TEXT\",\"width\":120},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":90,\"required\":true},{\"name\":\"uom\",\"label\":\"UOM\",\"type\":\"SELECT\",\"width\":90,\"options\":[\"units\",\"cases\",\"kg\",\"litres\"],\"required\":true},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"lineTotal\",\"label\":\"Line Total\",\"type\":\"NUMBER\",\"width\":120}]", "validation": "MinRows(1, \"At least one item required\")" },
+      { "name": "subtotal", "label": "Subtotal", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"items\", \"lineTotal\")" },
+      { "name": "taxRate", "label": "Tax Rate %", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "totalAmount", "label": "Total Amount", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "deliveryDate", "label": "Required Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Delivery date must be in the future\")" },
+      { "name": "deliveryLocation", "label": "Delivery Location", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "MAIN_STORE", "label": "Main Storeroom", "displayOrder": 0 }, { "value": "COLD_STORE", "label": "Cold Store", "displayOrder": 1 }, { "value": "CONCESSION", "label": "Concession Direct", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "specialInstructions", "label": "Special Instructions", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "temperatureControlled", "label": "Requires Temperature Control", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "quotationDoc", "label": "Supplier Quotation", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Concession Manager", "approverType": "ROLE", "roleName": "CONCESSION_MGR", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Finance Controller", "approverType": "ROLE", "roleName": "FINANCE_CTRL", "amountLimit": 25000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "CINEMA_GM", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

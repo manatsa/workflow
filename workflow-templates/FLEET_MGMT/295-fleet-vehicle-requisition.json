@@ -1,0 +1,57 @@
+{
+  "_comment": "Vehicle Requisition — request and approve a pool or company vehicle for business use.",
+  "name": "Vehicle Requisition",
+  "code": "VRQ",
+  "description": "Request a pool or company vehicle for a business trip or assignment, with driver allocation, fuel authorisation and return tracking.",
+  "icon": "directions_car",
+  "displayOrder": 295,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FLEET_MGMT",
+  "workflowTypeCode": "REQUISITION",
+  "titleTemplate": "@{reqRef} - @{requesterName} (@{destination})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Trip Details", "displayOrder": 0, "icon": "directions_car" },
+      { "id": "temp_screen_2", "title": "Vehicle & Return", "displayOrder": 1, "icon": "garage" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Trip Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Vehicle Allocation", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Return & Fuel", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "reqRef", "label": "Request Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"VRQ-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requesterName", "label": "Requester Name", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "department", "label": "Department", "fieldType": "TEXT", "defaultValue": "CURRENT_USER_DEPT()", "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "destination", "label": "Destination", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "tripPurpose", "label": "Trip Purpose", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 5, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "departureDate", "label": "Departure Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "returnDate", "label": "Return Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "passengers", "label": "Number of Passengers", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "driverRequired", "label": "Driver Required", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 9, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "vehicleAllocated", "label": "Vehicle Allocated", "fieldType": "TEXT", "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "registration", "label": "Registration Number", "fieldType": "TEXT", "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "driverName", "label": "Driver Name", "fieldType": "TEXT", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "odometerOut", "label": "Odometer Out (km)", "fieldType": "NUMBER", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "odometerIn", "label": "Odometer In (km)", "fieldType": "NUMBER", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "distanceTravelled", "label": "Distance Travelled (km)", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUBTRACT(@{odometerIn}, @{odometerOut})" },
+      { "name": "fuelAuthorised", "label": "Fuel Budget Authorised", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "fuelUsed", "label": "Fuel Used (litres)", "fieldType": "NUMBER", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "vehicleConditionOk", "label": "Vehicle Returned in Good Condition", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "damageNotes", "label": "Damage / Issue Notes", "fieldType": "TEXTAREA", "displayOrder": 25, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{vehicleConditionOk} == false" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 26, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Line Manager", "approverType": "ROLE", "roleName": "MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Fleet Manager", "approverType": "ROLE", "roleName": "FLEET_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

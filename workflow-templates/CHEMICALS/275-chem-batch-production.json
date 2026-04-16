@@ -1,0 +1,67 @@
+{
+  "_comment": "Chemical Batch Production Record — document and approve a chemical production batch.",
+  "name": "Chemical Batch Production Record",
+  "code": "CBP",
+  "description": "Record raw materials, process parameters and quality results for a chemical production batch and approve for packaging and distribution.",
+  "icon": "science",
+  "displayOrder": 275,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "CHEMICALS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{batchRef} - @{productName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Batch Details", "displayOrder": 0, "icon": "inventory" },
+      { "id": "temp_screen_2", "title": "Raw Materials & Process", "displayOrder": 1, "icon": "science" },
+      { "id": "temp_screen_3", "title": "Quality & Release", "displayOrder": 2, "icon": "verified" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Product & Batch", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Raw Materials", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Process Parameters", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Quality Results", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Release & Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "batchRef", "label": "Batch Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CBP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "productionDate", "label": "Production Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "productName", "label": "Product Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "productCode", "label": "Product Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "batchNumber", "label": "Batch Number", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "targetQuantity", "label": "Target Quantity (kg)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "reactorVessel", "label": "Reactor / Vessel", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "operatorName", "label": "Operator Name", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "rawMaterials", "label": "Raw Materials Used", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 20, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"materialName\",\"label\":\"Material\",\"type\":\"TEXT\",\"width\":180,\"required\":true},{\"name\":\"lotNumber\",\"label\":\"Lot Number\",\"type\":\"TEXT\",\"width\":120,\"required\":true},{\"name\":\"quantityKg\",\"label\":\"Qty (kg)\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"unitCost\",\"label\":\"Unit Cost\",\"type\":\"NUMBER\",\"width\":100},{\"name\":\"lineCost\",\"label\":\"Cost\",\"type\":\"NUMBER\",\"width\":100,\"computed\":\"quantityKg * unitCost\"}]", "validation": "MinRows(1, \"At least one raw material required\")" },
+      { "name": "totalMaterialCost", "label": "Total Material Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "defaultValue": "SUM_COLUMN(\"rawMaterials\", \"lineCost\")" },
+      { "name": "reactionTemp", "label": "Reaction Temperature (C)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "reactionPressure", "label": "Reaction Pressure (bar)", "fieldType": "NUMBER", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "reactionTime", "label": "Reaction Time (hrs)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "phFinal", "label": "Final pH", "fieldType": "NUMBER", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "processNotes", "label": "Process Notes / Deviations", "fieldType": "TEXTAREA", "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "actualYield", "label": "Actual Yield (kg)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "purity", "label": "Purity (%)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0) AND Max(100)" },
+      { "name": "moistureContent", "label": "Moisture Content (%)", "fieldType": "NUMBER", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "colourAppearance", "label": "Colour / Appearance", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "meetsSpec", "label": "Meets Specification", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "releaseDecision", "label": "Release Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "RELEASE", "label": "Release", "displayOrder": 0 }, { "value": "HOLD", "label": "Hold for Retest", "displayOrder": 1 }, { "value": "REJECT", "label": "Reject", "displayOrder": 2 }, { "value": "REWORK", "label": "Rework / Reprocess", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 36, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "coaDocument", "label": "Certificate of Analysis", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "batchRecord", "label": "Batch Record / Log Sheet", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Production Supervisor", "approverType": "ROLE", "roleName": "PRODUCTION_SUPERVISOR", "amountLimit": 50000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "QC Manager", "approverType": "ROLE", "roleName": "QC_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Plant Manager", "approverType": "ROLE", "roleName": "PLANT_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

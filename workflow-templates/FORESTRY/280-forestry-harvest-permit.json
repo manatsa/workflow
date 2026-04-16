@@ -1,0 +1,66 @@
+{
+  "_comment": "Timber Harvest Permit — apply for and approve a timber harvesting permit for a forest compartment.",
+  "name": "Timber Harvest Permit",
+  "code": "THP",
+  "description": "Apply for a timber harvesting permit specifying compartment, species, volume and environmental mitigation measures for regulatory approval.",
+  "icon": "forest",
+  "displayOrder": 280,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FORESTRY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{permitRef} - @{compartment} (@{species})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Permit Details", "displayOrder": 0, "icon": "forest" },
+      { "id": "temp_screen_2", "title": "Harvest Plan", "displayOrder": 1, "icon": "carpenter" },
+      { "id": "temp_screen_3", "title": "Environmental & Documents", "displayOrder": 2, "icon": "eco" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Forest & Compartment", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Harvest Specification", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Logistics & Value", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Environmental Compliance", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "permitRef", "label": "Permit Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"THP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "forestName", "label": "Forest / Plantation Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "compartment", "label": "Compartment / Block", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "areaHectares", "label": "Area (hectares)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0.1)" },
+      { "name": "species", "label": "Primary Species", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "harvestMethod", "label": "Harvest Method", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CLEARFELL", "label": "Clear Felling", "displayOrder": 0 }, { "value": "SELECTIVE", "label": "Selective Logging", "displayOrder": 1 }, { "value": "THINNING", "label": "Thinning", "displayOrder": 2 }, { "value": "SALVAGE", "label": "Salvage Harvest", "displayOrder": 3 }, { "value": "COPPICE", "label": "Coppice", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "concessionHolder", "label": "Concession Holder / Company", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "timberProducts", "label": "Timber Products", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 15, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"species\",\"label\":\"Species\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"product\",\"label\":\"Product\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"Sawlog\",\"Pole\",\"Pulpwood\",\"Veneer Log\",\"Firewood\",\"Charcoal\"],\"required\":true},{\"name\":\"volumeM3\",\"label\":\"Volume (m³)\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"pricePerM3\",\"label\":\"Price/m³\",\"type\":\"NUMBER\",\"width\":100},{\"name\":\"lineValue\",\"label\":\"Value\",\"type\":\"NUMBER\",\"width\":110,\"computed\":\"volumeM3 * pricePerM3\"}]", "validation": "MinRows(1, \"At least one timber product required\")" },
+      { "name": "totalVolume", "label": "Total Volume (m³)", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "defaultValue": "SUM_COLUMN(\"timberProducts\", \"volumeM3\")" },
+      { "name": "totalValue", "label": "Total Estimated Value", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "defaultValue": "SUM_COLUMN(\"timberProducts\", \"lineValue\")" },
+      { "name": "harvestStartDate", "label": "Planned Harvest Start", "fieldType": "DATE", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Start date must be in the future\")" },
+      { "name": "harvestEndDate", "label": "Planned Harvest End", "fieldType": "DATE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "haulageRoute", "label": "Haulage Route", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "destinationMill", "label": "Destination Mill / Depot", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "eiaCompleted", "label": "Environmental Impact Assessment Done", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{eiaCompleted} == true, \"EIA must be completed before harvest\")" },
+      { "name": "waterCoursesProtected", "label": "Water Courses Buffer Zones Set", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "endangeredSpeciesCheck", "label": "Endangered Species Check Done", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "reforestationPlan", "label": "Reforestation Plan Submitted", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "fscCertified", "label": "FSC / PEFC Certified Area", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 35, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "harvestPlanMap", "label": "Harvest Plan / Map", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "eiaReport", "label": "EIA Report", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Forest Manager", "approverType": "ROLE", "roleName": "FOREST_MANAGER", "amountLimit": 100000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Environmental Officer", "approverType": "ROLE", "roleName": "ENVIRONMENTAL_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Forestry Director", "approverType": "ROLE", "roleName": "FORESTRY_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

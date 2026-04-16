@@ -1,0 +1,59 @@
+{
+  "_comment": "Equipment Maintenance Request — schedule and approve maintenance for laundry machines and dryers.",
+  "name": "Laundry Equipment Maintenance",
+  "code": "LEM",
+  "description": "Schedule preventive or breakdown maintenance for industrial washing machines, dryers, ironers and finishing equipment.",
+  "icon": "build",
+  "displayOrder": 300,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "LAUNDRY",
+  "workflowTypeCode": "REQUISITION",
+  "titleTemplate": "@{maintRef} - @{machineName} (@{maintenanceType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 8,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Equipment & Issue", "displayOrder": 0, "icon": "local_laundry_service" },
+      { "id": "temp_screen_2", "title": "Service & Cost", "displayOrder": 1, "icon": "build" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Equipment & Issue", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Service Details", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Cost & Attachments", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "maintRef", "label": "Maintenance Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"LEM-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "machineName", "label": "Machine Name / ID", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "machineType", "label": "Machine Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "WASHER", "label": "Washing Machine", "displayOrder": 0 }, { "value": "DRYER", "label": "Dryer / Tumble Dryer", "displayOrder": 1 }, { "value": "IRONER", "label": "Flatwork Ironer", "displayOrder": 2 }, { "value": "PRESS", "label": "Press / Finishing", "displayOrder": 3 }, { "value": "FOLDER", "label": "Folder / Stacker", "displayOrder": 4 }, { "value": "BOILER", "label": "Boiler / Steam Generator", "displayOrder": 5 }, { "value": "CONVEYOR", "label": "Conveyor / Sorting", "displayOrder": 6 }, { "value": "OTHER", "label": "Other", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "manufacturer", "label": "Manufacturer / Model", "fieldType": "TEXT", "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "serialNumber", "label": "Serial Number", "fieldType": "TEXT", "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "maintenanceType", "label": "Maintenance Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "PREVENTIVE", "label": "Preventive / Scheduled", "displayOrder": 0 }, { "value": "BREAKDOWN", "label": "Breakdown Repair", "displayOrder": 1 }, { "value": "CALIBRATION", "label": "Calibration", "displayOrder": 2 }, { "value": "OVERHAUL", "label": "Major Overhaul", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "priority", "label": "Priority", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CRITICAL", "label": "Critical – Production Stopped", "displayOrder": 0 }, { "value": "HIGH", "label": "High – Affects Output", "displayOrder": 1 }, { "value": "NORMAL", "label": "Normal – Scheduled", "displayOrder": 2 }, { "value": "LOW", "label": "Low – Cosmetic", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "issueDescription", "label": "Issue Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 8, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "serviceProvider", "label": "Service Provider", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "scheduledDate", "label": "Scheduled Service Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "estimatedDowntime", "label": "Estimated Downtime (hours)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "underWarranty", "label": "Under Warranty", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "partsCost", "label": "Parts Cost", "fieldType": "CURRENCY", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "labourCost", "label": "Labour Cost", "fieldType": "CURRENCY", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "totalCost", "label": "Total Estimated Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "ADD(@{partsCost}, @{labourCost})" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "quotation", "label": "Quotation", "fieldType": "FILE", "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "photos", "label": "Equipment Photos", "fieldType": "FILE", "displayOrder": 25, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Plant Supervisor", "approverType": "ROLE", "roleName": "PLANT_SUPERVISOR", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPERATIONS_MANAGER", "amountLimit": 30000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GENERAL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

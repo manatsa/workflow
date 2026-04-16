@@ -1,0 +1,66 @@
+{
+  "_comment": "Jewellery Repair Request — process repair jobs for damaged or worn jewellery items.",
+  "name": "Jewellery Repair Request",
+  "code": "JRR",
+  "description": "Log and approve jewellery repair requests including damage assessment, repair scope, parts sourcing, costing, and customer approval.",
+  "icon": "build",
+  "displayOrder": 223,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "JEWELLERY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{repairRef} - @{customerName} - @{itemType}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Customer & Item", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Damage Assessment", "displayOrder": 1, "icon": "report_problem" },
+      { "id": "temp_screen_3", "title": "Repair & Costing", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Item Details", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Damage Report", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Photos", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Repair Details", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Costing & Timeline", "displayOrder": 6, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "repairRef", "label": "Repair Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"JRR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "intakeDate", "label": "Intake Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "customerPhone", "label": "Customer Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "customerEmail", "label": "Customer Email", "fieldType": "EMAIL", "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "itemType", "label": "Item Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "RING", "label": "Ring", "displayOrder": 0 }, { "value": "NECKLACE", "label": "Necklace", "displayOrder": 1 }, { "value": "BRACELET", "label": "Bracelet", "displayOrder": 2 }, { "value": "EARRINGS", "label": "Earrings", "displayOrder": 3 }, { "value": "WATCH", "label": "Watch", "displayOrder": 4 }, { "value": "PENDANT", "label": "Pendant", "displayOrder": 5 }, { "value": "BROOCH", "label": "Brooch", "displayOrder": 6 }, { "value": "OTHER", "label": "Other", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "metalType", "label": "Metal Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "GOLD_18K", "label": "18K Gold", "displayOrder": 0 }, { "value": "GOLD_14K", "label": "14K Gold", "displayOrder": 1 }, { "value": "GOLD_9K", "label": "9K Gold", "displayOrder": 2 }, { "value": "PLATINUM", "label": "Platinum", "displayOrder": 3 }, { "value": "SILVER", "label": "Silver", "displayOrder": 4 }, { "value": "OTHER", "label": "Other", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "hasGemstones", "label": "Contains Gemstones", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "itemDescription", "label": "Item Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 8, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "damageType", "label": "Type of Damage", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "BROKEN_CLASP", "label": "Broken Clasp", "displayOrder": 0 }, { "value": "LOOSE_STONE", "label": "Loose / Missing Stone", "displayOrder": 1 }, { "value": "PRONG_DAMAGE", "label": "Prong Damage", "displayOrder": 2 }, { "value": "CHAIN_BREAK", "label": "Chain Break", "displayOrder": 3 }, { "value": "RESIZE", "label": "Ring Resizing", "displayOrder": 4 }, { "value": "RHODIUM", "label": "Rhodium Replating", "displayOrder": 5 }, { "value": "POLISH", "label": "Polish / Clean", "displayOrder": 6 }, { "value": "OTHER", "label": "Other", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "severityLevel", "label": "Severity", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "MINOR", "label": "Minor", "displayOrder": 0 }, { "value": "MODERATE", "label": "Moderate", "displayOrder": 1 }, { "value": "MAJOR", "label": "Major", "displayOrder": 2 }, { "value": "CRITICAL", "label": "Critical / Structural", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "damageDescription", "label": "Damage Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(10)" },
+      { "name": "intakePhotos", "label": "Intake Photographs", "fieldType": "FILE", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "repairScope", "label": "Repair Scope", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND MinLength(10)" },
+      { "name": "partsRequired", "label": "Replacement Parts Needed", "fieldType": "TEXTAREA", "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "repairWarranty", "label": "Under Warranty", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "partsCost", "label": "Parts Cost", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "Required() AND Min(0)" },
+      { "name": "labourCost", "label": "Labour Cost", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "Required() AND Min(0)" },
+      { "name": "totalRepairCost", "label": "Total Repair Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "defaultValue": "SUM(@{partsCost}, @{labourCost})" },
+      { "name": "estimatedCompletionDate", "label": "Estimated Completion Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 26, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "Required() AND DateAfter(\"today\", \"Completion date must be in the future\")" },
+      { "name": "customerApproved", "label": "Customer Approved Repair Cost", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 27, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "ValidWhen(@{customerApproved} == true, \"Customer must approve the repair cost\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Bench Jeweller", "approverType": "ROLE", "roleName": "BENCH_JEWELLER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Workshop Supervisor", "approverType": "ROLE", "roleName": "WORKSHOP_SUPERVISOR", "amountLimit": 5000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Store Manager", "approverType": "ROLE", "roleName": "STORE_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -275,13 +275,16 @@ public class DocumentStampService {
             // Create default footer
             XWPFFooter footer = policy.createFooter(XWPFHeaderFooterPolicy.DEFAULT);
 
-            // Add stamp image to footer (right-aligned)
-            if (stampImageBytes != null) {
+            // Compose signature onto the seal image so they appear as one unit
+            byte[] compositeImageBytes = composeSealWithSignature(stampImageBytes, signatureBytes);
+
+            // Add the composite seal+signature image to footer (right-aligned)
+            if (compositeImageBytes != null) {
                 try {
                     XWPFParagraph pStampImg = footer.createParagraph();
                     pStampImg.setAlignment(ParagraphAlignment.RIGHT);
                     XWPFRun runStampImg = pStampImg.createRun();
-                    runStampImg.addPicture(new ByteArrayInputStream(stampImageBytes),
+                    runStampImg.addPicture(new ByteArrayInputStream(compositeImageBytes),
                             XWPFDocument.PICTURE_TYPE_PNG, "stamp.png",
                             Units.toEMU(80), Units.toEMU(80));
                 } catch (Exception e) {
@@ -299,20 +302,6 @@ public class DocumentStampService {
             runDate.setFontSize(7);
             runDate.setColor(stampColor.replace("#", ""));
             runDate.setFontFamily("Arial");
-
-            // Add signature to footer
-            if (signatureBytes != null) {
-                try {
-                    XWPFParagraph pSig = footer.createParagraph();
-                    pSig.setAlignment(ParagraphAlignment.RIGHT);
-                    XWPFRun runSig = pSig.createRun();
-                    runSig.addPicture(new ByteArrayInputStream(signatureBytes),
-                            XWPFDocument.PICTURE_TYPE_PNG, "signature.png",
-                            Units.toEMU(70), Units.toEMU(20));
-                } catch (Exception e) {
-                    log.debug("Could not embed signature in Word footer: {}", e.getMessage());
-                }
-            }
 
             ByteArrayOutputStream outBaos = new ByteArrayOutputStream();
             doc.write(outBaos);
@@ -391,19 +380,20 @@ public class DocumentStampService {
         Color color = Color.decode(stampColor);
         Color semiTransparent = new Color(color.getRed(), color.getGreen(), color.getBlue(), 180);
 
-        // If we have the actual stamp image, draw it
+        // Compose the seal with signature overlaid on it
+        byte[] compositeBytes = composeSealWithSignature(stampImageBytes, signatureBytes);
         int stampSize = Math.max(150, originalImage.getWidth() / 4);
         int stampX = originalImage.getWidth() - stampSize - 20;
         int textBaseY;
 
-        if (stampImageBytes != null) {
+        if (compositeBytes != null) {
             try {
-                BufferedImage stampImg = ImageIO.read(new ByteArrayInputStream(stampImageBytes));
-                if (stampImg != null) {
+                BufferedImage compositeImg = ImageIO.read(new ByteArrayInputStream(compositeBytes));
+                if (compositeImg != null) {
                     int imgSize = stampSize;
-                    int imgH = imgSize * stampImg.getHeight() / stampImg.getWidth();
+                    int imgH = imgSize * compositeImg.getHeight() / compositeImg.getWidth();
                     int stampY = originalImage.getHeight() - imgH - 80;
-                    g2d.drawImage(stampImg, stampX, stampY, imgSize, imgH, null);
+                    g2d.drawImage(compositeImg, stampX, stampY, imgSize, imgH, null);
                     textBaseY = stampY + imgH + 5;
                 } else {
                     textBaseY = originalImage.getHeight() - 70;
@@ -415,7 +405,7 @@ public class DocumentStampService {
             textBaseY = originalImage.getHeight() - 70;
         }
 
-        // Draw date, approver, and signature below the stamp image
+        // Draw date and approver below the stamp image
         Font smallFont = new Font("Arial", Font.PLAIN, Math.max(10, stampSize / 14));
         g2d.setFont(smallFont);
         g2d.setColor(semiTransparent);
@@ -427,20 +417,6 @@ public class DocumentStampService {
 
         String byText = "By: " + approverName;
         g2d.drawString(byText, centerX - fm.stringWidth(byText) / 2, textBaseY + fm.getHeight() * 2 + 2);
-
-        // Signature image if available
-        if (signatureBytes != null) {
-            try {
-                BufferedImage sigImage = ImageIO.read(new ByteArrayInputStream(signatureBytes));
-                if (sigImage != null) {
-                    int sigWidth = Math.min(stampSize - 20, 100);
-                    int sigHeight = sigWidth * sigImage.getHeight() / sigImage.getWidth();
-                    g2d.drawImage(sigImage, centerX - sigWidth / 2, textBaseY + fm.getHeight() * 2 + 10, sigWidth, sigHeight, null);
-                }
-            } catch (Exception e) {
-                log.debug("Could not embed signature in image: {}", e.getMessage());
-            }
-        }
 
         g2d.dispose();
 
@@ -509,11 +485,31 @@ public class DocumentStampService {
                     float stampW = 120;
                     float stampH = stampW * stampImg.getHeight() / stampImg.getWidth();
                     float stampX = pageWidth - stampW - 30;
-                    float stampY = 60; // above the text area
+                    float stampY = 40; // above the text area
 
+                    // Draw the seal
                     cs.drawImage(stampImg, stampX, stampY, stampW, stampH);
 
-                    // Draw date and approver below the stamp image
+                    // Draw signature ON TOP of the seal (centered in the seal)
+                    if (signatureBytes != null) {
+                        try {
+                            PDImageXObject sigImage = PDImageXObject.createFromByteArray(doc, signatureBytes, "signature.png");
+                            float sigW = stampW * 0.55f;  // ~55% of seal width
+                            float sigH = sigW * sigImage.getHeight() / sigImage.getWidth();
+                            if (sigH > stampH * 0.3f) {
+                                sigH = stampH * 0.3f;
+                                sigW = sigH * sigImage.getWidth() / sigImage.getHeight();
+                            }
+                            // Center the signature in the seal
+                            float sigX = stampX + (stampW - sigW) / 2;
+                            float sigY = stampY + (stampH - sigH) / 2;
+                            cs.drawImage(sigImage, sigX, sigY, sigW, sigH);
+                        } catch (Exception e) {
+                            log.debug("Could not embed signature image on seal: {}", e.getMessage());
+                        }
+                    }
+
+                    // Draw date and approver below the seal
                     float textCenterX = stampX + stampW / 2;
                     float textY = stampY - 12;
 
@@ -534,18 +530,6 @@ public class DocumentStampService {
                     cs.showText(byLine);
                     cs.endText();
 
-                    // Signature below approver name
-                    textY -= 5;
-                    if (signatureBytes != null) {
-                        try {
-                            PDImageXObject sigImage = PDImageXObject.createFromByteArray(doc, signatureBytes, "signature.png");
-                            float sigW = 80;
-                            float sigH = 20;
-                            cs.drawImage(sigImage, textCenterX - sigW / 2, textY - sigH, sigW, sigH);
-                        } catch (Exception e) {
-                            log.debug("Could not embed signature image: {}", e.getMessage());
-                        }
-                    }
                     return;
                 } catch (Exception e) {
                     log.warn("Failed to embed stamp image, falling back to text stamp: {}", e.getMessage());
@@ -593,10 +577,14 @@ public class DocumentStampService {
             cs.showText(byLine);
             cs.endText();
 
+            // Signature centered in the stamp box
             if (signatureBytes != null) {
                 try {
                     PDImageXObject sigImage = PDImageXObject.createFromByteArray(doc, signatureBytes, "signature.png");
-                    cs.drawImage(sigImage, bx + (bw - 100) / 2, by + 5, 100, 25);
+                    float sigW = bw * 0.6f;
+                    float sigH = sigW * sigImage.getHeight() / sigImage.getWidth();
+                    if (sigH > bh * 0.3f) { sigH = bh * 0.3f; sigW = sigH * sigImage.getWidth() / sigImage.getHeight(); }
+                    cs.drawImage(sigImage, bx + (bw - sigW) / 2, by + (bh - sigH) / 2, sigW, sigH);
                 } catch (Exception e) {
                     log.debug("Could not embed signature image: {}", e.getMessage());
                     drawSignaturePlaceholder(cs, bx, by, bw, fontNormal, rgb);
@@ -638,6 +626,53 @@ public class DocumentStampService {
      * Renders SVG content to PNG bytes. Handles circles, text, lines, paths, and rects.
      * Used for both stamp seals and signature SVGs.
      */
+    /**
+     * Composes the seal image with the signature overlaid in the centre of the seal.
+     * Returns a single PNG byte array with the signature drawn on top of the seal.
+     * If either input is null, returns the seal bytes as-is (or null).
+     */
+    private byte[] composeSealWithSignature(byte[] sealBytes, byte[] signatureBytes) {
+        if (sealBytes == null) return null;
+        if (signatureBytes == null) return sealBytes;
+        try {
+            BufferedImage sealImg = ImageIO.read(new ByteArrayInputStream(sealBytes));
+            BufferedImage sigImg = ImageIO.read(new ByteArrayInputStream(signatureBytes));
+            if (sealImg == null) return sealBytes;
+            if (sigImg == null) return sealBytes;
+
+            // Create composite image at the seal's dimensions
+            BufferedImage composite = new BufferedImage(sealImg.getWidth(), sealImg.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = composite.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+
+            // Draw the seal
+            g.drawImage(sealImg, 0, 0, null);
+
+            // Scale signature to ~55% of seal width, capped at 30% seal height
+            int sigW = (int) (sealImg.getWidth() * 0.55);
+            int sigH = sigW * sigImg.getHeight() / sigImg.getWidth();
+            if (sigH > sealImg.getHeight() * 0.3) {
+                sigH = (int) (sealImg.getHeight() * 0.3);
+                sigW = sigH * sigImg.getWidth() / sigImg.getHeight();
+            }
+
+            // Centre the signature on the seal
+            int sigX = (sealImg.getWidth() - sigW) / 2;
+            int sigY = (sealImg.getHeight() - sigH) / 2;
+            g.drawImage(sigImg, sigX, sigY, sigW, sigH, null);
+
+            g.dispose();
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(composite, "png", out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            log.debug("Could not compose seal with signature: {}", e.getMessage());
+            return sealBytes;
+        }
+    }
+
     private byte[] renderSvgToPng(String svgContent) {
         try {
             int width = 300, height = 300;

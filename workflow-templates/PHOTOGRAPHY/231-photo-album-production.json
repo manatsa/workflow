@@ -1,0 +1,67 @@
+{
+  "_comment": "Album / Print Production Order — approve album and print production orders for clients.",
+  "name": "Album / Print Production Order",
+  "code": "APO",
+  "description": "Process and approve album and print production orders including layout design, paper selection, binding type, quantity, and client sign-off.",
+  "icon": "photo_album",
+  "displayOrder": 231,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "PHOTOGRAPHY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{productionRef} - @{clientName} - @{productType}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Client & Product", "displayOrder": 0, "icon": "photo_album" },
+      { "id": "temp_screen_2", "title": "Specifications", "displayOrder": 1, "icon": "settings" },
+      { "id": "temp_screen_3", "title": "Pricing & Delivery", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Product Selection", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Album / Print Specifications", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Design Files", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Pricing", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Delivery", "displayOrder": 6, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "productionRef", "label": "Production Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"APO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "clientPhone", "label": "Client Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "relatedSessionRef", "label": "Related Session Reference", "fieldType": "TEXT", "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "productType", "label": "Product Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "WEDDING_ALBUM", "label": "Wedding Album", "displayOrder": 0 }, { "value": "PORTRAIT_ALBUM", "label": "Portrait Album", "displayOrder": 1 }, { "value": "PHOTO_BOOK", "label": "Photo Book", "displayOrder": 2 }, { "value": "CANVAS_PRINT", "label": "Canvas Print", "displayOrder": 3 }, { "value": "FRAMED_PRINT", "label": "Framed Print", "displayOrder": 4 }, { "value": "FINE_ART_PRINT", "label": "Fine Art Print", "displayOrder": 5 }, { "value": "ACRYLIC_PRINT", "label": "Acrylic Print", "displayOrder": 6 }, { "value": "METAL_PRINT", "label": "Metal Print", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "quantity", "label": "Quantity", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "albumSize", "label": "Size", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "8X8", "label": "8x8 inches", "displayOrder": 0 }, { "value": "10X10", "label": "10x10 inches", "displayOrder": 1 }, { "value": "12X12", "label": "12x12 inches", "displayOrder": 2 }, { "value": "12X16", "label": "12x16 inches", "displayOrder": 3 }, { "value": "16X20", "label": "16x20 inches", "displayOrder": 4 }, { "value": "20X24", "label": "20x24 inches", "displayOrder": 5 }, { "value": "24X36", "label": "24x36 inches", "displayOrder": 6 }, { "value": "CUSTOM", "label": "Custom Size", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "numberOfPages", "label": "Number of Pages / Spreads", "fieldType": "NUMBER", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "paperType", "label": "Paper / Material Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "LUSTRE", "label": "Lustre", "displayOrder": 0 }, { "value": "MATTE", "label": "Matte", "displayOrder": 1 }, { "value": "GLOSSY", "label": "Glossy", "displayOrder": 2 }, { "value": "FINE_ART", "label": "Fine Art / Cotton Rag", "displayOrder": 3 }, { "value": "METALLIC", "label": "Metallic", "displayOrder": 4 }, { "value": "CANVAS", "label": "Canvas", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "coverType", "label": "Cover / Binding Type", "fieldType": "SELECT", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "LEATHER", "label": "Leather", "displayOrder": 0 }, { "value": "LINEN", "label": "Linen", "displayOrder": 1 }, { "value": "PHOTO_WRAP", "label": "Photo Wrap", "displayOrder": 2 }, { "value": "HARDCOVER", "label": "Hardcover", "displayOrder": 3 }, { "value": "SOFTCOVER", "label": "Softcover", "displayOrder": 4 } ] },
+      { "name": "coverColour", "label": "Cover Colour", "fieldType": "TEXT", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "embossingText", "label": "Embossing / Foil Text", "fieldType": "TEXT", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "layoutFile", "label": "Layout / Design File", "fieldType": "FILE", "isMandatory": true, "displayOrder": 16, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,psd,indd,jpg,jpeg,tiff", "maxFileSize": 52428800, "validation": "Required()" },
+      { "name": "proofApproved", "label": "Client Proof Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 17, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{proofApproved} == true, \"Client must approve the proof before production\")" },
+      { "name": "productionCost", "label": "Production Cost", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(1)" },
+      { "name": "shippingCost", "label": "Shipping Cost", "fieldType": "CURRENCY", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "totalPrice", "label": "Total Price", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "defaultValue": "SUM(@{productionCost}, @{shippingCost})" },
+      { "name": "estimatedDeliveryDate", "label": "Estimated Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "Required() AND DateAfter(\"today\", \"Delivery date must be in the future\")" },
+      { "name": "deliveryMethod", "label": "Delivery Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7",
+        "options": [ { "value": "COLLECT", "label": "Studio Collection", "displayOrder": 0 }, { "value": "COURIER", "label": "Courier Delivery", "displayOrder": 1 }, { "value": "POST", "label": "Registered Post", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "giftWrapping", "label": "Gift Wrapping Requested", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Retoucher / Designer", "approverType": "ROLE", "roleName": "RETOUCHER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Production Manager", "approverType": "ROLE", "roleName": "PRODUCTION_MANAGER", "amountLimit": 30000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Studio Owner", "approverType": "ROLE", "roleName": "STUDIO_OWNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

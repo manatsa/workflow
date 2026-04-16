@@ -1,0 +1,67 @@
+{
+  "_comment": "Forest Fire Incident Report — report and track a forest or plantation fire incident.",
+  "name": "Forest Fire Incident Report",
+  "code": "FFI",
+  "description": "Report a forest or plantation fire incident, document the response, assess damage and track restoration actions.",
+  "icon": "local_fire_department",
+  "displayOrder": 282,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FORESTRY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{fireRef} - @{location} (@{severity})",
+  "reminderEnabled": true, "reminderFrequencyHours": 8, "reminderMaxCount": 5, "reminderStartAfterHours": 4,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Incident Details", "displayOrder": 0, "icon": "local_fire_department" },
+      { "id": "temp_screen_2", "title": "Damage Assessment", "displayOrder": 1, "icon": "assessment" },
+      { "id": "temp_screen_3", "title": "Response & Documents", "displayOrder": 2, "icon": "task_alt" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Fire Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Damage & Loss", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Response & Investigation", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Restoration Actions", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "fireRef", "label": "Fire Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FFI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "fireDetectedDate", "label": "Date & Time Detected", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "location", "label": "Location / Compartment", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "severity", "label": "Severity", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CRITICAL", "label": "Critical – Uncontrolled", "displayOrder": 0 }, { "value": "MAJOR", "label": "Major – Large Area", "displayOrder": 1 }, { "value": "MODERATE", "label": "Moderate – Contained", "displayOrder": 2 }, { "value": "MINOR", "label": "Minor – Spot Fire", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "suspectedCause", "label": "Suspected Cause", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ARSON", "label": "Arson", "displayOrder": 0 }, { "value": "LIGHTNING", "label": "Lightning", "displayOrder": 1 }, { "value": "NEGLIGENCE", "label": "Human Negligence", "displayOrder": 2 }, { "value": "EQUIPMENT", "label": "Equipment / Machinery", "displayOrder": 3 }, { "value": "PRESCRIBED_ESCAPE", "label": "Prescribed Burn Escape", "displayOrder": 4 }, { "value": "UNKNOWN", "label": "Unknown", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "fireContained", "label": "Fire Contained", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "incidentDescription", "label": "Incident Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 7, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "areaBurntHectares", "label": "Area Burnt (hectares)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "speciesAffected", "label": "Species Affected", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "ageOfStand", "label": "Age of Stand (years)", "fieldType": "NUMBER", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "timberLossM3", "label": "Estimated Timber Loss (m³)", "fieldType": "NUMBER", "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "estimatedDamageValue", "label": "Estimated Damage Value", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "infrastructureDamage", "label": "Infrastructure Damaged", "fieldType": "TEXTAREA", "displayOrder": 15, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "injuries", "label": "Injuries / Casualties", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "responseDescription", "label": "Response Actions Taken", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "resourcesDeployed", "label": "Resources Deployed", "fieldType": "TEXTAREA", "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "policeReportFiled", "label": "Police Report Filed", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "insuranceClaimed", "label": "Insurance Claim Lodged", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "restorationActions", "label": "Restoration Actions", "fieldType": "TABLE", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "tableMinRows": 0, "tableMaxRows": 10, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"action\",\"label\":\"Action\",\"type\":\"TEXT\",\"width\":250,\"required\":true},{\"name\":\"responsible\",\"label\":\"Responsible\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"targetDate\",\"label\":\"Target Date\",\"type\":\"DATE\",\"width\":120},{\"name\":\"estimatedCost\",\"label\":\"Est. Cost\",\"type\":\"NUMBER\",\"width\":110}]" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "firePhotos", "label": "Fire / Damage Photos", "fieldType": "FILE", "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 },
+      { "name": "investigationReport", "label": "Investigation Report", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Forest Manager", "approverType": "ROLE", "roleName": "FOREST_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Regional Director", "approverType": "ROLE", "roleName": "REGIONAL_DIRECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GENERAL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "_comment": "Product Batch Release — approve a dairy product batch for distribution after quality checks.",
+  "name": "Product Batch Release",
+  "code": "DPB",
+  "description": "Approve release of a finished dairy product batch after quality testing, shelf-life validation and regulatory compliance checks.",
+  "icon": "verified",
+  "displayOrder": 261,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "DAIRY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{batchRef} - @{productName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Batch Details", "displayOrder": 0, "icon": "inventory" },
+      { "id": "temp_screen_2", "title": "Quality Results", "displayOrder": 1, "icon": "science" },
+      { "id": "temp_screen_3", "title": "Release & Documents", "displayOrder": 2, "icon": "verified" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Product & Batch", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Chemical & Physical", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Microbiological", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Release Decision", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "batchRef", "label": "Batch Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"DPB-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "testDate", "label": "Test Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "productName", "label": "Product Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "productCategory", "label": "Product Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FRESH_MILK", "label": "Fresh Milk", "displayOrder": 0 }, { "value": "UHT", "label": "UHT Milk", "displayOrder": 1 }, { "value": "YOGHURT", "label": "Yoghurt", "displayOrder": 2 }, { "value": "CHEESE", "label": "Cheese", "displayOrder": 3 }, { "value": "BUTTER", "label": "Butter", "displayOrder": 4 }, { "value": "CREAM", "label": "Cream", "displayOrder": 5 }, { "value": "ICE_CREAM", "label": "Ice Cream", "displayOrder": 6 }, { "value": "POWDER", "label": "Milk Powder", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "batchNumber", "label": "Production Batch Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "productionDate", "label": "Production Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "expiryDate", "label": "Expiry Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Expiry must be in the future\")" },
+      { "name": "batchQuantity", "label": "Batch Quantity (units)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "packagingSize", "label": "Packaging Size", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "fatPercent", "label": "Fat Content (%)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "proteinPercent", "label": "Protein Content (%)", "fieldType": "NUMBER", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "phLevel", "label": "pH Level", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "moisture", "label": "Moisture (%)", "fieldType": "NUMBER", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "sensoryPassed", "label": "Sensory Evaluation Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{sensoryPassed} == true, \"Sensory evaluation must pass\")" },
+      { "name": "coliformCount", "label": "Coliform Count (CFU/g)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "eColiTest", "label": "E. coli Test Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{eColiTest} == true, \"E. coli test must pass\")" },
+      { "name": "salmonellaTest", "label": "Salmonella Test Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{salmonellaTest} == true, \"Salmonella test must pass\")" },
+      { "name": "listeriaTest", "label": "Listeria Test Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{listeriaTest} == true, \"Listeria test must pass\")" },
+      { "name": "yeastMouldCount", "label": "Yeast & Mould Count (CFU/g)", "fieldType": "NUMBER", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "releaseDecision", "label": "Release Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "RELEASE", "label": "Release for Distribution", "displayOrder": 0 }, { "value": "HOLD", "label": "Hold – Retest Required", "displayOrder": 1 }, { "value": "REJECT", "label": "Reject – Destroy", "displayOrder": 2 }, { "value": "REWORK", "label": "Rework", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "storageConditions", "label": "Storage Conditions", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "labCertificate", "label": "Lab Certificate / COA", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "QA Analyst", "approverType": "ROLE", "roleName": "QA_ANALYST", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Quality Assurance Manager", "approverType": "ROLE", "roleName": "QA_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Plant Manager", "approverType": "ROLE", "roleName": "PLANT_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

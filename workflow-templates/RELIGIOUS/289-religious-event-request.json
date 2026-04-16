@@ -1,0 +1,65 @@
+{
+  "_comment": "Church / Religious Event Request — request and approve a special event or ceremony at a place of worship.",
+  "name": "Religious Event Request",
+  "code": "RER",
+  "description": "Request approval for a special religious event, ceremony or programme including venue, date, budget and ministry assignments.",
+  "icon": "church",
+  "displayOrder": 289,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "RELIGIOUS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{eventRef} - @{eventName} (@{eventDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Event Details", "displayOrder": 0, "icon": "event" },
+      { "id": "temp_screen_2", "title": "Budget & Resources", "displayOrder": 1, "icon": "attach_money" },
+      { "id": "temp_screen_3", "title": "Logistics & Documents", "displayOrder": 2, "icon": "checklist" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Event Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Budget", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Resources", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Logistics", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "eventRef", "label": "Event Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RER-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "eventName", "label": "Event Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "eventType", "label": "Event Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SERVICE", "label": "Special Service", "displayOrder": 0 }, { "value": "CONFERENCE", "label": "Conference / Convention", "displayOrder": 1 }, { "value": "WEDDING", "label": "Wedding Ceremony", "displayOrder": 2 }, { "value": "FUNERAL", "label": "Funeral / Memorial", "displayOrder": 3 }, { "value": "YOUTH", "label": "Youth Programme", "displayOrder": 4 }, { "value": "OUTREACH", "label": "Community Outreach", "displayOrder": 5 }, { "value": "FUNDRAISER", "label": "Fundraiser / Gala", "displayOrder": 6 }, { "value": "RETREAT", "label": "Retreat / Camp", "displayOrder": 7 }, { "value": "OTHER", "label": "Other", "displayOrder": 8 } ], "validation": "Required()" },
+      { "name": "eventDate", "label": "Event Date", "fieldType": "DATE", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Event must be in the future\")" },
+      { "name": "eventEndDate", "label": "End Date (if multi-day)", "fieldType": "DATE", "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "venue", "label": "Venue", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "expectedAttendance", "label": "Expected Attendance", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "ministry", "label": "Responsible Ministry / Department", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "eventDescription", "label": "Event Description / Purpose", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 9, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "budgetItems", "label": "Budget Items", "fieldType": "TABLE", "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 0, "tableMaxRows": 20, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"item\",\"label\":\"Item\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"category\",\"label\":\"Category\",\"type\":\"SELECT\",\"width\":130,\"options\":[\"Venue\",\"Catering\",\"Sound/AV\",\"Printing\",\"Transport\",\"Decorations\",\"Speaker/Guest\",\"Other\"],\"required\":true},{\"name\":\"amount\",\"label\":\"Amount\",\"type\":\"NUMBER\",\"width\":110,\"required\":true}]" },
+      { "name": "totalBudget", "label": "Total Budget", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "defaultValue": "SUM_COLUMN(\"budgetItems\", \"amount\")" },
+      { "name": "fundingSource", "label": "Funding Source", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "GENERAL_FUND", "label": "General Fund", "displayOrder": 0 }, { "value": "SPECIAL_OFFERING", "label": "Special Offering", "displayOrder": 1 }, { "value": "SPONSORSHIP", "label": "Sponsorship", "displayOrder": 2 }, { "value": "TICKET_SALES", "label": "Ticket Sales", "displayOrder": 3 }, { "value": "SELF_FUNDED", "label": "Self-Funded / Donations", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "volunteersNeeded", "label": "Volunteers Needed", "fieldType": "NUMBER", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "soundSystemRequired", "label": "Sound / AV System Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "cateringRequired", "label": "Catering Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "securityRequired", "label": "Security Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "parkingArrangements", "label": "Parking Arrangements", "fieldType": "TEXT", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "eventProgramme", "label": "Event Programme / Run Sheet", "fieldType": "FILE", "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 },
+      { "name": "poster", "label": "Poster / Flyer", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Ministry Leader / Coordinator", "approverType": "ROLE", "roleName": "MINISTRY_LEADER", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Church Administrator", "approverType": "ROLE", "roleName": "ADMINISTRATOR", "amountLimit": 30000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Senior Pastor / Board", "approverType": "ROLE", "roleName": "SENIOR_PASTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -36,6 +36,9 @@ public class Screen extends BaseEntity {
     @Column(name = "is_summary_screen")
     private Boolean isSummaryScreen = false;
 
+    @Column(name = "show_details")
+    private Boolean showDetails = true;
+
     @Column(name = "notification_message", length = 1000)
     private String notificationMessage;
 

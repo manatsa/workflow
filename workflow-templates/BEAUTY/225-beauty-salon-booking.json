@@ -1,0 +1,58 @@
+{
+  "_comment": "Salon Service Booking — schedule and approve salon service appointments with stylist assignment.",
+  "name": "Salon Service Booking",
+  "code": "SSB",
+  "description": "Book and approve salon service appointments including service selection, stylist assignment, scheduling, and special requirements.",
+  "icon": "spa",
+  "displayOrder": 225,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "BEAUTY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{bookingRef} - @{clientName} - @{serviceType}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Client & Service", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Scheduling", "displayOrder": 1, "icon": "schedule" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Service Selection", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Appointment Details", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Special Requirements", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "bookingRef", "label": "Booking Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SSB-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "bookingDate", "label": "Booking Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "clientPhone", "label": "Client Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientEmail", "label": "Client Email", "fieldType": "EMAIL", "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "isNewClient", "label": "New Client", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "serviceType", "label": "Service Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "HAIRCUT", "label": "Haircut & Styling", "displayOrder": 0 }, { "value": "COLOUR", "label": "Hair Colouring", "displayOrder": 1 }, { "value": "TREATMENT", "label": "Hair Treatment", "displayOrder": 2 }, { "value": "FACIAL", "label": "Facial", "displayOrder": 3 }, { "value": "MANICURE", "label": "Manicure", "displayOrder": 4 }, { "value": "PEDICURE", "label": "Pedicure", "displayOrder": 5 }, { "value": "MASSAGE", "label": "Massage", "displayOrder": 6 }, { "value": "WAX", "label": "Waxing", "displayOrder": 7 }, { "value": "MAKEUP", "label": "Makeup Application", "displayOrder": 8 }, { "value": "BRIDAL", "label": "Bridal Package", "displayOrder": 9 } ], "validation": "Required()" },
+      { "name": "serviceDetail", "label": "Service Details / Preferences", "fieldType": "TEXTAREA", "displayOrder": 7, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "preferredStylist", "label": "Preferred Stylist", "fieldType": "TEXT", "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "estimatedDuration", "label": "Estimated Duration (mins)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 9, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(15)" },
+      { "name": "appointmentDate", "label": "Appointment Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Appointment must be a future date\")" },
+      { "name": "appointmentTime", "label": "Appointment Time", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "0800", "label": "08:00", "displayOrder": 0 }, { "value": "0900", "label": "09:00", "displayOrder": 1 }, { "value": "1000", "label": "10:00", "displayOrder": 2 }, { "value": "1100", "label": "11:00", "displayOrder": 3 }, { "value": "1200", "label": "12:00", "displayOrder": 4 }, { "value": "1300", "label": "13:00", "displayOrder": 5 }, { "value": "1400", "label": "14:00", "displayOrder": 6 }, { "value": "1500", "label": "15:00", "displayOrder": 7 }, { "value": "1600", "label": "16:00", "displayOrder": 8 }, { "value": "1700", "label": "17:00", "displayOrder": 9 } ], "validation": "Required()" },
+      { "name": "assignedStylist", "label": "Assigned Stylist", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "salonBranch", "label": "Salon Branch", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "MAIN", "label": "Main Branch", "displayOrder": 0 }, { "value": "NORTH", "label": "North Branch", "displayOrder": 1 }, { "value": "SOUTH", "label": "South Branch", "displayOrder": 2 }, { "value": "EAST", "label": "East Branch", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "hasAllergies", "label": "Client Has Allergies / Sensitivities", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "allergyDetails", "label": "Allergy / Sensitivity Details", "fieldType": "TEXTAREA", "displayOrder": 15, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "referenceImages", "label": "Reference Images", "fieldType": "FILE", "displayOrder": 16, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "specialInstructions", "label": "Special Instructions", "fieldType": "TEXTAREA", "displayOrder": 17, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Receptionist / Booking Coordinator", "approverType": "ROLE", "roleName": "BOOKING_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Salon Manager", "approverType": "ROLE", "roleName": "SALON_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

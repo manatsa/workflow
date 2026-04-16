@@ -1,0 +1,72 @@
+{
+  "_comment": "Safety Data Sheet Approval — review and approve new or revised SDS for chemical products.",
+  "name": "Safety Data Sheet Approval",
+  "code": "SDS",
+  "description": "Submit, review and approve new or revised Safety Data Sheets (SDS) for chemical products to ensure GHS compliance and regulatory accuracy.",
+  "icon": "warning",
+  "displayOrder": 274,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "CHEMICALS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{sdsRef} - @{productName} (@{revisionReason})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 4, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Product & Classification", "displayOrder": 0, "icon": "science" },
+      { "id": "temp_screen_2", "title": "Hazard & Handling", "displayOrder": 1, "icon": "warning" },
+      { "id": "temp_screen_3", "title": "Regulatory & Documents", "displayOrder": 2, "icon": "gavel" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Product Identification", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "GHS Classification", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Hazard & Exposure", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Storage & Handling", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Regulatory Compliance", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Attachments", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "sdsRef", "label": "SDS Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SDS-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "productName", "label": "Product / Chemical Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "casNumber", "label": "CAS Number", "fieldType": "TEXT", "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "productCode", "label": "Internal Product Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "revisionReason", "label": "Revision Reason", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "NEW", "label": "New Product", "displayOrder": 0 }, { "value": "FORMULATION", "label": "Formulation Change", "displayOrder": 1 }, { "value": "REGULATORY", "label": "Regulatory Update", "displayOrder": 2 }, { "value": "PERIODIC", "label": "Periodic Review", "displayOrder": 3 }, { "value": "CORRECTION", "label": "Error Correction", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "revisionNumber", "label": "Revision Number", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "ghsCategory", "label": "GHS Hazard Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "FLAMMABLE", "label": "Flammable", "displayOrder": 0 }, { "value": "OXIDISER", "label": "Oxidiser", "displayOrder": 1 }, { "value": "ACUTE_TOXIC", "label": "Acute Toxicity", "displayOrder": 2 }, { "value": "CORROSIVE", "label": "Corrosive", "displayOrder": 3 }, { "value": "IRRITANT", "label": "Irritant / Sensitiser", "displayOrder": 4 }, { "value": "HEALTH_HAZARD", "label": "Health Hazard (CMR)", "displayOrder": 5 }, { "value": "ENV_HAZARD", "label": "Environmental Hazard", "displayOrder": 6 }, { "value": "COMPRESSED_GAS", "label": "Compressed Gas", "displayOrder": 7 }, { "value": "NON_HAZARDOUS", "label": "Non-Hazardous", "displayOrder": 8 } ], "validation": "Required()" },
+      { "name": "signalWord", "label": "Signal Word", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "DANGER", "label": "Danger", "displayOrder": 0 }, { "value": "WARNING", "label": "Warning", "displayOrder": 1 }, { "value": "NONE", "label": "None", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "hazardStatements", "label": "Hazard Statements (H-codes)", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "precautionaryStatements", "label": "Precautionary Statements (P-codes)", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "exposureRoutes", "label": "Primary Exposure Routes", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "INHALATION", "label": "Inhalation", "displayOrder": 0 }, { "value": "SKIN", "label": "Skin Contact", "displayOrder": 1 }, { "value": "INGESTION", "label": "Ingestion", "displayOrder": 2 }, { "value": "EYE", "label": "Eye Contact", "displayOrder": 3 }, { "value": "MULTIPLE", "label": "Multiple Routes", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "oelTlv", "label": "OEL / TLV Value", "fieldType": "TEXT", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "ppeRequired", "label": "PPE Required", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "firstAidMeasures", "label": "First Aid Measures", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "storageClass", "label": "Storage Class", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "1", "label": "1 - Explosive", "displayOrder": 0 }, { "value": "2A", "label": "2A - Compressed Gases (flammable)", "displayOrder": 1 }, { "value": "3", "label": "3 - Flammable Liquids", "displayOrder": 2 }, { "value": "5", "label": "5 - Oxidising", "displayOrder": 3 }, { "value": "6", "label": "6 - Toxic", "displayOrder": 4 }, { "value": "8", "label": "8 - Corrosive", "displayOrder": 5 }, { "value": "10", "label": "10 - Non-hazardous Liquids", "displayOrder": 6 }, { "value": "13", "label": "13 - Non-hazardous Solids", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "storageTemperature", "label": "Storage Temperature (C)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "incompatibilities", "label": "Incompatible Materials", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "spillProcedure", "label": "Spill Clean-Up Procedure", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "reachRegistered", "label": "REACH Registered", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "transportClass", "label": "UN Transport Classification", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "unNumber", "label": "UN Number", "fieldType": "TEXT", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "environmentalImpact", "label": "Environmental Impact Summary", "fieldType": "TEXTAREA", "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "sdsDraft", "label": "SDS Document (Draft)", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "labTestReport", "label": "Lab Test Report", "fieldType": "FILE", "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "SDS Author / Chemist", "approverType": "ROLE", "roleName": "CHEMIST", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Regulatory Affairs Manager", "approverType": "ROLE", "roleName": "REGULATORY_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "EHS Director", "approverType": "ROLE", "roleName": "EHS_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

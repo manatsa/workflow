@@ -1,0 +1,68 @@
+{
+  "_comment": "Material & Finish Selection Approval — approve material and finish selections for an interior design project.",
+  "name": "Material & Finish Selection Approval",
+  "code": "IMS",
+  "description": "Approve material and finish selections for interior projects including flooring, wall finishes, countertops, hardware, fabrics, and custom millwork specifications.",
+  "icon": "palette",
+  "displayOrder": 219,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "INTERIOR_DESIGN",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{selectionRef} - @{projectName} - @{selectionCategory}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Selection Details", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Materials", "displayOrder": 1, "icon": "texture" },
+      { "id": "temp_screen_3", "title": "Costing & Approval", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Project & Category", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Material Selections", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Specifications", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Cost Summary", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Samples & Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "selectionRef", "label": "Selection Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"IMS-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "projectName", "label": "Project Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "selectionCategory", "label": "Selection Category", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FLOORING", "label": "Flooring", "displayOrder": 0 }, { "value": "WALL_FINISH", "label": "Wall Finishes / Paint", "displayOrder": 1 }, { "value": "COUNTERTOP", "label": "Countertops / Surfaces", "displayOrder": 2 }, { "value": "TILE", "label": "Tiles", "displayOrder": 3 }, { "value": "FABRIC", "label": "Fabrics / Upholstery", "displayOrder": 4 }, { "value": "HARDWARE", "label": "Hardware / Fixtures", "displayOrder": 5 }, { "value": "MILLWORK", "label": "Custom Millwork", "displayOrder": 6 }, { "value": "LIGHTING", "label": "Light Fixtures", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "roomZone", "label": "Room / Zone", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "designerName", "label": "Designer", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "materials", "label": "Material Selections", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 30, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"materialName\",\"label\":\"Material / Product\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"manufacturer\",\"label\":\"Manufacturer\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"colourFinish\",\"label\":\"Colour / Finish\",\"type\":\"TEXT\",\"width\":140,\"required\":true},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":80,\"required\":true},{\"name\":\"uom\",\"label\":\"UOM\",\"type\":\"SELECT\",\"width\":80,\"options\":[\"sq m\",\"lin m\",\"pcs\",\"sets\",\"rolls\"],\"required\":true},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":100},{\"name\":\"lineTotal\",\"label\":\"Total\",\"type\":\"NUMBER\",\"width\":100}]", "validation": "MinRows(1, \"At least one material selection required\")" },
+      { "name": "leadTime", "label": "Lead Time (weeks)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "locallyAvailable", "label": "Locally Available", "fieldType": "YES_NO", "defaultValue": "true", "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "durabilityRating", "label": "Durability Rating", "fieldType": "SELECT", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "LIGHT", "label": "Light Duty", "displayOrder": 0 }, { "value": "MEDIUM", "label": "Medium Duty", "displayOrder": 1 }, { "value": "HEAVY", "label": "Heavy Duty", "displayOrder": 2 }, { "value": "COMMERCIAL", "label": "Commercial Grade", "displayOrder": 3 } ] },
+      { "name": "maintenanceNotes", "label": "Maintenance Requirements", "fieldType": "TEXTAREA", "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "alternativeConsidered", "label": "Alternative Option Considered", "fieldType": "TEXT", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "justification", "label": "Selection Justification", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 16, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(10)" },
+      { "name": "materialCost", "label": "Total Material Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM_COLUMN(\"materials\", \"lineTotal\")" },
+      { "name": "installationCost", "label": "Estimated Installation Cost", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "totalCost", "label": "Total Cost (Material + Installation)", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM(@{materialCost}, @{installationCost})" },
+      { "name": "withinBudget", "label": "Within Approved Budget", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "clientApproved", "label": "Client Has Approved Samples", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{clientApproved} == true, \"Client must approve material samples before proceeding\")" },
+      { "name": "samplePhotos", "label": "Sample / Swatch Photos", "fieldType": "FILE", "displayOrder": 25, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,png,pdf", "maxFileSize": 20971520 },
+      { "name": "specSheet", "label": "Technical Specification Sheet", "fieldType": "FILE", "displayOrder": 26, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 },
+      { "name": "supplierQuote", "label": "Supplier Quotation", "fieldType": "FILE", "isMandatory": true, "displayOrder": 27, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Senior Designer", "approverType": "ROLE", "roleName": "SENIOR_DESIGNER", "amountLimit": 50000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Design Director", "approverType": "ROLE", "roleName": "DESIGN_DIRECTOR", "amountLimit": 200000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Finance Manager", "approverType": "ROLE", "roleName": "FINANCE_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

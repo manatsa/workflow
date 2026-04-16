@@ -1,0 +1,64 @@
+{
+  "_comment": "Film Scheduling / Programming — schedule film screenings across screens and sessions.",
+  "name": "Film Scheduling / Programming",
+  "code": "FSP",
+  "description": "Schedule and approve film programming across cinema screens including session times, formats and expected attendance.",
+  "icon": "movie",
+  "displayOrder": 251,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "CINEMA",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{scheduleRef} - @{filmTitle}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Film Details", "displayOrder": 0, "icon": "movie" },
+      { "id": "temp_screen_2", "title": "Scheduling", "displayOrder": 1, "icon": "calendar_month" },
+      { "id": "temp_screen_3", "title": "Marketing & Notes", "displayOrder": 2, "icon": "campaign" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Film Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Schedule", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Sessions", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Marketing", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "scheduleRef", "label": "Schedule Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FSP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "filmTitle", "label": "Film Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "distributor", "label": "Distributor", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "genre", "label": "Genre", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ACTION", "label": "Action", "displayOrder": 0 }, { "value": "COMEDY", "label": "Comedy", "displayOrder": 1 }, { "value": "DRAMA", "label": "Drama", "displayOrder": 2 }, { "value": "HORROR", "label": "Horror", "displayOrder": 3 }, { "value": "SCIFI", "label": "Sci-Fi", "displayOrder": 4 }, { "value": "ANIMATION", "label": "Animation", "displayOrder": 5 }, { "value": "DOCUMENTARY", "label": "Documentary", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "ageRating", "label": "Age Rating", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "G", "label": "G - General", "displayOrder": 0 }, { "value": "PG", "label": "PG - Parental Guidance", "displayOrder": 1 }, { "value": "PG13", "label": "PG-13", "displayOrder": 2 }, { "value": "R", "label": "R - Restricted", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "runtimeMinutes", "label": "Runtime (minutes)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "format", "label": "Screening Format", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "2D", "label": "2D Standard", "displayOrder": 0 }, { "value": "3D", "label": "3D", "displayOrder": 1 }, { "value": "IMAX", "label": "IMAX", "displayOrder": 2 }, { "value": "4DX", "label": "4DX", "displayOrder": 3 }, { "value": "DOLBY", "label": "Dolby Atmos", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "openingDate", "label": "Opening Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND DateAfter(\"today\", \"Opening date must be in the future\")" },
+      { "name": "closingDate", "label": "Closing Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "screenAssignment", "label": "Screen / Auditorium", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "SCR1", "label": "Screen 1 (250 seats)", "displayOrder": 0 }, { "value": "SCR2", "label": "Screen 2 (180 seats)", "displayOrder": 1 }, { "value": "SCR3", "label": "Screen 3 (120 seats)", "displayOrder": 2 }, { "value": "SCR4", "label": "Screen 4 - IMAX (300 seats)", "displayOrder": 3 }, { "value": "SCR5", "label": "Screen 5 - VIP (60 seats)", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "expectedOccupancy", "label": "Expected Occupancy %", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "sessions", "label": "Session Timetable", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 30, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"day\",\"label\":\"Day\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\",\"Sunday\"],\"required\":true},{\"name\":\"time\",\"label\":\"Start Time\",\"type\":\"TEXT\",\"width\":100,\"required\":true},{\"name\":\"format\",\"label\":\"Format\",\"type\":\"SELECT\",\"width\":110,\"options\":[\"2D\",\"3D\",\"IMAX\",\"4DX\"],\"required\":true},{\"name\":\"language\",\"label\":\"Language\",\"type\":\"TEXT\",\"width\":100},{\"name\":\"subtitles\",\"label\":\"Subtitles\",\"type\":\"SELECT\",\"width\":80,\"options\":[\"Yes\",\"No\"]}]", "validation": "MinRows(1, \"At least one session required\")" },
+      { "name": "marketingPlan", "label": "Marketing Plan", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "STANDARD", "label": "Standard Package", "displayOrder": 0 }, { "value": "PREMIUM", "label": "Premium Launch", "displayOrder": 1 }, { "value": "MINIMAL", "label": "Minimal / Limited", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "specialEvents", "label": "Special Events / Premieres", "fieldType": "TEXTAREA", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "notes", "label": "Additional Notes", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "distributorContract", "label": "Distributor Contract / DCP Key", "fieldType": "FILE", "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Programming Manager", "approverType": "ROLE", "roleName": "PROGRAMMING_MGR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Cinema General Manager", "approverType": "ROLE", "roleName": "CINEMA_GM", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Operations Director", "approverType": "ROLE", "roleName": "OPS_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

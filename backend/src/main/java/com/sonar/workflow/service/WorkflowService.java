@@ -698,7 +698,7 @@ public class WorkflowService {
         field.setIsTitle(dto.getIsTitle() != null ? dto.getIsTitle() : false);
         field.setIsLimited(dto.getIsLimited() != null ? dto.getIsLimited() : false);
         field.setDisplayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0);
-        field.setColumnSpan(dto.getColumnSpan());
+        field.setColumnSpan(dto.getColumnSpan() != null ? dto.getColumnSpan() : 1);
         field.setInSummary(dto.getInSummary() != null ? dto.getInSummary() : false);
         field.setDefaultValue(dto.getDefaultValue());
         field.setMinValue(dto.getMinValue());
@@ -2484,6 +2484,7 @@ public class WorkflowService {
             importDto.setIsPublished(false);
 
             // Clear all IDs to create new records
+            // Note: preserve temp IDs on groups and screens — they're needed for field→group and group→screen mapping
             importDto.setId(null);
             if (importDto.getForms() != null) {
                 importDto.getForms().forEach(form -> {
@@ -2492,7 +2493,12 @@ public class WorkflowService {
                         form.getFields().forEach(field -> field.setId(null));
                     }
                     if (form.getFieldGroups() != null) {
-                        form.getFieldGroups().forEach(group -> group.setId(null));
+                        form.getFieldGroups().forEach(group -> {
+                            // Only clear real UUIDs, preserve temp IDs for mapping
+                            if (group.getId() != null && !group.getId().startsWith("temp_")) {
+                                group.setId(null);
+                            }
+                        });
                     }
                 });
             }

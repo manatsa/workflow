@@ -1,0 +1,67 @@
+{
+  "_comment": "Hazardous Material Incident Report — report and investigate a chemical spill, leak or exposure incident.",
+  "name": "Hazardous Material Incident Report",
+  "code": "HMI",
+  "description": "Report, investigate and close out a hazardous material incident including spills, leaks, exposures or near-misses at chemical facilities.",
+  "icon": "local_fire_department",
+  "displayOrder": 276,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "CHEMICALS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{incidentRef} - @{incidentType} (@{severity})",
+  "reminderEnabled": true, "reminderFrequencyHours": 8, "reminderMaxCount": 5, "reminderStartAfterHours": 4,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Incident Details", "displayOrder": 0, "icon": "report_problem" },
+      { "id": "temp_screen_2", "title": "Investigation", "displayOrder": 1, "icon": "search" },
+      { "id": "temp_screen_3", "title": "Corrective Actions & Documents", "displayOrder": 2, "icon": "task_alt" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Incident Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Chemical & Exposure", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Root Cause Analysis", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Corrective & Preventive Actions", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Closure & Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "incidentRef", "label": "Incident Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"HMI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "incidentDate", "label": "Incident Date & Time", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "incidentType", "label": "Incident Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SPILL", "label": "Chemical Spill", "displayOrder": 0 }, { "value": "LEAK", "label": "Gas / Liquid Leak", "displayOrder": 1 }, { "value": "EXPOSURE", "label": "Personnel Exposure", "displayOrder": 2 }, { "value": "FIRE", "label": "Fire / Explosion", "displayOrder": 3 }, { "value": "RELEASE", "label": "Uncontrolled Release", "displayOrder": 4 }, { "value": "NEAR_MISS", "label": "Near Miss", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "severity", "label": "Severity", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CRITICAL", "label": "Critical – Life Threatening", "displayOrder": 0 }, { "value": "MAJOR", "label": "Major – Injury / Large Release", "displayOrder": 1 }, { "value": "MODERATE", "label": "Moderate – Minor Injury / Contained", "displayOrder": 2 }, { "value": "MINOR", "label": "Minor – Near Miss / No Injury", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "location", "label": "Location / Area", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "incidentDescription", "label": "Incident Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 6, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "chemicalName", "label": "Chemical(s) Involved", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "quantityReleased", "label": "Estimated Quantity Released", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "personsExposed", "label": "Persons Exposed / Injured", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "medicalTreatment", "label": "Medical Treatment Required", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "environmentalImpact", "label": "Environmental Impact", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "immediateActions", "label": "Immediate Actions Taken", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 15, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "rootCause", "label": "Root Cause Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "EQUIPMENT", "label": "Equipment Failure", "displayOrder": 0 }, { "value": "HUMAN", "label": "Human Error", "displayOrder": 1 }, { "value": "PROCESS", "label": "Process Deviation", "displayOrder": 2 }, { "value": "DESIGN", "label": "Design Deficiency", "displayOrder": 3 }, { "value": "MAINTENANCE", "label": "Maintenance Lapse", "displayOrder": 4 }, { "value": "EXTERNAL", "label": "External Factor", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "rootCauseDetail", "label": "Root Cause Analysis Detail", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "regulatoryNotified", "label": "Regulatory Authority Notified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "notificationDetails", "label": "Notification Details", "fieldType": "TEXTAREA", "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{regulatoryNotified} == true" },
+      { "name": "correctiveActions", "label": "Corrective / Preventive Actions", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "tableMinRows": 1, "tableMaxRows": 10, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"action\",\"label\":\"Action\",\"type\":\"TEXT\",\"width\":250,\"required\":true},{\"name\":\"responsible\",\"label\":\"Responsible Person\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"targetDate\",\"label\":\"Target Date\",\"type\":\"DATE\",\"width\":120,\"required\":true},{\"name\":\"status\",\"label\":\"Status\",\"type\":\"SELECT\",\"width\":110,\"options\":[\"Open\",\"In Progress\",\"Completed\"],\"required\":true}]", "validation": "MinRows(1, \"At least one corrective action required\")" },
+      { "name": "incidentClosed", "label": "Incident Closed", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "remarks", "label": "Closing Remarks", "fieldType": "TEXTAREA", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "incidentPhotos", "label": "Incident Photos", "fieldType": "FILE", "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 },
+      { "name": "investigationReport", "label": "Investigation Report", "fieldType": "FILE", "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Shift Supervisor", "approverType": "ROLE", "roleName": "SHIFT_SUPERVISOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "EHS Manager", "approverType": "ROLE", "roleName": "EHS_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Plant Director", "approverType": "ROLE", "roleName": "PLANT_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

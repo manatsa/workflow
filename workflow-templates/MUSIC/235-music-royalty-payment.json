@@ -1,0 +1,68 @@
+{
+  "_comment": "Royalty Payment Processing — calculate and approve royalty payments to artists, writers, and producers.",
+  "name": "Royalty Payment Processing",
+  "code": "RPP",
+  "description": "Calculate, verify, and approve royalty payments to artists, songwriters, and producers based on streaming, sales, and licensing revenue.",
+  "icon": "payments",
+  "displayOrder": 235,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "MUSIC",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{paymentRef} - @{payeeName} - @{paymentPeriod}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Payee & Period", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Revenue & Calculation", "displayOrder": 1, "icon": "calculate" },
+      { "id": "temp_screen_3", "title": "Payment Details", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Payee Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Royalty Period", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Revenue Breakdown", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Royalty Calculation", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Payment", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Supporting Documents", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "paymentRef", "label": "Payment Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RPP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "processDate", "label": "Processing Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "payeeName", "label": "Payee Name (Artist / Writer / Producer)", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "payeeRole", "label": "Payee Role", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ARTIST", "label": "Recording Artist", "displayOrder": 0 }, { "value": "SONGWRITER", "label": "Songwriter", "displayOrder": 1 }, { "value": "PRODUCER", "label": "Producer", "displayOrder": 2 }, { "value": "PUBLISHER", "label": "Publisher", "displayOrder": 3 }, { "value": "SESSION_MUSICIAN", "label": "Session Musician", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "payeeEmail", "label": "Payee Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contractRef", "label": "Contract Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "paymentPeriod", "label": "Payment Period", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "Q1", "label": "Q1 (Jan - Mar)", "displayOrder": 0 }, { "value": "Q2", "label": "Q2 (Apr - Jun)", "displayOrder": 1 }, { "value": "Q3", "label": "Q3 (Jul - Sep)", "displayOrder": 2 }, { "value": "Q4", "label": "Q4 (Oct - Dec)", "displayOrder": 3 }, { "value": "H1", "label": "H1 (Jan - Jun)", "displayOrder": 4 }, { "value": "H2", "label": "H2 (Jul - Dec)", "displayOrder": 5 }, { "value": "ANNUAL", "label": "Annual", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "periodYear", "label": "Year", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(2020)" },
+      { "name": "streamingRevenue", "label": "Streaming Revenue", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "downloadRevenue", "label": "Download / Sales Revenue", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "syncLicensingRevenue", "label": "Sync / Licensing Revenue", "fieldType": "CURRENCY", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "performanceRevenue", "label": "Performance Revenue", "fieldType": "CURRENCY", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "totalGrossRevenue", "label": "Total Gross Revenue", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM(@{streamingRevenue}, @{downloadRevenue}, @{syncLicensingRevenue}, @{performanceRevenue})" },
+      { "name": "royaltyPercentage", "label": "Royalty Rate (%)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0.1)" },
+      { "name": "advanceRecoupment", "label": "Advance Recoupment / Deductions", "fieldType": "CURRENCY", "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "netRoyaltyPayable", "label": "Net Royalty Payable", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 17, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "defaultValue": "SUBTRACT(MULTIPLY(@{totalGrossRevenue}, DIVIDE(@{royaltyPercentage}, 100)), @{advanceRecoupment})" },
+      { "name": "withholdingTax", "label": "Withholding Tax", "fieldType": "CURRENCY", "displayOrder": 18, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "paymentMethod", "label": "Payment Method", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "BANK_TRANSFER", "label": "Bank Transfer (EFT)", "displayOrder": 0 }, { "value": "WIRE", "label": "International Wire", "displayOrder": 1 }, { "value": "CHEQUE", "label": "Cheque", "displayOrder": 2 }, { "value": "PAYPAL", "label": "PayPal", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "bankAccountName", "label": "Bank Account Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required()" },
+      { "name": "bankAccountNumber", "label": "Account Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required()" },
+      { "name": "bankName", "label": "Bank Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required()" },
+      { "name": "paymentDate", "label": "Payment Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND DateAfter(\"today\", \"Payment date must be in the future\")" },
+      { "name": "royaltyStatement", "label": "Royalty Statement", "fieldType": "FILE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "statementVerified", "label": "Statement Verified by Accounts", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "ValidWhen(@{statementVerified} == true, \"Statement must be verified by accounts department\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Royalty Accountant", "approverType": "ROLE", "roleName": "ROYALTY_ACCOUNTANT", "amountLimit": 10000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Finance Manager", "approverType": "ROLE", "roleName": "FINANCE_MANAGER", "amountLimit": 50000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Director", "approverType": "ROLE", "roleName": "MANAGING_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

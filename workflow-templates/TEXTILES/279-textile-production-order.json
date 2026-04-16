@@ -1,0 +1,64 @@
+{
+  "_comment": "Textile Production Order — request and approve a weaving or knitting production run.",
+  "name": "Textile Production Order",
+  "code": "TPO",
+  "description": "Raise, schedule and approve a weaving, knitting or spinning production order specifying yarn requirements, machine allocation and delivery targets.",
+  "icon": "precision_manufacturing",
+  "displayOrder": 279,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "TEXTILES",
+  "workflowTypeCode": "REQUISITION",
+  "titleTemplate": "@{orderRef} - @{fabricType} (@{customerName})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Order Details", "displayOrder": 0, "icon": "assignment" },
+      { "id": "temp_screen_2", "title": "Yarn & Machine", "displayOrder": 1, "icon": "settings" },
+      { "id": "temp_screen_3", "title": "Cost & Documents", "displayOrder": 2, "icon": "attach_money" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Order & Customer", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Yarn Requirements", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Machine & Schedule", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Costing", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "orderRef", "label": "Order Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"TPO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "fabricType", "label": "Fabric Type", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "productionType", "label": "Production Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "WEAVING", "label": "Weaving", "displayOrder": 0 }, { "value": "KNITTING", "label": "Knitting", "displayOrder": 1 }, { "value": "SPINNING", "label": "Spinning", "displayOrder": 2 }, { "value": "NON_WOVEN", "label": "Non-Woven", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "quantityMetres", "label": "Quantity (metres)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "widthCm", "label": "Required Width (cm)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "deliveryDate", "label": "Required Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Delivery date must be in the future\")" },
+      { "name": "yarnRequirements", "label": "Yarn Requirements", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 10, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"yarnType\",\"label\":\"Yarn Type\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"count\",\"label\":\"Count / Denier\",\"type\":\"TEXT\",\"width\":100,\"required\":true},{\"name\":\"colour\",\"label\":\"Colour\",\"type\":\"TEXT\",\"width\":100,\"required\":true},{\"name\":\"quantityKg\",\"label\":\"Qty (kg)\",\"type\":\"NUMBER\",\"width\":90,\"required\":true},{\"name\":\"costPerKg\",\"label\":\"Cost/kg\",\"type\":\"NUMBER\",\"width\":100},{\"name\":\"lineCost\",\"label\":\"Cost\",\"type\":\"NUMBER\",\"width\":100,\"computed\":\"quantityKg * costPerKg\"}]", "validation": "MinRows(1, \"At least one yarn type required\")" },
+      { "name": "totalYarnCost", "label": "Total Yarn Cost", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "defaultValue": "SUM_COLUMN(\"yarnRequirements\", \"lineCost\")" },
+      { "name": "machineAllocation", "label": "Machine / Loom Allocation", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "plannedStartDate", "label": "Planned Start Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "estimatedDays", "label": "Estimated Production Days", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "shiftPattern", "label": "Shift Pattern", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "DAY", "label": "Day Shift Only", "displayOrder": 0 }, { "value": "TWO_SHIFT", "label": "Two Shifts", "displayOrder": 1 }, { "value": "THREE_SHIFT", "label": "Three Shifts (24hr)", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "processingCost", "label": "Processing / Conversion Cost", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "overheadCost", "label": "Overhead Cost", "fieldType": "CURRENCY", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "totalCost", "label": "Total Estimated Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "defaultValue": "ADD(@{totalYarnCost}, ADD(@{processingCost}, @{overheadCost}))" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "techSpec", "label": "Technical Specification", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "samplePhoto", "label": "Sample / Swatch Photo", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Planning Manager", "approverType": "ROLE", "roleName": "PLANNING_MANAGER", "amountLimit": 50000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Production Director", "approverType": "ROLE", "roleName": "PRODUCTION_DIRECTOR", "amountLimit": 200000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GENERAL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

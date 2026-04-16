@@ -117,7 +117,7 @@ import { User } from '@core/models/user.model';
             </div>
 
             <!-- Screen Header -->
-            @if (currentScreen) {
+            @if (currentScreen && currentScreen.showDetails !== false) {
               <div class="screen-header">
                 @if (currentScreen.icon) {
                   <mat-icon>{{ currentScreen.icon }}</mat-icon>
@@ -194,7 +194,7 @@ import { User } from '@core/models/user.model';
                 <div class="fields-grid">
                   @for (field of (isMultiStep ? getUngroupedFieldsOnScreen() : getUngroupedFields()); track field.id) {
                     @if (isFieldVisible(field)) {
-                    <div class="field-wrapper" [style.grid-column]="'span ' + (field.columnSpan || 2)">
+                    <div class="field-wrapper" [style.grid-column]="'span ' + (field.columnSpan || 1)">
                       @switch (field.type) {
                         @case ('TEXT') {
                           <div class="field-container">
@@ -302,9 +302,16 @@ import { User } from '@core/models/user.model';
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                               <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
-                              <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
-                                @for (option of field.options; track option.value) {
+                              <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" (opened)="onSelectOpened(field.name)">
+                                <div class="select-search-box">
+                                  <mat-icon>search</mat-icon>
+                                  <input class="select-search-input" placeholder="Search..." (input)="onSelectSearch($any($event.target).value, field.name)" (keydown)="$event.stopPropagation()">
+                                </div>
+                                @for (option of getFilteredOptions(field); track option.value) {
                                   <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                }
+                                @if (getFilteredOptions(field).length === 0) {
+                                  <mat-option disabled>No matches found</mat-option>
                                 }
                               </mat-select>
                             </mat-form-field>
@@ -317,9 +324,16 @@ import { User } from '@core/models/user.model';
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                               <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
-                              <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" multiple>
-                                @for (option of field.options; track option.value) {
+                              <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" multiple (opened)="onSelectOpened(field.name)">
+                                <div class="select-search-box">
+                                  <mat-icon>search</mat-icon>
+                                  <input class="select-search-input" placeholder="Search..." (input)="onSelectSearch($any($event.target).value, field.name)" (keydown)="$event.stopPropagation()">
+                                </div>
+                                @for (option of getFilteredOptions(field); track option.value) {
                                   <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                }
+                                @if (getFilteredOptions(field).length === 0) {
+                                  <mat-option disabled>No matches found</mat-option>
                                 }
                               </mat-select>
                             </mat-form-field>
@@ -342,7 +356,7 @@ import { User } from '@core/models/user.model';
                           </div>
                         }
                         @case ('CHECKBOX') {
-                          <div class="field-container">
+                          <div class="field-container checkbox-single-field">
                             <mat-checkbox [formControlName]="field.name" [disabled]="isFieldReadonly(field)">{{ field.label }}</mat-checkbox>
                             @if (hasFieldError(field)) {
                               <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
@@ -409,6 +423,23 @@ import { User } from '@core/models/user.model';
                         }
                         @case ('USER') {
                           <div class="field-container">
+                            @if (allCorporates.length > 0) {
+                              <mat-form-field appearance="outline" class="full-width" style="margin-bottom: 0.5rem;">
+                                <mat-label>Filter by Corporate</mat-label>
+                                <mat-select multiple (selectionChange)="onUserCorporateFilterChange($event.value, field.name)" (opened)="onSelectOpened('_userCorp_' + field.name)">
+                                  <div class="select-search-box">
+                                    <mat-icon>search</mat-icon>
+                                    <input class="select-search-input" placeholder="Search corporates..." (input)="onSelectSearch($any($event.target).value, '_userCorp_' + field.name)" (keydown)="$event.stopPropagation()">
+                                  </div>
+                                  @for (corp of allCorporates; track corp.id) {
+                                    @if (!selectSearchTerms['_userCorp_' + field.name] || corp.name?.toLowerCase().includes(selectSearchTerms['_userCorp_' + field.name])) {
+                                      <mat-option [value]="corp.id">{{ corp.name }}</mat-option>
+                                    }
+                                  }
+                                </mat-select>
+                                <mat-hint>Select corporates to narrow user list</mat-hint>
+                              </mat-form-field>
+                            }
                             <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                               <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
                               <mat-icon matPrefix>person_search</mat-icon>
@@ -808,9 +839,16 @@ import { User } from '@core/models/user.model';
                               <div class="field-container">
                                 <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                                   <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
-                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
-                                    @for (option of field.options; track option.value) {
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" (opened)="onSelectOpened(field.name)">
+                                    <div class="select-search-box">
+                                      <mat-icon>search</mat-icon>
+                                      <input class="select-search-input" placeholder="Search..." (input)="onSelectSearch($any($event.target).value, field.name)" (keydown)="$event.stopPropagation()">
+                                    </div>
+                                    @for (option of getFilteredOptions(field); track option.value) {
                                       <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                    @if (getFilteredOptions(field).length === 0) {
+                                      <mat-option disabled>No matches found</mat-option>
                                     }
                                   </mat-select>
                                 </mat-form-field>
@@ -823,9 +861,16 @@ import { User } from '@core/models/user.model';
                               <div class="field-container">
                                 <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                                   <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
-                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" multiple>
-                                    @for (option of field.options; track option.value) {
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" multiple (opened)="onSelectOpened(field.name)">
+                                    <div class="select-search-box">
+                                      <mat-icon>search</mat-icon>
+                                      <input class="select-search-input" placeholder="Search..." (input)="onSelectSearch($any($event.target).value, field.name)" (keydown)="$event.stopPropagation()">
+                                    </div>
+                                    @for (option of getFilteredOptions(field); track option.value) {
                                       <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                    @if (getFilteredOptions(field).length === 0) {
+                                      <mat-option disabled>No matches found</mat-option>
                                     }
                                   </mat-select>
                                 </mat-form-field>
@@ -869,9 +914,16 @@ import { User } from '@core/models/user.model';
                               <div class="field-container">
                                 <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                                   <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
-                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
-                                    @for (option of field.options; track option.value) {
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" (opened)="onSelectOpened(field.name)">
+                                    <div class="select-search-box">
+                                      <mat-icon>search</mat-icon>
+                                      <input class="select-search-input" placeholder="Search..." (input)="onSelectSearch($any($event.target).value, field.name)" (keydown)="$event.stopPropagation()">
+                                    </div>
+                                    @for (option of getFilteredOptions(field); track option.value) {
                                       <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                    @if (getFilteredOptions(field).length === 0) {
+                                      <mat-option disabled>No matches found</mat-option>
                                     }
                                   </mat-select>
                                 </mat-form-field>
@@ -984,7 +1036,7 @@ import { User } from '@core/models/user.model';
                                   <div class="collapsible-content fields-grid">
                                     @for (nestedField of getFieldsInCollapsible(collapsible.id); track nestedField.id) {
                                       @if (isFieldVisible(nestedField)) {
-                                        <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                                        <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 1)">
                                           <!-- Render nested field - simplified for common types -->
                                           @switch (nestedField.type) {
                                             @case ('TEXT') {
@@ -1102,7 +1154,7 @@ import { User } from '@core/models/user.model';
                               <div class="collapsible-content fields-grid">
                                 @for (nestedField of getFieldsInCollapsible(field.id); track nestedField.id) {
                                   @if (isFieldVisible(nestedField)) {
-                                    <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                                    <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 1)">
                                       @switch (nestedField.type) {
                                         @case ('TEXT') {
                                           <div class="field-container">
@@ -1280,7 +1332,7 @@ import { User } from '@core/models/user.model';
                 <div class="fields-grid">
                   @for (field of getFieldsInGroup(group.id); track field.id) {
                     @if (isFieldVisible(field)) {
-                    <div class="field-wrapper" [style.grid-column]="'span ' + (field.columnSpan || 2)">
+                    <div class="field-wrapper" [style.grid-column]="'span ' + (field.columnSpan || 1)">
                       @switch (field.type) {
                         @case ('TEXT') {
                           <div class="field-container">
@@ -1428,7 +1480,7 @@ import { User } from '@core/models/user.model';
                           </div>
                         }
                         @case ('CHECKBOX') {
-                          <div class="field-container">
+                          <div class="field-container checkbox-single-field">
                             <mat-checkbox [formControlName]="field.name" [disabled]="isFieldReadonly(field)">{{ field.label }}</mat-checkbox>
                             @if (hasFieldError(field)) {
                               <div class="validation-error">{{ getFieldErrorMessage(field) }}</div>
@@ -1495,6 +1547,23 @@ import { User } from '@core/models/user.model';
                         }
                         @case ('USER') {
                           <div class="field-container">
+                            @if (allCorporates.length > 0) {
+                              <mat-form-field appearance="outline" class="full-width" style="margin-bottom: 0.5rem;">
+                                <mat-label>Filter by Corporate</mat-label>
+                                <mat-select multiple (selectionChange)="onUserCorporateFilterChange($event.value, field.name)" (opened)="onSelectOpened('_userCorp2_' + field.name)">
+                                  <div class="select-search-box">
+                                    <mat-icon>search</mat-icon>
+                                    <input class="select-search-input" placeholder="Search corporates..." (input)="onSelectSearch($any($event.target).value, '_userCorp2_' + field.name)" (keydown)="$event.stopPropagation()">
+                                  </div>
+                                  @for (corp of allCorporates; track corp.id) {
+                                    @if (!selectSearchTerms['_userCorp2_' + field.name] || corp.name?.toLowerCase().includes(selectSearchTerms['_userCorp2_' + field.name])) {
+                                      <mat-option [value]="corp.id">{{ corp.name }}</mat-option>
+                                    }
+                                  }
+                                </mat-select>
+                                <mat-hint>Select corporates to narrow user list</mat-hint>
+                              </mat-form-field>
+                            }
                             <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                               <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
                               <mat-icon matPrefix>person_search</mat-icon>
@@ -1894,9 +1963,16 @@ import { User } from '@core/models/user.model';
                               <div class="field-container">
                                 <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                                   <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
-                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
-                                    @for (option of field.options; track option.value) {
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" (opened)="onSelectOpened(field.name)">
+                                    <div class="select-search-box">
+                                      <mat-icon>search</mat-icon>
+                                      <input class="select-search-input" placeholder="Search..." (input)="onSelectSearch($any($event.target).value, field.name)" (keydown)="$event.stopPropagation()">
+                                    </div>
+                                    @for (option of getFilteredOptions(field); track option.value) {
                                       <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                    @if (getFilteredOptions(field).length === 0) {
+                                      <mat-option disabled>No matches found</mat-option>
                                     }
                                   </mat-select>
                                 </mat-form-field>
@@ -1909,9 +1985,16 @@ import { User } from '@core/models/user.model';
                               <div class="field-container">
                                 <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                                   <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
-                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" multiple>
-                                    @for (option of field.options; track option.value) {
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" multiple (opened)="onSelectOpened(field.name)">
+                                    <div class="select-search-box">
+                                      <mat-icon>search</mat-icon>
+                                      <input class="select-search-input" placeholder="Search..." (input)="onSelectSearch($any($event.target).value, field.name)" (keydown)="$event.stopPropagation()">
+                                    </div>
+                                    @for (option of getFilteredOptions(field); track option.value) {
                                       <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                    @if (getFilteredOptions(field).length === 0) {
+                                      <mat-option disabled>No matches found</mat-option>
                                     }
                                   </mat-select>
                                 </mat-form-field>
@@ -1955,9 +2038,16 @@ import { User } from '@core/models/user.model';
                               <div class="field-container">
                                 <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
                                   <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
-                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)">
-                                    @for (option of field.options; track option.value) {
+                                  <mat-select [formControlName]="field.name" [placeholder]="field.placeholder || ''" [disabled]="isFieldReadonly(field)" (opened)="onSelectOpened(field.name)">
+                                    <div class="select-search-box">
+                                      <mat-icon>search</mat-icon>
+                                      <input class="select-search-input" placeholder="Search..." (input)="onSelectSearch($any($event.target).value, field.name)" (keydown)="$event.stopPropagation()">
+                                    </div>
+                                    @for (option of getFilteredOptions(field); track option.value) {
                                       <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                    @if (getFilteredOptions(field).length === 0) {
+                                      <mat-option disabled>No matches found</mat-option>
                                     }
                                   </mat-select>
                                 </mat-form-field>
@@ -2070,7 +2160,7 @@ import { User } from '@core/models/user.model';
                                   <div class="collapsible-content fields-grid">
                                     @for (nestedField of getFieldsInCollapsible(collapsible.id); track nestedField.id) {
                                       @if (isFieldVisible(nestedField)) {
-                                        <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                                        <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 1)">
                                           @switch (nestedField.type) {
                                             @case ('TEXT') {
                                               <div class="field-container">
@@ -2173,7 +2263,7 @@ import { User } from '@core/models/user.model';
                               <div class="collapsible-content fields-grid">
                                 @for (nestedField of getFieldsInCollapsible(field.id); track nestedField.id) {
                                   @if (isFieldVisible(nestedField)) {
-                                    <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 2)">
+                                    <div class="field-wrapper" [style.grid-column]="'span ' + (nestedField.columnSpan || 1)">
                                       @switch (nestedField.type) {
                                         @case ('TEXT') {
                                           <div class="field-container">
@@ -2562,7 +2652,7 @@ import { User } from '@core/models/user.model';
 
     .fields-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
       padding: 1rem 0;
     }
@@ -2630,6 +2720,22 @@ import { User } from '@core/models/user.model';
 
     .field-invalid ::ng-deep .mat-mdc-floating-label {
       color: #f44336 !important;
+    }
+
+    .radio-field,
+    .toggle-field,
+    .yes-no-field,
+    .checkbox-group-field,
+    .checkbox-single-field {
+      padding-bottom: 0.75rem;
+    }
+
+    .radio-field .validation-error,
+    .toggle-field .validation-error,
+    .yes-no-field .validation-error,
+    .checkbox-group-field .validation-error,
+    .checkbox-single-field .validation-error {
+      margin-top: 0.5rem;
     }
 
     .radio-field mat-radio-group {
@@ -3006,6 +3112,7 @@ import { User } from '@core/models/user.model';
     .data-table {
       width: 100%;
       border-collapse: collapse;
+      table-layout: fixed;
     }
 
     .data-table th {
@@ -3040,8 +3147,23 @@ import { User } from '@core/models/user.model';
       cursor: not-allowed;
     }
 
+    .data-table td select,
+    .data-table td textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      box-sizing: border-box;
+    }
+
+    .data-table td {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .data-table .actions-cell {
-      width: 50px;
+      width: 40px;
       text-align: center;
     }
 
@@ -3464,6 +3586,42 @@ import { User } from '@core/models/user.model';
       margin: 0.125rem 0 0 0;
       font-size: 0.8rem;
       color: #666;
+    }
+
+    .select-search-box {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      gap: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .select-search-box mat-icon {
+      color: #999;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .select-search-input {
+      border: none;
+      outline: none;
+      font-size: 14px;
+      width: 100%;
+      background: transparent;
+    }
+
+    :host-context(.dark-mode) .select-search-box {
+      background: #333;
+      border-color: #555;
+    }
+
+    :host-context(.dark-mode) .select-search-input {
+      color: #e0e0e0;
     }
 
     .user-option {
@@ -4252,7 +4410,8 @@ import { User } from '@core/models/user.model';
 
     /* Table scroll wrapper */
     .table-scroll-wrapper {
-      overflow-x: auto;
+      overflow-x: visible;
+      width: 100%;
     }
 
     /* Column filter input */
@@ -4407,6 +4566,11 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   filteredUsersMap: Record<string, User[]> = {};
   userSearchTerms: Record<string, string> = {};
   selectedUsers: Record<string, User> = {};
+  userCorporateFilter: Record<string, string[]> = {};
+  allCorporates: any[] = [];
+
+  // Select field search
+  selectSearchTerms: Record<string, string> = {};
 
   // Accordion expansion state: accordionFieldId -> array of expanded collapsible indices
   accordionExpandedState: Record<string, Set<number>> = {};
@@ -4688,6 +4852,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         if (this.isEditMode) {
           console.log(`[DEBUG initializeForm] EDIT MODE - field "${field.name}" NOT in existingFieldValues. Available keys:`, Object.keys(this.existingFieldValues));
         }
+        // Resolve 'self' keyword to actual field name in default value expressions
+        field.defaultValue = this.resolveSelf(field.defaultValue, field.name);
         // Check if this is a function expression that references other fields
         const dependencies = this.extractFieldDependencies(field.defaultValue, allFieldNames);
 
@@ -5043,6 +5209,25 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
           }
         }
       }
+
+      // FILE field minFiles validation
+      if ((field as any).fieldType === 'FILE' || (field as any).type === 'FILE') {
+        const minFiles = (field as any).minFiles;
+        if (minFiles && minFiles > 0) {
+          const existingCount = (this.existingAttachments[field.name] || []).length;
+          const selectedCount = (this.selectedFiles[field.name] || []).length;
+          const totalFiles = existingCount + selectedCount;
+          if (totalFiles < minFiles) {
+            const errorMsg = `${field.label} requires at least ${minFiles} file${minFiles > 1 ? 's' : ''} (${totalFiles} attached)`;
+            this.validationErrors[field.name] = errorMsg;
+            const control = this.form.get(field.name);
+            if (control) {
+              control.setErrors({ ...control.errors, customValidation: errorMsg });
+              control.markAsTouched();
+            }
+          }
+        }
+      }
     });
     // Trigger change detection to update the view
     this.cdr.detectChanges();
@@ -5060,7 +5245,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       if (value === null || value === undefined) return;
 
       try {
-        const transforms = this.splitOutsideQuotes(transformExpr, /\s+AND\s+/i).map((t: string) => t.trim());
+        // Resolve 'self' keyword to actual field name
+        const resolvedExpr = this.resolveSelf(transformExpr, field.name);
+        const transforms = this.splitOutsideQuotes(resolvedExpr, /\s+AND\s+/i).map((t: string) => t.trim());
         for (const transform of transforms) {
           value = this.applySingleTransform(transform, value);
         }
@@ -5170,14 +5357,35 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     return value; // Unknown transform, return unchanged
   }
 
+  /** Replace 'self' keyword with the actual field name in expressions.
+   *  Supports @{self}, @{ self }, and bare 'self' as a function argument. */
+  private resolveSelf(expression: string, fieldName: string): string {
+    if (!expression || !expression.includes('self')) return expression;
+    // Replace @{self} with @{fieldName}
+    let resolved = expression.replace(/@\{\s*self\s*\}/gi, `@{${fieldName}}`);
+    // Replace bare 'self' when used as a function argument (not inside quotes, not part of a longer word)
+    // e.g., Required(self) → Required(@{fieldName}), ValidWhen(self > 0) → ValidWhen(@{fieldName} > 0)
+    resolved = resolved.replace(/\b(?<!')self(?!')\b/gi, (match, offset) => {
+      // Don't replace if inside a quoted string
+      const before = resolved.substring(0, offset);
+      const singleQuotes = (before.match(/'/g) || []).length;
+      const doubleQuotes = (before.match(/"/g) || []).length;
+      if (singleQuotes % 2 !== 0 || doubleQuotes % 2 !== 0) return match;
+      return `@{${fieldName}}`;
+    });
+    return resolved;
+  }
+
   private evaluateValidation(field: WorkflowField): string | null {
     const expression = field.validation;
     if (!expression) return null;
 
     try {
+      // Resolve 'self' keyword to actual field name
+      const resolved = this.resolveSelf(expression, field.name);
       // Parse and evaluate validation expression(s)
       // Support combining with AND
-      const parts = this.splitOutsideQuotes(expression, /\s+AND\s+/i);
+      const parts = this.splitOutsideQuotes(resolved, /\s+AND\s+/i);
 
       for (const part of parts) {
         const trimmed = part.trim();
@@ -5647,7 +5855,14 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     if (minRowsMatch) {
       const minCount = parseInt(minRowsMatch[1], 10);
       const customMessage = minRowsMatch[2] || minRowsMatch[3];
-      const rows = Array.isArray(value) ? value : [];
+      let rows: any[] = [];
+      if (Array.isArray(value)) {
+        rows = value;
+      } else if (typeof value === 'string' && value.startsWith('[')) {
+        try { rows = JSON.parse(value); } catch (_) { rows = []; }
+      }
+      // Filter out completely empty rows (all values blank)
+      rows = rows.filter((r: any) => r && typeof r === 'object' && Object.values(r).some((v: any) => v !== '' && v !== null && v !== undefined));
       if (rows.length < minCount) {
         return customMessage || `${fieldLabel} must have at least ${minCount} rows`;
       }
@@ -5659,9 +5874,156 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     if (maxRowsMatch) {
       const maxCount = parseInt(maxRowsMatch[1], 10);
       const customMessage = maxRowsMatch[2] || maxRowsMatch[3];
-      const rows = Array.isArray(value) ? value : [];
+      let rows: any[] = [];
+      if (Array.isArray(value)) {
+        rows = value;
+      } else if (typeof value === 'string' && value.startsWith('[')) {
+        try { rows = JSON.parse(value); } catch (_) { rows = []; }
+      }
       if (rows.length > maxCount) {
         return customMessage || `${fieldLabel} must have at most ${maxCount} rows`;
+      }
+      return null;
+    }
+
+    // MinFiles(n, "message") - for FILE fields
+    const minFilesMatch = expression.match(/^MinFiles\(\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (minFilesMatch) {
+      const minCount = parseInt(minFilesMatch[1], 10);
+      const customMessage = minFilesMatch[2] || minFilesMatch[3];
+      const fieldName = field.name;
+      const existingCount = (this.existingAttachments[fieldName] || []).length;
+      const selectedCount = (this.selectedFiles[fieldName] || []).length;
+      const totalFiles = existingCount + selectedCount;
+      if (totalFiles < minCount) {
+        return customMessage || `${fieldLabel} requires at least ${minCount} file${minCount > 1 ? 's' : ''} (${totalFiles} attached)`;
+      }
+      return null;
+    }
+
+    // MaxFiles(n, "message") - for FILE fields
+    const maxFilesMatch = expression.match(/^MaxFiles\(\s*(\d+)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (maxFilesMatch) {
+      const maxCount = parseInt(maxFilesMatch[1], 10);
+      const customMessage = maxFilesMatch[2] || maxFilesMatch[3];
+      const fieldName = field.name;
+      const existingCount = (this.existingAttachments[fieldName] || []).length;
+      const selectedCount = (this.selectedFiles[fieldName] || []).length;
+      const totalFiles = existingCount + selectedCount;
+      if (totalFiles > maxCount) {
+        return customMessage || `${fieldLabel} allows at most ${maxCount} file${maxCount > 1 ? 's' : ''} (${totalFiles} attached)`;
+      }
+      return null;
+    }
+
+    // FilesRequired("message") - at least one file must be attached (alias for MinFiles(1))
+    const filesRequiredMatch = expression.match(/^FilesRequired\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (filesRequiredMatch) {
+      const customMessage = filesRequiredMatch[1] || filesRequiredMatch[2];
+      const fieldName = field.name;
+      const existingCount = (this.existingAttachments[fieldName] || []).length;
+      const selectedCount = (this.selectedFiles[fieldName] || []).length;
+      if (existingCount + selectedCount === 0) {
+        return customMessage || `${fieldLabel} requires at least one file`;
+      }
+      return null;
+    }
+
+    // FileType("ext1,ext2", "message") - validate allowed file extensions
+    const fileTypeMatch = expression.match(/^FileType\(\s*(?:"([^"]*)"|'([^']*)')(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (fileTypeMatch) {
+      const allowedExts = (fileTypeMatch[1] || fileTypeMatch[2] || '').split(',').map(e => e.trim().toLowerCase().replace(/^\./, ''));
+      const customMessage = fileTypeMatch[3] || fileTypeMatch[4];
+      const fieldName = field.name;
+      const selectedFiles: File[] = this.selectedFiles[fieldName] || [];
+      const invalidFiles = selectedFiles.filter(f => {
+        const ext = f.name.split('.').pop()?.toLowerCase() || '';
+        return !allowedExts.includes(ext);
+      });
+      if (invalidFiles.length > 0) {
+        return customMessage || `${fieldLabel}: file type not allowed for ${invalidFiles.map(f => f.name).join(', ')}. Allowed: ${allowedExts.join(', ')}`;
+      }
+      return null;
+    }
+
+    // MaxFileSize(n, "message") - validate individual file size in MB
+    const maxFileSizeMatch = expression.match(/^MaxFileSize\(\s*(\d+(?:\.\d+)?)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (maxFileSizeMatch) {
+      const maxMB = parseFloat(maxFileSizeMatch[1]);
+      const customMessage = maxFileSizeMatch[2] || maxFileSizeMatch[3];
+      const fieldName = field.name;
+      const selectedFiles: File[] = this.selectedFiles[fieldName] || [];
+      const maxBytes = maxMB * 1024 * 1024;
+      const oversized = selectedFiles.filter(f => f.size > maxBytes);
+      if (oversized.length > 0) {
+        return customMessage || `${fieldLabel}: ${oversized.map(f => f.name).join(', ')} exceeds ${maxMB}MB limit`;
+      }
+      return null;
+    }
+
+    // MinFileSize(n, "message") - validate minimum individual file size in MB
+    const minFileSizeMatch = expression.match(/^MinFileSize\(\s*(\d+(?:\.\d+)?)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (minFileSizeMatch) {
+      const minMB = parseFloat(minFileSizeMatch[1]);
+      const customMessage = minFileSizeMatch[2] || minFileSizeMatch[3];
+      const fieldName = field.name;
+      const selectedFiles: File[] = this.selectedFiles[fieldName] || [];
+      const minBytes = minMB * 1024 * 1024;
+      const tooSmall = selectedFiles.filter(f => f.size < minBytes);
+      if (tooSmall.length > 0) {
+        return customMessage || `${fieldLabel}: ${tooSmall.map(f => f.name).join(', ')} is smaller than ${minMB}MB minimum`;
+      }
+      return null;
+    }
+
+    // TotalFileSize(n, "message") - validate combined size of all files in MB
+    const totalFileSizeMatch = expression.match(/^TotalFileSize\(\s*(\d+(?:\.\d+)?)(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (totalFileSizeMatch) {
+      const maxTotalMB = parseFloat(totalFileSizeMatch[1]);
+      const customMessage = totalFileSizeMatch[2] || totalFileSizeMatch[3];
+      const fieldName = field.name;
+      const selectedFiles: File[] = this.selectedFiles[fieldName] || [];
+      const totalBytes = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+      const totalMB = totalBytes / (1024 * 1024);
+      if (totalMB > maxTotalMB) {
+        return customMessage || `${fieldLabel}: total file size ${totalMB.toFixed(1)}MB exceeds ${maxTotalMB}MB limit`;
+      }
+      return null;
+    }
+
+    // FileNamePattern("regex", "message") - validate file names against a pattern
+    const fileNamePatternMatch = expression.match(/^FileNamePattern\(\s*(?:"([^"]*)"|'([^']*)')(?:\s*,\s*(?:"([^"]*)"|'([^']*)'))?\s*\)$/i);
+    if (fileNamePatternMatch) {
+      const pattern = fileNamePatternMatch[1] || fileNamePatternMatch[2] || '';
+      const customMessage = fileNamePatternMatch[3] || fileNamePatternMatch[4];
+      const fieldName = field.name;
+      const selectedFiles: File[] = this.selectedFiles[fieldName] || [];
+      try {
+        const regex = new RegExp(pattern, 'i');
+        const nonMatching = selectedFiles.filter(f => !regex.test(f.name));
+        if (nonMatching.length > 0) {
+          return customMessage || `${fieldLabel}: ${nonMatching.map(f => f.name).join(', ')} does not match required naming pattern`;
+        }
+      } catch (_) { /* invalid regex, skip */ }
+      return null;
+    }
+
+    // NoDuplicateFiles("message") - no two files can have the same name
+    const noDupFilesMatch = expression.match(/^NoDuplicateFiles\(\s*(?:"([^"]*)"|'([^']*)')?\s*\)$/i);
+    if (noDupFilesMatch) {
+      const customMessage = noDupFilesMatch[1] || noDupFilesMatch[2];
+      const fieldName = field.name;
+      const existingNames = (this.existingAttachments[fieldName] || []).map((a: any) => a.name?.toLowerCase());
+      const selectedNames = (this.selectedFiles[fieldName] || []).map(f => f.name.toLowerCase());
+      const allNames = [...existingNames, ...selectedNames];
+      const seen = new Set<string>();
+      const dupes: string[] = [];
+      for (const name of allNames) {
+        if (seen.has(name)) dupes.push(name);
+        seen.add(name);
+      }
+      if (dupes.length > 0) {
+        return customMessage || `${fieldLabel}: duplicate file names found: ${dupes.join(', ')}`;
       }
       return null;
     }
@@ -6586,7 +6948,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       let value = control.value;
       if (value === null || value === undefined) return;
       try {
-        const transforms = this.splitOutsideQuotes(transformExpr, /\s+AND\s+/i).map((t: string) => t.trim());
+        const resolvedExpr = this.resolveSelf(transformExpr, field.name);
+        const transforms = this.splitOutsideQuotes(resolvedExpr, /\s+AND\s+/i).map((t: string) => t.trim());
         for (const transform of transforms) {
           value = this.applySingleTransform(transform, value);
         }
@@ -6724,8 +7087,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     }
 
     try {
-      // Evaluate the visibility expression
-      return this.evaluateVisibilityExpression(expression);
+      // Resolve 'self' keyword and evaluate the visibility expression
+      const resolved = this.resolveSelf(expression, field.name);
+      return this.evaluateVisibilityExpression(resolved);
     } catch (e) {
       console.warn('Error evaluating visibility expression for field', field.name, e);
       return true; // Default to visible on error
@@ -9249,6 +9613,9 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   getFileHint(field: any): string {
     const hints: string[] = [];
+    if (field.minFiles && field.minFiles > 0) {
+      hints.push(`Min ${field.minFiles} file${field.minFiles > 1 ? 's' : ''}`);
+    }
     if (field.multiple && field.maxFiles) {
       hints.push(`Max ${field.maxFiles} files`);
     }
@@ -9506,6 +9873,14 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
   // User field methods
   loadUsers() {
+    // Also load corporates for user field filtering
+    this.userService.getActiveCorporates().subscribe({
+      next: (corps: any) => {
+        this.allCorporates = Array.isArray(corps) ? corps : (corps?.data || []);
+      },
+      error: () => { this.allCorporates = []; }
+    });
+
     this.userService.getUsers().subscribe({
       next: (res) => {
         if (res.success && res.data) {
@@ -9538,19 +9913,12 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     const searchTerm = input.value?.toLowerCase() || '';
     this.userSearchTerms[fieldName] = searchTerm;
 
-    if (!searchTerm) {
+    if (!searchTerm && !(this.userCorporateFilter[fieldName]?.length > 0)) {
       this.filteredUsersMap[fieldName] = [];
       return;
     }
 
-    this.filteredUsersMap[fieldName] = this.allUsers.filter(user => {
-      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-      const email = (user.email || '').toLowerCase();
-      const username = (user.username || '').toLowerCase();
-      return fullName.includes(searchTerm) ||
-             email.includes(searchTerm) ||
-             username.includes(searchTerm);
-    }).slice(0, 10); // Limit to 10 results
+    this.filterUsersWithCorporate(searchTerm, fieldName);
   }
 
   getFilteredUsers(fieldName: string): User[] {
@@ -9583,6 +9951,58 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     }
     // Otherwise return as-is (should be a string ID)
     return value;
+  }
+
+  // ========== SELECT SEARCH METHODS ==========
+
+  onSelectSearch(term: string, fieldName: string): void {
+    this.selectSearchTerms[fieldName] = (term || '').toLowerCase();
+  }
+
+  getFilteredOptions(field: any): any[] {
+    const term = this.selectSearchTerms[field.name];
+    const options = field.options || [];
+    if (!term) return options;
+    return options.filter((o: any) => (o.label || '').toLowerCase().includes(term) || (o.value || '').toLowerCase().includes(term));
+  }
+
+  onSelectOpened(fieldName: string): void {
+    this.selectSearchTerms[fieldName] = '';
+  }
+
+  // ========== USER CORPORATE FILTER METHODS ==========
+
+  onUserCorporateFilterChange(corporateIds: string[], fieldName: string): void {
+    this.userCorporateFilter[fieldName] = corporateIds || [];
+    // Re-run user search with corporate filter applied
+    const searchTerm = this.userSearchTerms[fieldName] || '';
+    this.filterUsersWithCorporate(searchTerm, fieldName);
+  }
+
+  private filterUsersWithCorporate(searchTerm: string, fieldName: string): void {
+    const corpFilter = this.userCorporateFilter[fieldName] || [];
+    let filtered = this.allUsers;
+
+    // Apply corporate filter
+    if (corpFilter.length > 0) {
+      filtered = filtered.filter(user => {
+        const userCorps = user.corporateIds || [];
+        return corpFilter.some(c => userCorps.includes(c));
+      });
+    }
+
+    // Apply search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(user => {
+        const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+        const email = (user.email || '').toLowerCase();
+        const username = (user.username || '').toLowerCase();
+        return fullName.includes(term) || email.includes(term) || username.includes(term);
+      });
+    }
+
+    this.filteredUsersMap[fieldName] = filtered.slice(0, 20);
   }
 
   // ========== SIGNATURE FIELD METHODS ==========
@@ -10265,7 +10685,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     return Object.values(this.apiFieldLoading).some(v => v);
   }
 
-  /** Replace @{fieldName} placeholders in a string with current form field values */
+  /** Replace @{fieldName} placeholders in a string with current form field values.
+   *  Note: 'self' must be resolved before calling this method. */
   private resolveFieldPlaceholders(text: string): string {
     if (!text) return text;
     return text.replace(/@\{([^}]+)\}/g, (_match, fieldName) => {

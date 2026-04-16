@@ -1,0 +1,58 @@
+{
+  "_comment": "Quality Complaint — log and resolve a customer complaint about laundry service quality.",
+  "name": "Laundry Quality Complaint",
+  "code": "LQC",
+  "description": "Log a customer complaint about damaged, lost or poorly cleaned items, investigate the root cause and process compensation or reprocessing.",
+  "icon": "feedback",
+  "displayOrder": 299,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "LAUNDRY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{complaintRef} - @{customerName} (@{complaintType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 8,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Complaint Details", "displayOrder": 0, "icon": "feedback" },
+      { "id": "temp_screen_2", "title": "Resolution", "displayOrder": 1, "icon": "task_alt" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer & Complaint", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Affected Items", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Investigation & Resolution", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Attachments", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "complaintRef", "label": "Complaint Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"LQC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "complaintDate", "label": "Complaint Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "customerPhone", "label": "Customer Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "orderNumber", "label": "Order / Invoice Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "complaintType", "label": "Complaint Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "DAMAGE", "label": "Item Damaged", "displayOrder": 0 }, { "value": "LOST", "label": "Item Lost / Missing", "displayOrder": 1 }, { "value": "STAIN", "label": "Stain Not Removed", "displayOrder": 2 }, { "value": "COLOUR", "label": "Colour Run / Fading", "displayOrder": 3 }, { "value": "SHRINKAGE", "label": "Shrinkage", "displayOrder": 4 }, { "value": "WRONG_ITEM", "label": "Wrong Item Returned", "displayOrder": 5 }, { "value": "LATE", "label": "Late Delivery", "displayOrder": 6 }, { "value": "OTHER", "label": "Other", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "complaintDescription", "label": "Complaint Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 6, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "affectedItems", "label": "Affected Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 10, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"item\",\"label\":\"Item Description\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"issue\",\"label\":\"Issue\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"claimedValue\",\"label\":\"Claimed Value\",\"type\":\"NUMBER\",\"width\":110}]", "validation": "MinRows(1, \"At least one item required\")" },
+      { "name": "totalClaimedValue", "label": "Total Claimed Value", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "defaultValue": "SUM_COLUMN(\"affectedItems\", \"claimedValue\")" },
+      { "name": "rootCause", "label": "Root Cause", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "MACHINE", "label": "Machine Malfunction", "displayOrder": 0 }, { "value": "CHEMICAL", "label": "Wrong Chemical / Dosage", "displayOrder": 1 }, { "value": "HANDLING", "label": "Handling Error", "displayOrder": 2 }, { "value": "SORTING", "label": "Sorting Error", "displayOrder": 3 }, { "value": "PREEXISTING", "label": "Pre-Existing Condition", "displayOrder": 4 }, { "value": "CUSTOMER", "label": "Customer Error (wrong care label)", "displayOrder": 5 }, { "value": "OTHER", "label": "Other", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "investigationNotes", "label": "Investigation Notes", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "resolution", "label": "Resolution", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "REWASH", "label": "Rewash / Reprocess", "displayOrder": 0 }, { "value": "COMPENSATION", "label": "Financial Compensation", "displayOrder": 1 }, { "value": "REPLACEMENT", "label": "Replacement", "displayOrder": 2 }, { "value": "CREDIT", "label": "Service Credit", "displayOrder": 3 }, { "value": "APOLOGY", "label": "Apology (No Compensation)", "displayOrder": 4 }, { "value": "REJECTED", "label": "Complaint Rejected", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "compensationAmount", "label": "Compensation Amount", "fieldType": "CURRENCY", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "preventiveAction", "label": "Preventive Action", "fieldType": "TEXTAREA", "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 25, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "photos", "label": "Photos of Damage", "fieldType": "FILE", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Quality Supervisor", "approverType": "ROLE", "roleName": "QUALITY_SUPERVISOR", "amountLimit": 2000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPERATIONS_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "_comment": "Fishing Vessel Licence Application — apply for and approve a fishing vessel licence.",
+  "name": "Fishing Vessel Licence Application",
+  "code": "FVL",
+  "description": "Apply for a fishing vessel licence including vessel specifications, safety equipment, crew certification and fishing area authorisation.",
+  "icon": "sailing",
+  "displayOrder": 264,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "FISHERIES",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{applicationRef} - @{vesselName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Applicant & Vessel", "displayOrder": 0, "icon": "sailing" },
+      { "id": "temp_screen_2", "title": "Safety & Crew", "displayOrder": 1, "icon": "health_and_safety" },
+      { "id": "temp_screen_3", "title": "Licence & Documents", "displayOrder": 2, "icon": "description" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Owner / Applicant", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Vessel Specifications", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Safety Equipment", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Crew", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Licence Details", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Attachments", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "applicationRef", "label": "Application Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FVL-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "ownerName", "label": "Owner / Company Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "ownerIdNumber", "label": "ID / Registration Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactPhone", "label": "Contact Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactEmail", "label": "Email Address", "fieldType": "TEXT", "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "vesselName", "label": "Vessel Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "vesselRegistration", "label": "Vessel Registration Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "vesselType", "label": "Vessel Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "TRAWLER", "label": "Trawler", "displayOrder": 0 }, { "value": "SEINER", "label": "Seiner", "displayOrder": 1 }, { "value": "LONGLINER", "label": "Longliner", "displayOrder": 2 }, { "value": "GILLNETTER", "label": "Gillnetter", "displayOrder": 3 }, { "value": "POT_VESSEL", "label": "Pot / Trap Vessel", "displayOrder": 4 }, { "value": "OPEN_BOAT", "label": "Open Boat / Skiff", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "lengthMetres", "label": "Length Overall (m)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "grossTonnage", "label": "Gross Tonnage (GT)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "enginePowerKw", "label": "Engine Power (kW)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "lifeJacketsOnboard", "label": "Life Jackets Sufficient", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{lifeJacketsOnboard} == true, \"Sufficient life jackets required\")" },
+      { "name": "lifeRaftAvailable", "label": "Life Raft Available", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "fireExtinguishers", "label": "Fire Extinguishers Current", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "navigationEquipment", "label": "Navigation Equipment", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{navigationEquipment} == true, \"Navigation equipment required\")" },
+      { "name": "vmsInstalled", "label": "VMS / AIS Installed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "crewCount", "label": "Number of Crew", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "skipperCertified", "label": "Skipper Certification Valid", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{skipperCertified} == true, \"Skipper must be certified\")" },
+      { "name": "crewSeaSafety", "label": "Crew Sea Safety Trained", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "licenceType", "label": "Licence Type Requested", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "COMMERCIAL", "label": "Commercial", "displayOrder": 0 }, { "value": "ARTISANAL", "label": "Artisanal / Small-scale", "displayOrder": 1 }, { "value": "RECREATIONAL", "label": "Recreational", "displayOrder": 2 }, { "value": "RESEARCH", "label": "Research / Scientific", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "authorisedZones", "label": "Authorised Fishing Zones", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required()" },
+      { "name": "targetSpecies", "label": "Target Species", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required()" },
+      { "name": "validityPeriod", "label": "Validity Period", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "12_MONTHS", "label": "12 Months", "displayOrder": 0 }, { "value": "6_MONTHS", "label": "6 Months", "displayOrder": 1 }, { "value": "3_MONTHS", "label": "3 Months", "displayOrder": 2 }, { "value": "SEASONAL", "label": "Seasonal", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "vesselSurveyCert", "label": "Vessel Survey Certificate", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "skipperCert", "label": "Skipper Certificate", "fieldType": "FILE", "isMandatory": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "insuranceCert", "label": "Insurance Certificate", "fieldType": "FILE", "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Licensing Officer", "approverType": "ROLE", "roleName": "LICENSING_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Fisheries Inspector", "approverType": "ROLE", "roleName": "FISHERIES_INSPECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Fisheries Director", "approverType": "ROLE", "roleName": "FISHERIES_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

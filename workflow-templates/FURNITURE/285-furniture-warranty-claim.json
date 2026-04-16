@@ -1,0 +1,64 @@
+{
+  "_comment": "Furniture Warranty Claim — process a customer warranty claim for defective furniture.",
+  "name": "Furniture Warranty Claim",
+  "code": "FWC",
+  "description": "Receive and process a customer warranty claim for furniture defects including assessment, repair or replacement decision and cost allocation.",
+  "icon": "support_agent",
+  "displayOrder": 285,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FURNITURE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{claimRef} - @{customerName} (@{defectType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Claim Details", "displayOrder": 0, "icon": "report" },
+      { "id": "temp_screen_2", "title": "Assessment", "displayOrder": 1, "icon": "search" },
+      { "id": "temp_screen_3", "title": "Resolution & Documents", "displayOrder": 2, "icon": "handyman" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer & Product", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Defect Description", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Assessment", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Resolution & Cost", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "claimRef", "label": "Claim Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FWC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "claimDate", "label": "Claim Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "customerPhone", "label": "Customer Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "productName", "label": "Product Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "originalOrderRef", "label": "Original Order Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "purchaseDate", "label": "Original Purchase Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "warrantyExpiry", "label": "Warranty Expiry Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "defectType", "label": "Defect Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "STRUCTURAL", "label": "Structural Failure", "displayOrder": 0 }, { "value": "FINISH", "label": "Finish Deterioration", "displayOrder": 1 }, { "value": "HARDWARE", "label": "Hardware Failure", "displayOrder": 2 }, { "value": "MATERIAL", "label": "Material Defect", "displayOrder": 3 }, { "value": "UPHOLSTERY", "label": "Upholstery / Fabric Defect", "displayOrder": 4 }, { "value": "DIMENSION", "label": "Dimensional Issue", "displayOrder": 5 }, { "value": "OTHER", "label": "Other", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "defectDescription", "label": "Defect Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "warrantyValid", "label": "Warranty Valid", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "defectCause", "label": "Defect Cause", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "MANUFACTURING", "label": "Manufacturing Defect", "displayOrder": 0 }, { "value": "MATERIAL", "label": "Material Defect", "displayOrder": 1 }, { "value": "DESIGN", "label": "Design Issue", "displayOrder": 2 }, { "value": "MISUSE", "label": "Customer Misuse", "displayOrder": 3 }, { "value": "WEAR", "label": "Normal Wear & Tear", "displayOrder": 4 }, { "value": "TRANSPORT", "label": "Transport Damage", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "assessmentNotes", "label": "Assessment Notes", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "resolution", "label": "Resolution", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "REPAIR", "label": "Repair", "displayOrder": 0 }, { "value": "REPLACE", "label": "Replace", "displayOrder": 1 }, { "value": "REFUND", "label": "Refund", "displayOrder": 2 }, { "value": "PARTIAL_REFUND", "label": "Partial Refund", "displayOrder": 3 }, { "value": "REJECT_CLAIM", "label": "Reject Claim", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "resolutionCost", "label": "Resolution Cost", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "costBornBy", "label": "Cost Borne By", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "COMPANY", "label": "Company (Warranty)", "displayOrder": 0 }, { "value": "SUPPLIER", "label": "Supplier", "displayOrder": 1 }, { "value": "CUSTOMER", "label": "Customer", "displayOrder": 2 }, { "value": "SHARED", "label": "Shared / Goodwill", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "estimatedCompletionDate", "label": "Estimated Completion Date", "fieldType": "DATE", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "defectPhotos", "label": "Defect Photos", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "originalInvoice", "label": "Original Invoice / Proof of Purchase", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Customer Service Manager", "approverType": "ROLE", "roleName": "CS_MANAGER", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Production Manager", "approverType": "ROLE", "roleName": "PRODUCTION_MANAGER", "amountLimit": 30000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GENERAL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

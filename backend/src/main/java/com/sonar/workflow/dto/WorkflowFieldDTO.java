@@ -103,6 +103,7 @@ public class WorkflowFieldDTO {
     private String allowedFileTypes;
     private Long maxFileSize;
     private Integer maxFiles;
+    private Integer minFiles;
     private Boolean multiple;
 
     // New field type specific configurations

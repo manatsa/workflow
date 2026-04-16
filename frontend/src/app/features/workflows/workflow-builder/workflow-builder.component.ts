@@ -259,19 +259,24 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                               <input matInput [(ngModel)]="screen.description">
                             </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="form-field">
-                              <mat-label>Icon</mat-label>
-                              <mat-select [(ngModel)]="screen.icon">
-                                <mat-option value="view_carousel">view_carousel</mat-option>
-                                <mat-option value="article">article</mat-option>
-                                <mat-option value="assignment">assignment</mat-option>
-                                <mat-option value="description">description</mat-option>
-                                <mat-option value="info">info</mat-option>
-                                <mat-option value="checklist">checklist</mat-option>
-                                <mat-option value="fact_check">fact_check</mat-option>
-                                <mat-option value="summarize">summarize</mat-option>
-                              </mat-select>
-                            </mat-form-field>
+                            <div class="form-row" style="align-items: center;">
+                              <mat-form-field appearance="outline" class="form-field">
+                                <mat-label>Icon</mat-label>
+                                <mat-select [(ngModel)]="screen.icon">
+                                  <mat-option value="view_carousel">view_carousel</mat-option>
+                                  <mat-option value="article">article</mat-option>
+                                  <mat-option value="assignment">assignment</mat-option>
+                                  <mat-option value="description">description</mat-option>
+                                  <mat-option value="info">info</mat-option>
+                                  <mat-option value="checklist">checklist</mat-option>
+                                  <mat-option value="fact_check">fact_check</mat-option>
+                                  <mat-option value="summarize">summarize</mat-option>
+                                </mat-select>
+                              </mat-form-field>
+                              <mat-checkbox [(ngModel)]="screen.showDetails" color="primary" style="margin-bottom: 1.25rem;">
+                                Show Screen Details
+                              </mat-checkbox>
+                            </div>
 
                             <!-- Screen Access Restrictions -->
                             <div class="form-row" style="margin-top: 16px;">
@@ -720,6 +725,25 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 </div>
                               </mat-expansion-panel>
 
+                              <mat-expansion-panel [expanded]="expandedCategories['file']" (opened)="expandedCategories['file']=true" (closed)="expandedCategories['file']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>attach_file</mat-icon> File Functions ({{ fileFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of fileFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
+
                               <mat-expansion-panel [expanded]="expandedCategories['sql']" (opened)="expandedCategories['sql']=true" (closed)="expandedCategories['sql']=false">
                                 <mat-expansion-panel-header>
                                   <mat-panel-title><mat-icon>storage</mat-icon> SQL Functions ({{ sqlFunctions.length }})</mat-panel-title>
@@ -871,12 +895,21 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                             }
 
                             @if (hasValueOption(field.type)) {
-                              <mat-form-field appearance="outline" class="form-field full-width">
+                              <mat-form-field appearance="outline" class="form-field full-width"
+                                              [class.expr-error]="validateExpression(field.value, 'value')">
                                 <mat-label>Value</mat-label>
                                 <textarea matInput [(ngModel)]="field.value" rows="1"
-                                          placeholder="Static value or function: TODAY(), NOW(), CURRENT_USER(), CONCAT(), SUM(), UUID(), etc."></textarea>
+                                          [style.color]="validateExpression(field.value, 'value') ? '#f44336' : null"
+                                          placeholder="Static value or function: TODAY(), NOW(), CURRENT_USER(), CONCAT(), SUM(), UUID(), etc."
+                                          (input)="onExprInput($event, field, 'value')"
+                                          (keydown)="onExprKeydown($event, field, 'value')"
+                                          (blur)="onExprBlur()"
+                                          autocomplete="off"></textarea>
                                 <mat-hint>Static value or function expression. See Functions tab for full list.</mat-hint>
                               </mat-form-field>
+                              @if (validateExpression(field.value, 'value')) {
+                                <div class="expr-error-msg">{{ validateExpression(field.value, 'value') }}</div>
+                              }
                             }
 
                             @if (field.type === 'SELECT' || field.type === 'MULTISELECT' || field.type === 'RADIO' || field.type === 'CHECKBOX_GROUP') {
@@ -1032,6 +1065,11 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 <mat-checkbox [(ngModel)]="field.multiple" color="primary">Allow multiple files</mat-checkbox>
                               </div>
                               <div class="form-row">
+                                <mat-form-field appearance="outline" class="form-field">
+                                  <mat-label>Min number of files</mat-label>
+                                  <input matInput type="number" [(ngModel)]="field.minFiles" min="0">
+                                  <mat-hint>Minimum files required (0 = no minimum)</mat-hint>
+                                </mat-form-field>
                                 @if (field.multiple) {
                                   <mat-form-field appearance="outline" class="form-field">
                                     <mat-label>Max number of files</mat-label>
@@ -1639,7 +1677,11 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                     <mat-label>Validation Expression</mat-label>
                                     <textarea matInput [(ngModel)]="field.validation" rows="2"
                                               [style.color]="validateExpression(field.validation, 'validation') ? '#f44336' : null"
-                                              placeholder="e.g., Required() AND MinLength(5)"></textarea>
+                                              placeholder="e.g., Required() AND MinLength(5)"
+                                              (input)="onExprInput($event, field, 'validation')"
+                                              (keydown)="onExprKeydown($event, field, 'validation')"
+                                              (blur)="onExprBlur()"
+                                              autocomplete="off"></textarea>
                                     <mat-hint>Combine functions with AND</mat-hint>
                                   </mat-form-field>
                                   @if (validateExpression(field.validation, 'validation')) {
@@ -1654,8 +1696,10 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                       <br><strong>Date:</strong> <code>Date()</code> <code>FutureDate()</code> <code>PastDate()</code> <code>DateBefore("date")</code> <code>DateAfter("date")</code> <em style="font-size:0.75rem">(aliases: IS_PAST, IS_FUTURE, IS_DATE)</em>
                                       <br><strong>Format:</strong> <code>Email()</code> <code>Phone()</code> <code>URL()</code> <code>CreditCard()</code>
                                       <br><strong>List/Table:</strong> <code>MinItems(n)</code> <code>MaxItems(n)</code> <code>MinRows(n)</code> <code>MaxRows(n)</code>
+                                      <br><strong>File:</strong> <code>FilesRequired()</code> <code>MinFiles(n)</code> <code>MaxFiles(n)</code> <code>FileType("exts")</code> <code>MaxFileSize(mb)</code> <code>MinFileSize(mb)</code> <code>TotalFileSize(mb)</code> <code>FileNamePattern("regex")</code> <code>NoDuplicateFiles()</code>
                                       <br><strong>Cross-field:</strong> <code>MatchField(fieldName)</code> <code>ValidWhen(expr)</code> <code>InvalidWhen(expr)</code> <code>Unique()</code>
-                                      <br><em>All functions accept an optional custom message: e.g., Required("Please fill this in"). Use &#64;&#123;fieldName&#125; in ValidWhen/InvalidWhen. Combine with AND.</em>
+                                      <br><strong>Self reference:</strong> Use <code>self</code> or <code>&#64;&#123;self&#125;</code> to reference the current field. E.g., <code>ValidWhen(self > 0)</code>
+                                      <br><em>All functions accept an optional custom message: e.g., Required("Please fill this in"). Use &#64;&#123;fieldName&#125; or <code>self</code> in expressions. Combine with AND.</em>
                                     </div>
                                   </details>
                                 </div>
@@ -1666,7 +1710,11 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                     <mat-label>Transform Expression</mat-label>
                                     <textarea matInput [(ngModel)]="field.customValidationRule" rows="2"
                                               [style.color]="validateExpression(field.customValidationRule, 'transform') ? '#f44336' : null"
-                                              placeholder="e.g., UPPER() or TRIM()"></textarea>
+                                              placeholder="e.g., UPPER() or TRIM()"
+                                              (input)="onExprInput($event, field, 'customValidationRule')"
+                                              (keydown)="onExprKeydown($event, field, 'customValidationRule')"
+                                              (blur)="onExprBlur()"
+                                              autocomplete="off"></textarea>
                                     <mat-hint>Transform the field value</mat-hint>
                                   </mat-form-field>
                                   @if (validateExpression(field.customValidationRule, 'transform')) {
@@ -1696,7 +1744,11 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                     <mat-label>Visibility Expression</mat-label>
                                     <textarea matInput [(ngModel)]="field.visibilityExpression" rows="2"
                                               [style.color]="validateExpression(field.visibilityExpression, 'visibility') ? '#f44336' : null"
-                                              placeholder="e.g., true or &#64;{otherField} == 'Yes'"></textarea>
+                                              placeholder="e.g., true or &#64;{otherField} == 'Yes'"
+                                              (input)="onExprInput($event, field, 'visibilityExpression')"
+                                              (keydown)="onExprKeydown($event, field, 'visibilityExpression')"
+                                              (blur)="onExprBlur()"
+                                              autocomplete="off"></textarea>
                                     <mat-hint>Use &#64;{{ '{' }}fieldName{{ '}' }} to reference other fields. Default: true</mat-hint>
                                   </mat-form-field>
                                   @if (validateExpression(field.visibilityExpression, 'visibility')) {
@@ -1826,93 +1878,6 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
         </mat-tab>
 
         <!-- Approvers Tab -->
-        <mat-tab label="Approvers">
-          <div class="tab-content">
-            <mat-card>
-              <mat-card-header>
-                <mat-card-title>Approval Levels</mat-card-title>
-                <button mat-raised-button matTooltip="Add Approver" color="primary" (click)="addApprover()">
-                  <mat-icon>add</mat-icon>
-                  Add Approver
-                </button>
-              </mat-card-header>
-              <mat-card-content>
-                <div cdkDropList (cdkDropListDropped)="dropApprover($event)" class="approver-list">
-                  @for (approver of approvers; track $index; let i = $index) {
-                    <mat-expansion-panel cdkDrag class="approver-panel">
-                      <mat-expansion-panel-header>
-                        <mat-panel-title>
-                          <mat-icon cdkDragHandle>drag_indicator</mat-icon>
-                          Level {{ approver.level }}: {{ getApproverDisplayName(approver) || 'Approver' }}
-                        </mat-panel-title>
-                        <mat-panel-description>
-                          {{ approver.email }}
-                          @if (approver.amountLimit) {
-                            - Up to {{ approver.amountLimit | currency }}
-                          }
-                        </mat-panel-description>
-                      </mat-expansion-panel-header>
-
-                      <div class="approver-config">
-                        <div class="form-row">
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Level</mat-label>
-                            <input matInput type="number" [(ngModel)]="approver.level" min="1">
-                            <mat-hint>Same level = parallel approval</mat-hint>
-                          </mat-form-field>
-
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Select User</mat-label>
-                            <mat-select [(ngModel)]="approver.approverId" (selectionChange)="onApproverUserSelected(approver)">
-                              @for (user of users; track user.id) {
-                                <mat-option [value]="user.id">{{ user.fullName }}</mat-option>
-                              }
-                            </mat-select>
-                          </mat-form-field>
-                        </div>
-
-                        <div class="form-row">
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Amount Limit</mat-label>
-                            <input matInput type="number" [(ngModel)]="approver.amountLimit">
-                            <mat-hint>Leave blank for no limit</mat-hint>
-                          </mat-form-field>
-
-                          <mat-form-field appearance="outline" class="form-field">
-                            <mat-label>Email</mat-label>
-                            <input matInput type="email" [(ngModel)]="approver.email" readonly>
-                            <mat-hint>Auto-populated from selected user</mat-hint>
-                          </mat-form-field>
-                        </div>
-
-                        <div class="checkbox-row">
-                          <mat-checkbox [(ngModel)]="approver.canEscalate">Can Escalate</mat-checkbox>
-                          <mat-checkbox [(ngModel)]="approver.requireComment">Require Comment</mat-checkbox>
-                          <mat-checkbox [(ngModel)]="approver.emailNotification">Email Notification</mat-checkbox>
-                        </div>
-
-                        <div class="approver-actions">
-                          <button mat-button matTooltip="Remove Level" color="warn" (click)="removeApprover(i)">
-                            <mat-icon>delete</mat-icon>
-                            Remove Level
-                          </button>
-                        </div>
-                      </div>
-                    </mat-expansion-panel>
-                  }
-                </div>
-
-                @if (approvers.length === 0) {
-                  <div class="empty-state">
-                    <mat-icon>approval</mat-icon>
-                    <p>No approval levels defined. Add levels to create an approval chain.</p>
-                  </div>
-                }
-              </mat-card-content>
-            </mat-card>
-          </div>
-        </mat-tab>
-
         <!-- Access Tab -->
         <mat-tab label="Access">
           <div class="tab-content">
@@ -2024,6 +1989,101 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
           </div>
         </mat-tab>
 
+        <mat-tab label="Approvers">
+          <div class="tab-content">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Approval Levels</mat-card-title>
+                <button mat-raised-button matTooltip="Add Approver" color="primary" (click)="addApprover()">
+                  <mat-icon>add</mat-icon>
+                  Add Approver
+                </button>
+              </mat-card-header>
+              <mat-card-content>
+                <div cdkDropList (cdkDropListDropped)="dropApprover($event)" class="approver-list">
+                  @for (approver of approvers; track $index; let i = $index) {
+                    <mat-expansion-panel cdkDrag class="approver-panel">
+                      <mat-expansion-panel-header>
+                        <mat-panel-title>
+                          <mat-icon cdkDragHandle>drag_indicator</mat-icon>
+                          Level {{ approver.level }}: {{ getApproverDisplayName(approver) || 'Approver' }}
+                        </mat-panel-title>
+                        <mat-panel-description>
+                          {{ approver.email }}
+                          @if (approver.amountLimit) {
+                            - Up to {{ approver.amountLimit | currency }}
+                          }
+                        </mat-panel-description>
+                      </mat-expansion-panel-header>
+
+                      <div class="approver-config">
+                        <div class="form-row">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Level</mat-label>
+                            <input matInput type="number" [(ngModel)]="approver.level" min="1">
+                            <mat-hint>Same level = parallel approval</mat-hint>
+                          </mat-form-field>
+
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Select User</mat-label>
+                            <mat-select [(ngModel)]="approver.approverId" (selectionChange)="onApproverUserSelected(approver)" (opened)="approverUserSearch = ''">
+                              <div class="select-search-box">
+                                <mat-icon>search</mat-icon>
+                                <input class="select-search-input" placeholder="Search users..." (input)="approverUserSearch = $any($event.target).value" (keydown)="$event.stopPropagation()">
+                              </div>
+                              @for (user of getApproverFilteredUsers(); track user.id) {
+                                <mat-option [value]="user.id">{{ user.fullName }} <span style="color:#999;font-size:0.8em">({{ user.email }})</span></mat-option>
+                              }
+                              @if (getApproverFilteredUsers().length === 0) {
+                                <mat-option disabled>No users found</mat-option>
+                              }
+                            </mat-select>
+                            <mat-hint>Filtered by Access tab settings</mat-hint>
+                          </mat-form-field>
+                        </div>
+
+                        <div class="form-row">
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Amount Limit</mat-label>
+                            <input matInput type="number" [(ngModel)]="approver.amountLimit">
+                            <mat-hint>Leave blank for no limit</mat-hint>
+                          </mat-form-field>
+
+                          <mat-form-field appearance="outline" class="form-field">
+                            <mat-label>Email</mat-label>
+                            <input matInput type="email" [(ngModel)]="approver.email" readonly>
+                            <mat-hint>Auto-populated from selected user</mat-hint>
+                          </mat-form-field>
+                        </div>
+
+                        <div class="checkbox-row">
+                          <mat-checkbox [(ngModel)]="approver.canEscalate">Can Escalate</mat-checkbox>
+                          <mat-checkbox [(ngModel)]="approver.requireComment">Require Comment</mat-checkbox>
+                          <mat-checkbox [(ngModel)]="approver.emailNotification">Email Notification</mat-checkbox>
+                        </div>
+
+                        <div class="approver-actions">
+                          <button mat-button matTooltip="Remove Level" color="warn" (click)="removeApprover(i)">
+                            <mat-icon>delete</mat-icon>
+                            Remove Level
+                          </button>
+                        </div>
+                      </div>
+                    </mat-expansion-panel>
+                  }
+                </div>
+
+                @if (approvers.length === 0) {
+                  <div class="empty-state">
+                    <mat-icon>approval</mat-icon>
+                    <p>No approval levels defined. Add levels to create an approval chain.</p>
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
         <!-- Reminders Tab -->
         <mat-tab label="Reminders">
           <div class="tab-content">
@@ -2043,7 +2103,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                       <p>Configure automatic email reminders for pending approvals. Reminders are sent to approvers at the current level who have not yet acted.</p>
                     </div>
 
-                    <div class="form-row">
+                    <div class="form-row toggle-row">
                       <mat-slide-toggle formControlName="reminderEnabled" color="primary">
                         Enable Approval Reminders
                       </mat-slide-toggle>
@@ -2089,7 +2149,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                       <p>Automatically escalate if an approval remains pending beyond the configured time. Escalation occurs after all reminders are exhausted.</p>
                     </div>
 
-                    <div class="form-row">
+                    <div class="form-row toggle-row">
                       <mat-slide-toggle formControlName="escalationEnabled" color="warn">
                         Enable Auto-Escalation
                       </mat-slide-toggle>
@@ -2174,6 +2234,21 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
         </mat-tab>
       </mat-tab-group>
     </div>
+
+    <!-- Expression autocomplete suggestions overlay -->
+    @if (exprSuggestionVisible && exprSuggestions.length > 0) {
+      <div class="expr-suggestions-overlay" (mousedown)="$event.preventDefault()">
+        @for (item of exprSuggestions; track item.name; let i = $index) {
+          <div class="expr-suggestion-item" [class.active]="i === exprSuggestionIndex"
+               (mousedown)="insertExprSuggestion(item, exprSuggestionField, exprSuggestionProp)"
+               (mouseenter)="exprSuggestionIndex = i">
+            <span class="expr-suggestion-name">{{ item.name }}</span>
+            <span class="expr-suggestion-cat">{{ item.category }}</span>
+            <span class="expr-suggestion-desc">{{ item.description }}</span>
+          </div>
+        }
+      </div>
+    }
   `,
   styles: [`
     .workflow-builder-container { padding: 1rem; }
@@ -2285,6 +2360,16 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
         gap: 1rem;
         row-gap: 0.75rem;
       }
+      .reminder-section .form-row {
+        margin-bottom: 3rem;
+      }
+      .reminder-section mat-form-field,
+      .reminder-section .mat-mdc-form-field {
+        margin-bottom: 3rem;
+      }
+      .reminder-section .full-width {
+        margin-bottom: 3rem;
+      }
     }
 
     @media (max-width: 768px) {
@@ -2297,6 +2382,16 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       .tab-content .mat-mdc-form-field {
         margin-bottom: 2rem;
         width: 100%;
+      }
+      .reminder-section .form-row {
+        margin-bottom: 4rem;
+      }
+      .reminder-section mat-form-field,
+      .reminder-section .mat-mdc-form-field {
+        margin-bottom: 4rem;
+      }
+      .reminder-section .full-width {
+        margin-bottom: 4rem;
       }
       .tab-content .checkbox-row {
         display: flex;
@@ -2334,6 +2429,12 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       .tab-content .mat-mdc-form-field {
         margin-bottom: 2.25rem;
       }
+      .reminder-section .form-row,
+      .reminder-section mat-form-field,
+      .reminder-section .mat-mdc-form-field,
+      .reminder-section .full-width {
+        margin-bottom: 4.5rem;
+      }
     }
 
     .sql-col-row {
@@ -2355,6 +2456,23 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       margin: 0 0 12px;
       font-size: 1rem;
       font-weight: 500;
+    }
+
+    .reminder-section .form-row {
+      margin-bottom: 2rem;
+    }
+
+    .reminder-section mat-form-field,
+    .reminder-section .mat-mdc-form-field {
+      margin-bottom: 2rem;
+    }
+
+    .reminder-section .full-width {
+      margin-bottom: 2rem;
+    }
+
+    .reminder-section .toggle-row {
+      padding: 1rem 0;
     }
 
     .full-width { width: 100%; }
@@ -2877,6 +2995,42 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       padding: 1rem;
     }
 
+    .select-search-box {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      gap: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .select-search-box mat-icon {
+      color: #999;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .select-search-input {
+      border: none;
+      outline: none;
+      font-size: 14px;
+      width: 100%;
+      background: transparent;
+    }
+
+    :host-context(.dark-mode) .select-search-box {
+      background: #333;
+      border-color: #555;
+    }
+
+    :host-context(.dark-mode) .select-search-input {
+      color: #e0e0e0;
+    }
+
     .field-config ::ng-deep .mat-mdc-form-field {
       margin-bottom: 1rem;
     }
@@ -2928,6 +3082,75 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       content: '\\26A0';
       font-size: 0.85rem;
     }
+
+    .expr-suggestions-overlay {
+      position: fixed;
+      bottom: 60px;
+      right: 40px;
+      width: 420px;
+      max-height: 320px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      z-index: 1000;
+      padding: 4px 0;
+    }
+
+    .expr-suggestion-item {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .expr-suggestion-item:last-child { border-bottom: none; }
+
+    .expr-suggestion-item:hover,
+    .expr-suggestion-item.active {
+      background: #e3f2fd;
+    }
+
+    .expr-suggestion-name {
+      font-weight: 600;
+      font-family: 'Roboto Mono', monospace;
+      color: #1565c0;
+      font-size: 0.8rem;
+    }
+
+    .expr-suggestion-cat {
+      font-size: 0.7rem;
+      color: #999;
+      background: #f5f5f5;
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+
+    .expr-suggestion-desc {
+      width: 100%;
+      color: #666;
+      font-size: 0.75rem;
+    }
+
+    :host-context(.dark-mode) .expr-suggestions-overlay {
+      background: #2d2d2d;
+      border-color: #555;
+    }
+
+    :host-context(.dark-mode) .expr-suggestion-item:hover,
+    :host-context(.dark-mode) .expr-suggestion-item.active {
+      background: #3a3a4a;
+    }
+
+    :host-context(.dark-mode) .expr-suggestion-name { color: #64b5f6; }
+    :host-context(.dark-mode) .expr-suggestion-cat { background: #444; color: #aaa; }
+    :host-context(.dark-mode) .expr-suggestion-desc { color: #bbb; }
+    :host-context(.dark-mode) .expr-suggestion-item { border-color: #444; }
 
     .vt-help {
       margin-top: 0.5rem;
@@ -4014,6 +4237,19 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { name: 'TABLE_JSON(table)', description: 'Get entire table data as JSON array', syntax: 'TABLE_JSON(@{tableName})' }
   ];
 
+  // File Functions
+  fileFunctions = [
+    { name: 'MinFiles(n, message?)', description: 'Require at least n files to be attached', syntax: 'MinFiles(1, "Please attach at least one document")' },
+    { name: 'MaxFiles(n, message?)', description: 'Allow at most n files to be attached', syntax: 'MaxFiles(5, "Maximum 5 files allowed")' },
+    { name: 'FilesRequired(message?)', description: 'At least one file must be attached', syntax: 'FilesRequired("Please upload a file")' },
+    { name: 'FileType("exts", message?)', description: 'Only allow specific file extensions', syntax: 'FileType("pdf,docx,xlsx", "Only PDF, Word and Excel files allowed")' },
+    { name: 'MaxFileSize(mb, message?)', description: 'Max size per file in MB', syntax: 'MaxFileSize(10, "Each file must be under 10MB")' },
+    { name: 'MinFileSize(mb, message?)', description: 'Min size per file in MB', syntax: 'MinFileSize(0.01, "File appears to be empty")' },
+    { name: 'TotalFileSize(mb, message?)', description: 'Max combined size of all files in MB', syntax: 'TotalFileSize(50, "Total upload size must not exceed 50MB")' },
+    { name: 'FileNamePattern("regex", message?)', description: 'File names must match a regex pattern', syntax: 'FileNamePattern("^INV-\\\\d+", "File name must start with INV- followed by numbers")' },
+    { name: 'NoDuplicateFiles(message?)', description: 'No two files can have the same name', syntax: 'NoDuplicateFiles("Duplicate file names are not allowed")' },
+  ];
+
   // Utility Functions
   utilityFunctions = [
     { name: 'SETVALUE(field, value)', description: 'Set another field\'s value. Use in Validation & Transformation to update fields dynamically.', syntax: 'SETVALUE(targetField, "new value")' },
@@ -4101,6 +4337,157 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { name: '@{reminderNumber}', description: 'Current reminder count (e.g. 2 of 3)', syntax: '@{reminderNumber}', category: 'Reminder' },
     { name: '@{reminderMax}', description: 'Maximum reminders configured', syntax: '@{reminderMax}', category: 'Reminder' },
   ];
+
+  // ========== EXPRESSION AUTOCOMPLETE ==========
+  exprSuggestions: { name: string; description: string; syntax: string; insert?: string; category?: string }[] = [];
+  exprSuggestionIndex = 0;
+  exprSuggestionVisible = false;
+  private exprSuggestionTarget: HTMLTextAreaElement | null = null;
+  exprSuggestionField: any = null;
+  exprSuggestionProp: string = '';
+
+  private getAllSuggestionItems(): { name: string; description: string; syntax: string; insert: string; category?: string }[] {
+    const items: any[] = [];
+    const addFns = (arr: any[], cat: string) => arr.forEach(f => {
+      const fnName = f.name.replace(/\(.*$/, '(');
+      items.push({ name: f.name, description: f.description, syntax: f.syntax || f.name, insert: fnName, category: cat });
+    });
+
+    // Inline validation functions (these are the most commonly used)
+    const inlineValidation: { name: string; description: string; syntax: string }[] = [
+      { name: 'Required(message?)', description: 'Field must not be empty', syntax: 'Required("This field is required")' },
+      { name: 'NotEmpty(message?)', description: 'Field must not be blank', syntax: 'NotEmpty()' },
+      { name: 'MinLength(n, message?)', description: 'Minimum text length', syntax: 'MinLength(5)' },
+      { name: 'MaxLength(n, message?)', description: 'Maximum text length', syntax: 'MaxLength(100)' },
+      { name: 'LengthRange(min, max, message?)', description: 'Text length between min and max', syntax: 'LengthRange(2, 50)' },
+      { name: 'Alpha(message?)', description: 'Letters only', syntax: 'Alpha()' },
+      { name: 'AlphaNumeric(message?)', description: 'Letters and numbers only', syntax: 'AlphaNumeric()' },
+      { name: 'Digits(message?)', description: 'Digits only', syntax: 'Digits()' },
+      { name: 'Pattern(regex, message?)', description: 'Match a regular expression', syntax: 'Pattern(/^[A-Z]{3}-\\d+$/)' },
+      { name: 'Contains(text, message?)', description: 'Must contain text', syntax: 'Contains("@", "Must contain @")' },
+      { name: 'StartsWith(text, message?)', description: 'Must start with text', syntax: 'StartsWith("INV-")' },
+      { name: 'EndsWith(text, message?)', description: 'Must end with text', syntax: 'EndsWith(".pdf")' },
+      { name: 'Equals(value, message?)', description: 'Must equal a specific value', syntax: 'Equals("YES")' },
+      { name: 'Min(n, message?)', description: 'Minimum numeric value', syntax: 'Min(0, "Must be positive")' },
+      { name: 'Max(n, message?)', description: 'Maximum numeric value', syntax: 'Max(100)' },
+      { name: 'Range(min, max, message?)', description: 'Number between min and max', syntax: 'Range(1, 100)' },
+      { name: 'Positive(message?)', description: 'Must be a positive number', syntax: 'Positive()' },
+      { name: 'Negative(message?)', description: 'Must be a negative number', syntax: 'Negative()' },
+      { name: 'Integer(message?)', description: 'Must be a whole number', syntax: 'Integer()' },
+      { name: 'Decimal(places, message?)', description: 'Max decimal places', syntax: 'Decimal(2)' },
+      { name: 'IsTrue(message?)', description: 'Must be true / checked', syntax: 'IsTrue("Must accept terms")' },
+      { name: 'IsFalse(message?)', description: 'Must be false / unchecked', syntax: 'IsFalse()' },
+      { name: 'Date(message?)', description: 'Must be a valid date', syntax: 'Date()' },
+      { name: 'FutureDate(message?)', description: 'Must be a future date', syntax: 'FutureDate("Date must be in the future")' },
+      { name: 'PastDate(message?)', description: 'Must be a past date', syntax: 'PastDate()' },
+      { name: 'DateBefore(date, message?)', description: 'Must be before a date', syntax: 'DateBefore("today", "Must be before today")' },
+      { name: 'DateAfter(date, message?)', description: 'Must be after a date', syntax: 'DateAfter("today", "Must be after today")' },
+      { name: 'Email(message?)', description: 'Must be a valid email', syntax: 'Email()' },
+      { name: 'Phone(message?)', description: 'Must be a valid phone number', syntax: 'Phone()' },
+      { name: 'URL(message?)', description: 'Must be a valid URL', syntax: 'URL()' },
+      { name: 'CreditCard(message?)', description: 'Must be a valid credit card number', syntax: 'CreditCard()' },
+      { name: 'MinItems(n, message?)', description: 'Minimum items in list', syntax: 'MinItems(1)' },
+      { name: 'MaxItems(n, message?)', description: 'Maximum items in list', syntax: 'MaxItems(10)' },
+      { name: 'MinRows(n, message?)', description: 'Minimum table rows', syntax: 'MinRows(1, "Add at least one row")' },
+      { name: 'MaxRows(n, message?)', description: 'Maximum table rows', syntax: 'MaxRows(20)' },
+      { name: 'MatchField(fieldName, message?)', description: 'Must match another field', syntax: 'MatchField("confirmEmail")' },
+      { name: 'Unique(message?)', description: 'Value must be unique', syntax: 'Unique("This value already exists")' },
+    ];
+    addFns(inlineValidation, 'Validation');
+
+    addFns(this.validationFunctions, 'Cross-Field');
+    addFns(this.stringFunctions, 'String');
+    addFns(this.numberFunctions, 'Number');
+    addFns(this.dateFunctions, 'Date');
+    addFns(this.conditionalFunctions, 'Conditional');
+    addFns(this.booleanFunctions, 'Boolean');
+    addFns(this.tableFunctions, 'Table');
+    addFns(this.fileFunctions, 'File');
+    addFns(this.sqlFunctions, 'SQL');
+    addFns(this.otherFunctions, 'Other');
+    addFns(this.utilityFunctions, 'Utility');
+    // Placeholders
+    this.placeholderItems.forEach(p => items.push({ name: p.name, description: p.description, syntax: p.syntax, insert: p.syntax || p.name, category: 'Placeholder' }));
+    // Self keyword
+    items.push({ name: 'self', description: 'Reference the current field', syntax: '@{self}', insert: 'self', category: 'Keyword' });
+    items.push({ name: '@{self}', description: 'Reference the current field value', syntax: '@{self}', insert: '@{self}', category: 'Keyword' });
+    return items;
+  }
+
+  onExprInput(event: Event, field: any, prop: string): void {
+    const textarea = event.target as HTMLTextAreaElement;
+    this.exprSuggestionTarget = textarea;
+    this.exprSuggestionField = field;
+    this.exprSuggestionProp = prop;
+    const cursorPos = textarea.selectionStart || 0;
+    const text = textarea.value.substring(0, cursorPos);
+
+    // Extract the current word being typed (letters, digits, @, {, }, _)
+    const wordMatch = text.match(/[@{}\w]+$/);
+    if (!wordMatch || wordMatch[0].length < 1) {
+      this.exprSuggestionVisible = false;
+      return;
+    }
+    const word = wordMatch[0].toLowerCase();
+
+    const allItems = this.getAllSuggestionItems();
+    this.exprSuggestions = allItems.filter(item =>
+      item.name.toLowerCase().includes(word) || (item.category || '').toLowerCase().includes(word)
+    ).slice(0, 12);
+
+    this.exprSuggestionIndex = 0;
+    this.exprSuggestionVisible = this.exprSuggestions.length > 0;
+  }
+
+  onExprKeydown(event: KeyboardEvent, field: any, prop: string): void {
+    if (!this.exprSuggestionVisible) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.exprSuggestionIndex = Math.min(this.exprSuggestionIndex + 1, this.exprSuggestions.length - 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.exprSuggestionIndex = Math.max(this.exprSuggestionIndex - 1, 0);
+    } else if (event.key === 'Enter' || event.key === 'Tab') {
+      if (this.exprSuggestions.length > 0) {
+        event.preventDefault();
+        this.insertExprSuggestion(this.exprSuggestions[this.exprSuggestionIndex], field, prop);
+      }
+    } else if (event.key === 'Escape') {
+      this.exprSuggestionVisible = false;
+    }
+  }
+
+  insertExprSuggestion(item: any, field: any, prop: string): void {
+    const textarea = this.exprSuggestionTarget;
+    if (!textarea) return;
+
+    const cursorPos = textarea.selectionStart || 0;
+    const text = textarea.value;
+    const before = text.substring(0, cursorPos);
+    const after = text.substring(cursorPos);
+
+    // Find the word being typed and replace it
+    const wordMatch = before.match(/[@{}\w]+$/);
+    const wordStart = wordMatch ? cursorPos - wordMatch[0].length : cursorPos;
+    const newText = text.substring(0, wordStart) + item.insert + after;
+
+    // Update the field property
+    (field as any)[prop] = newText;
+    this.exprSuggestionVisible = false;
+
+    // Set cursor after the inserted text
+    setTimeout(() => {
+      const newPos = wordStart + item.insert.length;
+      textarea.focus();
+      textarea.setSelectionRange(newPos, newPos);
+    });
+  }
+
+  onExprBlur(): void {
+    // Delay to allow click on suggestion to register
+    setTimeout(() => { this.exprSuggestionVisible = false; }, 200);
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -4607,7 +4994,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       this.knownFunctions = new Set<string>();
       const allFnArrays = [
         this.validationFunctions, this.stringFunctions, this.numberFunctions,
-        this.dateFunctions, this.conditionalFunctions, this.booleanFunctions, this.tableFunctions, this.utilityFunctions,
+        this.dateFunctions, this.conditionalFunctions, this.booleanFunctions, this.tableFunctions, this.fileFunctions, this.utilityFunctions,
         this.sqlFunctions
       ];
       for (const arr of allFnArrays) {
@@ -4624,7 +5011,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         'Positive', 'Negative', 'Integer', 'Decimal', 'IsTrue', 'IsFalse',
         'Date', 'FutureDate', 'PastDate', 'DateBefore', 'DateAfter',
         'Email', 'Phone', 'URL', 'CreditCard', 'MinItems', 'MaxItems',
-        'MinRows', 'MaxRows', 'MatchField', 'ValidWhen', 'InvalidWhen', 'Unique',
+        'MinRows', 'MaxRows', 'MinFiles', 'MaxFiles', 'FilesRequired', 'FileType',
+        'MaxFileSize', 'MinFileSize', 'TotalFileSize', 'FileNamePattern', 'NoDuplicateFiles',
+        'MatchField', 'ValidWhen', 'InvalidWhen', 'Unique',
         'UPPER', 'LOWER', 'CAPITALIZE', 'TRIM', 'LTRIM', 'RTRIM', 'SLUG',
         'REMOVE_SPACES', 'ROUND', 'ROUND_UP', 'ROUND_DOWN'
       ];
@@ -4633,9 +5022,12 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     return this.knownFunctions;
   }
 
-  validateExpression(expr: string, type: 'validation' | 'transform' | 'visibility'): string | null {
+  validateExpression(expr: string, type: 'validation' | 'transform' | 'visibility' | 'value'): string | null {
     if (!expr || !expr.trim()) return null;
     const trimmed = expr.trim();
+
+    // For value: plain static text (no parens) is always valid — only validate if it contains function calls
+    if (type === 'value' && !trimmed.includes('(')) return null;
 
     // For visibility: allow simple "true"/"false"
     if (type === 'visibility' && (trimmed === 'true' || trimmed === 'false')) return null;
@@ -4679,7 +5071,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     }
 
     // For validation/transform: must contain at least one function call
-    if (type !== 'visibility' && !/[A-Za-z_]\w*\s*\(/.test(trimmed)) {
+    if (type !== 'visibility' && type !== 'value' && !/[A-Za-z_]\w*\s*\(/.test(trimmed)) {
       return 'Expression must contain at least one function call';
     }
 
@@ -5097,6 +5489,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       description: '',
       displayOrder: this.screens.length,
       icon: 'view_carousel',
+      showDetails: true,
       roleIds: [],
       privilegeIds: [],
       notifiers: []
@@ -5356,6 +5749,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       ...this.booleanFunctions.map(f => ({ ...f, category: 'Boolean/Logic' })),
       ...this.utilityFunctions.map(f => ({ ...f, category: 'Utility' })),
       ...this.tableFunctions.map(f => ({ ...f, category: 'Table' })),
+      ...this.fileFunctions.map(f => ({ ...f, category: 'File' })),
       ...this.sqlFunctions.map(f => ({ ...f, category: 'SQL' })),
       ...this.otherFunctions.map(f => ({ ...f, category: 'Other' })),
       ...this.placeholderItems.map(f => ({ ...f, category: f.category || 'Placeholder' }))
@@ -5526,6 +5920,43 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       approver.email = selectedUser.email || '';
       approver.userSearchText = selectedUser.fullName;
     }
+  }
+
+  approverUserSearch = '';
+
+  getApproverFilteredUsers(): any[] {
+    const corpIds: string[] = this.basicForm.get('corporateIds')?.value || [];
+    const sbuIds: string[] = this.basicForm.get('sbuIds')?.value || [];
+    const branchIds: string[] = this.basicForm.get('branchIds')?.value || [];
+    const deptIds: string[] = this.basicForm.get('departmentIds')?.value || [];
+    const roleIds: string[] = this.basicForm.get('roleIds')?.value || [];
+
+    let filtered = this.users;
+
+    // Apply access restrictions
+    if (corpIds.length || sbuIds.length || branchIds.length || deptIds.length || roleIds.length) {
+      filtered = filtered.filter(user => {
+        if (corpIds.length && !(user.corporateIds || []).some((id: string) => corpIds.includes(id))) return false;
+        if (sbuIds.length && !(user.sbuIds || []).some((id: string) => sbuIds.includes(id))) return false;
+        if (branchIds.length && !(user.branchIds || []).some((id: string) => branchIds.includes(id))) return false;
+        if (deptIds.length && !(user.departmentIds || []).some((id: string) => deptIds.includes(id))) return false;
+        if (roleIds.length && !(user.roleIds || []).some((id: string) => roleIds.includes(id))) return false;
+        return true;
+      });
+    }
+
+    // Apply search term
+    const term = this.approverUserSearch?.toLowerCase();
+    if (term) {
+      filtered = filtered.filter(user => {
+        const name = (user.fullName || `${user.firstName} ${user.lastName}`).toLowerCase();
+        const email = (user.email || '').toLowerCase();
+        const username = (user.username || '').toLowerCase();
+        return name.includes(term) || email.includes(term) || username.includes(term);
+      });
+    }
+
+    return filtered;
   }
 
   onApproverUserSelected(approver: any) {

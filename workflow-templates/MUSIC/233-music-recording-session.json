@@ -1,0 +1,68 @@
+{
+  "_comment": "Studio Recording Session Booking — book and approve studio recording sessions.",
+  "name": "Studio Recording Session Booking",
+  "code": "SRS",
+  "description": "Schedule and approve studio recording sessions including room selection, engineer assignment, equipment requirements, and session pricing.",
+  "icon": "music_note",
+  "displayOrder": 233,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "MUSIC",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{sessionRef} - @{artistName} - @{sessionType}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Artist & Project", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Studio & Equipment", "displayOrder": 1, "icon": "music_note" },
+      { "id": "temp_screen_3", "title": "Scheduling & Pricing", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Artist / Client", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Project Details", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Studio Room", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Equipment & Personnel", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Schedule", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Pricing", "displayOrder": 6, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "sessionRef", "label": "Session Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SRS-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "bookingDate", "label": "Booking Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "artistName", "label": "Artist / Band Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "contactPerson", "label": "Contact Person", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactPhone", "label": "Contact Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactEmail", "label": "Contact Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "labelName", "label": "Record Label (if any)", "fieldType": "TEXT", "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "sessionType", "label": "Session Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "TRACKING", "label": "Tracking / Recording", "displayOrder": 0 }, { "value": "MIXING", "label": "Mixing", "displayOrder": 1 }, { "value": "MASTERING", "label": "Mastering", "displayOrder": 2 }, { "value": "VOCAL_RECORDING", "label": "Vocal Recording", "displayOrder": 3 }, { "value": "FULL_PRODUCTION", "label": "Full Production", "displayOrder": 4 }, { "value": "PODCAST", "label": "Podcast / Voiceover", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "projectTitle", "label": "Project / Song Title", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "genre", "label": "Genre", "fieldType": "SELECT", "displayOrder": 9, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "POP", "label": "Pop", "displayOrder": 0 }, { "value": "ROCK", "label": "Rock", "displayOrder": 1 }, { "value": "HIPHOP", "label": "Hip-Hop / Rap", "displayOrder": 2 }, { "value": "RNB", "label": "R&B / Soul", "displayOrder": 3 }, { "value": "JAZZ", "label": "Jazz", "displayOrder": 4 }, { "value": "CLASSICAL", "label": "Classical", "displayOrder": 5 }, { "value": "ELECTRONIC", "label": "Electronic / EDM", "displayOrder": 6 }, { "value": "AFROBEATS", "label": "Afrobeats", "displayOrder": 7 }, { "value": "GOSPEL", "label": "Gospel", "displayOrder": 8 }, { "value": "OTHER", "label": "Other", "displayOrder": 9 } ] },
+      { "name": "numberOfMusicians", "label": "Number of Musicians / Performers", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "studioRoom", "label": "Studio Room", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "STUDIO_A", "label": "Studio A (Live Room)", "displayOrder": 0 }, { "value": "STUDIO_B", "label": "Studio B (Control Room)", "displayOrder": 1 }, { "value": "BOOTH", "label": "Vocal Booth", "displayOrder": 2 }, { "value": "PRODUCTION_SUITE", "label": "Production Suite", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "backlineRequired", "label": "Backline / Instruments Needed", "fieldType": "TEXTAREA", "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "assignedEngineer", "label": "Assigned Sound Engineer", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "producerRequired", "label": "In-House Producer Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "specialEquipment", "label": "Special Equipment Requests", "fieldType": "TEXTAREA", "displayOrder": 15, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "sessionDate", "label": "Session Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND DateAfter(\"today\", \"Session date must be in the future\")" },
+      { "name": "startTime", "label": "Start Time", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "0800", "label": "08:00", "displayOrder": 0 }, { "value": "1000", "label": "10:00", "displayOrder": 1 }, { "value": "1200", "label": "12:00", "displayOrder": 2 }, { "value": "1400", "label": "14:00", "displayOrder": 3 }, { "value": "1600", "label": "16:00", "displayOrder": 4 }, { "value": "1800", "label": "18:00", "displayOrder": 5 }, { "value": "2000", "label": "20:00", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "sessionHours", "label": "Session Duration (hours)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(1)" },
+      { "name": "hourlyRate", "label": "Hourly Studio Rate", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "Required() AND Min(1)" },
+      { "name": "engineerFee", "label": "Engineer Fee", "fieldType": "CURRENCY", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7" },
+      { "name": "totalSessionCost", "label": "Total Session Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "defaultValue": "SUM(MULTIPLY(@{hourlyRate}, @{sessionHours}), @{engineerFee})" },
+      { "name": "depositPaid", "label": "Deposit Paid", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 26, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "ValidWhen(@{depositPaid} == true, \"Deposit must be paid before session confirmation\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Studio Coordinator", "approverType": "ROLE", "roleName": "STUDIO_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Head Engineer / Producer", "approverType": "ROLE", "roleName": "HEAD_ENGINEER", "amountLimit": 20000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Studio Owner", "approverType": "ROLE", "roleName": "STUDIO_OWNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

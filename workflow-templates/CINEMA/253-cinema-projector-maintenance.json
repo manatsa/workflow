@@ -1,0 +1,62 @@
+{
+  "_comment": "Projector / Equipment Maintenance — request and track maintenance for cinema projection and AV equipment.",
+  "name": "Projector / Equipment Maintenance",
+  "code": "PEM",
+  "description": "Log and approve maintenance requests for cinema projectors, sound systems and related AV equipment.",
+  "icon": "settings",
+  "displayOrder": 253,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "CINEMA",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{maintenanceRef} - @{equipmentName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 6,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Equipment Info", "displayOrder": 0, "icon": "devices" },
+      { "id": "temp_screen_2", "title": "Maintenance Details", "displayOrder": 1, "icon": "build" },
+      { "id": "temp_screen_3", "title": "Documents & Sign-off", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Equipment", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Fault / Issue", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Work Details", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Safety & Completion", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "maintenanceRef", "label": "Maintenance Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"PEM-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "equipmentName", "label": "Equipment Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "equipmentType", "label": "Equipment Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "PROJECTOR", "label": "Digital Projector", "displayOrder": 0 }, { "value": "SOUND", "label": "Sound System", "displayOrder": 1 }, { "value": "SCREEN", "label": "Projection Screen", "displayOrder": 2 }, { "value": "SERVER", "label": "Media Server / TMS", "displayOrder": 3 }, { "value": "HVAC", "label": "HVAC / Climate", "displayOrder": 4 }, { "value": "SEATING", "label": "Seating / 4DX Motion", "displayOrder": 5 }, { "value": "OTHER", "label": "Other", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "serialNumber", "label": "Serial Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "screenLocation", "label": "Screen / Location", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SCR1", "label": "Screen 1", "displayOrder": 0 }, { "value": "SCR2", "label": "Screen 2", "displayOrder": 1 }, { "value": "SCR3", "label": "Screen 3", "displayOrder": 2 }, { "value": "SCR4", "label": "Screen 4", "displayOrder": 3 }, { "value": "SCR5", "label": "Screen 5", "displayOrder": 4 }, { "value": "BOOTH", "label": "Projection Booth", "displayOrder": 5 }, { "value": "LOBBY", "label": "Lobby / Common Area", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "lastServiceDate", "label": "Last Service Date", "fieldType": "DATE", "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "maintenanceType", "label": "Maintenance Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "PREVENTIVE", "label": "Preventive / Scheduled", "displayOrder": 0 }, { "value": "CORRECTIVE", "label": "Corrective / Breakdown", "displayOrder": 1 }, { "value": "CALIBRATION", "label": "Calibration", "displayOrder": 2 }, { "value": "UPGRADE", "label": "Upgrade / Replacement", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "priority", "label": "Priority", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "LOW", "label": "Low", "displayOrder": 0 }, { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 }, { "value": "HIGH", "label": "High", "displayOrder": 2 }, { "value": "CRITICAL", "label": "Critical - Show Stopper", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "faultDescription", "label": "Fault / Issue Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "impactOnScreenings", "label": "Impact on Screenings", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "assignedTechnician", "label": "Assigned Technician", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "vendor", "label": "External Vendor (if applicable)", "fieldType": "TEXT", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "scheduledDate", "label": "Scheduled Maintenance Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "estimatedDowntimeHours", "label": "Estimated Downtime (hours)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "workDescription", "label": "Work to be Performed", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(10)" },
+      { "name": "safetyCheckCompleted", "label": "Safety Check Completed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{safetyCheckCompleted} == true, \"Safety check must be completed\")" },
+      { "name": "partsRequired", "label": "Spare Parts Required", "fieldType": "TEXTAREA", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "maintenanceReport", "label": "Maintenance Report / Photo", "fieldType": "FILE", "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Technical Manager", "approverType": "ROLE", "roleName": "TECH_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Cinema General Manager", "approverType": "ROLE", "roleName": "CINEMA_GM", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "_comment": "Custom Jewellery Order — approve a bespoke jewellery commission from design through to production.",
+  "name": "Custom Jewellery Order",
+  "code": "JCO",
+  "description": "Process and approve custom jewellery commissions including design specifications, gemstone selection, metalwork, costing, and client sign-off.",
+  "icon": "diamond",
+  "displayOrder": 221,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "JEWELLERY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{orderRef} - @{clientName} - @{jewelleryType}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Client & Design", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Materials & Gemstones", "displayOrder": 1, "icon": "diamond" },
+      { "id": "temp_screen_3", "title": "Costing & Timeline", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Design Specifications", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Metal Selection", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Gemstone Details", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Costing", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Production Timeline", "displayOrder": 6, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "orderRef", "label": "Order Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"JCO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "clientPhone", "label": "Client Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientEmail", "label": "Client Email", "fieldType": "EMAIL", "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "occasion", "label": "Occasion", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ENGAGEMENT", "label": "Engagement", "displayOrder": 0 }, { "value": "WEDDING", "label": "Wedding", "displayOrder": 1 }, { "value": "ANNIVERSARY", "label": "Anniversary", "displayOrder": 2 }, { "value": "BIRTHDAY", "label": "Birthday", "displayOrder": 3 }, { "value": "GIFT", "label": "Gift", "displayOrder": 4 }, { "value": "OTHER", "label": "Other", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "jewelleryType", "label": "Jewellery Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "RING", "label": "Ring", "displayOrder": 0 }, { "value": "NECKLACE", "label": "Necklace", "displayOrder": 1 }, { "value": "BRACELET", "label": "Bracelet", "displayOrder": 2 }, { "value": "EARRINGS", "label": "Earrings", "displayOrder": 3 }, { "value": "PENDANT", "label": "Pendant", "displayOrder": 4 }, { "value": "BROOCH", "label": "Brooch", "displayOrder": 5 }, { "value": "BANGLE", "label": "Bangle", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "ringSize", "label": "Ring Size (if applicable)", "fieldType": "TEXT", "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "designDescription", "label": "Design Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 8, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "designSketch", "label": "Design Sketch / Reference Image", "fieldType": "FILE", "displayOrder": 9, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "metalType", "label": "Metal Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "GOLD_18K", "label": "18K Gold", "displayOrder": 0 }, { "value": "GOLD_14K", "label": "14K Gold", "displayOrder": 1 }, { "value": "GOLD_9K", "label": "9K Gold", "displayOrder": 2 }, { "value": "PLATINUM", "label": "Platinum", "displayOrder": 3 }, { "value": "SILVER_925", "label": "Sterling Silver", "displayOrder": 4 }, { "value": "ROSE_GOLD", "label": "Rose Gold", "displayOrder": 5 }, { "value": "WHITE_GOLD", "label": "White Gold", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "metalWeightGrams", "label": "Estimated Metal Weight (g)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0.1)" },
+      { "name": "primaryStone", "label": "Primary Gemstone", "fieldType": "SELECT", "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "DIAMOND", "label": "Diamond", "displayOrder": 0 }, { "value": "RUBY", "label": "Ruby", "displayOrder": 1 }, { "value": "SAPPHIRE", "label": "Sapphire", "displayOrder": 2 }, { "value": "EMERALD", "label": "Emerald", "displayOrder": 3 }, { "value": "TANZANITE", "label": "Tanzanite", "displayOrder": 4 }, { "value": "PEARL", "label": "Pearl", "displayOrder": 5 }, { "value": "NONE", "label": "No Gemstone", "displayOrder": 6 } ] },
+      { "name": "stoneCaratWeight", "label": "Stone Carat Weight", "fieldType": "NUMBER", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "stoneCut", "label": "Stone Cut", "fieldType": "SELECT", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "ROUND", "label": "Round Brilliant", "displayOrder": 0 }, { "value": "PRINCESS", "label": "Princess", "displayOrder": 1 }, { "value": "OVAL", "label": "Oval", "displayOrder": 2 }, { "value": "CUSHION", "label": "Cushion", "displayOrder": 3 }, { "value": "PEAR", "label": "Pear", "displayOrder": 4 }, { "value": "MARQUISE", "label": "Marquise", "displayOrder": 5 }, { "value": "EMERALD_CUT", "label": "Emerald Cut", "displayOrder": 6 } ] },
+      { "name": "stoneClarity", "label": "Stone Clarity", "fieldType": "SELECT", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "FL", "label": "FL (Flawless)", "displayOrder": 0 }, { "value": "IF", "label": "IF (Internally Flawless)", "displayOrder": 1 }, { "value": "VVS1", "label": "VVS1", "displayOrder": 2 }, { "value": "VVS2", "label": "VVS2", "displayOrder": 3 }, { "value": "VS1", "label": "VS1", "displayOrder": 4 }, { "value": "VS2", "label": "VS2", "displayOrder": 5 }, { "value": "SI1", "label": "SI1", "displayOrder": 6 }, { "value": "SI2", "label": "SI2", "displayOrder": 7 } ] },
+      { "name": "engravingText", "label": "Engraving Text", "fieldType": "TEXT", "displayOrder": 16, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "materialCost", "label": "Material Cost", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(1)" },
+      { "name": "labourCost", "label": "Labour Cost", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "totalCost", "label": "Total Quoted Price", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "defaultValue": "SUM(@{materialCost}, @{labourCost})" },
+      { "name": "depositAmount", "label": "Deposit Amount", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(1)" },
+      { "name": "estimatedCompletionDate", "label": "Estimated Completion Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "Required() AND DateAfter(\"today\", \"Completion date must be in the future\")" },
+      { "name": "deliveryMethod", "label": "Delivery Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7",
+        "options": [ { "value": "COLLECT", "label": "In-Store Collection", "displayOrder": 0 }, { "value": "COURIER", "label": "Insured Courier", "displayOrder": 1 }, { "value": "HAND_DELIVERY", "label": "Hand Delivery", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "clientApproved", "label": "Client Design Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 26, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "ValidWhen(@{clientApproved} == true, \"Client must approve the design before production\")" },
+      { "name": "specialInstructions", "label": "Special Instructions", "fieldType": "TEXTAREA", "displayOrder": 27, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Master Jeweller / Designer", "approverType": "ROLE", "roleName": "MASTER_JEWELLER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Workshop Manager", "approverType": "ROLE", "roleName": "WORKSHOP_MANAGER", "amountLimit": 50000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Director / Owner", "approverType": "ROLE", "roleName": "DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

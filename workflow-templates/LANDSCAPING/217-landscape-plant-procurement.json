@@ -1,0 +1,65 @@
+{
+  "_comment": "Plant / Materials Procurement — approve procurement of plants, trees, soil, mulch, and landscaping materials.",
+  "name": "Plant / Materials Procurement",
+  "code": "LPP",
+  "description": "Approve procurement of plants, trees, turf, soil, mulch, stone, and other landscaping materials with supplier quotes and delivery scheduling.",
+  "icon": "local_florist",
+  "displayOrder": 217,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "LANDSCAPING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{orderRef} - @{projectName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Order Details", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Items & Costing", "displayOrder": 1, "icon": "shopping_cart" },
+      { "id": "temp_screen_3", "title": "Delivery & Documents", "displayOrder": 2, "icon": "local_shipping" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Project & Supplier", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Order Items", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Costing Summary", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Delivery Details", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "orderRef", "label": "Order Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"LPP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "projectName", "label": "Project Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "siteName", "label": "Delivery Site", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "supplierName", "label": "Supplier / Nursery", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "orderCategory", "label": "Order Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "PLANTS", "label": "Plants / Shrubs", "displayOrder": 0 }, { "value": "TREES", "label": "Trees", "displayOrder": 1 }, { "value": "TURF", "label": "Turf / Grass", "displayOrder": 2 }, { "value": "SOIL_MULCH", "label": "Soil / Mulch / Compost", "displayOrder": 3 }, { "value": "STONE_AGGREGATE", "label": "Stone / Aggregate", "displayOrder": 4 }, { "value": "MIXED", "label": "Mixed Order", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "urgency", "label": "Urgency", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "STANDARD", "label": "Standard", "displayOrder": 0 }, { "value": "URGENT", "label": "Urgent", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "items", "label": "Order Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 100, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"itemName\",\"label\":\"Item / Species\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"size\",\"label\":\"Size / Grade\",\"type\":\"TEXT\",\"width\":120},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":80,\"required\":true},{\"name\":\"uom\",\"label\":\"UOM\",\"type\":\"SELECT\",\"width\":80,\"options\":[\"pcs\",\"bags\",\"m²\",\"m³\",\"tonnes\",\"rolls\"],\"required\":true},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"lineTotal\",\"label\":\"Total\",\"type\":\"NUMBER\",\"width\":110}]", "validation": "MinRows(1, \"At least one item required\")" },
+      { "name": "subtotal", "label": "Subtotal", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"items\", \"lineTotal\")" },
+      { "name": "deliveryFee", "label": "Delivery Fee", "fieldType": "CURRENCY", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "totalAmount", "label": "Total Amount", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM(@{subtotal}, @{deliveryFee})" },
+      { "name": "budgetCode", "label": "Budget Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "deliveryDate", "label": "Required Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Delivery date must be in the future\")" },
+      { "name": "deliveryAddress", "label": "Delivery Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "siteContactName", "label": "Site Contact Person", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "siteContactPhone", "label": "Contact Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "specialHandling", "label": "Special Handling / Storage Notes", "fieldType": "TEXTAREA", "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "supplierQuote", "label": "Supplier Quotation", "fieldType": "FILE", "isMandatory": true, "displayOrder": 25, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "plantSchedule", "label": "Plant Schedule / Specification", "fieldType": "FILE", "displayOrder": 26, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Project Manager", "approverType": "ROLE", "roleName": "PROJECT_MANAGER", "amountLimit": 15000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Procurement Manager", "approverType": "ROLE", "roleName": "PROCUREMENT_MANAGER", "amountLimit": 75000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Finance Director", "approverType": "ROLE", "roleName": "FINANCE_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

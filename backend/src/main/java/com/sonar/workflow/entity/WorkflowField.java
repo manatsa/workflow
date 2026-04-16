@@ -109,7 +109,7 @@ public class WorkflowField extends BaseEntity {
     private String visibilityExpression = "true";
 
     @Column(name = "column_span")
-    private Integer columnSpan;
+    private Integer columnSpan = 1;
 
     @Column(name = "width")
     private Integer width;
@@ -157,6 +157,9 @@ public class WorkflowField extends BaseEntity {
 
     @Column(name = "max_files")
     private Integer maxFiles;
+
+    @Column(name = "min_files")
+    private Integer minFiles;
 
     @Column(name = "multiple")
     private Boolean multiple = false;

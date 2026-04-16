@@ -1,0 +1,63 @@
+{
+  "_comment": "Membership Application — process a new membership application for a professional body or trade association.",
+  "name": "Membership Application",
+  "code": "MMA",
+  "description": "Process a new individual or corporate membership application including qualification verification, fee assessment and committee approval.",
+  "icon": "badge",
+  "displayOrder": 292,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "ASSOCIATIONS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{appRef} - @{applicantName} (@{membershipCategory})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Applicant Details", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Qualifications & Fees", "displayOrder": 1, "icon": "school" },
+      { "id": "temp_screen_3", "title": "Documents", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Applicant Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Qualifications & Experience", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Fees", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Attachments", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "appRef", "label": "Application Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MMA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicantName", "label": "Full Name / Company Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "applicantEmail", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "applicantPhone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "membershipType", "label": "Membership Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "INDIVIDUAL", "label": "Individual", "displayOrder": 0 }, { "value": "CORPORATE", "label": "Corporate", "displayOrder": 1 }, { "value": "STUDENT", "label": "Student", "displayOrder": 2 }, { "value": "HONORARY", "label": "Honorary", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "membershipCategory", "label": "Membership Category", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FELLOW", "label": "Fellow", "displayOrder": 0 }, { "value": "FULL", "label": "Full Member", "displayOrder": 1 }, { "value": "ASSOCIATE", "label": "Associate Member", "displayOrder": 2 }, { "value": "AFFILIATE", "label": "Affiliate", "displayOrder": 3 }, { "value": "GRADUATE", "label": "Graduate Member", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "employer", "label": "Employer / Organisation", "fieldType": "TEXT", "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "postalAddress", "label": "Postal Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 8, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "highestQualification", "label": "Highest Qualification", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "yearsExperience", "label": "Years of Experience", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "refereeOneName", "label": "Referee 1 Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "refereeOneContact", "label": "Referee 1 Contact", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "refereeTwoName", "label": "Referee 2 Name", "fieldType": "TEXT", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "refereeTwoContact", "label": "Referee 2 Contact", "fieldType": "TEXT", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "annualFee", "label": "Annual Membership Fee", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "joiningFee", "label": "Joining Fee (once-off)", "fieldType": "CURRENCY", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "feePaid", "label": "Fee Paid", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "cv", "label": "CV / Resume", "fieldType": "FILE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "qualificationCerts", "label": "Qualification Certificates", "fieldType": "FILE", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "proofOfPayment", "label": "Proof of Payment", "fieldType": "FILE", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Membership Officer", "approverType": "ROLE", "roleName": "MEMBERSHIP_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Membership Committee", "approverType": "ROLE", "roleName": "MEMBERSHIP_COMMITTEE", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "President / CEO", "approverType": "ROLE", "roleName": "PRESIDENT", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

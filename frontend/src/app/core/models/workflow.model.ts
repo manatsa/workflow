@@ -82,6 +82,7 @@ export interface Screen {
   displayOrder: number;
   icon?: string;
   isSummaryScreen?: boolean;
+  showDetails?: boolean;
   notificationMessage?: string;
   roleIds?: string[];
   privilegeIds?: string[];
@@ -171,6 +172,7 @@ export interface WorkflowField {
   allowedFileTypes?: string;
   maxFileSize?: number;
   maxFiles?: number;
+  minFiles?: number;
   multiple?: boolean;
   inSummary?: boolean;
   // New field type specific configurations

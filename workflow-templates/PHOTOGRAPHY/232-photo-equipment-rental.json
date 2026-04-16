@@ -1,0 +1,63 @@
+{
+  "_comment": "Equipment Rental Request — request and approve photography / videography equipment rentals.",
+  "name": "Equipment Rental Request",
+  "code": "EQR",
+  "description": "Process equipment rental requests for photography and videography gear including availability checks, rental terms, insurance, and return scheduling.",
+  "icon": "videocam",
+  "displayOrder": 232,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "PHOTOGRAPHY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{rentalRef} - @{renterName} - @{equipmentCategory}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Renter & Equipment", "displayOrder": 0, "icon": "videocam" },
+      { "id": "temp_screen_2", "title": "Rental Terms", "displayOrder": 1, "icon": "description" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Renter Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Equipment Selection", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Rental Period", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Costing & Insurance", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Terms & Conditions", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "rentalRef", "label": "Rental Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"EQR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "renterName", "label": "Renter Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "renterPhone", "label": "Renter Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "renterEmail", "label": "Renter Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "renterIdNumber", "label": "ID / Passport Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "equipmentCategory", "label": "Equipment Category", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "CAMERA_BODY", "label": "Camera Body", "displayOrder": 0 }, { "value": "LENS", "label": "Lens", "displayOrder": 1 }, { "value": "LIGHTING", "label": "Lighting / Strobes", "displayOrder": 2 }, { "value": "TRIPOD", "label": "Tripod / Support", "displayOrder": 3 }, { "value": "VIDEO", "label": "Video / Gimbal", "displayOrder": 4 }, { "value": "AUDIO", "label": "Audio Equipment", "displayOrder": 5 }, { "value": "DRONE", "label": "Drone", "displayOrder": 6 }, { "value": "ACCESSORY", "label": "Accessories", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "equipmentItems", "label": "Equipment Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 7, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 20, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"item\",\"label\":\"Item Description\",\"type\":\"TEXT\",\"width\":240,\"required\":true},{\"name\":\"serialNumber\",\"label\":\"Serial No.\",\"type\":\"TEXT\",\"width\":140},{\"name\":\"condition\",\"label\":\"Condition\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"Excellent\",\"Good\",\"Fair\"],\"required\":true},{\"name\":\"dailyRate\",\"label\":\"Daily Rate\",\"type\":\"NUMBER\",\"width\":110,\"required\":true}]", "validation": "MinRows(1, \"At least one equipment item required\")" },
+      { "name": "rentalPurpose", "label": "Rental Purpose", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 8, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "pickupDate", "label": "Pick-Up Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Pick-up date must be in the future\")" },
+      { "name": "returnDate", "label": "Return Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Return date must be in the future\")" },
+      { "name": "rentalDays", "label": "Total Rental Days", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "collectionMethod", "label": "Collection Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "IN_STORE", "label": "In-Store Pickup", "displayOrder": 0 }, { "value": "DELIVERY", "label": "Delivery", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "rentalFee", "label": "Total Rental Fee", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "depositAmount", "label": "Security Deposit", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "insuranceIncluded", "label": "Insurance Included", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "insuranceFee", "label": "Insurance Fee", "fieldType": "CURRENCY", "displayOrder": 17, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "termsAccepted", "label": "Rental Terms Accepted", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 18, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_6", "validation": "ValidWhen(@{termsAccepted} == true, \"Renter must accept rental terms and conditions\")" },
+      { "name": "idDocument", "label": "ID Document Copy", "fieldType": "FILE", "isMandatory": true, "displayOrder": 19, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "specialConditions", "label": "Special Conditions / Notes", "fieldType": "TEXTAREA", "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_6" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Equipment Coordinator", "approverType": "ROLE", "roleName": "EQUIPMENT_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Rental Manager", "approverType": "ROLE", "roleName": "RENTAL_MANAGER", "amountLimit": 10000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Business Owner", "approverType": "ROLE", "roleName": "BUSINESS_OWNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

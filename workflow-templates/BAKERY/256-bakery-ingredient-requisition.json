@@ -1,0 +1,60 @@
+{
+  "_comment": "Ingredient Requisition — request and approve bakery ingredient purchases from suppliers.",
+  "name": "Ingredient Requisition",
+  "code": "BIR",
+  "description": "Request and approve bulk ingredient orders for bakery production including flour, sugar, dairy and specialty items.",
+  "icon": "inventory_2",
+  "displayOrder": 256,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "BAKERY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{requisitionRef} - @{supplierName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Requisition Details", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Items & Costing", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Delivery & Documents", "displayOrder": 2, "icon": "local_shipping" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Supplier & Category", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Ingredients", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Totals", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Delivery", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "requisitionRef", "label": "Requisition Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"BIR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requisitionDate", "label": "Requisition Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "supplierName", "label": "Supplier Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "ingredientCategory", "label": "Ingredient Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FLOUR", "label": "Flour & Grains", "displayOrder": 0 }, { "value": "SUGAR", "label": "Sugar & Sweeteners", "displayOrder": 1 }, { "value": "DAIRY", "label": "Dairy & Eggs", "displayOrder": 2 }, { "value": "FATS", "label": "Fats & Oils", "displayOrder": 3 }, { "value": "FLAVOURS", "label": "Flavours & Extracts", "displayOrder": 4 }, { "value": "DECORATING", "label": "Decorating Supplies", "displayOrder": 5 }, { "value": "PACKAGING", "label": "Packaging", "displayOrder": 6 }, { "value": "MIXED", "label": "Mixed", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "urgency", "label": "Urgency", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ROUTINE", "label": "Routine Restock", "displayOrder": 0 }, { "value": "URGENT", "label": "Urgent - Low Stock", "displayOrder": 1 }, { "value": "EMERGENCY", "label": "Emergency - Out of Stock", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "justification", "label": "Justification / Reason", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 5, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(10)" },
+      { "name": "items", "label": "Requisition Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 40, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"ingredientName\",\"label\":\"Ingredient\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"currentStock\",\"label\":\"Current Stock\",\"type\":\"NUMBER\",\"width\":110},{\"name\":\"orderQty\",\"label\":\"Order Qty\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"uom\",\"label\":\"UOM\",\"type\":\"SELECT\",\"width\":80,\"options\":[\"kg\",\"g\",\"L\",\"ml\",\"pcs\",\"bags\",\"boxes\"],\"required\":true},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"lineTotal\",\"label\":\"Line Total\",\"type\":\"NUMBER\",\"width\":120}]", "validation": "MinRows(1, \"At least one ingredient required\")" },
+      { "name": "subtotal", "label": "Subtotal", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM_COLUMN(\"items\", \"lineTotal\")" },
+      { "name": "taxAmount", "label": "Tax Amount", "fieldType": "CURRENCY", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "totalAmount", "label": "Total Amount", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "requiredByDate", "label": "Required By Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Required date must be in the future\")" },
+      { "name": "deliveryLocation", "label": "Delivery Location", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "DRY_STORE", "label": "Dry Storeroom", "displayOrder": 0 }, { "value": "COLD_ROOM", "label": "Cold Room", "displayOrder": 1 }, { "value": "FREEZER", "label": "Freezer Room", "displayOrder": 2 }, { "value": "PRODUCTION", "label": "Production Floor", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "storageRequirements", "label": "Storage Requirements", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "qualityCertRequired", "label": "Quality Certificate Required", "fieldType": "YES_NO", "defaultValue": "true", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "supplierQuote", "label": "Supplier Quotation", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Head Baker", "approverType": "ROLE", "roleName": "HEAD_BAKER", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Bakery Manager", "approverType": "ROLE", "roleName": "BAKERY_MGR", "amountLimit": 20000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Owner / Director", "approverType": "ROLE", "roleName": "BAKERY_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

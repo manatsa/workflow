@@ -1,0 +1,66 @@
+{
+  "_comment": "Client Engagement Letter — draft and approve a new client engagement letter for professional services.",
+  "name": "Client Engagement Letter",
+  "code": "CEL",
+  "description": "Draft, review and approve a client engagement letter covering scope of work, fees, timelines and terms of service.",
+  "icon": "handshake",
+  "displayOrder": 286,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "PROFESSIONAL_SERVICES",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{engagementRef} - @{clientName} (@{serviceType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Engagement Details", "displayOrder": 0, "icon": "handshake" },
+      { "id": "temp_screen_2", "title": "Scope & Fees", "displayOrder": 1, "icon": "attach_money" },
+      { "id": "temp_screen_3", "title": "Terms & Documents", "displayOrder": 2, "icon": "gavel" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client & Service", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Scope of Work", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Fee Structure", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Terms", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "engagementRef", "label": "Engagement Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CEL-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "engagementDate", "label": "Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Name / Company", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientContact", "label": "Client Contact Person", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientEmail", "label": "Client Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "serviceType", "label": "Service Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ADVISORY", "label": "Advisory", "displayOrder": 0 }, { "value": "IMPLEMENTATION", "label": "Implementation", "displayOrder": 1 }, { "value": "OUTSOURCING", "label": "Outsourcing / BPO", "displayOrder": 2 }, { "value": "TRAINING", "label": "Training & Development", "displayOrder": 3 }, { "value": "VALUATION", "label": "Valuation", "displayOrder": 4 }, { "value": "DUE_DILIGENCE", "label": "Due Diligence", "displayOrder": 5 }, { "value": "OTHER", "label": "Other", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "leadPartner", "label": "Lead Partner / Director", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "engagementManager", "label": "Engagement Manager", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "scopeDescription", "label": "Scope of Work", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "deliverables", "label": "Key Deliverables", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 15, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"deliverable\",\"label\":\"Deliverable\",\"type\":\"TEXT\",\"width\":250,\"required\":true},{\"name\":\"dueDate\",\"label\":\"Due Date\",\"type\":\"DATE\",\"width\":120,\"required\":true},{\"name\":\"responsible\",\"label\":\"Responsible\",\"type\":\"TEXT\",\"width\":150}]", "validation": "MinRows(1, \"At least one deliverable required\")" },
+      { "name": "feeModel", "label": "Fee Model", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "FIXED", "label": "Fixed Fee", "displayOrder": 0 }, { "value": "TIME_MATERIAL", "label": "Time & Materials", "displayOrder": 1 }, { "value": "RETAINER", "label": "Monthly Retainer", "displayOrder": 2 }, { "value": "SUCCESS", "label": "Success Fee", "displayOrder": 3 }, { "value": "BLENDED", "label": "Blended", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "totalFee", "label": "Total / Estimated Fee", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "paymentTerms", "label": "Payment Terms", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "UPFRONT", "label": "100% Upfront", "displayOrder": 0 }, { "value": "50_50", "label": "50% Upfront / 50% on Completion", "displayOrder": 1 }, { "value": "MONTHLY", "label": "Monthly Invoicing", "displayOrder": 2 }, { "value": "MILESTONE", "label": "Milestone-Based", "displayOrder": 3 }, { "value": "NET30", "label": "Net 30 Days", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "currency", "label": "Currency", "fieldType": "TEXT", "isMandatory": true, "defaultValue": "USD", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "startDate", "label": "Engagement Start Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "endDate", "label": "Expected End Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "conflictCheckDone", "label": "Conflict of Interest Check Done", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{conflictCheckDone} == true, \"Conflict check must be completed\")" },
+      { "name": "ndaRequired", "label": "NDA Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "engagementLetter", "label": "Engagement Letter (Draft)", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "supportingDocs", "label": "Supporting Documents", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Engagement Manager", "approverType": "ROLE", "roleName": "ENGAGEMENT_MANAGER", "amountLimit": 50000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Partner / Director", "approverType": "ROLE", "roleName": "PARTNER", "amountLimit": 250000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Partner", "approverType": "ROLE", "roleName": "MANAGING_PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

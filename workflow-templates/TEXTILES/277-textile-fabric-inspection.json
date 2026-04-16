@@ -1,0 +1,64 @@
+{
+  "_comment": "Fabric Inspection Report — inspect and approve incoming or produced fabric before cutting.",
+  "name": "Fabric Inspection Report",
+  "code": "FIR",
+  "description": "Inspect incoming or produced fabric rolls for defects, colour consistency and weight compliance before releasing to the cutting room.",
+  "icon": "checkroom",
+  "displayOrder": 277,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "TEXTILES",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{inspRef} - @{fabricName} (@{supplierName})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Fabric Details", "displayOrder": 0, "icon": "checkroom" },
+      { "id": "temp_screen_2", "title": "Inspection Results", "displayOrder": 1, "icon": "search" },
+      { "id": "temp_screen_3", "title": "Decision & Documents", "displayOrder": 2, "icon": "verified" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Fabric & Supplier", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Physical Inspection", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Defect Log", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Decision", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "inspRef", "label": "Inspection Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FIR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "inspectionDate", "label": "Inspection Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "fabricName", "label": "Fabric Name / Type", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "fabricComposition", "label": "Composition", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "supplierName", "label": "Supplier Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "poNumber", "label": "Purchase Order #", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "rollCount", "label": "Number of Rolls", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "totalMetres", "label": "Total Length (metres)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "widthCm", "label": "Fabric Width (cm)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "weightGsm", "label": "Weight (GSM)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "colourMatch", "label": "Colour Match Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "shrinkagePercent", "label": "Shrinkage (%)", "fieldType": "NUMBER", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "pillingRating", "label": "Pilling Rating (1-5)", "fieldType": "NUMBER", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(1) AND Max(5)" },
+      { "name": "tensileStrengthOk", "label": "Tensile Strength Passed", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "defects", "label": "Defects Found", "fieldType": "TABLE", "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 0, "tableMaxRows": 20, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"rollNumber\",\"label\":\"Roll #\",\"type\":\"TEXT\",\"width\":80,\"required\":true},{\"name\":\"defectType\",\"label\":\"Defect Type\",\"type\":\"SELECT\",\"width\":140,\"options\":[\"Hole\",\"Stain\",\"Colour Variation\",\"Weaving Fault\",\"Knitting Fault\",\"Crease Mark\",\"Missing Yarn\",\"Other\"],\"required\":true},{\"name\":\"positionM\",\"label\":\"Position (m)\",\"type\":\"NUMBER\",\"width\":90,\"required\":true},{\"name\":\"severity\",\"label\":\"Severity\",\"type\":\"SELECT\",\"width\":100,\"options\":[\"Minor\",\"Major\",\"Critical\"],\"required\":true},{\"name\":\"notes\",\"label\":\"Notes\",\"type\":\"TEXT\",\"width\":160}]" },
+      { "name": "fourPointScore", "label": "4-Point Score (per 100 sq yd)", "fieldType": "NUMBER", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "decision", "label": "Inspection Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "ACCEPT", "label": "Accept", "displayOrder": 0 }, { "value": "ACCEPT_DEVIATION", "label": "Accept with Deviation", "displayOrder": 1 }, { "value": "REJECT", "label": "Reject", "displayOrder": 2 }, { "value": "RETURN", "label": "Return to Supplier", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "deviationReason", "label": "Deviation Reason", "fieldType": "TEXTAREA", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{decision} == 'ACCEPT_DEVIATION'" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "labReport", "label": "Lab Test Report", "fieldType": "FILE", "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760 },
+      { "name": "photos", "label": "Inspection Photos", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Quality Inspector", "approverType": "ROLE", "roleName": "QUALITY_INSPECTOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Quality Manager", "approverType": "ROLE", "roleName": "QUALITY_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Production Manager", "approverType": "ROLE", "roleName": "PRODUCTION_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

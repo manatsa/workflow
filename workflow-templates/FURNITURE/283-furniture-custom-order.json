@@ -1,0 +1,73 @@
+{
+  "_comment": "Custom Furniture Order — process and approve a bespoke furniture manufacturing order.",
+  "name": "Custom Furniture Order",
+  "code": "CFO",
+  "description": "Capture customer requirements, design specifications, materials and pricing for a bespoke furniture order and route for production approval.",
+  "icon": "chair",
+  "displayOrder": 283,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FURNITURE",
+  "workflowTypeCode": "REQUISITION",
+  "titleTemplate": "@{orderRef} - @{customerName} (@{furnitureType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Order & Customer", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Design & Materials", "displayOrder": 1, "icon": "design_services" },
+      { "id": "temp_screen_3", "title": "Pricing & Documents", "displayOrder": 2, "icon": "attach_money" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer & Product", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Specifications", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Materials", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Pricing & Schedule", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "orderRef", "label": "Order Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CFO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "customerPhone", "label": "Customer Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "customerEmail", "label": "Customer Email", "fieldType": "EMAIL", "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "furnitureType", "label": "Furniture Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SOFA", "label": "Sofa / Couch", "displayOrder": 0 }, { "value": "TABLE", "label": "Table (Dining/Coffee/Office)", "displayOrder": 1 }, { "value": "BED", "label": "Bed Frame / Headboard", "displayOrder": 2 }, { "value": "CABINET", "label": "Cabinet / Cupboard", "displayOrder": 3 }, { "value": "SHELVING", "label": "Shelving / Bookcase", "displayOrder": 4 }, { "value": "DESK", "label": "Desk", "displayOrder": 5 }, { "value": "WARDROBE", "label": "Wardrobe", "displayOrder": 6 }, { "value": "KITCHEN", "label": "Kitchen Units", "displayOrder": 7 }, { "value": "OUTDOOR", "label": "Outdoor / Garden", "displayOrder": 8 }, { "value": "OTHER", "label": "Other", "displayOrder": 9 } ], "validation": "Required()" },
+      { "name": "quantity", "label": "Quantity", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "itemDescription", "label": "Item Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 7, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "lengthCm", "label": "Length (cm)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "widthCm", "label": "Width (cm)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "heightCm", "label": "Height (cm)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "primaryWood", "label": "Primary Wood", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "OAK", "label": "Oak", "displayOrder": 0 }, { "value": "PINE", "label": "Pine", "displayOrder": 1 }, { "value": "MAHOGANY", "label": "Mahogany", "displayOrder": 2 }, { "value": "WALNUT", "label": "Walnut", "displayOrder": 3 }, { "value": "TEAK", "label": "Teak", "displayOrder": 4 }, { "value": "ASH", "label": "Ash", "displayOrder": 5 }, { "value": "BIRCH", "label": "Birch", "displayOrder": 6 }, { "value": "MDF", "label": "MDF / Engineered", "displayOrder": 7 }, { "value": "MIXED", "label": "Mixed", "displayOrder": 8 } ], "validation": "Required()" },
+      { "name": "finishType", "label": "Finish", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "NATURAL", "label": "Natural / Clear Coat", "displayOrder": 0 }, { "value": "STAINED", "label": "Stained", "displayOrder": 1 }, { "value": "PAINTED", "label": "Painted", "displayOrder": 2 }, { "value": "LACQUERED", "label": "Lacquered", "displayOrder": 3 }, { "value": "OILED", "label": "Oiled", "displayOrder": 4 }, { "value": "UPHOLSTERED", "label": "Upholstered", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "colourFinish", "label": "Colour / Stain Code", "fieldType": "TEXT", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "hardwareType", "label": "Hardware / Fittings", "fieldType": "TEXT", "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "materials", "label": "Material Bill", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 15, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"material\",\"label\":\"Material\",\"type\":\"TEXT\",\"width\":180,\"required\":true},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":80,\"required\":true},{\"name\":\"unit\",\"label\":\"Unit\",\"type\":\"SELECT\",\"width\":80,\"options\":[\"m\",\"m²\",\"kg\",\"pcs\",\"litre\"],\"required\":true},{\"name\":\"unitCost\",\"label\":\"Unit Cost\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"lineCost\",\"label\":\"Cost\",\"type\":\"NUMBER\",\"width\":100,\"computed\":\"quantity * unitCost\"}]", "validation": "MinRows(1, \"At least one material required\")" },
+      { "name": "totalMaterialCost", "label": "Total Material Cost", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM_COLUMN(\"materials\", \"lineCost\")" },
+      { "name": "labourCost", "label": "Labour Cost", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "overheadMargin", "label": "Overhead & Margin", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "totalPrice", "label": "Total Quoted Price", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "defaultValue": "ADD(@{totalMaterialCost}, ADD(@{labourCost}, @{overheadMargin}))" },
+      { "name": "depositRequired", "label": "Deposit Required", "fieldType": "CURRENCY", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "estimatedProductionDays", "label": "Estimated Production Days", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "deliveryDate", "label": "Promised Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Delivery date must be in the future\")" },
+      { "name": "deliveryMethod", "label": "Delivery Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 36, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "DELIVER", "label": "Deliver to Customer", "displayOrder": 0 }, { "value": "COLLECT", "label": "Customer Collection", "displayOrder": 1 }, { "value": "INSTALL", "label": "Deliver & Install", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 37, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "designDrawing", "label": "Design Drawing / Sketch", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png,dwg,dxf", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "referencePhotos", "label": "Reference Photos", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Workshop Supervisor", "approverType": "ROLE", "roleName": "WORKSHOP_SUPERVISOR", "amountLimit": 20000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Production Manager", "approverType": "ROLE", "roleName": "PRODUCTION_MANAGER", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GENERAL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

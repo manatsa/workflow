@@ -1,0 +1,69 @@
+{
+  "_comment": "Print Job Order Approval — approve a print job order with specifications, quantities, and costing.",
+  "name": "Print Job Order Approval",
+  "code": "PJO",
+  "description": "Approve print job orders including specifications, paper stock, ink requirements, finishing, quantities, and cost estimates.",
+  "icon": "print",
+  "displayOrder": 206,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "PRINTING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{jobRef} - @{clientName} - @{jobTitle}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Job Details", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Specifications", "displayOrder": 1, "icon": "settings" },
+      { "id": "temp_screen_3", "title": "Costing & Delivery", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client & Job Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Print Specifications", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Finishing & Binding", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Costing", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Delivery", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "jobRef", "label": "Job Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"PJO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "jobTitle", "label": "Job Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(3)" },
+      { "name": "jobType", "label": "Job Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "OFFSET", "label": "Offset Printing", "displayOrder": 0 }, { "value": "DIGITAL", "label": "Digital Printing", "displayOrder": 1 }, { "value": "FLEXO", "label": "Flexographic", "displayOrder": 2 }, { "value": "SCREEN", "label": "Screen Printing", "displayOrder": 3 }, { "value": "LARGE_FORMAT", "label": "Large Format", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "quantity", "label": "Print Quantity", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "paperStock", "label": "Paper Stock", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "BOND", "label": "Bond Paper", "displayOrder": 0 }, { "value": "COATED_GLOSS", "label": "Coated Gloss", "displayOrder": 1 }, { "value": "COATED_MATT", "label": "Coated Matt", "displayOrder": 2 }, { "value": "UNCOATED", "label": "Uncoated", "displayOrder": 3 }, { "value": "CARD", "label": "Card Stock", "displayOrder": 4 }, { "value": "SPECIALTY", "label": "Specialty Paper", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "paperWeight", "label": "Paper Weight (gsm)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(50)" },
+      { "name": "trimSize", "label": "Trim Size (mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "colorMode", "label": "Colour Mode", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "CMYK", "label": "Full Colour (CMYK)", "displayOrder": 0 }, { "value": "SPOT", "label": "Spot Colour (PMS)", "displayOrder": 1 }, { "value": "BW", "label": "Black & White", "displayOrder": 2 }, { "value": "CMYK_SPOT", "label": "CMYK + Spot", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "numberOfPages", "label": "Number of Pages", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "doubleSided", "label": "Double Sided", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "finishType", "label": "Finish Type", "fieldType": "SELECT", "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "NONE", "label": "None", "displayOrder": 0 }, { "value": "GLOSS_LAM", "label": "Gloss Lamination", "displayOrder": 1 }, { "value": "MATT_LAM", "label": "Matt Lamination", "displayOrder": 2 }, { "value": "SPOT_UV", "label": "Spot UV", "displayOrder": 3 }, { "value": "FOIL", "label": "Foil Stamping", "displayOrder": 4 }, { "value": "EMBOSS", "label": "Embossing", "displayOrder": 5 } ] },
+      { "name": "bindingType", "label": "Binding Type", "fieldType": "SELECT", "displayOrder": 17, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "NONE", "label": "None (Flat)", "displayOrder": 0 }, { "value": "SADDLE_STITCH", "label": "Saddle Stitch", "displayOrder": 1 }, { "value": "PERFECT", "label": "Perfect Binding", "displayOrder": 2 }, { "value": "WIRE_O", "label": "Wire-O", "displayOrder": 3 }, { "value": "CASE_BOUND", "label": "Case Bound", "displayOrder": 4 } ] },
+      { "name": "specialInstructions", "label": "Special Instructions", "fieldType": "TEXTAREA", "displayOrder": 18, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "unitCost", "label": "Unit Cost", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0.01)" },
+      { "name": "totalCost", "label": "Total Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "MULTIPLY(@{unitCost}, @{quantity})" },
+      { "name": "setupFee", "label": "Setup / Plate Fee", "fieldType": "CURRENCY", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "grandTotal", "label": "Grand Total", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM(@{totalCost}, @{setupFee})" },
+      { "name": "deliveryDate", "label": "Required Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND DateAfter(\"today\", \"Delivery date must be in the future\")" },
+      { "name": "deliveryAddress", "label": "Delivery Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 25, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required()" },
+      { "name": "artworkFile", "label": "Artwork / Design File", "fieldType": "FILE", "isMandatory": true, "displayOrder": 26, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,ai,eps,psd,indd", "maxFileSize": 52428800, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Production Manager", "approverType": "ROLE", "roleName": "PRODUCTION_MANAGER", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Sales / Account Manager", "approverType": "ROLE", "roleName": "SALES_MANAGER", "amountLimit": 25000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GENERAL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

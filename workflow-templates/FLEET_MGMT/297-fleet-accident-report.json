@@ -1,0 +1,66 @@
+{
+  "_comment": "Fleet Accident Report — report and process a vehicle accident involving a fleet vehicle.",
+  "name": "Fleet Accident Report",
+  "code": "FAR",
+  "description": "Report a vehicle accident involving a fleet vehicle, capture scene details, third-party information, damage assessment and insurance claim initiation.",
+  "icon": "car_crash",
+  "displayOrder": 297,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FLEET_MGMT",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{accRef} - @{registration} (@{accidentDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 8, "reminderMaxCount": 5, "reminderStartAfterHours": 4,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Accident Details", "displayOrder": 0, "icon": "car_crash" },
+      { "id": "temp_screen_2", "title": "Damage & Third Party", "displayOrder": 1, "icon": "assessment" },
+      { "id": "temp_screen_3", "title": "Insurance & Documents", "displayOrder": 2, "icon": "shield" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Accident Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Damage Assessment", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Third Party", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Insurance & Closure", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "accRef", "label": "Accident Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FAR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "registration", "label": "Vehicle Registration", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "driverName", "label": "Driver Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "accidentDate", "label": "Accident Date & Time", "fieldType": "DATE", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "accidentLocation", "label": "Accident Location", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "accidentDescription", "label": "Accident Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 6, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "injuries", "label": "Injuries Sustained", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "injuryDetails", "label": "Injury Details", "fieldType": "TEXTAREA", "displayOrder": 8, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "visibilityExpression": "@{injuries} == true" },
+      { "name": "policeReportFiled", "label": "Police Report Filed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 9, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "policeReportNumber", "label": "Police Report Number", "fieldType": "TEXT", "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "visibilityExpression": "@{policeReportFiled} == true" },
+      { "name": "damageDescription", "label": "Damage Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "vehicleDriveable", "label": "Vehicle Still Driveable", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "estimatedRepairCost", "label": "Estimated Repair Cost", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "thirdPartyInvolved", "label": "Third Party Involved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "thirdPartyName", "label": "Third Party Name", "fieldType": "TEXT", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{thirdPartyInvolved} == true" },
+      { "name": "thirdPartyVehicle", "label": "Third Party Vehicle Reg", "fieldType": "TEXT", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{thirdPartyInvolved} == true" },
+      { "name": "thirdPartyInsurer", "label": "Third Party Insurer", "fieldType": "TEXT", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{thirdPartyInvolved} == true" },
+      { "name": "thirdPartyContact", "label": "Third Party Contact", "fieldType": "TEXT", "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{thirdPartyInvolved} == true" },
+      { "name": "insuranceClaimFiled", "label": "Insurance Claim Filed", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "claimNumber", "label": "Insurance Claim Number", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{insuranceClaimFiled} == true" },
+      { "name": "driverAtFault", "label": "Company Driver At Fault", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "disciplinaryAction", "label": "Disciplinary Action Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "accidentPhotos", "label": "Accident Scene Photos", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "policeReport", "label": "Police Report", "fieldType": "FILE", "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Fleet Manager", "approverType": "ROLE", "roleName": "FLEET_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "HR Manager", "approverType": "ROLE", "roleName": "HR_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Operations Director", "approverType": "ROLE", "roleName": "OPERATIONS_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

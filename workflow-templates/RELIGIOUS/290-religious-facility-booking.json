@@ -1,0 +1,58 @@
+{
+  "_comment": "Facility Booking — book a church hall, meeting room or grounds for internal or external use.",
+  "name": "Facility Booking",
+  "code": "RFB",
+  "description": "Request and approve use of church or religious facility spaces for services, meetings, community events or external hire.",
+  "icon": "meeting_room",
+  "displayOrder": 290,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "RELIGIOUS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{bookingRef} - @{facility} (@{bookingDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Booking Details", "displayOrder": 0, "icon": "meeting_room" },
+      { "id": "temp_screen_2", "title": "Requirements & Fee", "displayOrder": 1, "icon": "settings" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Booking Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Requirements", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Fee & Remarks", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "bookingRef", "label": "Booking Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RFB-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "bookedBy", "label": "Booked By", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactPhone", "label": "Contact Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "bookingType", "label": "Booking Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "INTERNAL", "label": "Internal (Church Use)", "displayOrder": 0 }, { "value": "MEMBER", "label": "Member Private Event", "displayOrder": 1 }, { "value": "EXTERNAL", "label": "External Hire", "displayOrder": 2 }, { "value": "COMMUNITY", "label": "Community Service", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "facility", "label": "Facility / Space", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "MAIN_HALL", "label": "Main Hall / Sanctuary", "displayOrder": 0 }, { "value": "FELLOWSHIP_HALL", "label": "Fellowship Hall", "displayOrder": 1 }, { "value": "MEETING_ROOM", "label": "Meeting Room", "displayOrder": 2 }, { "value": "KITCHEN", "label": "Kitchen", "displayOrder": 3 }, { "value": "GROUNDS", "label": "Grounds / Parking Area", "displayOrder": 4 }, { "value": "YOUTH_CENTRE", "label": "Youth Centre", "displayOrder": 5 }, { "value": "MULTIPLE", "label": "Multiple Spaces", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "bookingDate", "label": "Booking Date", "fieldType": "DATE", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Booking must be in the future\")" },
+      { "name": "startTime", "label": "Start Time", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "endTime", "label": "End Time", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "purpose", "label": "Purpose / Event Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 9, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "expectedAttendees", "label": "Expected Attendees", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "chairsRequired", "label": "Chairs / Seating Required", "fieldType": "NUMBER", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "tablesRequired", "label": "Tables Required", "fieldType": "NUMBER", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "avEquipment", "label": "AV / Sound Equipment", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "kitchenUse", "label": "Kitchen Use Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "cleaningArranged", "label": "Post-Event Cleaning Arranged", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "specialRequirements", "label": "Special Requirements", "fieldType": "TEXTAREA", "displayOrder": 25, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "hireFee", "label": "Hire / Donation Fee", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "depositPaid", "label": "Deposit Paid", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Church Administrator", "approverType": "ROLE", "roleName": "ADMINISTRATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Senior Pastor / Elder", "approverType": "ROLE", "roleName": "SENIOR_PASTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

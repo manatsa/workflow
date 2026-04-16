@@ -1,0 +1,65 @@
+{
+  "_comment": "Dye Lot Approval — approve a dyeing batch for colour accuracy and fastness before bulk production.",
+  "name": "Dye Lot Approval",
+  "code": "DLA",
+  "description": "Submit dyeing batch results for colour matching, fastness testing and approval before proceeding with bulk fabric dyeing or printing.",
+  "icon": "palette",
+  "displayOrder": 278,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "TEXTILES",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{dyeRef} - @{colourName} (@{fabricType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Dye Lot Details", "displayOrder": 0, "icon": "palette" },
+      { "id": "temp_screen_2", "title": "Test Results", "displayOrder": 1, "icon": "science" },
+      { "id": "temp_screen_3", "title": "Approval & Documents", "displayOrder": 2, "icon": "verified" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Dye & Fabric", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Colour & Fastness", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Chemical Parameters", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Decision", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "dyeRef", "label": "Dye Lot Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"DLA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submitDate", "label": "Submit Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "colourName", "label": "Colour Name / Code", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "fabricType", "label": "Fabric Type", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "dyeMethod", "label": "Dye Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "EXHAUST", "label": "Exhaust Dyeing", "displayOrder": 0 }, { "value": "CONTINUOUS", "label": "Continuous Dyeing", "displayOrder": 1 }, { "value": "PRINTING", "label": "Printing", "displayOrder": 2 }, { "value": "GARMENT", "label": "Garment Dye", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "lotNumber", "label": "Lot / Batch Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "orderReference", "label": "Customer Order Reference", "fieldType": "TEXT", "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "quantityKg", "label": "Quantity (kg)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "deltaE", "label": "Delta E (colour difference)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "colourMatchGrade", "label": "Colour Match Grade", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "5", "label": "5 - Excellent", "displayOrder": 0 }, { "value": "4", "label": "4 - Good", "displayOrder": 1 }, { "value": "3", "label": "3 - Fair", "displayOrder": 2 }, { "value": "2", "label": "2 - Poor", "displayOrder": 3 }, { "value": "1", "label": "1 - Very Poor", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "washFastness", "label": "Wash Fastness (1-5)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1) AND Max(5)" },
+      { "name": "lightFastness", "label": "Light Fastness (1-8)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1) AND Max(8)" },
+      { "name": "rubFastnessDry", "label": "Rub Fastness Dry (1-5)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1) AND Max(5)" },
+      { "name": "rubFastnessWet", "label": "Rub Fastness Wet (1-5)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1) AND Max(5)" },
+      { "name": "phLevel", "label": "pH Level", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(14)" },
+      { "name": "formaldehydePpm", "label": "Formaldehyde (ppm)", "fieldType": "NUMBER", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "azoFreeCompliant", "label": "Azo-Free Compliant", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "oekoTexCompliant", "label": "OEKO-TEX Compliant", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "decision", "label": "Approval Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "APPROVE", "label": "Approve for Bulk", "displayOrder": 0 }, { "value": "RE_DYE", "label": "Re-Dye Required", "displayOrder": 1 }, { "value": "STRIP_REDYE", "label": "Strip and Re-Dye", "displayOrder": 2 }, { "value": "REJECT", "label": "Reject", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "labReport", "label": "Lab Report", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "colourSwatch", "label": "Colour Swatch Photo", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Dye House Supervisor", "approverType": "ROLE", "roleName": "DYE_SUPERVISOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Quality Manager", "approverType": "ROLE", "roleName": "QUALITY_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Merchandiser / Customer Rep", "approverType": "ROLE", "roleName": "MERCHANDISER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "_comment": "MRO Work Order — create and approve maintenance, repair and overhaul work orders for aircraft.",
+  "name": "MRO Work Order",
+  "code": "MWO",
+  "description": "Raise, plan and approve maintenance, repair and overhaul (MRO) work orders for aircraft and components including labour, parts and sign-off.",
+  "icon": "engineering",
+  "displayOrder": 272,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "AEROSPACE",
+  "workflowTypeCode": "REQUISITION",
+  "titleTemplate": "@{woRef} - @{aircraftReg} (@{workScope})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 4, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Work Order Details", "displayOrder": 0, "icon": "assignment" },
+      { "id": "temp_screen_2", "title": "Parts & Labour", "displayOrder": 1, "icon": "build" },
+      { "id": "temp_screen_3", "title": "Sign-Off & Documents", "displayOrder": 2, "icon": "verified" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Aircraft & Scope", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Parts Required", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Labour & Cost", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Completion & Sign-Off", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "woRef", "label": "Work Order Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MWO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "aircraftReg", "label": "Aircraft Registration", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "aircraftType", "label": "Aircraft Type", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "workScope", "label": "Work Scope", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "LINE", "label": "Line Maintenance", "displayOrder": 0 }, { "value": "BASE", "label": "Base Maintenance (A/B/C/D Check)", "displayOrder": 1 }, { "value": "ENGINE", "label": "Engine Overhaul", "displayOrder": 2 }, { "value": "COMPONENT", "label": "Component Repair", "displayOrder": 3 }, { "value": "MODIFICATION", "label": "Modification / STC", "displayOrder": 4 }, { "value": "AOG", "label": "AOG (Aircraft on Ground)", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "priority", "label": "Priority", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "AOG", "label": "AOG – Immediate", "displayOrder": 0 }, { "value": "URGENT", "label": "Urgent", "displayOrder": 1 }, { "value": "ROUTINE", "label": "Routine", "displayOrder": 2 }, { "value": "SCHEDULED", "label": "Scheduled", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "workDescription", "label": "Work Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 6, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "estimatedStartDate", "label": "Estimated Start Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "estimatedCompletionDate", "label": "Estimated Completion Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "parts", "label": "Parts Required", "fieldType": "TABLE", "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 0, "tableMaxRows": 30, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"partNumber\",\"label\":\"Part Number\",\"type\":\"TEXT\",\"width\":140,\"required\":true},{\"name\":\"description\",\"label\":\"Description\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"qty\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":70,\"required\":true},{\"name\":\"condition\",\"label\":\"Condition\",\"type\":\"SELECT\",\"width\":100,\"options\":[\"New\",\"Serviceable\",\"Overhauled\",\"Repaired\"],\"required\":true},{\"name\":\"unitCost\",\"label\":\"Unit Cost\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"lineCost\",\"label\":\"Line Cost\",\"type\":\"NUMBER\",\"width\":110,\"computed\":\"qty * unitCost\"}]" },
+      { "name": "totalPartsCost", "label": "Total Parts Cost", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM_COLUMN(\"parts\", \"lineCost\")" },
+      { "name": "labourHours", "label": "Estimated Labour Hours", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "labourRate", "label": "Labour Rate / Hour", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "labourCost", "label": "Total Labour Cost", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "MULTIPLY(@{labourHours}, @{labourRate})" },
+      { "name": "totalCost", "label": "Total Estimated Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "ADD(@{totalPartsCost}, @{labourCost})" },
+      { "name": "workCompleted", "label": "Work Completed", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "actualCompletionDate", "label": "Actual Completion Date", "fieldType": "DATE", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "certifyingEngineer", "label": "Certifying Engineer", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "licenceNumber", "label": "Licence / Authorisation Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "releaseToService", "label": "Release to Service", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 35, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "taskCards", "label": "Task Cards / Work Packs", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "supportingDocs", "label": "Supporting Documents", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Lead Mechanic", "approverType": "ROLE", "roleName": "LEAD_MECHANIC", "amountLimit": 10000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "MRO Manager", "approverType": "ROLE", "roleName": "MRO_MANAGER", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "VP Engineering", "approverType": "ROLE", "roleName": "VP_ENGINEERING", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

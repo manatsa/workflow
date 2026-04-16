@@ -1,0 +1,64 @@
+{
+  "_comment": "Furniture Quality Inspection — inspect finished furniture before delivery or dispatch.",
+  "name": "Furniture Quality Inspection",
+  "code": "FQI",
+  "description": "Perform a final quality inspection on finished furniture items checking construction, finish, dimensions and packaging before release for delivery.",
+  "icon": "checklist",
+  "displayOrder": 284,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "FURNITURE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{inspRef} - @{productName} (@{orderRef})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Product Details", "displayOrder": 0, "icon": "chair" },
+      { "id": "temp_screen_2", "title": "Inspection Checks", "displayOrder": 1, "icon": "checklist" },
+      { "id": "temp_screen_3", "title": "Decision & Documents", "displayOrder": 2, "icon": "verified" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Product & Order", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Construction & Finish", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Dimensions & Function", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Defects", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Decision", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Attachments", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "inspRef", "label": "Inspection Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FQI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "inspectionDate", "label": "Inspection Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "productName", "label": "Product Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "orderRef", "label": "Order / Batch Reference", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "quantity", "label": "Quantity Inspected", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "materialType", "label": "Primary Material", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "joineryOk", "label": "Joinery / Joints Solid", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "surfaceFinishOk", "label": "Surface Finish Acceptable", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "colourMatchOk", "label": "Colour / Stain Match", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "hardwareOk", "label": "Hardware / Fittings Secure", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "noScratchesDents", "label": "No Scratches / Dents", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "upholsteryOk", "label": "Upholstery / Fabric OK (if applicable)", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "dimensionsMatch", "label": "Dimensions Match Specification", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "stabilityTest", "label": "Stability / Weight Test Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "drawersDoorsOk", "label": "Drawers / Doors Operate Smoothly", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "packagingOk", "label": "Packaging Adequate", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "defects", "label": "Defects Found", "fieldType": "TABLE", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "tableMinRows": 0, "tableMaxRows": 10, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"defectType\",\"label\":\"Defect\",\"type\":\"SELECT\",\"width\":150,\"options\":[\"Scratch\",\"Dent\",\"Colour Mismatch\",\"Loose Joint\",\"Dimension Error\",\"Hardware Issue\",\"Finish Defect\",\"Other\"],\"required\":true},{\"name\":\"location\",\"label\":\"Location\",\"type\":\"TEXT\",\"width\":140,\"required\":true},{\"name\":\"severity\",\"label\":\"Severity\",\"type\":\"SELECT\",\"width\":100,\"options\":[\"Minor\",\"Major\",\"Critical\"],\"required\":true},{\"name\":\"action\",\"label\":\"Action\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"Rework\",\"Accept As-Is\",\"Reject\"],\"required\":true}]" },
+      { "name": "decision", "label": "Inspection Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "PASS", "label": "Pass – Release", "displayOrder": 0 }, { "value": "PASS_REWORK", "label": "Pass After Rework", "displayOrder": 1 }, { "value": "FAIL", "label": "Fail – Remake", "displayOrder": 2 }, { "value": "HOLD", "label": "Hold – Customer Decision", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "inspectionPhotos", "label": "Inspection Photos", "fieldType": "FILE", "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 10485760 },
+      { "name": "specSheet", "label": "Specification Sheet", "fieldType": "FILE", "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Quality Inspector", "approverType": "ROLE", "roleName": "QUALITY_INSPECTOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Production Manager", "approverType": "ROLE", "roleName": "PRODUCTION_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

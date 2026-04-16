@@ -1,0 +1,71 @@
+{
+  "_comment": "Gemstone Grading & Certification — evaluate and certify gemstones for quality, authenticity, and market value.",
+  "name": "Gemstone Grading & Certification",
+  "code": "SGC",
+  "description": "Grade and certify gemstones based on the 4Cs (cut, colour, clarity, carat), origin verification, and treatment disclosure for trade or retail purposes.",
+  "icon": "verified",
+  "displayOrder": 222,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "JEWELLERY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{gradingRef} - @{stoneType} @{caratWeight}ct",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Stone Identification", "displayOrder": 0, "icon": "search" },
+      { "id": "temp_screen_2", "title": "Grading Assessment", "displayOrder": 1, "icon": "grade" },
+      { "id": "temp_screen_3", "title": "Certification & Documents", "displayOrder": 2, "icon": "verified" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Stone Identity", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "4C Grading", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Additional Characteristics", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Certification", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "gradingRef", "label": "Grading Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SGC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "stoneType", "label": "Stone Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "DIAMOND", "label": "Diamond", "displayOrder": 0 }, { "value": "RUBY", "label": "Ruby", "displayOrder": 1 }, { "value": "SAPPHIRE", "label": "Sapphire", "displayOrder": 2 }, { "value": "EMERALD", "label": "Emerald", "displayOrder": 3 }, { "value": "TANZANITE", "label": "Tanzanite", "displayOrder": 4 }, { "value": "ALEXANDRITE", "label": "Alexandrite", "displayOrder": 5 }, { "value": "OPAL", "label": "Opal", "displayOrder": 6 }, { "value": "OTHER", "label": "Other", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "stoneOrigin", "label": "Country of Origin", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "ownerName", "label": "Owner / Submitter Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(2)" },
+      { "name": "purpose", "label": "Grading Purpose", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "RETAIL", "label": "Retail Sale", "displayOrder": 0 }, { "value": "TRADE", "label": "Trade / Wholesale", "displayOrder": 1 }, { "value": "INSURANCE", "label": "Insurance Valuation", "displayOrder": 2 }, { "value": "PERSONAL", "label": "Personal Knowledge", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "shapeDescription", "label": "Shape", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ROUND", "label": "Round", "displayOrder": 0 }, { "value": "OVAL", "label": "Oval", "displayOrder": 1 }, { "value": "PEAR", "label": "Pear", "displayOrder": 2 }, { "value": "CUSHION", "label": "Cushion", "displayOrder": 3 }, { "value": "EMERALD_CUT", "label": "Emerald Cut", "displayOrder": 4 }, { "value": "MARQUISE", "label": "Marquise", "displayOrder": 5 }, { "value": "HEART", "label": "Heart", "displayOrder": 6 }, { "value": "CABOCHON", "label": "Cabochon", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "caratWeight", "label": "Carat Weight", "fieldType": "NUMBER", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0.01)" },
+      { "name": "colourGrade", "label": "Colour Grade", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "D", "label": "D (Colourless)", "displayOrder": 0 }, { "value": "E", "label": "E (Colourless)", "displayOrder": 1 }, { "value": "F", "label": "F (Colourless)", "displayOrder": 2 }, { "value": "G", "label": "G (Near Colourless)", "displayOrder": 3 }, { "value": "H", "label": "H (Near Colourless)", "displayOrder": 4 }, { "value": "I", "label": "I (Near Colourless)", "displayOrder": 5 }, { "value": "J", "label": "J (Near Colourless)", "displayOrder": 6 }, { "value": "K_PLUS", "label": "K+ (Faint Colour)", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "clarityGrade", "label": "Clarity Grade", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "FL", "label": "FL (Flawless)", "displayOrder": 0 }, { "value": "IF", "label": "IF (Internally Flawless)", "displayOrder": 1 }, { "value": "VVS1", "label": "VVS1", "displayOrder": 2 }, { "value": "VVS2", "label": "VVS2", "displayOrder": 3 }, { "value": "VS1", "label": "VS1", "displayOrder": 4 }, { "value": "VS2", "label": "VS2", "displayOrder": 5 }, { "value": "SI1", "label": "SI1", "displayOrder": 6 }, { "value": "SI2", "label": "SI2", "displayOrder": 7 }, { "value": "I1", "label": "I1 (Included)", "displayOrder": 8 } ], "validation": "Required()" },
+      { "name": "cutGrade", "label": "Cut Grade", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "EXCELLENT", "label": "Excellent", "displayOrder": 0 }, { "value": "VERY_GOOD", "label": "Very Good", "displayOrder": 1 }, { "value": "GOOD", "label": "Good", "displayOrder": 2 }, { "value": "FAIR", "label": "Fair", "displayOrder": 3 }, { "value": "POOR", "label": "Poor", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "fluorescence", "label": "Fluorescence", "fieldType": "SELECT", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "NONE", "label": "None", "displayOrder": 0 }, { "value": "FAINT", "label": "Faint", "displayOrder": 1 }, { "value": "MEDIUM", "label": "Medium", "displayOrder": 2 }, { "value": "STRONG", "label": "Strong", "displayOrder": 3 } ] },
+      { "name": "treatment", "label": "Treatment / Enhancement", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "NONE", "label": "None (Natural)", "displayOrder": 0 }, { "value": "HEAT", "label": "Heat Treated", "displayOrder": 1 }, { "value": "IRRADIATION", "label": "Irradiated", "displayOrder": 2 }, { "value": "FRACTURE_FILLED", "label": "Fracture Filled", "displayOrder": 3 }, { "value": "COATED", "label": "Coated", "displayOrder": 4 }, { "value": "LAB_GROWN", "label": "Lab Grown", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "dimensionsMm", "label": "Dimensions (mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "inclusionNotes", "label": "Inclusion / Blemish Notes", "fieldType": "TEXTAREA", "displayOrder": 17, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "overallGrade", "label": "Overall Quality Grade", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 18, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "INVESTMENT", "label": "Investment Grade", "displayOrder": 0 }, { "value": "PREMIUM", "label": "Premium", "displayOrder": 1 }, { "value": "STANDARD", "label": "Standard", "displayOrder": 2 }, { "value": "COMMERCIAL", "label": "Commercial", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "certificationBody", "label": "Certification Body", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "GIA", "label": "GIA", "displayOrder": 0 }, { "value": "AGS", "label": "AGS", "displayOrder": 1 }, { "value": "IGI", "label": "IGI", "displayOrder": 2 }, { "value": "EGL", "label": "EGL", "displayOrder": 3 }, { "value": "INTERNAL", "label": "Internal Lab", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "certificateNumber", "label": "Certificate Number", "fieldType": "TEXT", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "gradingVerified", "label": "Grading Verified by Second Gemmologist", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{gradingVerified} == true, \"Grading must be verified by a second gemmologist\")" },
+      { "name": "plotDiagram", "label": "Inclusion Plot Diagram", "fieldType": "FILE", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "stonePhotos", "label": "Stone Photographs", "fieldType": "FILE", "isMandatory": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Senior Gemmologist", "approverType": "ROLE", "roleName": "SENIOR_GEMMOLOGIST", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Lab Director", "approverType": "ROLE", "roleName": "LAB_DIRECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Quality Assurance Head", "approverType": "ROLE", "roleName": "QA_HEAD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "_comment": "Airworthiness Directive Compliance — track and approve compliance with mandatory airworthiness directives on aircraft.",
+  "name": "Airworthiness Directive Compliance",
+  "code": "ADC",
+  "description": "Record, plan and approve compliance with airworthiness directives (ADs) issued by aviation authorities for fleet aircraft and components.",
+  "icon": "flight",
+  "displayOrder": 271,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "AEROSPACE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{adRef} - @{aircraftReg} (@{adTitle})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 5, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Directive Details", "displayOrder": 0, "icon": "description" },
+      { "id": "temp_screen_2", "title": "Aircraft & Compliance", "displayOrder": 1, "icon": "flight" },
+      { "id": "temp_screen_3", "title": "Work & Documents", "displayOrder": 2, "icon": "build" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "AD Information", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Affected Aircraft", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Compliance Plan", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Work Performed", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "adRef", "label": "AD Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ADC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "logDate", "label": "Log Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "adNumber", "label": "AD Number", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "adTitle", "label": "AD Title / Subject", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "issuingAuthority", "label": "Issuing Authority", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FAA", "label": "FAA", "displayOrder": 0 }, { "value": "EASA", "label": "EASA", "displayOrder": 1 }, { "value": "TCCA", "label": "TCCA", "displayOrder": 2 }, { "value": "CAAZ", "label": "CAAZ", "displayOrder": 3 }, { "value": "OTHER", "label": "Other", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "effectiveDate", "label": "AD Effective Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "complianceDeadline", "label": "Compliance Deadline", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "adCategory", "label": "AD Category", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "EMERGENCY", "label": "Emergency AD", "displayOrder": 0 }, { "value": "STANDARD", "label": "Standard AD", "displayOrder": 1 }, { "value": "REPETITIVE", "label": "Repetitive Inspection", "displayOrder": 2 }, { "value": "TERMINATING", "label": "Terminating Action", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "aircraftReg", "label": "Aircraft Registration", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "aircraftType", "label": "Aircraft Type / Model", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "serialNumber", "label": "Aircraft Serial Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "totalFlightHours", "label": "Total Flight Hours", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "complianceMethod", "label": "Compliance Method", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "INSPECTION", "label": "Inspection", "displayOrder": 0 }, { "value": "MODIFICATION", "label": "Modification / SB", "displayOrder": 1 }, { "value": "REPLACEMENT", "label": "Part Replacement", "displayOrder": 2 }, { "value": "OPERATIONAL", "label": "Operational Limitation", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "plannedComplianceDate", "label": "Planned Compliance Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "estimatedDowntimeHrs", "label": "Estimated Downtime (hrs)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "estimatedCost", "label": "Estimated Cost", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "workDescription", "label": "Work Performed Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "complianceStatus", "label": "Compliance Status", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "COMPLIED", "label": "Fully Complied", "displayOrder": 0 }, { "value": "PARTIAL", "label": "Partially Complied", "displayOrder": 1 }, { "value": "DEFERRED", "label": "Deferred (approved)", "displayOrder": 2 }, { "value": "NOT_APPLICABLE", "label": "Not Applicable", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "completionDate", "label": "Completion Date", "fieldType": "DATE", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "engineerName", "label": "Certifying Engineer", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "licenceNumber", "label": "Engineer Licence Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 35, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "adDocument", "label": "AD Document", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "complianceEvidence", "label": "Compliance Evidence / Photos", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Maintenance Engineer", "approverType": "ROLE", "roleName": "MAINTENANCE_ENGINEER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Quality Assurance Inspector", "approverType": "ROLE", "roleName": "QA_INSPECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Chief Engineer / DOA", "approverType": "ROLE", "roleName": "CHIEF_ENGINEER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

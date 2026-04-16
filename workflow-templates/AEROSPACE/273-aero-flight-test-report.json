@@ -1,0 +1,69 @@
+{
+  "_comment": "Flight Test Report — document and approve flight test results after maintenance or modification.",
+  "name": "Flight Test Report",
+  "code": "FTR",
+  "description": "Record and approve post-maintenance or post-modification flight test results including performance data, defect observations and release recommendation.",
+  "icon": "speed",
+  "displayOrder": 273,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "AEROSPACE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{ftrRef} - @{aircraftReg} (@{testType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Flight Details", "displayOrder": 0, "icon": "flight_takeoff" },
+      { "id": "temp_screen_2", "title": "Test Results", "displayOrder": 1, "icon": "analytics" },
+      { "id": "temp_screen_3", "title": "Findings & Documents", "displayOrder": 2, "icon": "assignment_turned_in" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Aircraft & Flight", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Performance Data", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Systems Check", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Findings & Recommendation", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "ftrRef", "label": "Report Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FTR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "testDate", "label": "Test Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "aircraftReg", "label": "Aircraft Registration", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "aircraftType", "label": "Aircraft Type", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "testType", "label": "Test Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "POST_MAINT", "label": "Post-Maintenance Check", "displayOrder": 0 }, { "value": "POST_MOD", "label": "Post-Modification", "displayOrder": 1 }, { "value": "ACCEPTANCE", "label": "Acceptance Flight", "displayOrder": 2 }, { "value": "CERTIFICATION", "label": "Certification Test", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "relatedWorkOrder", "label": "Related Work Order #", "fieldType": "TEXT", "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "pilotInCommand", "label": "Pilot in Command", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "flightEngineer", "label": "Flight Engineer / Observer", "fieldType": "TEXT", "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "departureAirport", "label": "Departure Airport", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "flightDurationMin", "label": "Flight Duration (minutes)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 9, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "maxAltitude", "label": "Max Altitude (ft)", "fieldType": "NUMBER", "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "maxSpeed", "label": "Max Speed (knots)", "fieldType": "NUMBER", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "enginePerformance", "label": "Engine Performance Normal", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "vibrationLevelsOk", "label": "Vibration Levels Acceptable", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "fuelConsumptionOk", "label": "Fuel Consumption Within Limits", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "hydraulicsOk", "label": "Hydraulic Systems Normal", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "electricalOk", "label": "Electrical Systems Normal", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "avionicsOk", "label": "Avionics / Navigation Normal", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "flightControlsOk", "label": "Flight Controls Normal", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "landingGearOk", "label": "Landing Gear Normal", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "pressurisationOk", "label": "Pressurisation Normal", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "defectsFound", "label": "Defects Found", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "defectDetails", "label": "Defect Details", "fieldType": "TEXTAREA", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{defectsFound} == true" },
+      { "name": "recommendation", "label": "Recommendation", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "RELEASE", "label": "Release to Service", "displayOrder": 0 }, { "value": "RETEST", "label": "Further Test Required", "displayOrder": 1 }, { "value": "RECTIFY", "label": "Return for Rectification", "displayOrder": 2 }, { "value": "GROUND", "label": "Ground Aircraft", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "remarks", "label": "Pilot Remarks", "fieldType": "TEXTAREA", "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "flightLog", "label": "Flight Log / Data", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,xls,xlsx,csv", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "photos", "label": "Photos / Evidence", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Test Pilot", "approverType": "ROLE", "roleName": "TEST_PILOT", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Chief Engineer", "approverType": "ROLE", "roleName": "CHIEF_ENGINEER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Quality Manager", "approverType": "ROLE", "roleName": "QUALITY_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "_comment": "Fish Export Permit — apply for and approve a fish / seafood export permit.",
+  "name": "Fish Export Permit",
+  "code": "FEP",
+  "description": "Apply for an export permit for fish and seafood products including health certification, traceability documentation and customs compliance.",
+  "icon": "public",
+  "displayOrder": 265,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FISHERIES",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{permitRef} - @{exporterName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Exporter & Shipment", "displayOrder": 0, "icon": "business" },
+      { "id": "temp_screen_2", "title": "Products & Value", "displayOrder": 1, "icon": "inventory" },
+      { "id": "temp_screen_3", "title": "Compliance & Documents", "displayOrder": 2, "icon": "gavel" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Exporter & Destination", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Product Lines", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Value & Logistics", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Regulatory Compliance", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Attachments", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "permitRef", "label": "Permit Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FEP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "exporterName", "label": "Exporter Name / Company", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "exporterLicence", "label": "Exporter Licence Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "destinationCountry", "label": "Destination Country", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "importerName", "label": "Importer Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "portOfExit", "label": "Port of Exit", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "transportMode", "label": "Transport Mode", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "AIR", "label": "Air Freight", "displayOrder": 0 }, { "value": "SEA", "label": "Sea Freight", "displayOrder": 1 }, { "value": "ROAD", "label": "Road (cross-border)", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "expectedShipDate", "label": "Expected Ship Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 8, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Ship date must be in the future\")" },
+      { "name": "products", "label": "Product Lines", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 20, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"species\",\"label\":\"Species\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"productForm\",\"label\":\"Product Form\",\"type\":\"SELECT\",\"width\":130,\"options\":[\"Whole Fresh\",\"Whole Frozen\",\"Fillets Fresh\",\"Fillets Frozen\",\"Smoked\",\"Canned\",\"Dried\",\"Live\"],\"required\":true},{\"name\":\"weightKg\",\"label\":\"Weight (kg)\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"packages\",\"label\":\"Packages\",\"type\":\"NUMBER\",\"width\":90,\"required\":true},{\"name\":\"value\",\"label\":\"Value (USD)\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"catchArea\",\"label\":\"Catch Area\",\"type\":\"TEXT\",\"width\":120}]", "validation": "MinRows(1, \"At least one product line required\")" },
+      { "name": "totalWeightKg", "label": "Total Weight (kg)", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM_COLUMN(\"products\", \"weightKg\")" },
+      { "name": "totalValue", "label": "Total Declared Value (USD)", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "defaultValue": "SUM_COLUMN(\"products\", \"value\")" },
+      { "name": "containerType", "label": "Container Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "REEFER_20", "label": "20ft Reefer", "displayOrder": 0 }, { "value": "REEFER_40", "label": "40ft Reefer", "displayOrder": 1 }, { "value": "INSULATED", "label": "Insulated Boxes", "displayOrder": 2 }, { "value": "STYROFOAM", "label": "Styrofoam / Iced", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "storageTemperature", "label": "Storage Temperature (C)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "healthCertIssued", "label": "Health Certificate Issued", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{healthCertIssued} == true, \"Health certificate required for export\")" },
+      { "name": "catchCertIssued", "label": "Catch Certificate Issued (IUU)", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{catchCertIssued} == true, \"Catch certificate required for IUU compliance\")" },
+      { "name": "traceabilityComplete", "label": "Traceability Documentation Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{traceabilityComplete} == true, \"Traceability documents required\")" },
+      { "name": "labTestsPassed", "label": "Lab Tests Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{labTestsPassed} == true, \"Lab tests must pass before export\")" },
+      { "name": "citesClearance", "label": "CITES Clearance (if applicable)", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 35, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "healthCertificate", "label": "Health Certificate", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "catchCertificate", "label": "Catch Certificate", "fieldType": "FILE", "isMandatory": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "labReport", "label": "Lab Test Report", "fieldType": "FILE", "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760 },
+      { "name": "commercialInvoice", "label": "Commercial Invoice", "fieldType": "FILE", "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Export Compliance Officer", "approverType": "ROLE", "roleName": "EXPORT_OFFICER", "amountLimit": 50000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Fisheries Inspector", "approverType": "ROLE", "roleName": "FISHERIES_INSPECTOR", "amountLimit": 200000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Fisheries Director", "approverType": "ROLE", "roleName": "FISHERIES_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}
