@@ -1,0 +1,71 @@
+{
+  "_comment": "Power Purchase Agreement (PPA) — contract to purchase renewable electricity output from an IPP.",
+  "name": "Power Purchase Agreement (PPA)",
+  "code": "RPA",
+  "description": "Contract to purchase renewable electricity output from an Independent Power Producer (IPP).",
+  "icon": "solar_power",
+  "displayOrder": 144,
+  "requiresApproval": true, "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "RENEWABLES",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{ppaRef} - @{projectName} (@{capacityMW} MW)",
+  "reminderEnabled": true, "reminderFrequencyHours": 72, "reminderMaxCount": 3, "reminderStartAfterHours": 72,
+  "escalationEnabled": true, "escalationAfterHours": 240, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Project", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Commercial Terms", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Risk & Compliance", "displayOrder": 2, "icon": "gpp_good" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & IPP", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Project Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Production Forecast", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Pricing", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Term & Milestones", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Regulatory & Risk", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "ppaRef", "label": "PPA Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RPA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "ipp", "label": "IPP / Developer", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "offtaker", "label": "Off-taker", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "projectName", "label": "Project Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "technology", "label": "Technology", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SOLAR_PV", "label": "Solar PV", "displayOrder": 0 }, { "value": "WIND", "label": "Wind", "displayOrder": 1 }, { "value": "HYDRO", "label": "Hydro", "displayOrder": 2 }, { "value": "BIOMASS", "label": "Biomass", "displayOrder": 3 }, { "value": "CSP", "label": "CSP", "displayOrder": 4 }, { "value": "BESS", "label": "Battery Storage", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "capacityMW", "label": "Capacity (MW)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0.1)" },
+      { "name": "location", "label": "Project Location", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "cod", "label": "Planned COD", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"COD must be future\")" },
+      { "name": "annualGeneration", "label": "Annual Generation (GWh)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "capacityFactor", "label": "Capacity Factor %", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0) AND Max(100)" },
+      { "name": "p50Yield", "label": "P50 Yield Confirmed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "tariffType", "label": "Tariff Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "FIT", "label": "Feed-In Tariff", "displayOrder": 0 }, { "value": "INDEXED", "label": "Indexed", "displayOrder": 1 }, { "value": "MERCHANT", "label": "Merchant / Market", "displayOrder": 2 }, { "value": "AUCTION", "label": "Auction-Cleared", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "tariffCentsKwh", "label": "Tariff (c/kWh)", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "escalation", "label": "Annual Escalation (CPI+)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0) AND Max(20)" },
+      { "name": "currency", "label": "Currency", "fieldType": "SELECT", "defaultValue": "USD", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "USD", "label": "USD", "displayOrder": 0 }, { "value": "EUR", "label": "EUR", "displayOrder": 1 }, { "value": "LOCAL", "label": "Local Currency", "displayOrder": 2 } ] },
+      { "name": "termYears", "label": "Contract Term (years)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "20", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1) AND Max(30)" },
+      { "name": "takeOrPay", "label": "Take-or-Pay Obligation", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "capexUsd", "label": "Project Capex (USD)", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "cursorDebtService", "label": "Tariff Covers Debt Service (DSCR>=1.2)", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{cursorDebtService} == true, \"DSCR must be adequate\")" },
+      { "name": "gridConnection", "label": "Grid Connection Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "ValidWhen(@{gridConnection} == true, \"Grid approval required\")" },
+      { "name": "eiaApproved", "label": "EIA / ESIA Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "ValidWhen(@{eiaApproved} == true, \"EIA required\")" },
+      { "name": "genLicence", "label": "Generation Licence", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "ValidWhen(@{genLicence} == true, \"Licence required\")" },
+      { "name": "sovereignGuarantee", "label": "Sovereign / Parent Guarantee", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "curtailmentProvision", "label": "Curtailment Compensation Clause", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 54, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "disputeResolution", "label": "Dispute Resolution", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 55, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "ARBITRATION_ICC", "label": "Arbitration (ICC)", "displayOrder": 0 }, { "value": "ARBITRATION_LCIA", "label": "Arbitration (LCIA)", "displayOrder": 1 }, { "value": "COURT", "label": "Local Courts", "displayOrder": 2 } ], "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "PPA Negotiator", "approverType": "ROLE", "roleName": "PPA_NEGOTIATOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Commercial Director", "approverType": "ROLE", "roleName": "COMMERCIAL_DIRECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "CFO", "approverType": "ROLE", "roleName": "CFO", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Board", "approverType": "ROLE", "roleName": "BOARD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

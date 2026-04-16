@@ -1,0 +1,56 @@
+{
+  "_comment": "Research Publication Approval — internal clearance before submitting a paper to a journal.",
+  "name": "Research Publication Approval",
+  "code": "RPA",
+  "description": "Internal clearance before submitting a research paper to a journal / conference.",
+  "icon": "article",
+  "displayOrder": 190,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "RESEARCH",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{pubRef} - @{paperTitle}",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Paper", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Clearances", "displayOrder": 1, "icon": "verified" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Paper Detail", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Venue", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Clearances", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "pubRef", "label": "Publication Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RPA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "correspondingAuthor", "label": "Corresponding Author", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "paperTitle", "label": "Paper Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(10)" },
+      { "name": "authors", "label": "All Authors (order)", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "abstract", "label": "Abstract", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(100)" },
+      { "name": "keywords", "label": "Keywords", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "venueType", "label": "Venue Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "JOURNAL", "label": "Peer-Reviewed Journal", "displayOrder": 0 }, { "value": "CONFERENCE", "label": "Conference", "displayOrder": 1 }, { "value": "PREPRINT", "label": "Preprint / Open Repo", "displayOrder": 2 }, { "value": "BOOK", "label": "Book / Chapter", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "venueName", "label": "Venue Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "impactFactor", "label": "Impact Factor / Tier", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "openAccess", "label": "Open Access?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "oaFee", "label": "OA / Submission Fee", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "visibilityExpression": "@{openAccess} == true", "validation": "Min(0)" },
+      { "name": "coAuthorsApproved", "label": "All Co-Authors Approved Submission", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{coAuthorsApproved} == true, \"Co-author approval required\")" },
+      { "name": "fundingAcknowledged", "label": "Funding / Grant Acknowledged", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{fundingAcknowledged} == true, \"Funding must be acknowledged\")" },
+      { "name": "ethicsCited", "label": "Ethics Approval Cited (if applicable)", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "plagiarismChecked", "label": "Plagiarism / Similarity Check Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{plagiarismChecked} == true, \"Plagiarism check required\")" },
+      { "name": "iprCleared", "label": "IPR / Licensing Cleared", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{iprCleared} == true, \"IPR clearance required\")" },
+      { "name": "dataAvailability", "label": "Data / Code Availability Statement", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{dataAvailability} == true, \"Data availability statement required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Supervisor / Senior Author", "approverType": "ROLE", "roleName": "SENIOR_AUTHOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Department Head", "approverType": "ROLE", "roleName": "DEPT_HEAD", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Research Office", "approverType": "ROLE", "roleName": "RESEARCH_OFFICE", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

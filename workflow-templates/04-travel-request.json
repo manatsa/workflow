@@ -1,0 +1,586 @@
+{
+  "_comment": "Travel Request — pre-approval for business travel before bookings are made.",
+  "name": "Travel Request",
+  "code": "TRV",
+  "description": "Request authorization to travel for business purposes. Approved before bookings are made.",
+  "icon": "flight_takeoff",
+  "displayOrder": 40,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{trvNumber} - @{destination} (@{travelStartDate})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 2,
+  "reminderStartAfterHours": 24,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Traveler & Trip",
+          "displayOrder": 0,
+          "icon": "person_pin"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Itinerary",
+          "displayOrder": 1,
+          "icon": "map"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Budget",
+          "displayOrder": 2,
+          "icon": "account_balance_wallet"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Review",
+          "displayOrder": 3,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Trip Details",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Traveler",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Destination & Dates",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Transport & Accommodation",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Cost Breakdown",
+          "displayOrder": 4,
+          "columns": 1,
+          "screenId": "temp_s3"
+        }
+      ],
+      "fields": [
+        {
+          "name": "trvNumber",
+          "label": "Travel Request #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"TRV-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "tripPurpose",
+          "label": "Trip Purpose",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "CLIENT_MEETING",
+              "label": "Client Meeting",
+              "displayOrder": 0
+            },
+            {
+              "value": "CONFERENCE",
+              "label": "Conference / Event",
+              "displayOrder": 1
+            },
+            {
+              "value": "TRAINING",
+              "label": "Training",
+              "displayOrder": 2
+            },
+            {
+              "value": "SITE_VISIT",
+              "label": "Site Visit / Audit",
+              "displayOrder": 3
+            },
+            {
+              "value": "BUSINESS_DEV",
+              "label": "Business Development",
+              "displayOrder": 4
+            },
+            {
+              "value": "INTERNAL",
+              "label": "Internal Meeting",
+              "displayOrder": 5
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 6
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "travelType",
+          "label": "Travel Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "DOMESTIC",
+              "label": "Domestic",
+              "displayOrder": 0
+            },
+            {
+              "value": "REGIONAL",
+              "label": "Regional",
+              "displayOrder": 1
+            },
+            {
+              "value": "INTERNATIONAL",
+              "label": "International",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "travelerName",
+          "label": "Traveler Name",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "travelerEmail",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "travelerDepartment",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "travelerPhone",
+          "label": "Contact Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "passportNumber",
+          "label": "Passport Number",
+          "fieldType": "TEXT",
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "visibilityExpression": "@{travelType} == 'INTERNATIONAL'",
+          "validation": "ValidWhen(@{travelType} != 'INTERNATIONAL' OR IS_NOT_EMPTY(@{passportNumber}), \"Passport number required for international travel\")"
+        },
+        {
+          "name": "passportExpiry",
+          "label": "Passport Expiry",
+          "fieldType": "DATE",
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "visibilityExpression": "@{travelType} == 'INTERNATIONAL'",
+          "validation": "ValidWhen(@{travelType} != 'INTERNATIONAL' OR IS_FUTURE(@{passportExpiry}), \"Passport must be valid\")"
+        },
+        {
+          "name": "destination",
+          "label": "Destination",
+          "fieldType": "TEXT",
+          "placeholder": "City, Country",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "travelStartDate",
+          "label": "Departure Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND DATE_AFTER(@{travelStartDate}, \"today\")"
+        },
+        {
+          "name": "travelEndDate",
+          "label": "Return Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND ValidWhen(IS_AFTER(@{travelEndDate}, @{travelStartDate}) OR IS_SAME_DAY(@{travelEndDate}, @{travelStartDate}), \"Return must be on or after departure\")"
+        },
+        {
+          "name": "totalDays",
+          "label": "Total Days",
+          "fieldType": "NUMBER",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "defaultValue": "DATE_DIFF(@{travelStartDate}, @{travelEndDate}, \"days\")"
+        },
+        {
+          "name": "tripDescription",
+          "label": "Trip Description / Agenda",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 24,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(30) AND MaxLength(2000)"
+        },
+        {
+          "name": "transportMode",
+          "label": "Mode of Transport",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "options": [
+            {
+              "value": "FLIGHT",
+              "label": "Flight",
+              "displayOrder": 0
+            },
+            {
+              "value": "TRAIN",
+              "label": "Train",
+              "displayOrder": 1
+            },
+            {
+              "value": "CAR_RENTAL",
+              "label": "Rental Car",
+              "displayOrder": 2
+            },
+            {
+              "value": "COMPANY_CAR",
+              "label": "Company Car",
+              "displayOrder": 3
+            },
+            {
+              "value": "PERSONAL_CAR",
+              "label": "Personal Car (Mileage)",
+              "displayOrder": 4
+            },
+            {
+              "value": "BUS",
+              "label": "Bus / Coach",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "flightClass",
+          "label": "Flight Class",
+          "fieldType": "SELECT",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "visibilityExpression": "@{transportMode} == 'FLIGHT'",
+          "options": [
+            {
+              "value": "ECONOMY",
+              "label": "Economy",
+              "displayOrder": 0
+            },
+            {
+              "value": "PREMIUM_ECONOMY",
+              "label": "Premium Economy",
+              "displayOrder": 1
+            },
+            {
+              "value": "BUSINESS",
+              "label": "Business",
+              "displayOrder": 2
+            }
+          ]
+        },
+        {
+          "name": "accommodationRequired",
+          "label": "Accommodation Required?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "hotelPreference",
+          "label": "Hotel / Accommodation Preference",
+          "fieldType": "TEXT",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "visibilityExpression": "@{accommodationRequired} == true"
+        },
+        {
+          "name": "estimatedTransport",
+          "label": "Transport (est.)",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "estimatedAccommodation",
+          "label": "Accommodation (est.)",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "estimatedMeals",
+          "label": "Meals & Incidentals (est.)",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "estimatedOther",
+          "label": "Other Costs (est.)",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "totalAmount",
+          "label": "Total Estimated Cost",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 44,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "defaultValue": "SUM(@{estimatedTransport}, @{estimatedAccommodation}, @{estimatedMeals}, @{estimatedOther})",
+          "validation": "Required() AND Min(0.01)"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "fieldType": "SELECT",
+          "defaultValue": "USD",
+          "inSummary": true,
+          "displayOrder": 45,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "options": [
+            {
+              "value": "USD",
+              "label": "USD",
+              "displayOrder": 0
+            },
+            {
+              "value": "EUR",
+              "label": "EUR",
+              "displayOrder": 1
+            },
+            {
+              "value": "GBP",
+              "label": "GBP",
+              "displayOrder": 2
+            },
+            {
+              "value": "ZAR",
+              "label": "ZAR",
+              "displayOrder": 3
+            },
+            {
+              "value": "ZWL",
+              "label": "ZWL",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "costCenter",
+          "label": "Cost Centre",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 46,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "supportingDocs",
+          "label": "Supporting Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 47,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "tooltip": "Invitations, conference details, quotes",
+          "allowedFileTypes": "pdf,doc,docx,jpg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        },
+        {
+          "name": "confirmation",
+          "label": "I confirm this travel request complies with the company travel policy",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "validation": "IsTrue(\"You must confirm before submitting\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Line Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "amountLimit": 2000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Department Head",
+      "approverType": "ROLE",
+      "roleName": "DEPARTMENT_HEAD",
+      "amountLimit": 10000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Finance",
+      "approverType": "ROLE",
+      "roleName": "FINANCE_CONTROLLER",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "GENERAL",
+  "workflowTypeCode": "TRAVEL"
+}

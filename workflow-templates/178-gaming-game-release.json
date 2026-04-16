@@ -1,0 +1,59 @@
+{
+  "_comment": "Game Release Approval — approve a game / patch release to platforms.",
+  "name": "Game Release Approval",
+  "code": "GGR",
+  "description": "Approve a game / patch release to console, PC or mobile storefronts.",
+  "icon": "sports_esports",
+  "displayOrder": 178,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "GAMING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{releaseRef} - @{gameTitle} v@{version}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 8,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Release", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Compliance & Platforms", "displayOrder": 1, "icon": "verified" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Game & Build", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Scope", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Platforms & Certification", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Ratings & Launch", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "releaseRef", "label": "Release Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"GGR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "producer", "label": "Producer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "gameTitle", "label": "Game Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "version", "label": "Version / Build", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "releaseType", "label": "Release Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "LAUNCH", "label": "Launch / Day One", "displayOrder": 0 }, { "value": "DLC", "label": "DLC / Expansion", "displayOrder": 1 }, { "value": "PATCH", "label": "Patch / Update", "displayOrder": 2 }, { "value": "HOTFIX", "label": "Hotfix", "displayOrder": 3 }, { "value": "SEASON", "label": "Seasonal Content", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "changelog", "label": "Changelog / Patch Notes", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(30)" },
+      { "name": "downloadSizeMB", "label": "Download Size (MB)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "onlineFeatures", "label": "Online / Multiplayer Features?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "monetisation", "label": "Includes IAP / Monetisation?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "lootBoxes", "label": "Contains Loot Boxes / Gambling", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "platforms", "label": "Target Platforms", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "platformCertPassed", "label": "Platform Certification Passed (TRC/TCR)", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{platformCertPassed} == true, \"Platform cert required\")" },
+      { "name": "qaPassed", "label": "QA Sign-off", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{qaPassed} == true, \"QA sign-off required\")" },
+      { "name": "performanceTested", "label": "Performance / Stability Tested", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{performanceTested} == true, \"Performance testing required\")" },
+      { "name": "ageRating", "label": "Age Rating", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "E", "label": "E / 3+", "displayOrder": 0 }, { "value": "E10", "label": "E10+ / 7+", "displayOrder": 1 }, { "value": "T", "label": "T / 12+", "displayOrder": 2 }, { "value": "M", "label": "M / 16+", "displayOrder": 3 }, { "value": "AO", "label": "AO / 18+", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "launchDate", "label": "Launch Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "rollbackPlan", "label": "Rollback Plan", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Producer", "approverType": "ROLE", "roleName": "PRODUCER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "QA Lead", "approverType": "ROLE", "roleName": "QA_LEAD", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Game Director", "approverType": "ROLE", "roleName": "GAME_DIRECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Studio Head", "approverType": "ROLE", "roleName": "STUDIO_HEAD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

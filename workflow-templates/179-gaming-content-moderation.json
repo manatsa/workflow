@@ -1,0 +1,52 @@
+{
+  "_comment": "Player Content Moderation — review and action reported user-generated content or players.",
+  "name": "Player Content Moderation",
+  "code": "GCM",
+  "description": "Review reported player / UGC content and apply sanctions if necessary.",
+  "icon": "report",
+  "displayOrder": 179,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "GAMING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{caseRef} - @{playerId} (@{action})",
+  "reminderEnabled": true, "reminderFrequencyHours": 4, "reminderMaxCount": 3, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Report", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Decision", "displayOrder": 1, "icon": "gavel" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Player & Report", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Evidence", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Decision", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "caseRef", "label": "Case Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"GCM-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "moderator", "label": "Moderator", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "playerId", "label": "Player ID / Gamertag", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM()" },
+      { "name": "accountAge", "label": "Account Age (days)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "priorWarnings", "label": "Prior Warnings / Bans", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "0", "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "reportType", "label": "Report Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "HARASSMENT", "label": "Harassment / Hate Speech", "displayOrder": 0 }, { "value": "CHEATING", "label": "Cheating / Exploits", "displayOrder": 1 }, { "value": "UGC", "label": "Offensive UGC", "displayOrder": 2 }, { "value": "IMPERSONATION", "label": "Impersonation", "displayOrder": 3 }, { "value": "FRAUD", "label": "Fraud / RMT", "displayOrder": 4 }, { "value": "MINOR_SAFETY", "label": "Child Safety", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "reportSummary", "label": "Report Summary", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(20)" },
+      { "name": "evidenceLinks", "label": "Evidence Links / Clip IDs", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "violationConfirmed", "label": "Violation Confirmed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "action", "label": "Action", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "NO_ACTION", "label": "No Action", "displayOrder": 0 }, { "value": "WARNING", "label": "Warning", "displayOrder": 1 }, { "value": "MUTE", "label": "Chat Mute", "displayOrder": 2 }, { "value": "TEMP_BAN", "label": "Temporary Ban", "displayOrder": 3 }, { "value": "PERM_BAN", "label": "Permanent Ban", "displayOrder": 4 }, { "value": "LAW_ENFORCE", "label": "Referred to Law Enforcement", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "banDurationDays", "label": "Ban Duration (days)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{action} == 'TEMP_BAN'", "validation": "Min(0)" },
+      { "name": "rationale", "label": "Decision Rationale", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(20)" },
+      { "name": "notifyPlayer", "label": "Notify Player", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Moderator", "approverType": "ROLE", "roleName": "MODERATOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": false },
+    { "level": 2, "name": "Trust & Safety Lead", "approverType": "ROLE", "roleName": "TRUST_SAFETY_LEAD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

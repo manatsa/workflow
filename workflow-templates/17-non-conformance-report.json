@@ -1,0 +1,771 @@
+{
+  "_comment": "Non-Conformance Report (NCR) — record defects, deviations, and initiate corrective action.",
+  "name": "Non-Conformance Report",
+  "code": "NCR",
+  "description": "Report a quality non-conformance. Captures details, disposition, and corrective/preventive action (CAPA).",
+  "icon": "report",
+  "displayOrder": 210,
+  "requiresApproval": true,
+  "commentsMandatory": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{ncrNumber} - @{partNumber} (@{severity})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 12,
+  "reminderMaxCount": 4,
+  "escalationEnabled": true,
+  "escalationAfterHours": 48,
+  "escalationAction": "NOTIFY_ADMIN",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "NCR Details",
+          "displayOrder": 0,
+          "icon": "error"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Defect",
+          "displayOrder": 1,
+          "icon": "bug_report"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Disposition",
+          "displayOrder": 2,
+          "icon": "approval"
+        },
+        {
+          "id": "temp_s4",
+          "title": "CAPA",
+          "displayOrder": 3,
+          "icon": "build_circle"
+        },
+        {
+          "id": "temp_s5",
+          "title": "Submit",
+          "displayOrder": 4,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Identification",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Reporter",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Part / Lot",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Defect Description",
+          "displayOrder": 3,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Evidence",
+          "displayOrder": 4,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g6",
+          "title": "Disposition Decision",
+          "displayOrder": 5,
+          "columns": 2,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g7",
+          "title": "Containment Actions",
+          "displayOrder": 6,
+          "columns": 1,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g8",
+          "title": "Root Cause & CAPA",
+          "displayOrder": 7,
+          "columns": 1,
+          "screenId": "temp_s4"
+        }
+      ],
+      "fields": [
+        {
+          "name": "ncrNumber",
+          "label": "NCR Number",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"NCR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "reportedAt",
+          "label": "Reported",
+          "fieldType": "DATETIME",
+          "defaultValue": "NOW()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "source",
+          "label": "Source",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "INCOMING",
+              "label": "Incoming Inspection",
+              "displayOrder": 0
+            },
+            {
+              "value": "IN_PROCESS",
+              "label": "In-Process Inspection",
+              "displayOrder": 1
+            },
+            {
+              "value": "FINAL",
+              "label": "Final Inspection",
+              "displayOrder": 2
+            },
+            {
+              "value": "AUDIT",
+              "label": "Internal Audit",
+              "displayOrder": 3
+            },
+            {
+              "value": "CUSTOMER",
+              "label": "Customer Complaint",
+              "displayOrder": 4
+            },
+            {
+              "value": "FIELD",
+              "label": "Field Failure",
+              "displayOrder": 5
+            },
+            {
+              "value": "SUPPLIER",
+              "label": "Supplier Return",
+              "displayOrder": 6
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "severity",
+          "label": "Severity",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "MINOR",
+              "label": "Minor - Cosmetic / Non-functional",
+              "displayOrder": 0
+            },
+            {
+              "value": "MAJOR",
+              "label": "Major - Function Affected",
+              "displayOrder": 1
+            },
+            {
+              "value": "CRITICAL",
+              "label": "Critical - Safety / Regulatory",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "reporterName",
+          "label": "Reporter",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "reporterEmail",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "reporterDept",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "detectedAt",
+          "label": "Discovered At (Location)",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. Assembly Line 3, Station 4",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "partNumber",
+          "label": "Part Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "partDescription",
+          "label": "Part Description",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "lotNumber",
+          "label": "Lot / Batch Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "serialNumbers",
+          "label": "Serial Numbers (if applicable)",
+          "fieldType": "TEXTAREA",
+          "placeholder": "List specific serials, one per line",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "manufactureDate",
+          "label": "Manufacture Date",
+          "fieldType": "DATE",
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "ValidWhen(IS_EMPTY(@{manufactureDate}) OR IS_PAST(@{manufactureDate}) OR IS_TODAY(@{manufactureDate}), \"Manufacture date must be past or today\")"
+        },
+        {
+          "name": "quantityInspected",
+          "label": "Quantity Inspected",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Min(1)"
+        },
+        {
+          "name": "quantityDefective",
+          "label": "Quantity Defective",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 26,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Min(1)"
+        },
+        {
+          "name": "supplier",
+          "label": "Supplier (if applicable)",
+          "fieldType": "TEXT",
+          "displayOrder": 27,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "visibilityExpression": "@{source} == 'INCOMING' OR @{source} == 'SUPPLIER'"
+        },
+        {
+          "name": "poNumber",
+          "label": "PO Number (if applicable)",
+          "fieldType": "TEXT",
+          "displayOrder": 28,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "visibilityExpression": "@{source} == 'INCOMING' OR @{source} == 'SUPPLIER'"
+        },
+        {
+          "name": "defectType",
+          "label": "Defect Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "options": [
+            {
+              "value": "DIMENSIONAL",
+              "label": "Dimensional Out of Spec",
+              "displayOrder": 0
+            },
+            {
+              "value": "VISUAL",
+              "label": "Visual / Cosmetic",
+              "displayOrder": 1
+            },
+            {
+              "value": "FUNCTIONAL",
+              "label": "Functional Failure",
+              "displayOrder": 2
+            },
+            {
+              "value": "MATERIAL",
+              "label": "Material Issue",
+              "displayOrder": 3
+            },
+            {
+              "value": "ASSEMBLY",
+              "label": "Assembly Error",
+              "displayOrder": 4
+            },
+            {
+              "value": "DOCUMENTATION",
+              "label": "Documentation Error",
+              "displayOrder": 5
+            },
+            {
+              "value": "PACKAGING",
+              "label": "Packaging / Labeling",
+              "displayOrder": 6
+            },
+            {
+              "value": "MISSING_PART",
+              "label": "Missing Component",
+              "displayOrder": 7
+            },
+            {
+              "value": "CONTAMINATION",
+              "label": "Contamination",
+              "displayOrder": 8
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 9
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "defectDescription",
+          "label": "Defect Description",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe the non-conformance in detail. What was expected vs what was found?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required() AND MinLength(30) AND MaxLength(5000)"
+        },
+        {
+          "name": "specReference",
+          "label": "Specification Reference",
+          "fieldType": "TEXT",
+          "placeholder": "Drawing #, spec #, standard violated",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "measurements",
+          "label": "Measurements / Test Results",
+          "fieldType": "TABLE",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "tableMinRows": 0,
+          "tableMaxRows": 30,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"characteristic\",\"label\":\"Characteristic\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"specified\",\"label\":\"Specified\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"actual\",\"label\":\"Actual\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"result\",\"label\":\"Result\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"Pass\",\"Fail\",\"Marginal\"]}]"
+        },
+        {
+          "name": "photos",
+          "label": "Photos of Defect",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "allowedFileTypes": "jpg,png,gif",
+          "maxFileSize": 20971520,
+          "maxFiles": 20
+        },
+        {
+          "name": "testReports",
+          "label": "Test Reports / Data",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "allowedFileTypes": "pdf,xls,xlsx,csv,doc,docx",
+          "maxFileSize": 20971520,
+          "maxFiles": 20
+        },
+        {
+          "name": "proposedDisposition",
+          "label": "Proposed Disposition",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "options": [
+            {
+              "value": "USE_AS_IS",
+              "label": "Use As-Is (with concession)",
+              "displayOrder": 0
+            },
+            {
+              "value": "REWORK",
+              "label": "Rework",
+              "displayOrder": 1
+            },
+            {
+              "value": "REPAIR",
+              "label": "Repair",
+              "displayOrder": 2
+            },
+            {
+              "value": "SCRAP",
+              "label": "Scrap / Destroy",
+              "displayOrder": 3
+            },
+            {
+              "value": "RETURN",
+              "label": "Return to Supplier",
+              "displayOrder": 4
+            },
+            {
+              "value": "REGRADE",
+              "label": "Re-grade / Downgrade",
+              "displayOrder": 5
+            },
+            {
+              "value": "RTS",
+              "label": "Return To Stock (after recheck)",
+              "displayOrder": 6
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "dispositionJustification",
+          "label": "Disposition Justification",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 51,
+          "columnSpan": 2,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "Required() AND MinLength(30)"
+        },
+        {
+          "name": "estimatedCost",
+          "label": "Estimated Cost Impact",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "customerNotificationRequired",
+          "label": "Customer Notification Required?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 53,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "containmentActions",
+          "label": "Immediate Containment Actions Taken",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What was done immediately to prevent further defect escape?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "stockQuarantined",
+          "label": "Was Stock Quarantined?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "inSummary": true,
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7"
+        },
+        {
+          "name": "quarantineLocation",
+          "label": "Quarantine Location",
+          "fieldType": "TEXT",
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{stockQuarantined} == true"
+        },
+        {
+          "name": "rootCause",
+          "label": "Root Cause Analysis",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Use 5 Whys or Fishbone analysis. What is the true root cause?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "validation": "Required() AND MinLength(50) AND MaxLength(5000)"
+        },
+        {
+          "name": "rootCauseCategory",
+          "label": "Root Cause Category",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 71,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "options": [
+            {
+              "value": "MAN",
+              "label": "Man (Human Error / Training)",
+              "displayOrder": 0
+            },
+            {
+              "value": "MACHINE",
+              "label": "Machine (Equipment / Tooling)",
+              "displayOrder": 1
+            },
+            {
+              "value": "MATERIAL",
+              "label": "Material (Supplier / Raw material)",
+              "displayOrder": 2
+            },
+            {
+              "value": "METHOD",
+              "label": "Method (Procedure / Process)",
+              "displayOrder": 3
+            },
+            {
+              "value": "MEASUREMENT",
+              "label": "Measurement (Inspection / Gauge)",
+              "displayOrder": 4
+            },
+            {
+              "value": "ENVIRONMENT",
+              "label": "Environment (Conditions)",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "correctiveAction",
+          "label": "Corrective Action (fix this occurrence)",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 72,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "validation": "Required() AND MinLength(30)"
+        },
+        {
+          "name": "preventiveAction",
+          "label": "Preventive Action (prevent recurrence)",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 73,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "validation": "Required() AND MinLength(30)"
+        },
+        {
+          "name": "capaOwner",
+          "label": "CAPA Owner",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 74,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "validation": "Required()"
+        },
+        {
+          "name": "targetCompletionDate",
+          "label": "CAPA Target Completion Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 75,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "validation": "Required() AND DATE_AFTER(@{targetCompletionDate}, \"today\")"
+        },
+        {
+          "name": "effectivenessCheckDate",
+          "label": "Effectiveness Check Date",
+          "fieldType": "DATE",
+          "tooltip": "When will the CAPA effectiveness be verified?",
+          "displayOrder": 76,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "defaultValue": "ADD_BUSINESS_DAYS(@{targetCompletionDate}, 30)",
+          "validation": "ValidWhen(IS_EMPTY(@{effectivenessCheckDate}) OR IS_AFTER(@{effectivenessCheckDate}, @{targetCompletionDate}), \"Effectiveness check must be after CAPA completion\")"
+        },
+        {
+          "name": "certification",
+          "label": "I certify the information above is accurate to the best of my knowledge",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 1,
+          "screenId": "temp_s5",
+          "validation": "IsTrue(\"Certification required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "QC Inspector",
+      "approverType": "ROLE",
+      "roleName": "QUALITY_INSPECTOR",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Quality Manager",
+      "approverType": "ROLE",
+      "roleName": "QUALITY",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Production Manager",
+      "approverType": "ROLE",
+      "roleName": "PRODUCTION_MANAGER",
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "MANUFACTURING",
+  "workflowTypeCode": "APPROVAL"
+}

@@ -1,0 +1,68 @@
+{
+  "_comment": "New Electricity Connection — customer application for a new power connection.",
+  "name": "New Electricity Connection",
+  "code": "ENC",
+  "description": "Customer application for a new electricity connection with site survey and commissioning.",
+  "icon": "electrical_services",
+  "displayOrder": 142,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "ENERGY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{connRef} - @{customerName} (@{premisesAddress})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Applicant", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Technical", "displayOrder": 1, "icon": "electrical_services" },
+      { "id": "temp_screen_3", "title": "Charges", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Premises", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Technical Requirements", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Survey", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Connection Charges", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "connRef", "label": "Connection Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ENC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "idOrReg", "label": "ID / Registration", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Phone()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "premisesAddress", "label": "Premises Address", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "gpsCoords", "label": "GPS Coordinates", "fieldType": "TEXT", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "propertyType", "label": "Property Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "RESIDENTIAL", "label": "Residential", "displayOrder": 0 }, { "value": "COMMERCIAL", "label": "Commercial", "displayOrder": 1 }, { "value": "INDUSTRIAL", "label": "Industrial", "displayOrder": 2 }, { "value": "AGRICULTURAL", "label": "Agricultural", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "voltage", "label": "Supply Voltage", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "LV_SINGLE", "label": "LV Single-Phase (230V)", "displayOrder": 0 }, { "value": "LV_THREE", "label": "LV Three-Phase (400V)", "displayOrder": 1 }, { "value": "MV", "label": "MV (11/33 kV)", "displayOrder": 2 }, { "value": "HV", "label": "HV (>33 kV)", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "connectedLoadKw", "label": "Connected Load (kW)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0.1)" },
+      { "name": "tariffCategory", "label": "Tariff Category", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "DOMESTIC", "label": "Domestic", "displayOrder": 0 }, { "value": "COMMERCIAL", "label": "Commercial", "displayOrder": 1 }, { "value": "INDUSTRIAL", "label": "Industrial", "displayOrder": 2 }, { "value": "AGRIC", "label": "Agricultural", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "meterType", "label": "Meter Type", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "PREPAID", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "PREPAID", "label": "Prepaid", "displayOrder": 0 }, { "value": "POSTPAID", "label": "Postpaid", "displayOrder": 1 }, { "value": "SMART", "label": "Smart Meter", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "surveyCompleted", "label": "Site Survey Completed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{surveyCompleted} == true, \"Site survey required\")" },
+      { "name": "surveyorName", "label": "Surveyor", "fieldType": "TEXT", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "distanceToGridM", "label": "Distance to Grid (m)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "transformerRequired", "label": "New Transformer Required", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "wiringComplianceCert", "label": "Wiring Compliance Certificate", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{wiringComplianceCert} == true, \"Wiring cert required\")" },
+      { "name": "connectionFee", "label": "Connection Fee", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "meterCost", "label": "Meter Cost", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Min(0)" },
+      { "name": "extensionCost", "label": "Line Extension Cost", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Min(0)" },
+      { "name": "totalCost", "label": "Total Connection Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "defaultValue": "SUM(@{connectionFee}, @{meterCost}, @{extensionCost})" },
+      { "name": "paid", "label": "Payment Received", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "ValidWhen(@{paid} == true, \"Payment must be received\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Customer Services Officer", "approverType": "ROLE", "roleName": "CS_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Engineering Supervisor", "approverType": "ROLE", "roleName": "ENG_SUPERVISOR", "amountLimit": 10000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "District Engineer", "approverType": "ROLE", "roleName": "DISTRICT_ENGINEER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

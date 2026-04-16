@@ -1,0 +1,62 @@
+{
+  "_comment": "Legal Matter Intake — open a new legal matter with conflict check and engagement letter.",
+  "name": "Legal Matter Intake",
+  "code": "LMI",
+  "description": "Open a new legal matter / file with conflict check, KYC and engagement letter.",
+  "icon": "gavel",
+  "displayOrder": 148,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "LEGAL",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{matterRef} - @{clientName} (@{matterType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Client & Matter", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Fees & Engagement", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Matter", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Compliance Checks", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_5", "title": "Fee Arrangement", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "matterRef", "label": "Matter Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"LMI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "openDate", "label": "Open Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "responsibleLawyer", "label": "Responsible Lawyer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "practiceArea", "label": "Practice Area", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "LITIGATION", "label": "Litigation", "displayOrder": 0 }, { "value": "CORPORATE", "label": "Corporate / M&A", "displayOrder": 1 }, { "value": "COMMERCIAL", "label": "Commercial", "displayOrder": 2 }, { "value": "FAMILY", "label": "Family", "displayOrder": 3 }, { "value": "PROPERTY", "label": "Conveyancing / Property", "displayOrder": 4 }, { "value": "LABOUR", "label": "Labour / Employment", "displayOrder": 5 }, { "value": "IP", "label": "IP / Patents", "displayOrder": 6 }, { "value": "TAX", "label": "Tax", "displayOrder": 7 }, { "value": "CRIMINAL", "label": "Criminal", "displayOrder": 8 } ], "validation": "Required()" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientType", "label": "Client Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "INDIVIDUAL", "label": "Individual", "displayOrder": 0 }, { "value": "CORPORATE", "label": "Corporate", "displayOrder": 1 }, { "value": "GOVERNMENT", "label": "Government", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "idOrReg", "label": "ID / Registration", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "contactEmail", "label": "Contact Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND ValidWhen(IS_EMAIL(@{contactEmail}), \"Enter valid email\")" },
+      { "name": "matterType", "label": "Matter Type", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "matterDescription", "label": "Matter Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(30)" },
+      { "name": "opposingParty", "label": "Opposing Party (if any)", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "forumJurisdiction", "label": "Forum / Jurisdiction", "fieldType": "TEXT", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "conflictCheckPassed", "label": "Conflict Check Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{conflictCheckPassed} == true, \"Conflict check required\")" },
+      { "name": "kycComplete", "label": "KYC / AML Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{kycComplete} == true, \"KYC required\")" },
+      { "name": "isSanctioned", "label": "Sanctions Hit", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{isSanctioned} == false, \"Cannot accept sanctioned party\")" },
+      { "name": "pepStatus", "label": "PEP Status", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_4" },
+      { "name": "feeArrangement", "label": "Fee Arrangement", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "HOURLY", "label": "Hourly", "displayOrder": 0 }, { "value": "FIXED", "label": "Fixed Fee", "displayOrder": 1 }, { "value": "CONTINGENCY", "label": "Contingency", "displayOrder": 2 }, { "value": "RETAINER", "label": "Retainer", "displayOrder": 3 }, { "value": "CAPPED", "label": "Capped", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "hourlyRate", "label": "Hourly Rate", "fieldType": "CURRENCY", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{feeArrangement} == 'HOURLY' OR @{feeArrangement} == 'CAPPED'", "validation": "Min(0)" },
+      { "name": "feeEstimate", "label": "Fee Estimate / Cap", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "retainerReceived", "label": "Retainer / Deposit Received", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "engagementSigned", "label": "Engagement Letter Signed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{engagementSigned} == true, \"Engagement letter required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Responsible Lawyer", "approverType": "ROLE", "roleName": "LAWYER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Compliance / Risk Partner", "approverType": "ROLE", "roleName": "COMPLIANCE_PARTNER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Partner", "approverType": "ROLE", "roleName": "MANAGING_PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

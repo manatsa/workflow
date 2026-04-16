@@ -1,0 +1,72 @@
+{
+  "_comment": "Vehicle Retail Sale — sell a new or used vehicle at a dealership including finance and registration.",
+  "name": "Vehicle Retail Sale",
+  "code": "AVS",
+  "description": "Retail sale of a new or used vehicle at a dealership, including trade-in, finance and registration.",
+  "icon": "directions_car",
+  "displayOrder": 124,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "AUTOMOTIVE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{saleRef} - @{customerName} (@{vehicleDescription})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Customer & Vehicle", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Pricing & Trade-In", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Finance & Registration", "displayOrder": 2, "icon": "account_balance" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Vehicle", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Pricing", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Trade-In", "displayOrder": 4, "columns": 2, "isCollapsible": true, "isCollapsedByDefault": true, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Finance", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Compliance", "displayOrder": 6, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "saleRef", "label": "Sale Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"AVS-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "saleDate", "label": "Sale Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "salesperson", "label": "Salesperson", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "dealership", "label": "Dealership / Branch", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "customerType", "label": "Customer Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "INDIVIDUAL", "label": "Individual", "displayOrder": 0 }, { "value": "CORPORATE", "label": "Corporate", "displayOrder": 1 }, { "value": "FLEET", "label": "Fleet", "displayOrder": 2 }, { "value": "GOVERNMENT", "label": "Government", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "idOrReg", "label": "ID / Registration", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Phone()" },
+      { "name": "vehicleDescription", "label": "Vehicle (Make / Model / Variant)", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "newOrUsed", "label": "New / Used", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "NEW", "label": "New", "displayOrder": 0 }, { "value": "USED", "label": "Used / Pre-Owned", "displayOrder": 1 }, { "value": "DEMO", "label": "Demo / Ex-Showroom", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "year", "label": "Year", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1990) AND Max(2050)" },
+      { "name": "vin", "label": "VIN / Chassis #", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(17) AND MaxLength(17)", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "mileageKm", "label": "Mileage (km)", "fieldType": "NUMBER", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "listPrice", "label": "List Price", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "discount", "label": "Discount", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "accessories", "label": "Accessories / Extras", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "taxes", "label": "Taxes / Duties", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "sellingPrice", "label": "Selling Price (OTR)", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "hasTradeIn", "label": "Trade-In?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "tradeInDescription", "label": "Trade-In Vehicle", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{hasTradeIn} == true" },
+      { "name": "tradeInValue", "label": "Trade-In Allowance", "fieldType": "CURRENCY", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{hasTradeIn} == true", "validation": "Min(0)" },
+      { "name": "paymentMode", "label": "Payment Mode", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "CASH", "label": "Cash / EFT", "displayOrder": 0 }, { "value": "FINANCE", "label": "Bank Finance", "displayOrder": 1 }, { "value": "LEASE", "label": "Lease", "displayOrder": 2 }, { "value": "INHOUSE", "label": "In-House Finance", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "financier", "label": "Financier", "fieldType": "TEXT", "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "visibilityExpression": "@{paymentMode} != 'CASH'" },
+      { "name": "deposit", "label": "Deposit", "fieldType": "CURRENCY", "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Min(0)" },
+      { "name": "financeApproved", "label": "Finance Approval Received", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "visibilityExpression": "@{paymentMode} != 'CASH'" },
+      { "name": "registrationNumber", "label": "Registration Number", "fieldType": "TEXT", "displayOrder": 60, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "insuranceCover", "label": "Comprehensive Insurance Secured", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 61, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "ValidWhen(@{insuranceCover} == true, \"Insurance must be in place before delivery\")" },
+      { "name": "pdiComplete", "label": "Pre-Delivery Inspection Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 62, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "ValidWhen(@{pdiComplete} == true, \"PDI must be complete\")" },
+      { "name": "deliveryDate", "label": "Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 63, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_7", "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Sales Manager", "approverType": "ROLE", "roleName": "SALES_MANAGER", "amountLimit": 50000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Dealer Principal", "approverType": "ROLE", "roleName": "DEALER_PRINCIPAL", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

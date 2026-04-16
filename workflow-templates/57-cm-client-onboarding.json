@@ -1,0 +1,105 @@
+{
+  "_comment": "Brokerage Client Onboarding — securities account opening with KYC, suitability and CSD setup.",
+  "name": "Brokerage Client Onboarding",
+  "code": "BCO",
+  "description": "Open a brokerage / securities trading account for a retail or institutional client.",
+  "icon": "account_balance",
+  "displayOrder": 57,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "CAPITAL_MARKETS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{clientRef} - @{clientName} (@{accountType})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{
+    "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Client Info", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Suitability", "displayOrder": 1, "icon": "assessment" },
+      { "id": "temp_screen_3", "title": "CSD / Settlement", "displayOrder": 2, "icon": "account_balance_wallet" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review & Submit", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Identity", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Investment Suitability", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "CSD / Bank", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_4", "title": "Documents", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "clientRef", "label": "Client Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"BCO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "accountType", "label": "Account Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [
+          { "value": "INDIVIDUAL", "label": "Individual", "displayOrder": 0 },
+          { "value": "JOINT", "label": "Joint", "displayOrder": 1 },
+          { "value": "CORPORATE", "label": "Corporate", "displayOrder": 2 },
+          { "value": "INSTITUTIONAL", "label": "Institutional", "displayOrder": 3 },
+          { "value": "NOMINEE", "label": "Nominee", "displayOrder": 4 }
+        ], "validation": "Required()" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required() AND MinLength(2)" },
+      { "name": "idOrReg", "label": "ID / Registration", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required() AND Phone()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 6, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter valid email\")", "customValidationRule": "TRIM() AND LOWER()" },
+      { "name": "riskAppetite", "label": "Risk Appetite", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "CONSERVATIVE", "label": "Conservative", "displayOrder": 0 },
+          { "value": "MODERATE", "label": "Moderate", "displayOrder": 1 },
+          { "value": "AGGRESSIVE", "label": "Aggressive", "displayOrder": 2 }
+        ], "validation": "Required()" },
+      { "name": "investmentObjective", "label": "Investment Objective", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "INCOME", "label": "Income", "displayOrder": 0 },
+          { "value": "GROWTH", "label": "Capital Growth", "displayOrder": 1 },
+          { "value": "BALANCED", "label": "Balanced", "displayOrder": 2 },
+          { "value": "SPECULATIVE", "label": "Speculative", "displayOrder": 3 }
+        ], "validation": "Required()" },
+      { "name": "annualIncome", "label": "Annual Income", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Min(0)" },
+      { "name": "netWorth", "label": "Net Worth", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Min(0)" },
+      { "name": "experienceYears", "label": "Investment Experience (years)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Min(0)" },
+      { "name": "sanctionsScreening", "label": "Sanctions Screening", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "CLEAR", "inSummary": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "CLEAR", "label": "Clear", "displayOrder": 0 },
+          { "value": "REVIEW", "label": "Review", "displayOrder": 1 },
+          { "value": "HIT", "label": "Confirmed Hit", "displayOrder": 2 }
+        ], "validation": "Required()" },
+      { "name": "csdNumber", "label": "CSD / CDS Number", "fieldType": "TEXT", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3" },
+      { "name": "settlementBank", "label": "Settlement Bank", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "settlementAccount", "label": "Settlement Account", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "currency", "label": "Currency", "fieldType": "SELECT", "defaultValue": "USD", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "USD", "label": "USD", "displayOrder": 0 }, { "value": "EUR", "label": "EUR", "displayOrder": 1 }, { "value": "GBP", "label": "GBP", "displayOrder": 2 }, { "value": "ZAR", "label": "ZAR", "displayOrder": 3 } ] },
+      { "name": "idCopy", "label": "ID / Cert of Inc Copy", "fieldType": "FILE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "proofOfAddress", "label": "Proof of Address", "fieldType": "FILE", "isMandatory": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "signedAgreement", "label": "Signed Client Agreement", "fieldType": "FILE", "isMandatory": true, "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "allowedFileTypes": "pdf", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Onboarding Officer", "approverType": "ROLE", "roleName": "ONBOARDING_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Compliance Officer", "approverType": "ROLE", "roleName": "COMPLIANCE_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Operations", "approverType": "ROLE", "roleName": "HEAD_OF_OPERATIONS", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

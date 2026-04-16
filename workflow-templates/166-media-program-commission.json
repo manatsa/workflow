@@ -1,0 +1,61 @@
+{
+  "_comment": "Program Commissioning — commission a new TV / radio / streaming program.",
+  "name": "Program Commissioning",
+  "code": "MPC",
+  "description": "Commission a new TV / radio / streaming program with budget and broadcast slot.",
+  "icon": "movie",
+  "displayOrder": 166,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "MEDIA",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{programRef} - @{programTitle} (@{totalBudget})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Program", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Production & Slot", "displayOrder": 1, "icon": "schedule" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Program Detail", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Production Team", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Slot & Budget", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "programRef", "label": "Program Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MPC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "commissioner", "label": "Commissioning Editor", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "programTitle", "label": "Program Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "genre", "label": "Genre", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "DRAMA", "label": "Drama", "displayOrder": 0 }, { "value": "COMEDY", "label": "Comedy", "displayOrder": 1 }, { "value": "DOCUMENTARY", "label": "Documentary", "displayOrder": 2 }, { "value": "NEWS", "label": "News / Current Affairs", "displayOrder": 3 }, { "value": "SPORT", "label": "Sport", "displayOrder": 4 }, { "value": "REALITY", "label": "Reality / Lifestyle", "displayOrder": 5 }, { "value": "KIDS", "label": "Kids", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "format", "label": "Format / Channel", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "TV", "label": "TV Broadcast", "displayOrder": 0 }, { "value": "RADIO", "label": "Radio", "displayOrder": 1 }, { "value": "STREAMING", "label": "Streaming / OTT", "displayOrder": 2 }, { "value": "PODCAST", "label": "Podcast", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "synopsis", "label": "Synopsis", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(50)" },
+      { "name": "episodeCount", "label": "Episodes", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "episodeMins", "label": "Episode Length (min)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "producer", "label": "Producer / Production House", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "director", "label": "Director", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "talent", "label": "Lead Talent / Cast", "fieldType": "TEXTAREA", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "rightsWindow", "label": "Rights / License Window", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "DOMESTIC", "label": "Domestic Only", "displayOrder": 0 }, { "value": "REGIONAL", "label": "Regional", "displayOrder": 1 }, { "value": "GLOBAL", "label": "Global", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "premiereDate", "label": "Planned Premiere Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "broadcastSlot", "label": "Broadcast Slot", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "perEpisodeBudget", "label": "Per-Episode Budget", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "totalBudget", "label": "Total Budget", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "MULTIPLY(@{perEpisodeBudget}, @{episodeCount})" },
+      { "name": "expectedReach", "label": "Expected Audience Reach", "fieldType": "NUMBER", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "complianceCleared", "label": "Compliance / Standards Cleared", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{complianceCleared} == true, \"Compliance required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Commissioning Editor", "approverType": "ROLE", "roleName": "COMM_EDITOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Head of Programming", "approverType": "ROLE", "roleName": "HEAD_PROGRAMMING", "amountLimit": 250000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Director of Content", "approverType": "ROLE", "roleName": "DIR_CONTENT", "amountLimit": 1000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CEO", "approverType": "ROLE", "roleName": "CEO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

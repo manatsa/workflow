@@ -1,0 +1,541 @@
+{
+  "_comment": "Meeting Room Booking — reserve conference rooms or resources.",
+  "name": "Meeting Room Booking",
+  "code": "MR",
+  "description": "Reserve a meeting room, boardroom, or resource.",
+  "icon": "meeting_room",
+  "displayOrder": 130,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{roomName} - @{meetingDate} (@{startTime})",
+  "reminderEnabled": false,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Booking Details",
+          "displayOrder": 0,
+          "icon": "event"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Requirements",
+          "displayOrder": 1,
+          "icon": "tune"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Submit",
+          "displayOrder": 2,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Request",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Meeting",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Schedule",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Setup",
+          "displayOrder": 3,
+          "columns": 1,
+          "screenId": "temp_s2"
+        }
+      ],
+      "fields": [
+        {
+          "name": "bookingNumber",
+          "label": "Booking #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"MR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requesterName",
+          "label": "Booked By",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requesterDept",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "meetingTitle",
+          "label": "Meeting Title / Purpose",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(5) AND MaxLength(200)"
+        },
+        {
+          "name": "meetingType",
+          "label": "Meeting Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "INTERNAL",
+              "label": "Internal Team Meeting",
+              "displayOrder": 0
+            },
+            {
+              "value": "CLIENT",
+              "label": "Client Meeting",
+              "displayOrder": 1
+            },
+            {
+              "value": "INTERVIEW",
+              "label": "Interview",
+              "displayOrder": 2
+            },
+            {
+              "value": "TRAINING",
+              "label": "Training Session",
+              "displayOrder": 3
+            },
+            {
+              "value": "BOARD",
+              "label": "Board / Executive",
+              "displayOrder": 4
+            },
+            {
+              "value": "WORKSHOP",
+              "label": "Workshop",
+              "displayOrder": 5
+            },
+            {
+              "value": "CONFERENCE",
+              "label": "Conference Call",
+              "displayOrder": 6
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 7
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "attendeesCount",
+          "label": "Expected Attendees",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND Range(1, 500)"
+        },
+        {
+          "name": "roomName",
+          "label": "Preferred Room",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "BOARDROOM",
+              "label": "Boardroom (20)",
+              "displayOrder": 0
+            },
+            {
+              "value": "CONF_A",
+              "label": "Conference Room A (12)",
+              "displayOrder": 1
+            },
+            {
+              "value": "CONF_B",
+              "label": "Conference Room B (8)",
+              "displayOrder": 2
+            },
+            {
+              "value": "TRAINING",
+              "label": "Training Room (30)",
+              "displayOrder": 3
+            },
+            {
+              "value": "HUDDLE_1",
+              "label": "Huddle Room 1 (4)",
+              "displayOrder": 4
+            },
+            {
+              "value": "HUDDLE_2",
+              "label": "Huddle Room 2 (4)",
+              "displayOrder": 5
+            },
+            {
+              "value": "OPEN_SPACE",
+              "label": "Open Collaboration Area (15)",
+              "displayOrder": 6
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "alternateRoom",
+          "label": "Alternate Room (if first choice unavailable)",
+          "fieldType": "SELECT",
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "BOARDROOM",
+              "label": "Boardroom (20)",
+              "displayOrder": 0
+            },
+            {
+              "value": "CONF_A",
+              "label": "Conference Room A (12)",
+              "displayOrder": 1
+            },
+            {
+              "value": "CONF_B",
+              "label": "Conference Room B (8)",
+              "displayOrder": 2
+            },
+            {
+              "value": "TRAINING",
+              "label": "Training Room (30)",
+              "displayOrder": 3
+            },
+            {
+              "value": "HUDDLE_1",
+              "label": "Huddle Room 1 (4)",
+              "displayOrder": 4
+            },
+            {
+              "value": "HUDDLE_2",
+              "label": "Huddle Room 2 (4)",
+              "displayOrder": 5
+            },
+            {
+              "value": "NONE",
+              "label": "None - cancel if unavailable",
+              "displayOrder": 6
+            }
+          ]
+        },
+        {
+          "name": "meetingDate",
+          "label": "Meeting Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND ValidWhen(DATE_AFTER(@{meetingDate}, \"today\") OR IS_TODAY(@{meetingDate}), \"Date must be today or in the future\")"
+        },
+        {
+          "name": "startTime",
+          "label": "Start Time",
+          "fieldType": "TIME",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "endTime",
+          "label": "End Time",
+          "fieldType": "TIME",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "isRecurring",
+          "label": "Recurring Meeting?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "recurrence",
+          "label": "Recurrence",
+          "fieldType": "SELECT",
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "visibilityExpression": "@{isRecurring} == true",
+          "options": [
+            {
+              "value": "DAILY",
+              "label": "Daily",
+              "displayOrder": 0
+            },
+            {
+              "value": "WEEKLY",
+              "label": "Weekly",
+              "displayOrder": 1
+            },
+            {
+              "value": "BIWEEKLY",
+              "label": "Bi-Weekly",
+              "displayOrder": 2
+            },
+            {
+              "value": "MONTHLY",
+              "label": "Monthly",
+              "displayOrder": 3
+            }
+          ]
+        },
+        {
+          "name": "recurrenceEndDate",
+          "label": "Recurrence End Date",
+          "fieldType": "DATE",
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "visibilityExpression": "@{isRecurring} == true",
+          "validation": "ValidWhen(@{isRecurring} != true OR IS_AFTER(@{recurrenceEndDate}, @{meetingDate}), \"End date must be after meeting date\")"
+        },
+        {
+          "name": "equipmentNeeded",
+          "label": "Equipment / Setup Needed",
+          "fieldType": "CHECKBOX_GROUP",
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "optionsLayout": "vertical",
+          "options": [
+            {
+              "value": "PROJECTOR",
+              "label": "Projector / Screen",
+              "displayOrder": 0
+            },
+            {
+              "value": "TV",
+              "label": "TV Screen",
+              "displayOrder": 1
+            },
+            {
+              "value": "VIDEO_CONF",
+              "label": "Video Conferencing Setup",
+              "displayOrder": 2
+            },
+            {
+              "value": "WHITEBOARD",
+              "label": "Whiteboard + Markers",
+              "displayOrder": 3
+            },
+            {
+              "value": "FLIPCHART",
+              "label": "Flipchart",
+              "displayOrder": 4
+            },
+            {
+              "value": "MICROPHONE",
+              "label": "Microphone / PA System",
+              "displayOrder": 5
+            },
+            {
+              "value": "WIFI",
+              "label": "Guest WiFi Access",
+              "displayOrder": 6
+            },
+            {
+              "value": "STATIONERY",
+              "label": "Stationery / Notepads",
+              "displayOrder": 7
+            }
+          ]
+        },
+        {
+          "name": "cateringRequired",
+          "label": "Catering Required?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "cateringDetails",
+          "label": "Catering Details",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Number of attendees, dietary requirements, preferred time",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "visibilityExpression": "@{cateringRequired} == true"
+        },
+        {
+          "name": "roomLayout",
+          "label": "Room Layout",
+          "fieldType": "SELECT",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "options": [
+            {
+              "value": "BOARDROOM",
+              "label": "Boardroom (table)",
+              "displayOrder": 0
+            },
+            {
+              "value": "THEATER",
+              "label": "Theater (rows of chairs)",
+              "displayOrder": 1
+            },
+            {
+              "value": "CLASSROOM",
+              "label": "Classroom (desks in rows)",
+              "displayOrder": 2
+            },
+            {
+              "value": "USHAPE",
+              "label": "U-Shape",
+              "displayOrder": 3
+            },
+            {
+              "value": "ROUNDS",
+              "label": "Round Tables",
+              "displayOrder": 4
+            },
+            {
+              "value": "OPEN",
+              "label": "Open / Flexible",
+              "displayOrder": 5
+            }
+          ]
+        },
+        {
+          "name": "hasExternalGuests",
+          "label": "External Guests Attending?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 34,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "guestDetails",
+          "label": "Guest Details",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Names, companies, arrival time (for reception)",
+          "displayOrder": 35,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "visibilityExpression": "@{hasExternalGuests} == true"
+        },
+        {
+          "name": "additionalNotes",
+          "label": "Additional Notes",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 36,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Facilities / Office Manager",
+      "approverType": "ROLE",
+      "roleName": "FACILITIES",
+      "canEscalate": false,
+      "requireComment": false,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "ADMIN",
+  "workflowTypeCode": "APPROVAL"
+}

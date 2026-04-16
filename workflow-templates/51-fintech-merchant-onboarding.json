@@ -1,0 +1,241 @@
+{
+  "_comment": "Merchant Onboarding — KYB, risk rating and acquirer setup for a new merchant on a payment platform.",
+  "name": "Merchant Onboarding",
+  "code": "FMO",
+  "description": "Onboard a new merchant onto the payment / fintech platform: KYB, risk scoring, acquirer and pricing setup.",
+  "icon": "storefront",
+  "displayOrder": 51,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FINTECH",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{merchantRef} - @{tradingName} (@{country})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Merchant Onboarding @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Merchant onboarding <strong>@{referenceNumber}</strong> awaiting review.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Business (KYB)", "displayOrder": 1, "icon": "business" },
+      { "id": "temp_screen_3", "title": "Beneficial Ownership", "displayOrder": 2, "icon": "groups" },
+      { "id": "temp_screen_4", "title": "Business Activity", "displayOrder": 3, "icon": "assessment" },
+      { "id": "temp_screen_5", "title": "Acquirer & Pricing", "displayOrder": 4, "icon": "payments" },
+      { "id": "temp_screen_6", "title": "Risk & Compliance", "displayOrder": 5, "icon": "verified_user" },
+      { "id": "temp_screen_7", "title": "Documents", "displayOrder": 6, "icon": "attach_file" },
+      { "id": "temp_screen_8", "title": "Review & Submit", "displayOrder": 7, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Legal Entity", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Address & Contact", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Ultimate Beneficial Owners", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Directors / Signatories", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Business Profile", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_7", "title": "Acquirer Setup", "displayOrder": 6, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_8", "title": "Pricing (MDR)", "displayOrder": 7, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_9", "title": "Risk Rating", "displayOrder": 8, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_6" },
+      { "id": "temp_grp_10", "title": "Sanctions & AML", "displayOrder": 9, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_6" },
+      { "id": "temp_grp_11", "title": "KYB Documents", "displayOrder": 10, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_7" }
+    ],
+
+    "fields": [
+      { "name": "merchantRef", "label": "Merchant Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FMO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "salesOwner", "label": "Sales Owner", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "channel", "label": "Acquisition Channel", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [
+          { "value": "DIRECT", "label": "Direct Sales", "displayOrder": 0 },
+          { "value": "PARTNER", "label": "Partner / Reseller", "displayOrder": 1 },
+          { "value": "SELF_SERVICE", "label": "Self-Service Signup", "displayOrder": 2 },
+          { "value": "REFERRAL", "label": "Referral", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "legalName", "label": "Legal Entity Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND MinLength(2)", "customValidationRule": "TRIM()" },
+      { "name": "tradingName", "label": "Trading / Brand Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "entityType", "label": "Entity Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "SOLE_TRADER", "label": "Sole Trader", "displayOrder": 0 },
+          { "value": "PARTNERSHIP", "label": "Partnership", "displayOrder": 1 },
+          { "value": "LLC", "label": "Limited Liability Company", "displayOrder": 2 },
+          { "value": "PLC", "label": "Public Company", "displayOrder": 3 },
+          { "value": "NGO", "label": "NGO / Non-Profit", "displayOrder": 4 },
+          { "value": "GOVERNMENT", "label": "Government / Parastatal", "displayOrder": 5 }
+        ],
+        "validation": "Required()" },
+      { "name": "registrationNumber", "label": "Registration Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "taxNumber", "label": "Tax / VAT Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "incorporationDate", "label": "Incorporation Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+
+      { "name": "country", "label": "Country", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "address", "label": "Registered Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND MinLength(10)" },
+      { "name": "website", "label": "Website", "fieldType": "URL", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "ValidWhen(IS_EMPTY(@{website}) OR IS_URL(@{website}), \"Enter a valid URL\")" },
+      { "name": "contactName", "label": "Primary Contact", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "contactPhone", "label": "Contact Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Phone()" },
+      { "name": "contactEmail", "label": "Contact Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND ValidWhen(IS_EMAIL(@{contactEmail}), \"Enter valid email\")",
+        "customValidationRule": "TRIM() AND LOWER()" },
+
+      { "name": "ubos", "label": "Ultimate Beneficial Owners (>=25%)", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 20, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"fullName\",\"label\":\"Full Name\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"idNumber\",\"label\":\"ID / Passport\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"nationality\",\"label\":\"Nationality\",\"type\":\"TEXT\",\"width\":140,\"required\":true},{\"name\":\"ownershipPercent\",\"label\":\"% Owned\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"isPep\",\"label\":\"PEP?\",\"type\":\"SELECT\",\"width\":90,\"options\":[\"YES\",\"NO\"]}]",
+        "validation": "MinRows(1, \"At least one UBO required\")" },
+      { "name": "totalUboPercent", "label": "Total UBO %", "fieldType": "NUMBER", "isReadonly": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"ubos\", \"ownershipPercent\")" },
+
+      { "name": "directors", "label": "Directors / Signatories", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "tableMinRows": 1, "tableMaxRows": 20, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"fullName\",\"label\":\"Full Name\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"role\",\"label\":\"Role\",\"type\":\"TEXT\",\"width\":180,\"required\":true},{\"name\":\"idNumber\",\"label\":\"ID\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"phone\",\"label\":\"Phone\",\"type\":\"TEXT\",\"width\":140}]",
+        "validation": "MinRows(1, \"At least one director/signatory required\")" },
+
+      { "name": "mcc", "label": "Merchant Category (MCC)", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "options": [
+          { "value": "RETAIL", "label": "Retail / Shops", "displayOrder": 0 },
+          { "value": "ECOMMERCE", "label": "E-Commerce", "displayOrder": 1 },
+          { "value": "F_B", "label": "Food & Beverage", "displayOrder": 2 },
+          { "value": "TRAVEL", "label": "Travel & Hospitality", "displayOrder": 3 },
+          { "value": "SERVICES", "label": "Professional Services", "displayOrder": 4 },
+          { "value": "DIGITAL", "label": "Digital Goods / SaaS", "displayOrder": 5 },
+          { "value": "UTILITIES", "label": "Utilities / Telcos", "displayOrder": 6 },
+          { "value": "NON_PROFIT", "label": "Non-Profit", "displayOrder": 7 },
+          { "value": "OTHER", "label": "Other", "displayOrder": 8 }
+        ],
+        "validation": "Required()" },
+      { "name": "businessDescription", "label": "Business Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "validation": "Required() AND MinLength(30)" },
+      { "name": "estimatedMonthlyVolume", "label": "Estimated Monthly Volume", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "validation": "Required() AND Min(0)" },
+      { "name": "estimatedAverageTicket", "label": "Estimated Average Ticket", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "validation": "Required() AND Min(0)" },
+      { "name": "currency", "label": "Settlement Currency", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "USD", "displayOrder": 54, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "options": [
+          { "value": "USD", "label": "USD", "displayOrder": 0 },
+          { "value": "EUR", "label": "EUR", "displayOrder": 1 },
+          { "value": "GBP", "label": "GBP", "displayOrder": 2 },
+          { "value": "ZAR", "label": "ZAR", "displayOrder": 3 },
+          { "value": "ZWL", "label": "ZWL", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "acquirer", "label": "Acquirer", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 60, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "options": [
+          { "value": "VISA", "label": "Visa", "displayOrder": 0 },
+          { "value": "MASTERCARD", "label": "Mastercard", "displayOrder": 1 },
+          { "value": "AMEX", "label": "Amex", "displayOrder": 2 },
+          { "value": "MOBILE_MONEY", "label": "Mobile Money", "displayOrder": 3 },
+          { "value": "BANK_LINK", "label": "Bank Link / Pay-by-Bank", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+      { "name": "integrationType", "label": "Integration Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 61, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "options": [
+          { "value": "HOSTED", "label": "Hosted Checkout", "displayOrder": 0 },
+          { "value": "API", "label": "Direct API", "displayOrder": 1 },
+          { "value": "SDK", "label": "Mobile SDK", "displayOrder": 2 },
+          { "value": "POS", "label": "POS Terminal", "displayOrder": 3 },
+          { "value": "LINK", "label": "Payment Links", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+      { "name": "settlementBank", "label": "Settlement Bank", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 62, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "validation": "Required()" },
+      { "name": "settlementAccount", "label": "Settlement Account", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 63, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "validation": "Required()" },
+      { "name": "settlementFrequency", "label": "Settlement Frequency", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "T_PLUS_1", "displayOrder": 64, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "options": [
+          { "value": "T_PLUS_0", "label": "Same-Day (T+0)", "displayOrder": 0 },
+          { "value": "T_PLUS_1", "label": "Next-Day (T+1)", "displayOrder": 1 },
+          { "value": "T_PLUS_2", "label": "T+2", "displayOrder": 2 },
+          { "value": "WEEKLY", "label": "Weekly", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "mdrPercent", "label": "MDR %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "2.5", "inSummary": true, "displayOrder": 70, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_8",
+        "validation": "Required() AND Min(0) AND Max(10)" },
+      { "name": "fixedFee", "label": "Fixed Fee per Txn", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 71, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_8",
+        "validation": "Min(0)" },
+      { "name": "setupFee", "label": "Setup Fee", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 72, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_8",
+        "validation": "Min(0)" },
+      { "name": "monthlyFee", "label": "Monthly Fee", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 73, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_8",
+        "validation": "Min(0)" },
+
+      { "name": "riskRating", "label": "Risk Rating", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 80, "columnSpan": 1, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_9",
+        "options": [
+          { "value": "LOW", "label": "Low", "displayOrder": 0 },
+          { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 },
+          { "value": "HIGH", "label": "High", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+      { "name": "highRiskMcc", "label": "High-Risk MCC?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 81, "columnSpan": 1, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_9" },
+      { "name": "chargebackReserve", "label": "Chargeback Reserve (% of Volume)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 82, "columnSpan": 1, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_9",
+        "validation": "Min(0) AND Max(100)" },
+      { "name": "txnVolumeCapDaily", "label": "Daily Volume Cap", "fieldType": "CURRENCY", "isLimited": true, "displayOrder": 83, "columnSpan": 1, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_9",
+        "validation": "Min(0)" },
+
+      { "name": "sanctionsScreening", "label": "Sanctions Screening", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "CLEAR", "inSummary": true, "displayOrder": 90, "columnSpan": 1, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_10",
+        "options": [
+          { "value": "CLEAR", "label": "Clear", "displayOrder": 0 },
+          { "value": "FALSE_POSITIVE", "label": "Cleared (False Positive)", "displayOrder": 1 },
+          { "value": "HIT", "label": "Confirmed Hit", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+      { "name": "pepExposure", "label": "PEP Exposure", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 91, "columnSpan": 1, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_10" },
+      { "name": "pciScope", "label": "PCI-DSS Scope", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 92, "columnSpan": 1, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_10",
+        "options": [
+          { "value": "SAQ_A", "label": "SAQ-A", "displayOrder": 0 },
+          { "value": "SAQ_A_EP", "label": "SAQ-A-EP", "displayOrder": 1 },
+          { "value": "SAQ_D", "label": "SAQ-D", "displayOrder": 2 },
+          { "value": "NA", "label": "Not Applicable", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "certificateOfInc", "label": "Certificate of Incorporation", "fieldType": "FILE", "isMandatory": true, "displayOrder": 100, "columnSpan": 2, "screenId": "temp_screen_7", "fieldGroupId": "temp_grp_11",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "taxCertificate", "label": "Tax Clearance", "fieldType": "FILE", "isMandatory": true, "displayOrder": 101, "columnSpan": 2, "screenId": "temp_screen_7", "fieldGroupId": "temp_grp_11",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "directorIds", "label": "Director / UBO ID Copies", "fieldType": "FILE", "isMandatory": true, "multiple": true, "displayOrder": 102, "columnSpan": 2, "screenId": "temp_screen_7", "fieldGroupId": "temp_grp_11",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "maxFiles": 20,
+        "validation": "Required()" },
+      { "name": "bankLetter", "label": "Bank Verification Letter", "fieldType": "FILE", "isMandatory": true, "displayOrder": 103, "columnSpan": 2, "screenId": "temp_screen_7", "fieldGroupId": "temp_grp_11",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "signedMsa", "label": "Signed Merchant Services Agreement", "fieldType": "FILE", "isMandatory": true, "displayOrder": 104, "columnSpan": 2, "screenId": "temp_screen_7", "fieldGroupId": "temp_grp_11",
+        "allowedFileTypes": "pdf", "maxFileSize": 10485760,
+        "validation": "Required()" }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Onboarding Analyst (Maker)", "approverType": "ROLE", "roleName": "ONBOARDING_ANALYST", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "KYC / Compliance Officer", "approverType": "ROLE", "roleName": "COMPLIANCE_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Risk", "approverType": "ROLE", "roleName": "HEAD_OF_RISK", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

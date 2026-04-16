@@ -1,0 +1,470 @@
+{
+  "_comment": "Performance Review — annual or quarterly employee performance appraisal.",
+  "name": "Performance Review",
+  "code": "PR",
+  "description": "Structured performance review with self-assessment, manager rating, and development plan.",
+  "icon": "assessment",
+  "displayOrder": 150,
+  "requiresApproval": true,
+  "commentsMandatory": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{prNumber} - @{employeeName} (@{reviewPeriod})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 72,
+  "reminderMaxCount": 3,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Review Details",
+          "displayOrder": 0,
+          "icon": "event"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Self Assessment",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Goals & Competencies",
+          "displayOrder": 2,
+          "icon": "emoji_events"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Development Plan",
+          "displayOrder": 3,
+          "icon": "trending_up"
+        },
+        {
+          "id": "temp_s5",
+          "title": "Submit",
+          "displayOrder": 4,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Review Information",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Employee",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Self Reflection",
+          "displayOrder": 2,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Goals Review",
+          "displayOrder": 3,
+          "columns": 1,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Competencies",
+          "displayOrder": 4,
+          "columns": 1,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g6",
+          "title": "Development",
+          "displayOrder": 5,
+          "columns": 1,
+          "screenId": "temp_s4"
+        },
+        {
+          "id": "temp_g7",
+          "title": "Overall Rating",
+          "displayOrder": 6,
+          "columns": 2,
+          "screenId": "temp_s4"
+        }
+      ],
+      "fields": [
+        {
+          "name": "prNumber",
+          "label": "Review #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"PR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "reviewDate",
+          "label": "Review Submission Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "reviewType",
+          "label": "Review Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "ANNUAL",
+              "label": "Annual Review",
+              "displayOrder": 0
+            },
+            {
+              "value": "MID_YEAR",
+              "label": "Mid-Year Review",
+              "displayOrder": 1
+            },
+            {
+              "value": "QUARTERLY",
+              "label": "Quarterly Review",
+              "displayOrder": 2
+            },
+            {
+              "value": "PROBATION",
+              "label": "Probation Review",
+              "displayOrder": 3
+            },
+            {
+              "value": "PROJECT",
+              "label": "Project Close-out Review",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "reviewPeriod",
+          "label": "Review Period",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. 2026 Annual or Q1 2026",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required()"
+        },
+        {
+          "name": "periodStart",
+          "label": "Period Start",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 4,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required()"
+        },
+        {
+          "name": "periodEnd",
+          "label": "Period End",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 5,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required() AND IS_AFTER(@{periodEnd}, @{periodStart})"
+        },
+        {
+          "name": "employeeName",
+          "label": "Employee Name",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "employeeEmail",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "employeeDept",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "jobTitle",
+          "label": "Job Title",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "keyAccomplishments",
+          "label": "Key Accomplishments",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What did you achieve during this review period? List significant wins.",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(50) AND MaxLength(5000)"
+        },
+        {
+          "name": "challengesFaced",
+          "label": "Challenges Faced",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What obstacles did you encounter and how did you address them?",
+          "isMandatory": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(30)"
+        },
+        {
+          "name": "areasForImprovement",
+          "label": "Areas for Improvement",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Where do you feel you could improve?",
+          "isMandatory": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "supportNeeded",
+          "label": "Support Needed",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What support, resources, or training would help you do your job better?",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "goals",
+          "label": "Goals Review",
+          "fieldType": "TABLE",
+          "isMandatory": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g4",
+          "tableMinRows": 1,
+          "tableMaxRows": 20,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"goal\",\"label\":\"Goal / Objective\",\"type\":\"TEXT\",\"width\":300,\"required\":true},{\"name\":\"weight\",\"label\":\"Weight %\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"progress\",\"label\":\"Progress %\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"rating\",\"label\":\"Rating\",\"type\":\"SELECT\",\"width\":150,\"options\":[\"Exceeded\",\"Met\",\"Partially Met\",\"Not Met\"],\"required\":true},{\"name\":\"comments\",\"label\":\"Comments\",\"type\":\"TEXT\",\"width\":300}]",
+          "validation": "MinRows(1, \"Add at least one goal to review\")"
+        },
+        {
+          "name": "competencies",
+          "label": "Competency Ratings",
+          "fieldType": "TABLE",
+          "isMandatory": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "tableMinRows": 5,
+          "tableMaxRows": 20,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"competency\",\"label\":\"Competency\",\"type\":\"TEXT\",\"width\":250,\"required\":true,\"defaultValue\":\"\"},{\"name\":\"selfRating\",\"label\":\"Self Rating (1-5)\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"evidence\",\"label\":\"Evidence / Examples\",\"type\":\"TEXT\",\"width\":400}]"
+        },
+        {
+          "name": "careerAspirations",
+          "label": "Career Aspirations (next 1-3 years)",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g6",
+          "validation": "Required() AND MinLength(30)"
+        },
+        {
+          "name": "nextPeriodGoals",
+          "label": "Goals for Next Review Period",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g6",
+          "validation": "Required() AND MinLength(50)"
+        },
+        {
+          "name": "trainingNeeds",
+          "label": "Training / Development Needs",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "selfOverallRating",
+          "label": "Self Overall Rating",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "options": [
+            {
+              "value": "1",
+              "label": "1 - Needs Significant Improvement",
+              "displayOrder": 0
+            },
+            {
+              "value": "2",
+              "label": "2 - Partially Meets Expectations",
+              "displayOrder": 1
+            },
+            {
+              "value": "3",
+              "label": "3 - Meets Expectations",
+              "displayOrder": 2
+            },
+            {
+              "value": "4",
+              "label": "4 - Exceeds Expectations",
+              "displayOrder": 3
+            },
+            {
+              "value": "5",
+              "label": "5 - Outstanding",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "additionalComments",
+          "label": "Additional Comments",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Anything else you'd like to share with your manager",
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7"
+        },
+        {
+          "name": "supportingDocs",
+          "label": "Supporting Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "tooltip": "Certificates, awards, feedback, etc.",
+          "allowedFileTypes": "pdf,doc,docx,jpg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        },
+        {
+          "name": "acknowledgement",
+          "label": "I confirm this self-review is accurate and submitted in good faith",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_s5",
+          "validation": "IsTrue(\"Acknowledgement required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Line Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Department Head",
+      "approverType": "ROLE",
+      "roleName": "DEPARTMENT_HEAD",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "HR",
+      "approverType": "ROLE",
+      "roleName": "HR",
+      "canEscalate": false,
+      "requireComment": false,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "HR",
+  "workflowTypeCode": "HR"
+}

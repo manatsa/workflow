@@ -1,0 +1,114 @@
+{
+  "_comment": "Freedom of Information Request — citizen / media request for public records under FOI / ATI laws.",
+  "name": "Freedom of Information Request",
+  "code": "FOI",
+  "description": "Citizen or media request for access to public records under Freedom of Information / ATI legislation.",
+  "icon": "article",
+  "displayOrder": 65,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "GOVERNMENT",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{foiRef} - @{requesterName}",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 48,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 48,
+  "escalationEnabled": true,
+  "escalationAfterHours": 168,
+  "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{
+    "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Requester", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Request", "displayOrder": 1, "icon": "article" },
+      { "id": "temp_screen_3", "title": "Review & Response", "displayOrder": 2, "icon": "reply" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review & Submit", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Requester", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Request Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Scope & Deadline", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Review", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Response", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "foiRef", "label": "FOI Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FOI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "receivedDate", "label": "Date Received", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requesterType", "label": "Requester Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [
+          { "value": "CITIZEN", "label": "Citizen / Individual", "displayOrder": 0 },
+          { "value": "MEDIA", "label": "Media / Journalist", "displayOrder": 1 },
+          { "value": "RESEARCHER", "label": "Researcher / Academic", "displayOrder": 2 },
+          { "value": "NGO", "label": "NGO / CSO", "displayOrder": 3 },
+          { "value": "LEGAL", "label": "Legal Representative", "displayOrder": 4 },
+          { "value": "BUSINESS", "label": "Business", "displayOrder": 5 }
+        ], "validation": "Required()" },
+      { "name": "requesterName", "label": "Requester Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required() AND MinLength(2)" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter valid email\")" },
+      { "name": "postalAddress", "label": "Postal Address", "fieldType": "TEXTAREA", "displayOrder": 6, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "subject", "label": "Subject", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND MinLength(10)" },
+      { "name": "requestNarrative", "label": "Information Requested", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND MinLength(30)" },
+      { "name": "preferredFormat", "label": "Preferred Format", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "ELECTRONIC", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "ELECTRONIC", "label": "Electronic Copy", "displayOrder": 0 },
+          { "value": "HARD_COPY", "label": "Hard Copy", "displayOrder": 1 },
+          { "value": "INSPECTION", "label": "Inspection at Office", "displayOrder": 2 }
+        ], "validation": "Required()" },
+      { "name": "statutoryDeadline", "label": "Statutory Response Deadline", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND DateAfter(\"today\", \"Deadline must be future\")" },
+      { "name": "internalDueDate", "label": "Internal Target Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "relatedDepartments", "label": "Related Departments / Offices", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "containsExempt", "label": "Contains Exempt / Classified Info?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "exemptionGrounds", "label": "Exemption Grounds", "fieldType": "SELECT", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{containsExempt} == true",
+        "options": [
+          { "value": "NATIONAL_SECURITY", "label": "National Security", "displayOrder": 0 },
+          { "value": "PRIVACY", "label": "Third-Party Privacy", "displayOrder": 1 },
+          { "value": "COMMERCIAL", "label": "Commercial-in-Confidence", "displayOrder": 2 },
+          { "value": "LAW_ENFORCEMENT", "label": "Law Enforcement", "displayOrder": 3 },
+          { "value": "CABINET", "label": "Cabinet Confidence", "displayOrder": 4 },
+          { "value": "LEGAL_PRIVILEGE", "label": "Legal Privilege", "displayOrder": 5 }
+        ] },
+      { "name": "thirdPartyConsultation", "label": "Third-Party Consultation Needed?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "decision", "label": "Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "GRANT_FULL", "label": "Grant in Full", "displayOrder": 0 },
+          { "value": "GRANT_PARTIAL", "label": "Grant in Part", "displayOrder": 1 },
+          { "value": "REFUSE", "label": "Refuse", "displayOrder": 2 },
+          { "value": "TRANSFER", "label": "Transfer to Other Body", "displayOrder": 3 },
+          { "value": "EXTEND", "label": "Extend Timeline", "displayOrder": 4 }
+        ], "validation": "Required()" },
+      { "name": "responseNarrative", "label": "Response / Reasons", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND MinLength(30)" },
+      { "name": "appealRightsNotified", "label": "Appeal Rights Communicated", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "validation": "ValidWhen(@{appealRightsNotified} == true, \"Applicant must be informed of appeal rights\")" },
+      { "name": "feesCharged", "label": "Fees Charged", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "validation": "Min(0)" },
+      { "name": "originalRequest", "label": "Original Written Request", "fieldType": "FILE", "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx", "maxFileSize": 10485760 },
+      { "name": "responsePackage", "label": "Documents Released", "fieldType": "FILE", "multiple": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,doc,docx,xls,xlsx,jpg,jpeg,png", "maxFileSize": 20971520, "maxFiles": 30 },
+      { "name": "redactionLog", "label": "Redaction Log", "fieldType": "FILE", "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,doc,docx,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Information Officer", "approverType": "ROLE", "roleName": "INFORMATION_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Legal Adviser", "approverType": "ROLE", "roleName": "LEGAL_ADVISER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Agency / Permanent Secretary", "approverType": "ROLE", "roleName": "PERMANENT_SECRETARY", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "_comment": "MFI Individual Microloan — individual loan for small enterprise / consumption.",
+  "name": "MFI Individual Microloan",
+  "code": "MIL",
+  "description": "Individual microloan application for a small enterprise or consumption need.",
+  "icon": "request_quote",
+  "displayOrder": 47,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "MICROFINANCE",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{loanRef} - @{memberName} (@{loanAmount})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Microloan @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Microloan <strong>@{referenceNumber}</strong> awaiting your decision.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Member", "displayOrder": 1, "icon": "person" },
+      { "id": "temp_screen_3", "title": "Business Cashflow", "displayOrder": 2, "icon": "assessment" },
+      { "id": "temp_screen_4", "title": "Loan", "displayOrder": 3, "icon": "payments" },
+      { "id": "temp_screen_5", "title": "Guarantor / Collateral", "displayOrder": 4, "icon": "security" },
+      { "id": "temp_screen_6", "title": "Documents", "displayOrder": 5, "icon": "attach_file" },
+      { "id": "temp_screen_7", "title": "Review & Submit", "displayOrder": 6, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Member", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Household", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Monthly Cashflow", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Loan Request", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_6", "title": "Guarantor", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_7", "title": "Collateral", "displayOrder": 6, "columns": 2, "isCollapsible": true, "isCollapsedByDefault": true, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_8", "title": "Documents", "displayOrder": 7, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_6" }
+    ],
+
+    "fields": [
+      { "name": "loanRef", "label": "Loan Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MIL-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "officer", "label": "Field Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "branch", "label": "Branch", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required()" },
+
+      { "name": "memberNumber", "label": "Member Number", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "memberName", "label": "Member Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "idNumber", "label": "ID Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Phone()" },
+      { "name": "activity", "label": "Business / Activity", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+
+      { "name": "maritalStatus", "label": "Marital Status", "fieldType": "SELECT", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [
+          { "value": "SINGLE", "label": "Single", "displayOrder": 0 },
+          { "value": "MARRIED", "label": "Married", "displayOrder": 1 },
+          { "value": "DIVORCED", "label": "Divorced", "displayOrder": 2 },
+          { "value": "WIDOWED", "label": "Widowed", "displayOrder": 3 }
+        ] },
+      { "name": "numDependants", "label": "Dependants", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Min(0)" },
+      { "name": "spouseEmployed", "label": "Spouse Employed / Income?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "spouseIncome", "label": "Spouse Monthly Income", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "visibilityExpression": "@{spouseEmployed} == true",
+        "validation": "Min(0)" },
+
+      { "name": "monthlyRevenue", "label": "Monthly Business Revenue", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND Min(0)" },
+      { "name": "monthlyCostOfSales", "label": "Cost of Sales", "fieldType": "CURRENCY", "isMandatory": true, "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND Min(0)" },
+      { "name": "monthlyExpenses", "label": "Business Expenses", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Min(0)" },
+      { "name": "householdExpenses", "label": "Household Expenses", "fieldType": "CURRENCY", "isMandatory": true, "defaultValue": "0", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND Min(0)" },
+      { "name": "existingDebtRepayments", "label": "Existing Loan Repayments", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Min(0)" },
+      { "name": "netDisposable", "label": "Net Disposable Income", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUBTRACT(SUM(@{monthlyRevenue}, @{spouseIncome}), SUM(@{monthlyCostOfSales}, @{monthlyExpenses}, @{householdExpenses}, @{existingDebtRepayments}))" },
+
+      { "name": "loanPurpose", "label": "Loan Purpose", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "WORKING_CAPITAL", "label": "Working Capital", "displayOrder": 0 },
+          { "value": "ASSET_FINANCE", "label": "Asset Finance", "displayOrder": 1 },
+          { "value": "INVENTORY", "label": "Inventory", "displayOrder": 2 },
+          { "value": "EDUCATION", "label": "Education", "displayOrder": 3 },
+          { "value": "AGRIC_INPUTS", "label": "Agricultural Inputs", "displayOrder": 4 },
+          { "value": "EMERGENCY", "label": "Emergency", "displayOrder": 5 }
+        ],
+        "validation": "Required()" },
+      { "name": "purposeNarrative", "label": "Purpose Narrative", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND MinLength(20)" },
+      { "name": "loanAmount", "label": "Loan Amount", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND Min(10)" },
+      { "name": "interestRate", "label": "Interest Rate (% p.a.)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND Min(0) AND Max(200)" },
+      { "name": "termMonths", "label": "Term (months)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "6", "inSummary": true, "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND Min(1) AND Max(60)" },
+      { "name": "monthlyInstalment", "label": "Monthly Instalment", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 45, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND Min(0)" },
+
+      { "name": "guarantorName", "label": "Guarantor Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "validation": "Required()" },
+      { "name": "guarantorId", "label": "Guarantor ID", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "validation": "Required()" },
+      { "name": "guarantorPhone", "label": "Guarantor Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "validation": "Required() AND Phone()" },
+      { "name": "guarantorRelation", "label": "Relationship", "fieldType": "TEXT", "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6" },
+
+      { "name": "hasCollateral", "label": "Collateral Pledged?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 60, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7" },
+      { "name": "collateralType", "label": "Collateral Type", "fieldType": "SELECT", "displayOrder": 61, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "visibilityExpression": "@{hasCollateral} == true",
+        "options": [
+          { "value": "STOCK", "label": "Stock / Inventory", "displayOrder": 0 },
+          { "value": "HOUSEHOLD_GOODS", "label": "Household Goods", "displayOrder": 1 },
+          { "value": "LIVESTOCK", "label": "Livestock", "displayOrder": 2 },
+          { "value": "LOGBOOK", "label": "Vehicle Logbook", "displayOrder": 3 },
+          { "value": "SAVINGS", "label": "Savings Hold", "displayOrder": 4 },
+          { "value": "OTHER", "label": "Other", "displayOrder": 5 }
+        ] },
+      { "name": "collateralValue", "label": "Collateral Value", "fieldType": "CURRENCY", "displayOrder": 62, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "visibilityExpression": "@{hasCollateral} == true",
+        "validation": "Min(0)" },
+      { "name": "collateralNotes", "label": "Collateral Description", "fieldType": "TEXTAREA", "displayOrder": 63, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "visibilityExpression": "@{hasCollateral} == true" },
+
+      { "name": "idCopy", "label": "ID Copy", "fieldType": "FILE", "isMandatory": true, "displayOrder": 70, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_8",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "businessPhotos", "label": "Business / Activity Photos", "fieldType": "FILE", "multiple": true, "displayOrder": 71, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_8",
+        "allowedFileTypes": "jpg,jpeg,png", "maxFileSize": 10485760, "maxFiles": 6 },
+      { "name": "appraisalSheet", "label": "Appraisal Sheet", "fieldType": "FILE", "isMandatory": true, "displayOrder": 72, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_8",
+        "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "guarantorIdCopy", "label": "Guarantor ID", "fieldType": "FILE", "isMandatory": true, "displayOrder": 73, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_8",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Field Officer", "approverType": "ROLE", "roleName": "FIELD_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Branch Manager", "approverType": "ROLE", "roleName": "BRANCH_MANAGER", "amountLimit": 2000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Credit Committee", "approverType": "ROLE", "roleName": "CREDIT_COMMITTEE", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

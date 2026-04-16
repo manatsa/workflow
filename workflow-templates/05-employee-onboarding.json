@@ -1,0 +1,639 @@
+{
+  "_comment": "Employee Onboarding — initiated by HR to set up new hires (accounts, equipment, training).",
+  "name": "Employee Onboarding",
+  "code": "ONB",
+  "description": "Coordinate setup for a new employee — IT accounts, equipment, access, and training schedule.",
+  "icon": "person_add",
+  "displayOrder": 50,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{onbNumber} - @{fullName} (@{jobTitle})",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Employee Info",
+          "displayOrder": 0,
+          "icon": "badge"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Job & Organization",
+          "displayOrder": 1,
+          "icon": "business"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Setup Requirements",
+          "displayOrder": 2,
+          "icon": "tune"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Review",
+          "displayOrder": 3,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Identifiers",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Personal Details",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Contact",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Role",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Reporting",
+          "displayOrder": 4,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g6",
+          "title": "IT & Equipment",
+          "displayOrder": 5,
+          "columns": 2,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g7",
+          "title": "Access & Training",
+          "displayOrder": 6,
+          "columns": 1,
+          "screenId": "temp_s3"
+        }
+      ],
+      "fields": [
+        {
+          "name": "onbNumber",
+          "label": "Onboarding #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"ONB-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "startDate",
+          "label": "Start Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required() AND DATE_AFTER(@{startDate}, \"today\")"
+        },
+        {
+          "name": "employeeId",
+          "label": "Employee ID",
+          "fieldType": "TEXT",
+          "placeholder": "Will be issued by HR",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required() AND MinLength(3) AND MaxLength(20)",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "firstName",
+          "label": "First Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(2)",
+          "customValidationRule": "TRIM() AND CAPITALIZE()"
+        },
+        {
+          "name": "lastName",
+          "label": "Last Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(2)",
+          "customValidationRule": "TRIM() AND CAPITALIZE()"
+        },
+        {
+          "name": "fullName",
+          "label": "Full Name",
+          "fieldType": "TEXT",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "defaultValue": "CONCAT(@{firstName}, \" \", @{lastName})"
+        },
+        {
+          "name": "dateOfBirth",
+          "label": "Date of Birth",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND IS_PAST(@{dateOfBirth})"
+        },
+        {
+          "name": "gender",
+          "label": "Gender",
+          "fieldType": "SELECT",
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "M",
+              "label": "Male",
+              "displayOrder": 0
+            },
+            {
+              "value": "F",
+              "label": "Female",
+              "displayOrder": 1
+            },
+            {
+              "value": "OTHER",
+              "label": "Other / Prefer not to say",
+              "displayOrder": 2
+            }
+          ]
+        },
+        {
+          "name": "nationalId",
+          "label": "National ID / SSN",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(5)"
+        },
+        {
+          "name": "taxNumber",
+          "label": "Tax Number",
+          "fieldType": "TEXT",
+          "displayOrder": 16,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "personalEmail",
+          "label": "Personal Email",
+          "fieldType": "EMAIL",
+          "isMandatory": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Email()"
+        },
+        {
+          "name": "phoneNumber",
+          "label": "Phone Number",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "emergencyContactName",
+          "label": "Emergency Contact Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "emergencyContactPhone",
+          "label": "Emergency Contact Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "residentialAddress",
+          "label": "Residential Address",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 24,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(10)"
+        },
+        {
+          "name": "jobTitle",
+          "label": "Job Title",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "employmentType",
+          "label": "Employment Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "options": [
+            {
+              "value": "PERMANENT",
+              "label": "Permanent / Full-Time",
+              "displayOrder": 0
+            },
+            {
+              "value": "CONTRACT",
+              "label": "Contract",
+              "displayOrder": 1
+            },
+            {
+              "value": "PART_TIME",
+              "label": "Part-Time",
+              "displayOrder": 2
+            },
+            {
+              "value": "INTERN",
+              "label": "Intern",
+              "displayOrder": 3
+            },
+            {
+              "value": "CONSULTANT",
+              "label": "Consultant",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "department",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()"
+        },
+        {
+          "name": "location",
+          "label": "Work Location",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()"
+        },
+        {
+          "name": "contractEndDate",
+          "label": "Contract End Date",
+          "fieldType": "DATE",
+          "displayOrder": 34,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "visibilityExpression": "@{employmentType} == 'CONTRACT' OR @{employmentType} == 'INTERN'",
+          "validation": "ValidWhen((@{employmentType} != 'CONTRACT' AND @{employmentType} != 'INTERN') OR IS_AFTER(@{contractEndDate}, @{startDate}), \"Contract end must be after start date\")"
+        },
+        {
+          "name": "probationPeriod",
+          "label": "Probation Period (months)",
+          "fieldType": "NUMBER",
+          "defaultValue": "3",
+          "displayOrder": 35,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Range(0, 12)"
+        },
+        {
+          "name": "lineManagerName",
+          "label": "Line Manager",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "validation": "Required()"
+        },
+        {
+          "name": "lineManagerEmail",
+          "label": "Line Manager Email",
+          "fieldType": "EMAIL",
+          "isMandatory": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "validation": "Required() AND Email()"
+        },
+        {
+          "name": "buddyName",
+          "label": "Buddy / Mentor (optional)",
+          "fieldType": "TEXT",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "buddyEmail",
+          "label": "Buddy Email",
+          "fieldType": "EMAIL",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "validation": "ValidWhen(IS_EMPTY(@{buddyEmail}) OR IS_EMAIL(@{buddyEmail}))"
+        },
+        {
+          "name": "needsLaptop",
+          "label": "Laptop Required?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "laptopSpec",
+          "label": "Laptop Specification",
+          "fieldType": "SELECT",
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "visibilityExpression": "@{needsLaptop} == true",
+          "options": [
+            {
+              "value": "STANDARD",
+              "label": "Standard (Office work)",
+              "displayOrder": 0
+            },
+            {
+              "value": "DEVELOPER",
+              "label": "Developer (High-spec)",
+              "displayOrder": 1
+            },
+            {
+              "value": "DESIGNER",
+              "label": "Designer (Graphics-capable)",
+              "displayOrder": 2
+            },
+            {
+              "value": "EXECUTIVE",
+              "label": "Executive (Premium)",
+              "displayOrder": 3
+            }
+          ]
+        },
+        {
+          "name": "needsPhone",
+          "label": "Company Phone?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "needsDeskPhone",
+          "label": "Desk Phone?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 53,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "needsAccessCard",
+          "label": "Access Card?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "displayOrder": 54,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "needsParking",
+          "label": "Parking?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 55,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "systemAccess",
+          "label": "Systems / Applications Access Needed",
+          "fieldType": "CHECKBOX_GROUP",
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "optionsLayout": "vertical",
+          "options": [
+            {
+              "value": "EMAIL",
+              "label": "Email Account",
+              "displayOrder": 0
+            },
+            {
+              "value": "SHAREPOINT",
+              "label": "SharePoint / Intranet",
+              "displayOrder": 1
+            },
+            {
+              "value": "ERP",
+              "label": "ERP / Finance System",
+              "displayOrder": 2
+            },
+            {
+              "value": "CRM",
+              "label": "CRM System",
+              "displayOrder": 3
+            },
+            {
+              "value": "HRIS",
+              "label": "HR Information System",
+              "displayOrder": 4
+            },
+            {
+              "value": "VPN",
+              "label": "VPN / Remote Access",
+              "displayOrder": 5
+            },
+            {
+              "value": "DEV_TOOLS",
+              "label": "Developer Tools (Git, IDEs)",
+              "displayOrder": 6
+            }
+          ]
+        },
+        {
+          "name": "trainingRequired",
+          "label": "Initial Training Required",
+          "fieldType": "TEXTAREA",
+          "placeholder": "List any specific training the employee needs in their first weeks",
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7"
+        },
+        {
+          "name": "offerLetter",
+          "label": "Signed Offer Letter",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "allowedFileTypes": "pdf",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Signed offer letter required\")"
+        },
+        {
+          "name": "supportingDocs",
+          "label": "Other Documents (ID copy, CV, qualifications)",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 63,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "allowedFileTypes": "pdf,doc,docx,jpg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 20
+        },
+        {
+          "name": "acknowledgement",
+          "label": "All information provided is accurate and complete",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "validation": "IsTrue(\"Confirmation required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "HR",
+      "approverType": "ROLE",
+      "roleName": "HR",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Hiring Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "IT Manager",
+      "approverType": "ROLE",
+      "roleName": "IT_MANAGER",
+      "canEscalate": false,
+      "requireComment": false,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "HR",
+  "workflowTypeCode": "HR"
+}

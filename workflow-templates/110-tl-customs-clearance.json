@@ -1,0 +1,69 @@
+{
+  "_comment": "Customs Clearance — lodge import / export customs declaration and pay duties.",
+  "name": "Customs Clearance",
+  "code": "TLC",
+  "description": "Lodge import / export customs declaration, pay duties and release cargo.",
+  "icon": "gavel",
+  "displayOrder": 110,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "TRANSPORT_LOGISTICS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{clearanceRef} - @{declarationNo} (@{direction})",
+  "reminderEnabled": true, "reminderFrequencyHours": 4, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Declaration", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Duties & Taxes", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Documents", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Declaration Header", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Shipment", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Goods", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Duties & Taxes", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Documents", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "clearanceRef", "label": "Clearance Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"TLC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clearingAgent", "label": "Clearing Agent", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "direction", "label": "Direction", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "IMPORT", "label": "Import", "displayOrder": 0 }, { "value": "EXPORT", "label": "Export", "displayOrder": 1 }, { "value": "TRANSIT", "label": "Transit", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "declarationNo", "label": "Customs Declaration No.", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "importerExporter", "label": "Importer / Exporter", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "tin", "label": "Tax / TIN Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "portOfEntry", "label": "Port / Border Post", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "vesselFlight", "label": "Vessel / Flight / Vehicle", "fieldType": "TEXT", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "billOfLading", "label": "BoL / AWB / CMR Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "hsCode", "label": "HS Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "goodsDescription", "label": "Goods Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "countryOfOrigin", "label": "Country of Origin", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "incoterm", "label": "Incoterm", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "cifValue", "label": "CIF / Customs Value", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "dutyPercent", "label": "Duty %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(100)" },
+      { "name": "dutyAmount", "label": "Duty Amount", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "PERCENT_OF(@{cifValue}, @{dutyPercent})" },
+      { "name": "vatPercent", "label": "VAT %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "15", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(30)" },
+      { "name": "vatAmount", "label": "VAT Amount", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "PERCENT_OF(SUM(@{cifValue}, @{dutyAmount}), @{vatPercent})" },
+      { "name": "otherLevies", "label": "Other Levies", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "totalDutiesTaxes", "label": "Total Duties & Taxes", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 36, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM(@{dutyAmount}, @{vatAmount}, @{otherLevies})" },
+      { "name": "paid", "label": "Duties Paid", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 37, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{paid} == true, \"Duties must be paid\")" },
+      { "name": "commercialInvoice", "label": "Commercial Invoice", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "packingList", "label": "Packing List", "fieldType": "FILE", "isMandatory": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "bol", "label": "BoL / AWB", "fieldType": "FILE", "isMandatory": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "certOfOrigin", "label": "Certificate of Origin", "fieldType": "FILE", "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Customs Clerk", "approverType": "ROLE", "roleName": "CUSTOMS_CLERK", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Customs Manager", "approverType": "ROLE", "roleName": "CUSTOMS_MANAGER", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Clearing", "approverType": "ROLE", "roleName": "HEAD_CLEARING", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,459 @@
+{
+  "_comment": "IT Support Ticket — user-submitted IT issues for triage and resolution.",
+  "name": "IT Support Ticket",
+  "code": "IT",
+  "description": "Report IT issues or request help from the IT service desk.",
+  "icon": "support_agent",
+  "displayOrder": 70,
+  "requiresApproval": false,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{ticketNumber} - @{category} - @{subject}",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 4,
+  "reminderMaxCount": 4,
+  "escalationEnabled": true,
+  "escalationAfterHours": 24,
+  "escalationAction": "NOTIFY_ADMIN",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Issue Details",
+          "displayOrder": 0,
+          "icon": "bug_report"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Context",
+          "displayOrder": 1,
+          "icon": "info"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Submit",
+          "displayOrder": 2,
+          "icon": "send",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Ticket",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Issue",
+          "displayOrder": 1,
+          "columns": 1,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Your Info",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Environment",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Attachments",
+          "displayOrder": 4,
+          "columns": 1,
+          "screenId": "temp_s2"
+        }
+      ],
+      "fields": [
+        {
+          "name": "ticketNumber",
+          "label": "Ticket #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"IT-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "submittedAt",
+          "label": "Submitted",
+          "fieldType": "DATETIME",
+          "defaultValue": "NOW()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "category",
+          "label": "Category",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "HARDWARE",
+              "label": "Hardware Issue",
+              "displayOrder": 0
+            },
+            {
+              "value": "SOFTWARE",
+              "label": "Software Issue",
+              "displayOrder": 1
+            },
+            {
+              "value": "NETWORK",
+              "label": "Network / Internet",
+              "displayOrder": 2
+            },
+            {
+              "value": "EMAIL",
+              "label": "Email",
+              "displayOrder": 3
+            },
+            {
+              "value": "PRINTER",
+              "label": "Printer / Scanner",
+              "displayOrder": 4
+            },
+            {
+              "value": "ACCOUNT",
+              "label": "Account / Password",
+              "displayOrder": 5
+            },
+            {
+              "value": "ACCESS",
+              "label": "Access / Permissions",
+              "displayOrder": 6
+            },
+            {
+              "value": "PHONE",
+              "label": "Phone / Communication",
+              "displayOrder": 7
+            },
+            {
+              "value": "REQUEST",
+              "label": "Service Request",
+              "displayOrder": 8
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 9
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "priority",
+          "label": "Priority",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "MEDIUM",
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low - Can wait a few days",
+              "displayOrder": 0
+            },
+            {
+              "value": "MEDIUM",
+              "label": "Medium - Affects my work",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High - Can't work productively",
+              "displayOrder": 2
+            },
+            {
+              "value": "CRITICAL",
+              "label": "Critical - System down / Security issue",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "subject",
+          "label": "Subject",
+          "fieldType": "TEXT",
+          "placeholder": "Brief one-line summary",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(5) AND MaxLength(200)"
+        },
+        {
+          "name": "description",
+          "label": "Detailed Description",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe the issue in detail. What were you trying to do? What happened?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(20) AND MaxLength(5000)"
+        },
+        {
+          "name": "stepsToReproduce",
+          "label": "Steps to Reproduce",
+          "fieldType": "TEXTAREA",
+          "placeholder": "1. Click on...\n2. Enter...\n3. Observe...",
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "errorMessage",
+          "label": "Error Message (if any)",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Paste exact error message here",
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "impact",
+          "label": "Business Impact",
+          "fieldType": "SELECT",
+          "defaultValue": "SINGLE_USER",
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "SINGLE_USER",
+              "label": "Only me",
+              "displayOrder": 0
+            },
+            {
+              "value": "TEAM",
+              "label": "My team",
+              "displayOrder": 1
+            },
+            {
+              "value": "DEPARTMENT",
+              "label": "Entire department",
+              "displayOrder": 2
+            },
+            {
+              "value": "COMPANY",
+              "label": "Entire company",
+              "displayOrder": 3
+            }
+          ]
+        },
+        {
+          "name": "reporterName",
+          "label": "Your Name",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "reporterEmail",
+          "label": "Your Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "reporterPhone",
+          "label": "Contact Phone (optional)",
+          "fieldType": "PHONE",
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "reporterDepartment",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "location",
+          "label": "Your Location",
+          "fieldType": "TEXT",
+          "placeholder": "Office, Floor, Room, or City",
+          "displayOrder": 24,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "device",
+          "label": "Device / Computer Name",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. LPT-1234 or asset tag",
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "os",
+          "label": "Operating System",
+          "fieldType": "SELECT",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "options": [
+            {
+              "value": "WIN11",
+              "label": "Windows 11",
+              "displayOrder": 0
+            },
+            {
+              "value": "WIN10",
+              "label": "Windows 10",
+              "displayOrder": 1
+            },
+            {
+              "value": "MACOS",
+              "label": "macOS",
+              "displayOrder": 2
+            },
+            {
+              "value": "LINUX",
+              "label": "Linux",
+              "displayOrder": 3
+            },
+            {
+              "value": "IOS",
+              "label": "iOS",
+              "displayOrder": 4
+            },
+            {
+              "value": "ANDROID",
+              "label": "Android",
+              "displayOrder": 5
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 6
+            }
+          ]
+        },
+        {
+          "name": "browser",
+          "label": "Browser (if applicable)",
+          "fieldType": "SELECT",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "options": [
+            {
+              "value": "CHROME",
+              "label": "Chrome",
+              "displayOrder": 0
+            },
+            {
+              "value": "EDGE",
+              "label": "Edge",
+              "displayOrder": 1
+            },
+            {
+              "value": "FIREFOX",
+              "label": "Firefox",
+              "displayOrder": 2
+            },
+            {
+              "value": "SAFARI",
+              "label": "Safari",
+              "displayOrder": 3
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "firstOccurred",
+          "label": "When did it first occur?",
+          "fieldType": "DATETIME",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "ValidWhen(IS_EMPTY(@{firstOccurred}) OR IS_PAST(@{firstOccurred}) OR IS_TODAY(@{firstOccurred}), \"Occurrence time must be in the past or now\")"
+        },
+        {
+          "name": "screenshots",
+          "label": "Screenshots / Attachments",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "tooltip": "Screenshots, logs, or other supporting files help IT resolve your issue faster",
+          "allowedFileTypes": "jpg,png,pdf,txt,log,doc,docx",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        }
+      ]
+    }
+  ],
+  "approvers": [],
+  "industryCode": "IT",
+  "workflowTypeCode": "IT"
+}

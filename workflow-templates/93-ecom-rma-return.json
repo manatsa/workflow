@@ -1,0 +1,64 @@
+{
+  "_comment": "Return / RMA — customer return request with refund or exchange decision.",
+  "name": "Return / RMA Request",
+  "code": "ERM",
+  "description": "Process a customer return (RMA) with inspection, refund or exchange decision.",
+  "icon": "assignment_return",
+  "displayOrder": 93,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "ECOMMERCE",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{rmaRef} - @{customerName} (@{refundAmount})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 4, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Return Request", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Inspection", "displayOrder": 1, "icon": "search" },
+      { "id": "temp_screen_3", "title": "Resolution", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Request", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Order & Items", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Inspection Outcome", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Decision", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "rmaRef", "label": "RMA Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ERM-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "customerEmail", "label": "Customer Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND ValidWhen(IS_EMAIL(@{customerEmail}), \"Enter valid email\")" },
+      { "name": "orderNumber", "label": "Order Number", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "deliveryDate", "label": "Delivery Date", "fieldType": "DATE", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "sku", "label": "SKU", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "productName", "label": "Product", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "quantity", "label": "Quantity Returned", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "1", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "orderValue", "label": "Order Item Value", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "returnReason", "label": "Return Reason", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 17, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "DEFECTIVE", "label": "Defective / Damaged", "displayOrder": 0 }, { "value": "NOT_AS_DESCRIBED", "label": "Not as Described", "displayOrder": 1 }, { "value": "WRONG_ITEM", "label": "Wrong Item Sent", "displayOrder": 2 }, { "value": "SIZE_FIT", "label": "Size / Fit Issue", "displayOrder": 3 }, { "value": "CHANGED_MIND", "label": "Changed Mind", "displayOrder": 4 }, { "value": "LATE_DELIVERY", "label": "Late Delivery", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "customerStatement", "label": "Customer Statement", "fieldType": "TEXTAREA", "displayOrder": 18, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "itemReceived", "label": "Item Received Back", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "conditionOnReturn", "label": "Condition on Return", "fieldType": "SELECT", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "visibilityExpression": "@{itemReceived} == true",
+        "options": [ { "value": "UNOPENED", "label": "Unopened / Pristine", "displayOrder": 0 }, { "value": "OPENED_GOOD", "label": "Opened - Resellable", "displayOrder": 1 }, { "value": "USED", "label": "Used - Cannot Resell", "displayOrder": 2 }, { "value": "DAMAGED", "label": "Damaged", "displayOrder": 3 }, { "value": "DEFECTIVE", "label": "Defective (confirmed)", "displayOrder": 4 } ] },
+      { "name": "withinReturnWindow", "label": "Within Return Window", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "inspectionNotes", "label": "Inspection Notes", "fieldType": "TEXTAREA", "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "resolution", "label": "Resolution", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "FULL_REFUND", "label": "Full Refund", "displayOrder": 0 }, { "value": "PARTIAL_REFUND", "label": "Partial Refund", "displayOrder": 1 }, { "value": "EXCHANGE", "label": "Exchange / Replacement", "displayOrder": 2 }, { "value": "STORE_CREDIT", "label": "Store Credit", "displayOrder": 3 }, { "value": "REJECT", "label": "Reject Return", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "refundAmount", "label": "Refund / Credit Amount", "fieldType": "CURRENCY", "isMandatory": true, "defaultValue": "0", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "refundMethod", "label": "Refund Method", "fieldType": "SELECT", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "ORIGINAL", "label": "Original Payment Method", "displayOrder": 0 }, { "value": "STORE_CREDIT", "label": "Store Credit", "displayOrder": 1 }, { "value": "BANK_TRANSFER", "label": "Bank Transfer", "displayOrder": 2 } ] },
+      { "name": "sellerChargeback", "label": "Charge Seller?", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Returns Agent", "approverType": "ROLE", "roleName": "RETURNS_AGENT", "amountLimit": 100, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Customer Service Lead", "approverType": "ROLE", "roleName": "CS_LEAD", "amountLimit": 1000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Customer Experience", "approverType": "ROLE", "roleName": "HEAD_CX", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

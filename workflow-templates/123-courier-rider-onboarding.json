@@ -1,0 +1,59 @@
+{
+  "_comment": "Courier Rider Onboarding — onboard a motorcycle rider / courier for last-mile delivery.",
+  "name": "Courier Rider Onboarding",
+  "code": "CRO",
+  "description": "Onboard a motorcycle rider / courier for last-mile delivery with licence, vehicle and insurance checks.",
+  "icon": "two_wheeler",
+  "displayOrder": 123,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "COURIER",
+  "workflowTypeCode": "HR",
+  "titleTemplate": "@{riderRef} - @{riderName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Rider", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Vehicle & Docs", "displayOrder": 1, "icon": "two_wheeler" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Personal Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Contact", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Vehicle & Licence", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Checks", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "riderRef", "label": "Rider Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CRO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "riderName", "label": "Rider Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "idNumber", "label": "National ID", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "dateOfBirth", "label": "Date of Birth", "fieldType": "DATE", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "employmentType", "label": "Engagement Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "EMPLOYEE", "label": "Employee", "displayOrder": 0 }, { "value": "CONTRACTOR", "label": "Contractor", "displayOrder": 1 }, { "value": "GIG", "label": "Gig / On-Demand", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Phone()" },
+      { "name": "address", "label": "Residential Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "nokName", "label": "Next of Kin", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "nokPhone", "label": "Next of Kin Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Phone()" },
+      { "name": "vehicleType", "label": "Vehicle", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "MOTORCYCLE", "label": "Motorcycle", "displayOrder": 0 }, { "value": "BICYCLE", "label": "Bicycle", "displayOrder": 1 }, { "value": "CAR", "label": "Car", "displayOrder": 2 }, { "value": "VAN", "label": "Van", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "vehicleReg", "label": "Vehicle Reg. No.", "fieldType": "TEXT", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{vehicleType} != 'BICYCLE'", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "licenceNumber", "label": "Driving Licence #", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{vehicleType} != 'BICYCLE'" },
+      { "name": "licenceExpiry", "label": "Licence Expiry", "fieldType": "DATE", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{vehicleType} != 'BICYCLE'", "validation": "ValidWhen(@{vehicleType} == 'BICYCLE' OR IS_EMPTY(@{licenceExpiry}) OR DateAfter(\"today\", \"Licence must be valid\"), \"Licence must be current\")" },
+      { "name": "insuranceValid", "label": "Motor Insurance Valid", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{vehicleType} == 'BICYCLE' OR @{insuranceValid} == true, \"Motor insurance required\")" },
+      { "name": "helmetProvided", "label": "Helmet / Safety Gear Provided", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "criminalClear", "label": "Criminal Record Clear", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{criminalClear} == true, \"Criminal record must be clear\")" },
+      { "name": "trainingCompleted", "label": "Induction Training Completed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{trainingCompleted} == true, \"Training must be completed\")" },
+      { "name": "appInstalled", "label": "Rider App Activated", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "uniformIssued", "label": "Uniform Issued", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Fleet Coordinator", "approverType": "ROLE", "roleName": "FLEET_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPS_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": false, "emailNotification": true }
+  ]
+}

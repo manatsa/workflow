@@ -1,0 +1,65 @@
+{
+  "_comment": "Lease Agreement — approve a residential or commercial lease agreement.",
+  "name": "Lease Agreement Approval",
+  "code": "RLA",
+  "description": "Approve a residential or commercial lease agreement with tenant screening and deposit.",
+  "icon": "assignment",
+  "displayOrder": 140,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "REAL_ESTATE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{leaseRef} - @{tenantName} (@{property})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Tenant & Property", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Lease Terms", "displayOrder": 1, "icon": "assignment" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Property", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Tenant & Screening", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Lease Period", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Rent & Deposits", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "leaseRef", "label": "Lease Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RLA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "agreementDate", "label": "Agreement Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "leaseType", "label": "Lease Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "RESIDENTIAL", "label": "Residential", "displayOrder": 0 }, { "value": "COMMERCIAL", "label": "Commercial", "displayOrder": 1 }, { "value": "INDUSTRIAL", "label": "Industrial", "displayOrder": 2 }, { "value": "RETAIL", "label": "Retail", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "agent", "label": "Leasing Agent", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "property", "label": "Property Address", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(10)" },
+      { "name": "listingRef", "label": "Listing Reference", "fieldType": "TEXT", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "landlordName", "label": "Landlord Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "tenantName", "label": "Tenant Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "tenantIdOrReg", "label": "Tenant ID / Registration", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "tenantPhone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Phone()" },
+      { "name": "tenantEmail", "label": "Email", "fieldType": "EMAIL", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(IS_EMPTY(@{tenantEmail}) OR IS_EMAIL(@{tenantEmail}), \"Enter valid email\")" },
+      { "name": "employerName", "label": "Employer / Business", "fieldType": "TEXT", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "monthlyIncome", "label": "Monthly Income", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "creditCheckClear", "label": "Credit Check Clear", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 26, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{creditCheckClear} == true, \"Credit check must be clear\")" },
+      { "name": "referenceChecks", "label": "Reference Checks Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 27, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{referenceChecks} == true, \"References required\")" },
+      { "name": "startDate", "label": "Lease Start", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "endDate", "label": "Lease End", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "durationMonths", "label": "Duration (months)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "escalationPercent", "label": "Annual Escalation %", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0) AND Max(30)" },
+      { "name": "monthlyRent", "label": "Monthly Rent", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "rentToIncomeRatio", "label": "Rent/Income Ratio %", "fieldType": "NUMBER", "isReadonly": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "PERCENTAGE(@{monthlyRent}, @{monthlyIncome})" },
+      { "name": "securityDeposit", "label": "Security Deposit", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "depositReceived", "label": "Deposit Received", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{depositReceived} == true, \"Deposit must be received\")" },
+      { "name": "utilitiesIncluded", "label": "Utilities Included", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "petsAllowed", "label": "Pets Allowed", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 45, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Leasing Agent", "approverType": "ROLE", "roleName": "LEASING_AGENT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Rental Manager", "approverType": "ROLE", "roleName": "RENTAL_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Landlord / Owner", "approverType": "ROLE", "roleName": "LANDLORD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,644 @@
+{
+  "_comment": "Customer Complaint & Dispute Resolution — capture, classify, investigate and resolve customer issues with SLA tracking.",
+  "name": "Customer Complaint & Dispute",
+  "code": "CMP",
+  "description": "Log and route customer complaints (including transaction disputes) through investigation and resolution.",
+  "icon": "support_agent",
+  "displayOrder": 25,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{caseNumber} - @{customerName} (@{category})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 5,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 96,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Complaint @{referenceNumber} approaching SLA",
+  "reminderEmailBody": "<p>Complaint <strong>@{referenceNumber}</strong> from @{submitterName} is awaiting action (pending @{daysPending} day(s)).</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Case Info",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Customer",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Complaint Details",
+          "displayOrder": 2,
+          "icon": "report_problem"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Disputed Transactions",
+          "displayOrder": 3,
+          "icon": "compare_arrows"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Investigation & Resolution",
+          "displayOrder": 4,
+          "icon": "search"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Review & Submit",
+          "displayOrder": 5,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Customer Info",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Channel & Category",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Description",
+          "displayOrder": 3,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Disputed Transactions",
+          "displayOrder": 4,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Investigation",
+          "displayOrder": 5,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Resolution",
+          "displayOrder": 6,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_8",
+          "title": "Evidence",
+          "displayOrder": 7,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        }
+      ],
+      "fields": [
+        {
+          "name": "caseNumber",
+          "label": "Case Number",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"CMP-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "loggedDate",
+          "label": "Date Logged",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "loggedBy",
+          "label": "Logged By",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch / Unit",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerNumber",
+          "label": "Customer Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerName",
+          "label": "Customer Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "accountNumber",
+          "label": "Account Number",
+          "fieldType": "TEXT",
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "customerPhone",
+          "label": "Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "customerEmail",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "displayOrder": 14,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "ValidWhen(IS_EMPTY(@{customerEmail}) OR IS_EMAIL(@{customerEmail}), \"Enter a valid email\")"
+        },
+        {
+          "name": "channel",
+          "label": "Channel",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "BRANCH",
+              "label": "Branch Walk-in",
+              "displayOrder": 0
+            },
+            {
+              "value": "CALL_CENTER",
+              "label": "Call Centre",
+              "displayOrder": 1
+            },
+            {
+              "value": "EMAIL",
+              "label": "Email",
+              "displayOrder": 2
+            },
+            {
+              "value": "WEB",
+              "label": "Web Form",
+              "displayOrder": 3
+            },
+            {
+              "value": "MOBILE_APP",
+              "label": "Mobile App",
+              "displayOrder": 4
+            },
+            {
+              "value": "SOCIAL_MEDIA",
+              "label": "Social Media",
+              "displayOrder": 5
+            },
+            {
+              "value": "REGULATOR",
+              "label": "Forwarded by Regulator",
+              "displayOrder": 6
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "category",
+          "label": "Complaint Category",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "ATM_CARD",
+              "label": "ATM / Card",
+              "displayOrder": 0
+            },
+            {
+              "value": "INTERNET_BANKING",
+              "label": "Internet / Mobile Banking",
+              "displayOrder": 1
+            },
+            {
+              "value": "FEES_CHARGES",
+              "label": "Fees & Charges",
+              "displayOrder": 2
+            },
+            {
+              "value": "TRANSACTION_DISPUTE",
+              "label": "Transaction Dispute",
+              "displayOrder": 3
+            },
+            {
+              "value": "STAFF_CONDUCT",
+              "label": "Staff Conduct",
+              "displayOrder": 4
+            },
+            {
+              "value": "ACCOUNT_SERVICING",
+              "label": "Account Servicing",
+              "displayOrder": 5
+            },
+            {
+              "value": "LOAN_SERVICING",
+              "label": "Loan Servicing",
+              "displayOrder": 6
+            },
+            {
+              "value": "FRAUD",
+              "label": "Suspected Fraud",
+              "displayOrder": 7
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 8
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "severity",
+          "label": "Severity",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "MEDIUM",
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low",
+              "displayOrder": 0
+            },
+            {
+              "value": "MEDIUM",
+              "label": "Medium",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High",
+              "displayOrder": 2
+            },
+            {
+              "value": "CRITICAL",
+              "label": "Critical",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "slaDays",
+          "label": "SLA Resolution Days",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "defaultValue": "5",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND Min(1)"
+        },
+        {
+          "name": "complaintSummary",
+          "label": "Complaint Summary",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND MinLength(10) AND MaxLength(200)"
+        },
+        {
+          "name": "complaintDetails",
+          "label": "Detailed Description",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 31,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND MinLength(30)"
+        },
+        {
+          "name": "hasDisputedTxns",
+          "label": "Are there disputed transactions?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 40,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "disputedTransactions",
+          "label": "Disputed Transactions",
+          "fieldType": "TABLE",
+          "displayOrder": 41,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "visibilityExpression": "@{hasDisputedTxns} == true",
+          "tableMinRows": 0,
+          "tableMaxRows": 50,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"txnDate\",\"label\":\"Date\",\"type\":\"DATE\",\"width\":120,\"required\":true},{\"name\":\"txnRef\",\"label\":\"Reference\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"description\",\"label\":\"Description\",\"type\":\"TEXT\",\"width\":250},{\"name\":\"amount\",\"label\":\"Amount\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"reason\",\"label\":\"Dispute Reason\",\"type\":\"TEXT\",\"width\":200,\"required\":true}]"
+        },
+        {
+          "name": "totalDisputedAmount",
+          "label": "Total Disputed Amount",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 42,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "visibilityExpression": "@{hasDisputedTxns} == true",
+          "defaultValue": "SUM_COLUMN(\"disputedTransactions\", \"amount\")"
+        },
+        {
+          "name": "investigationFindings",
+          "label": "Investigation Findings",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6"
+        },
+        {
+          "name": "rootCause",
+          "label": "Root Cause",
+          "fieldType": "SELECT",
+          "displayOrder": 51,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "options": [
+            {
+              "value": "SYSTEM_ERROR",
+              "label": "System Error",
+              "displayOrder": 0
+            },
+            {
+              "value": "PROCESS_FAILURE",
+              "label": "Process Failure",
+              "displayOrder": 1
+            },
+            {
+              "value": "STAFF_ERROR",
+              "label": "Staff Error",
+              "displayOrder": 2
+            },
+            {
+              "value": "CUSTOMER_ERROR",
+              "label": "Customer Error",
+              "displayOrder": 3
+            },
+            {
+              "value": "THIRD_PARTY",
+              "label": "Third Party / Merchant",
+              "displayOrder": 4
+            },
+            {
+              "value": "FRAUD_CONFIRMED",
+              "label": "Confirmed Fraud",
+              "displayOrder": 5
+            },
+            {
+              "value": "NO_FAULT",
+              "label": "No Fault Found",
+              "displayOrder": 6
+            }
+          ]
+        },
+        {
+          "name": "resolution",
+          "label": "Resolution",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "options": [
+            {
+              "value": "UPHELD_REFUNDED",
+              "label": "Upheld - Refunded",
+              "displayOrder": 0
+            },
+            {
+              "value": "UPHELD_GOODWILL",
+              "label": "Upheld - Goodwill Gesture",
+              "displayOrder": 1
+            },
+            {
+              "value": "PARTIALLY_UPHELD",
+              "label": "Partially Upheld",
+              "displayOrder": 2
+            },
+            {
+              "value": "REJECTED",
+              "label": "Not Upheld",
+              "displayOrder": 3
+            },
+            {
+              "value": "WITHDRAWN",
+              "label": "Withdrawn by Customer",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "refundAmount",
+          "label": "Refund / Compensation Amount",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "resolutionDate",
+          "label": "Resolution Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerNotified",
+          "label": "Customer Notified",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "displayOrder": 63,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7"
+        },
+        {
+          "name": "resolutionDetails",
+          "label": "Resolution Details",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 64,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "evidenceDocs",
+          "label": "Evidence / Supporting Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 70,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx,xls,xlsx",
+          "maxFileSize": 10485760,
+          "maxFiles": 20
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Customer Service Officer",
+      "approverType": "ROLE",
+      "roleName": "CSO",
+      "amountLimit": 100,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Customer Experience Manager",
+      "approverType": "ROLE",
+      "roleName": "CX_MANAGER",
+      "amountLimit": 2000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Head of Operations / Compliance",
+      "approverType": "ROLE",
+      "roleName": "HEAD_OF_OPERATIONS",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "BANKING",
+  "workflowTypeCode": "APPROVAL"
+}

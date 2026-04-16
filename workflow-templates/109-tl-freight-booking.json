@@ -1,0 +1,70 @@
+{
+  "_comment": "Freight Booking — book a freight consignment for road / rail / air transport.",
+  "name": "Freight Booking",
+  "code": "TLF",
+  "description": "Book a freight consignment for road, rail, air or multimodal transport including customs handling.",
+  "icon": "local_shipping",
+  "displayOrder": 109,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "TRANSPORT_LOGISTICS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{freightRef} - @{customerName} (@{origin} → @{destination})",
+  "reminderEnabled": true, "reminderFrequencyHours": 6, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Booking", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Cargo", "displayOrder": 1, "icon": "inventory" },
+      { "id": "temp_screen_3", "title": "Charges", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Route", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Cargo Details", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Dangerous Goods", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Charges", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "freightRef", "label": "Freight Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"TLF-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "bookingDate", "label": "Booking Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "mode", "label": "Mode of Transport", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "ROAD", "label": "Road", "displayOrder": 0 }, { "value": "RAIL", "label": "Rail", "displayOrder": 1 }, { "value": "AIR", "label": "Air", "displayOrder": 2 }, { "value": "SEA", "label": "Sea", "displayOrder": 3 }, { "value": "MULTIMODAL", "label": "Multimodal", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "serviceLevel", "label": "Service Level", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "STANDARD", "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "EXPRESS", "label": "Express", "displayOrder": 0 }, { "value": "STANDARD", "label": "Standard", "displayOrder": 1 }, { "value": "ECONOMY", "label": "Economy", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "customerName", "label": "Shipper / Customer", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "consignee", "label": "Consignee", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "consigneeContact", "label": "Consignee Contact", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Phone()" },
+      { "name": "origin", "label": "Origin", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "destination", "label": "Destination", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "pickupDate", "label": "Pick-Up Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND DateAfter(\"today\", \"Pickup must be future\")" },
+      { "name": "etaDelivery", "label": "ETA Delivery", "fieldType": "DATE", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "crossBorder", "label": "Cross-Border?", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "cargoDescription", "label": "Cargo Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(10)" },
+      { "name": "packages", "label": "Number of Packages", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "grossWeightKg", "label": "Gross Weight (kg)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0.01)" },
+      { "name": "volumeCbm", "label": "Volume (m³)", "fieldType": "NUMBER", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "declaredValue", "label": "Declared Value (for insurance)", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "isDangerousGoods", "label": "Dangerous Goods?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "unNumber", "label": "UN Number", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{isDangerousGoods} == true" },
+      { "name": "dgClass", "label": "DG Class", "fieldType": "TEXT", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{isDangerousGoods} == true" },
+      { "name": "temperatureControlled", "label": "Temperature Controlled?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "freightCharge", "label": "Freight Charge", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "insuranceCharge", "label": "Insurance", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Min(0)" },
+      { "name": "handlingCharge", "label": "Handling / Customs", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Min(0)" },
+      { "name": "totalCharge", "label": "Total Charge", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "defaultValue": "SUM(@{freightCharge}, @{insuranceCharge}, @{handlingCharge})" },
+      { "name": "paymentTerms", "label": "Payment Terms", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "PREPAID", "displayOrder": 54, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "PREPAID", "label": "Prepaid", "displayOrder": 0 }, { "value": "COLLECT", "label": "Collect (at Destination)", "displayOrder": 1 }, { "value": "ACCOUNT", "label": "On Customer Account", "displayOrder": 2 } ], "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Freight Agent", "approverType": "ROLE", "roleName": "FREIGHT_AGENT", "amountLimit": 10000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPS_MANAGER", "amountLimit": 100000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Head of Logistics", "approverType": "ROLE", "roleName": "HEAD_LOGISTICS", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "_comment": "Dispatch / Delivery Scheduling — schedule and authorise dispatch of orders from warehouse.",
+  "name": "Wholesale Dispatch Scheduling",
+  "code": "WDS",
+  "description": "Schedule and authorise dispatch of confirmed orders from the warehouse to customers.",
+  "icon": "local_shipping",
+  "displayOrder": 90,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "WHOLESALE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{dispatchRef} - @{route} (@{dispatchDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 4, "reminderMaxCount": 3, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 12, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Schedule", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Orders & Loading", "displayOrder": 1, "icon": "inventory" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Route & Vehicle", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Orders on Run", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Loading Check", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "dispatchRef", "label": "Dispatch Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"WDS-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "dispatchDate", "label": "Dispatch Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "plannedTime", "label": "Planned Dispatch Time", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "warehouse", "label": "Origin Warehouse", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "route", "label": "Route / Zone", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "vehicleReg", "label": "Vehicle Registration", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "driverName", "label": "Driver", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "driverLicence", "label": "Driver Licence No.", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "vehicleCapacityKg", "label": "Vehicle Capacity (kg)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "orders", "label": "Orders on Run", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 100, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"orderNumber\",\"label\":\"Order #\",\"type\":\"TEXT\",\"width\":140,\"required\":true},{\"name\":\"customer\",\"label\":\"Customer\",\"type\":\"TEXT\",\"width\":240,\"required\":true},{\"name\":\"stopSequence\",\"label\":\"Stop #\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"weightKg\",\"label\":\"Weight (kg)\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"orderValue\",\"label\":\"Value\",\"type\":\"NUMBER\",\"width\":120}]", "validation": "MinRows(1, \"At least one order required\")" },
+      { "name": "totalWeight", "label": "Total Load Weight", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"orders\", \"weightKg\")" },
+      { "name": "totalValue", "label": "Total Load Value", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"orders\", \"orderValue\")" },
+      { "name": "withinCapacity", "label": "Within Vehicle Capacity", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{withinCapacity} == true, \"Load exceeds vehicle capacity\")" },
+      { "name": "goodsPickedVerified", "label": "Picking Verified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{goodsPickedVerified} == true, \"Picking must be verified\")" },
+      { "name": "specialInstructions", "label": "Special Instructions", "fieldType": "TEXTAREA", "displayOrder": 25, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Warehouse Supervisor", "approverType": "ROLE", "roleName": "WAREHOUSE_SUPERVISOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Logistics Manager", "approverType": "ROLE", "roleName": "LOGISTICS_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": false, "emailNotification": true }
+  ]
+}

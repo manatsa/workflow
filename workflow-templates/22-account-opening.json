@@ -1,0 +1,992 @@
+{
+  "_comment": "Retail Account Opening — KYC capture, identity verification, risk rating, and tiered approval.",
+  "name": "Account Opening (Retail KYC)",
+  "code": "AO",
+  "description": "Open a new retail customer account with KYC, source-of-funds, and risk-based approval routing.",
+  "icon": "account_balance",
+  "displayOrder": 22,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{aoNumber} - @{firstName} @{lastName} (@{accountType})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 48,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderIncludeSubmitter": true,
+  "reminderEmailSubject": "Reminder @{reminderNumber}/@{reminderMax}: Account Opening @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Dear @{approverName},</p><p>Account Opening request <strong>@{referenceNumber}</strong> from @{submitterName} is awaiting your review (pending @{daysPending} day(s)).</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Account Type",
+          "description": "Type of account being opened",
+          "displayOrder": 0,
+          "icon": "savings"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Personal Details",
+          "description": "Customer identity",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Address & Contact",
+          "description": "Where to reach the customer",
+          "displayOrder": 2,
+          "icon": "home"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Employment & Income",
+          "description": "Source of funds",
+          "displayOrder": 3,
+          "icon": "work"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "KYC Documents",
+          "description": "Identity & address proofs",
+          "displayOrder": 4,
+          "icon": "badge"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Risk & Declarations",
+          "description": "Risk rating and customer declarations",
+          "displayOrder": 5,
+          "icon": "verified_user"
+        },
+        {
+          "id": "temp_screen_7",
+          "title": "Review & Submit",
+          "description": "Final review",
+          "displayOrder": 6,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Application Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Account Setup",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Identity",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Demographics",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Residential Address",
+          "displayOrder": 4,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Contact Details",
+          "displayOrder": 5,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Employment",
+          "displayOrder": 6,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_8",
+          "title": "Source of Funds",
+          "displayOrder": 7,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_9",
+          "title": "KYC Document Uploads",
+          "displayOrder": 8,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_10",
+          "title": "Risk Assessment",
+          "displayOrder": 9,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_6"
+        },
+        {
+          "id": "temp_grp_11",
+          "title": "Declarations",
+          "displayOrder": 10,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_6"
+        }
+      ],
+      "fields": [
+        {
+          "name": "aoNumber",
+          "label": "Application Number",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"AO-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "applicationDate",
+          "label": "Application Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "openedBy",
+          "label": "Opened By (Officer)",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "accountType",
+          "label": "Account Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 4,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "SAVINGS",
+              "label": "Savings",
+              "displayOrder": 0
+            },
+            {
+              "value": "CURRENT",
+              "label": "Current / Cheque",
+              "displayOrder": 1
+            },
+            {
+              "value": "FIXED_DEPOSIT",
+              "label": "Fixed Deposit",
+              "displayOrder": 2
+            },
+            {
+              "value": "STUDENT",
+              "label": "Student",
+              "displayOrder": 3
+            },
+            {
+              "value": "SENIOR",
+              "label": "Senior Citizen",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "USD",
+          "inSummary": true,
+          "displayOrder": 5,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "USD",
+              "label": "US Dollar (USD)",
+              "displayOrder": 0
+            },
+            {
+              "value": "EUR",
+              "label": "Euro (EUR)",
+              "displayOrder": 1
+            },
+            {
+              "value": "GBP",
+              "label": "British Pound (GBP)",
+              "displayOrder": 2
+            },
+            {
+              "value": "ZAR",
+              "label": "South African Rand (ZAR)",
+              "displayOrder": 3
+            },
+            {
+              "value": "ZWL",
+              "label": "Zimbabwe Dollar (ZWL)",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "initialDeposit",
+          "label": "Initial Deposit",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 6,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Min(0, \"Deposit cannot be negative\")"
+        },
+        {
+          "name": "fdTermMonths",
+          "label": "Fixed Deposit Term (months)",
+          "fieldType": "NUMBER",
+          "displayOrder": 7,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2",
+          "visibilityExpression": "@{accountType} == 'FIXED_DEPOSIT'",
+          "validation": "ValidWhen(@{accountType} != 'FIXED_DEPOSIT' OR @{fdTermMonths} >= 1, \"Term must be at least 1 month\")"
+        },
+        {
+          "name": "title",
+          "label": "Title",
+          "fieldType": "SELECT",
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "MR",
+              "label": "Mr",
+              "displayOrder": 0
+            },
+            {
+              "value": "MRS",
+              "label": "Mrs",
+              "displayOrder": 1
+            },
+            {
+              "value": "MISS",
+              "label": "Miss",
+              "displayOrder": 2
+            },
+            {
+              "value": "MS",
+              "label": "Ms",
+              "displayOrder": 3
+            },
+            {
+              "value": "DR",
+              "label": "Dr",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "firstName",
+          "label": "First Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(2)",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "middleName",
+          "label": "Middle Name",
+          "fieldType": "TEXT",
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "lastName",
+          "label": "Last Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(2)",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "dateOfBirth",
+          "label": "Date of Birth",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "gender",
+          "label": "Gender",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "M",
+              "label": "Male",
+              "displayOrder": 0
+            },
+            {
+              "value": "F",
+              "label": "Female",
+              "displayOrder": 1
+            },
+            {
+              "value": "O",
+              "label": "Other",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "nationality",
+          "label": "Nationality",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 16,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "maritalStatus",
+          "label": "Marital Status",
+          "fieldType": "SELECT",
+          "displayOrder": 17,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "SINGLE",
+              "label": "Single",
+              "displayOrder": 0
+            },
+            {
+              "value": "MARRIED",
+              "label": "Married",
+              "displayOrder": 1
+            },
+            {
+              "value": "DIVORCED",
+              "label": "Divorced",
+              "displayOrder": 2
+            },
+            {
+              "value": "WIDOWED",
+              "label": "Widowed",
+              "displayOrder": 3
+            }
+          ]
+        },
+        {
+          "name": "addressLine1",
+          "label": "Address Line 1",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 20,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND MinLength(5)"
+        },
+        {
+          "name": "addressLine2",
+          "label": "Address Line 2",
+          "fieldType": "TEXT",
+          "displayOrder": 21,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "city",
+          "label": "City",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required()"
+        },
+        {
+          "name": "postalCode",
+          "label": "Postal Code",
+          "fieldType": "TEXT",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "country",
+          "label": "Country",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required()"
+        },
+        {
+          "name": "residencyType",
+          "label": "Residency",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "options": [
+            {
+              "value": "OWNED",
+              "label": "Owned",
+              "displayOrder": 0
+            },
+            {
+              "value": "RENTED",
+              "label": "Rented",
+              "displayOrder": 1
+            },
+            {
+              "value": "FAMILY",
+              "label": "Living with Family",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "mobilePhone",
+          "label": "Mobile Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "homePhone",
+          "label": "Home Phone",
+          "fieldType": "PHONE",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_6"
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter a valid email\")",
+          "customValidationRule": "TRIM() AND LOWER()"
+        },
+        {
+          "name": "employmentStatus",
+          "label": "Employment Status",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "options": [
+            {
+              "value": "EMPLOYED",
+              "label": "Employed",
+              "displayOrder": 0
+            },
+            {
+              "value": "SELF_EMPLOYED",
+              "label": "Self-Employed",
+              "displayOrder": 1
+            },
+            {
+              "value": "UNEMPLOYED",
+              "label": "Unemployed",
+              "displayOrder": 2
+            },
+            {
+              "value": "STUDENT",
+              "label": "Student",
+              "displayOrder": 3
+            },
+            {
+              "value": "RETIRED",
+              "label": "Retired",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "employerName",
+          "label": "Employer Name",
+          "fieldType": "TEXT",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "visibilityExpression": "@{employmentStatus} == 'EMPLOYED' OR @{employmentStatus} == 'SELF_EMPLOYED'",
+          "validation": "ValidWhen(@{employmentStatus} != 'EMPLOYED' OR IS_NOT_EMPTY(@{employerName}), \"Employer name required\")"
+        },
+        {
+          "name": "occupation",
+          "label": "Occupation / Position",
+          "fieldType": "TEXT",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7"
+        },
+        {
+          "name": "monthlyIncome",
+          "label": "Monthly Income",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "sourceOfFunds",
+          "label": "Primary Source of Funds",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_8",
+          "options": [
+            {
+              "value": "SALARY",
+              "label": "Salary",
+              "displayOrder": 0
+            },
+            {
+              "value": "BUSINESS",
+              "label": "Business Income",
+              "displayOrder": 1
+            },
+            {
+              "value": "INVESTMENT",
+              "label": "Investment Returns",
+              "displayOrder": 2
+            },
+            {
+              "value": "PENSION",
+              "label": "Pension",
+              "displayOrder": 3
+            },
+            {
+              "value": "INHERITANCE",
+              "label": "Inheritance",
+              "displayOrder": 4
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "sourceOfFundsOther",
+          "label": "Specify Source",
+          "fieldType": "TEXT",
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_8",
+          "visibilityExpression": "@{sourceOfFunds} == 'OTHER'",
+          "validation": "ValidWhen(@{sourceOfFunds} != 'OTHER' OR IS_NOT_EMPTY(@{sourceOfFundsOther}), \"Please describe the source of funds\")"
+        },
+        {
+          "name": "expectedMonthlyTurnover",
+          "label": "Expected Monthly Account Turnover",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_8",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "idType",
+          "label": "ID Document Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "options": [
+            {
+              "value": "NATIONAL_ID",
+              "label": "National ID",
+              "displayOrder": 0
+            },
+            {
+              "value": "PASSPORT",
+              "label": "Passport",
+              "displayOrder": 1
+            },
+            {
+              "value": "DRIVERS_LICENSE",
+              "label": "Driver's License",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "idNumber",
+          "label": "ID Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "validation": "Required() AND MinLength(4)",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "idExpiryDate",
+          "label": "ID Expiry Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "validation": "Required() AND DateAfter(\"today\", \"ID must not be expired\")"
+        },
+        {
+          "name": "idDocument",
+          "label": "Upload ID Document",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 63,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"ID document is required\")"
+        },
+        {
+          "name": "proofOfAddress",
+          "label": "Proof of Address",
+          "fieldType": "FILE",
+          "tooltip": "Utility bill or bank statement, not older than 3 months",
+          "isMandatory": true,
+          "displayOrder": 64,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Proof of address is required\")"
+        },
+        {
+          "name": "customerPhoto",
+          "label": "Customer Photo",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 65,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "jpg,jpeg,png",
+          "maxFileSize": 5242880,
+          "validation": "Required()"
+        },
+        {
+          "name": "specimenSignature",
+          "label": "Specimen Signature",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 66,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "jpg,jpeg,png,pdf",
+          "maxFileSize": 5242880,
+          "validation": "Required()"
+        },
+        {
+          "name": "additionalKycDocs",
+          "label": "Additional KYC Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 67,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        },
+        {
+          "name": "isPep",
+          "label": "Politically Exposed Person (PEP)?",
+          "fieldType": "YES_NO",
+          "tooltip": "Customer or close associate holds prominent public function",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_10"
+        },
+        {
+          "name": "pepDetails",
+          "label": "PEP Details",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 71,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_10",
+          "visibilityExpression": "@{isPep} == true",
+          "validation": "ValidWhen(@{isPep} == false OR HAS_MIN_LENGTH(@{pepDetails}, 10), \"Please describe the PEP relationship\")"
+        },
+        {
+          "name": "sanctionsHit",
+          "label": "Sanctions Screening Result",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "CLEAR",
+          "inSummary": true,
+          "displayOrder": 72,
+          "columnSpan": 1,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_10",
+          "options": [
+            {
+              "value": "CLEAR",
+              "label": "Clear",
+              "displayOrder": 0
+            },
+            {
+              "value": "REVIEW",
+              "label": "Requires Review",
+              "displayOrder": 1
+            },
+            {
+              "value": "MATCH",
+              "label": "Confirmed Match",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "riskRating",
+          "label": "KYC Risk Rating",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 73,
+          "columnSpan": 1,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_10",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low",
+              "displayOrder": 0
+            },
+            {
+              "value": "MEDIUM",
+              "label": "Medium",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "tcAccepted",
+          "label": "Customer accepts terms & conditions",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_11",
+          "validation": "IsTrue(\"Customer must accept terms\")"
+        },
+        {
+          "name": "officerCertify",
+          "label": "I certify the KYC information has been verified against original documents",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 81,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_11",
+          "validation": "IsTrue(\"Officer certification required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Branch Operations Officer (Maker)",
+      "approverType": "ROLE",
+      "roleName": "BRANCH_OPS",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Branch Manager (Checker)",
+      "approverType": "ROLE",
+      "roleName": "BRANCH_MANAGER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Compliance Officer (High Risk / PEP)",
+      "approverType": "ROLE",
+      "roleName": "COMPLIANCE_OFFICER",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "BANKING",
+  "workflowTypeCode": "APPROVAL"
+}

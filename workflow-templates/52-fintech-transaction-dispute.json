@@ -1,0 +1,168 @@
+{
+  "_comment": "Transaction Dispute / Chargeback — process card / mobile money chargeback through lifecycle.",
+  "name": "Transaction Dispute / Chargeback",
+  "code": "FTD",
+  "description": "Manage a payment dispute or chargeback from FNOL through representment, arbitration and settlement.",
+  "icon": "compare_arrows",
+  "displayOrder": 52,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FINTECH",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{disputeRef} - @{merchantName} (@{disputedAmount})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 12,
+  "reminderMaxCount": 6,
+  "reminderStartAfterHours": 4,
+  "escalationEnabled": true,
+  "escalationAfterHours": 48,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Dispute @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Dispute <strong>@{referenceNumber}</strong> awaiting action. Card scheme deadlines apply.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Transaction", "displayOrder": 1, "icon": "receipt" },
+      { "id": "temp_screen_3", "title": "Dispute Detail", "displayOrder": 2, "icon": "gavel" },
+      { "id": "temp_screen_4", "title": "Investigation", "displayOrder": 3, "icon": "search" },
+      { "id": "temp_screen_5", "title": "Outcome", "displayOrder": 4, "icon": "done_all" },
+      { "id": "temp_screen_6", "title": "Evidence", "displayOrder": 5, "icon": "attach_file" },
+      { "id": "temp_screen_7", "title": "Review & Submit", "displayOrder": 6, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Transaction", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Merchant", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Cardholder / Payer", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Dispute Classification", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Narrative", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Investigation", "displayOrder": 6, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_8", "title": "Resolution", "displayOrder": 7, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_9", "title": "Evidence Files", "displayOrder": 8, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_6" }
+    ],
+
+    "fields": [
+      { "name": "disputeRef", "label": "Dispute Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FTD-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "raisedDate", "label": "Date Raised", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "analyst", "label": "Analyst", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "deadline", "label": "Scheme Response Deadline", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required() AND DateAfter(\"today\", \"Deadline must be future\")" },
+
+      { "name": "txnReference", "label": "Transaction Reference", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "authCode", "label": "Authorization Code", "fieldType": "TEXT", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2" },
+      { "name": "txnDate", "label": "Transaction Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "disputedAmount", "label": "Disputed Amount", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Min(0.01)" },
+      { "name": "paymentNetwork", "label": "Payment Network", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "VISA", "label": "Visa", "displayOrder": 0 },
+          { "value": "MASTERCARD", "label": "Mastercard", "displayOrder": 1 },
+          { "value": "AMEX", "label": "Amex", "displayOrder": 2 },
+          { "value": "MOBILE_MONEY", "label": "Mobile Money", "displayOrder": 3 },
+          { "value": "BANK_TRANSFER", "label": "Bank Transfer", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+      { "name": "maskedPan", "label": "Masked PAN / MSISDN", "fieldType": "TEXT", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2" },
+
+      { "name": "merchantId", "label": "Merchant ID", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "merchantName", "label": "Merchant Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "mcc", "label": "MCC", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "channel", "label": "Channel", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [
+          { "value": "ECOM", "label": "E-Commerce (CNP)", "displayOrder": 0 },
+          { "value": "POS", "label": "POS (Card Present)", "displayOrder": 1 },
+          { "value": "ATM", "label": "ATM", "displayOrder": 2 },
+          { "value": "MOTO", "label": "MOTO", "displayOrder": 3 },
+          { "value": "WALLET", "label": "Wallet / App", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "cardholderName", "label": "Cardholder / Payer Name", "fieldType": "TEXT", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "cardholderPhone", "label": "Phone", "fieldType": "PHONE", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "cardholderEmail", "label": "Email", "fieldType": "EMAIL", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "validation": "ValidWhen(IS_EMPTY(@{cardholderEmail}) OR IS_EMAIL(@{cardholderEmail}), \"Enter valid email\")" },
+
+      { "name": "disputeType", "label": "Dispute Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "FRAUD", "label": "Fraud / Unauthorized", "displayOrder": 0 },
+          { "value": "NOT_RECEIVED", "label": "Goods/Services Not Received", "displayOrder": 1 },
+          { "value": "NOT_AS_DESCRIBED", "label": "Not as Described / Defective", "displayOrder": 2 },
+          { "value": "DUPLICATE", "label": "Duplicate Processing", "displayOrder": 3 },
+          { "value": "CREDIT_NOT_PROCESSED", "label": "Credit Not Processed", "displayOrder": 4 },
+          { "value": "AUTH_ISSUE", "label": "Authorization / Processing Error", "displayOrder": 5 },
+          { "value": "CANCELLED_RECURRING", "label": "Cancelled Recurring Billing", "displayOrder": 6 }
+        ],
+        "validation": "Required()" },
+      { "name": "reasonCode", "label": "Scheme Reason Code", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "validation": "Required()" },
+      { "name": "stage", "label": "Dispute Stage", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "FIRST_CHARGEBACK", "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "RETRIEVAL", "label": "Retrieval Request", "displayOrder": 0 },
+          { "value": "FIRST_CHARGEBACK", "label": "1st Chargeback", "displayOrder": 1 },
+          { "value": "REPRESENTMENT", "label": "Representment", "displayOrder": 2 },
+          { "value": "PRE_ARBITRATION", "label": "Pre-Arbitration", "displayOrder": 3 },
+          { "value": "ARBITRATION", "label": "Arbitration", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "narrative", "label": "Dispute Narrative", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "validation": "Required() AND MinLength(30)" },
+
+      { "name": "merchantResponseReceived", "label": "Merchant Response Received?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 60, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7" },
+      { "name": "merchantResponseDate", "label": "Response Date", "fieldType": "DATE", "displayOrder": 61, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7",
+        "visibilityExpression": "@{merchantResponseReceived} == true" },
+      { "name": "compellingEvidenceScore", "label": "Compelling Evidence Strength (1-5)", "fieldType": "NUMBER", "displayOrder": 62, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7",
+        "validation": "Min(1) AND Max(5)" },
+      { "name": "fraudScoreAtAuth", "label": "Fraud Score at Authorization", "fieldType": "NUMBER", "displayOrder": 63, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7",
+        "validation": "Min(0) AND Max(1000)" },
+      { "name": "priorDisputes", "label": "Prior Disputes on this Merchant (90 days)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 64, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7",
+        "validation": "Min(0)" },
+      { "name": "investigationNotes", "label": "Investigation Notes", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 65, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7",
+        "validation": "Required() AND MinLength(20)" },
+
+      { "name": "resolution", "label": "Resolution", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 70, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_8",
+        "options": [
+          { "value": "ACCEPTED_LOSS", "label": "Accepted - Debit Merchant", "displayOrder": 0 },
+          { "value": "REPRESENTED", "label": "Represented - Defend", "displayOrder": 1 },
+          { "value": "SPLIT", "label": "Split Settlement", "displayOrder": 2 },
+          { "value": "REFUND_CUSTOMER", "label": "Refund Cardholder", "displayOrder": 3 },
+          { "value": "WRITE_OFF", "label": "Write-Off (Goodwill)", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+      { "name": "settlementAmount", "label": "Settlement Amount", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 71, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_8",
+        "validation": "Required() AND Min(0)" },
+      { "name": "settlementAccount", "label": "Settlement Account (Merchant / Acquirer)", "fieldType": "TEXT", "displayOrder": 72, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_8" },
+      { "name": "customerNotified", "label": "Customer Notified of Outcome", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 73, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_8" },
+
+      { "name": "cardholderComplaint", "label": "Cardholder Complaint / Affidavit", "fieldType": "FILE", "isMandatory": true, "displayOrder": 80, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_9",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "merchantEvidence", "label": "Merchant Evidence / Delivery Proof", "fieldType": "FILE", "multiple": true, "displayOrder": 81, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_9",
+        "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx", "maxFileSize": 10485760, "maxFiles": 15 },
+      { "name": "schemeNotice", "label": "Scheme Notice", "fieldType": "FILE", "displayOrder": 82, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_9",
+        "allowedFileTypes": "pdf,xml,txt", "maxFileSize": 10485760 }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Disputes Analyst", "approverType": "ROLE", "roleName": "DISPUTES_ANALYST", "amountLimit": 500, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Disputes Team Lead", "approverType": "ROLE", "roleName": "DISPUTES_LEAD", "amountLimit": 5000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Risk", "approverType": "ROLE", "roleName": "HEAD_OF_RISK", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

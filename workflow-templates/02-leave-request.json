@@ -1,0 +1,318 @@
+{
+  "_comment": "Leave Request — vacation, sick, unpaid leave. Routes to line manager then HR.",
+  "name": "Leave Request",
+  "code": "LV",
+  "description": "Request time off work. Auto-calculates duration in business days and routes for approval.",
+  "icon": "event_available",
+  "displayOrder": 20,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{leaveType} - @{requesterName} (@{startDate} to @{endDate})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 48,
+  "escalationAction": "NOTIFY_ADMIN",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Request Details",
+          "displayOrder": 0,
+          "icon": "edit"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Supporting Info",
+          "displayOrder": 1,
+          "icon": "info"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Review",
+          "displayOrder": 2,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Requester",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Leave Period",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Additional Details",
+          "displayOrder": 2,
+          "columns": 1,
+          "screenId": "temp_s2"
+        }
+      ],
+      "fields": [
+        {
+          "name": "leaveNumber",
+          "label": "Leave #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"LV-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requesterName",
+          "label": "Employee Name",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requesterDepartment",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "leaveType",
+          "label": "Leave Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "ANNUAL",
+              "label": "Annual / Vacation Leave",
+              "displayOrder": 0
+            },
+            {
+              "value": "SICK",
+              "label": "Sick Leave",
+              "displayOrder": 1
+            },
+            {
+              "value": "MATERNITY",
+              "label": "Maternity Leave",
+              "displayOrder": 2
+            },
+            {
+              "value": "PATERNITY",
+              "label": "Paternity Leave",
+              "displayOrder": 3
+            },
+            {
+              "value": "BEREAVEMENT",
+              "label": "Bereavement Leave",
+              "displayOrder": 4
+            },
+            {
+              "value": "COMPASSIONATE",
+              "label": "Compassionate Leave",
+              "displayOrder": 5
+            },
+            {
+              "value": "STUDY",
+              "label": "Study Leave",
+              "displayOrder": 6
+            },
+            {
+              "value": "UNPAID",
+              "label": "Unpaid Leave",
+              "displayOrder": 7
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "startDate",
+          "label": "Start Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND DATE_AFTER(@{startDate}, \"today\")"
+        },
+        {
+          "name": "endDate",
+          "label": "End Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND ValidWhen(IS_AFTER(@{endDate}, @{startDate}) OR IS_SAME_DAY(@{endDate}, @{startDate}), \"End date must be on or after start date\")"
+        },
+        {
+          "name": "totalDays",
+          "label": "Total Business Days",
+          "fieldType": "NUMBER",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "defaultValue": "BUSINESS_DAYS(@{startDate}, @{endDate})"
+        },
+        {
+          "name": "returnDate",
+          "label": "Return to Work Date",
+          "fieldType": "DATE",
+          "isReadonly": true,
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "defaultValue": "ADD_BUSINESS_DAYS(@{endDate}, 1)"
+        },
+        {
+          "name": "reason",
+          "label": "Reason",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Brief reason for the leave",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(10)"
+        },
+        {
+          "name": "handoverNotes",
+          "label": "Handover Notes",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Who will cover your duties and how?",
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "MinLength(5)"
+        },
+        {
+          "name": "contactDuringLeave",
+          "label": "Contact During Leave (optional)",
+          "fieldType": "PHONE",
+          "placeholder": "Only if available in emergencies",
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "medicalCertificate",
+          "label": "Medical Certificate",
+          "fieldType": "FILE",
+          "tooltip": "Required for sick leave > 2 days",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "allowedFileTypes": "pdf,jpg,png",
+          "maxFileSize": 5242880,
+          "visibilityExpression": "@{leaveType} == 'SICK' AND @{totalDays} > 2",
+          "validation": "ValidWhen(@{leaveType} != 'SICK' OR @{totalDays} <= 2 OR IS_NOT_EMPTY(@{medicalCertificate}), \"Medical certificate is required for sick leave over 2 days\")"
+        },
+        {
+          "name": "supportingDocs",
+          "label": "Other Supporting Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "allowedFileTypes": "pdf,jpg,png,doc,docx",
+          "maxFileSize": 5242880,
+          "maxFiles": 5
+        },
+        {
+          "name": "acknowledgement",
+          "label": "I confirm the information above is true and accurate",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "validation": "IsTrue(\"You must confirm before submitting\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Line Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "HR",
+      "approverType": "ROLE",
+      "roleName": "HR",
+      "canEscalate": false,
+      "requireComment": false,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "HR",
+  "workflowTypeCode": "LEAVE"
+}

@@ -1,0 +1,68 @@
+{
+  "_comment": "Telecom Site Acquisition — acquire a new cell/tower site with landlord agreement and regulatory approvals.",
+  "name": "Telecom Site Acquisition",
+  "code": "TSA",
+  "description": "Acquire a new cell / tower site with landlord agreement, regulatory approvals and build plan.",
+  "icon": "cell_tower",
+  "displayOrder": 162,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "TELECOMS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{siteRef} - @{siteCode} (@{city})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Site", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Landlord & Regulatory", "displayOrder": 1, "icon": "gavel" },
+      { "id": "temp_screen_3", "title": "Commercials", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Site Location", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Technical", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Landlord", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Regulatory / EMF", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Commercials", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "siteRef", "label": "Site Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"TSA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "siteCode", "label": "Site Code", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "siteType", "label": "Site Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "GREENFIELD", "label": "Greenfield", "displayOrder": 0 }, { "value": "ROOFTOP", "label": "Rooftop", "displayOrder": 1 }, { "value": "TOWER_SHARE", "label": "Tower Share / Co-Loc", "displayOrder": 2 }, { "value": "INBUILDING", "label": "In-Building", "displayOrder": 3 }, { "value": "SMALL_CELL", "label": "Small Cell / Pole", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "city", "label": "City", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "address", "label": "Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 5, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(10)" },
+      { "name": "gpsCoords", "label": "GPS (lat, lon)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 6, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "groundHeight", "label": "Ground Height (m AMSL)", "fieldType": "NUMBER", "displayOrder": 7, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Min(0)" },
+      { "name": "technology", "label": "Technology", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "2G", "label": "2G", "displayOrder": 0 }, { "value": "3G", "label": "3G", "displayOrder": 1 }, { "value": "4G", "label": "4G / LTE", "displayOrder": 2 }, { "value": "5G", "label": "5G", "displayOrder": 3 }, { "value": "MIXED", "label": "Multi-RAT", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "towerHeight", "label": "Tower Height (m)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "antennaSectors", "label": "Antenna Sectors", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "3", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "powerSource", "label": "Power Source", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "GRID", "label": "Grid + Battery", "displayOrder": 0 }, { "value": "HYBRID", "label": "Hybrid (Grid + Solar)", "displayOrder": 1 }, { "value": "SOLAR", "label": "Solar Only", "displayOrder": 2 }, { "value": "GENSET", "label": "Diesel Genset", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "landlordName", "label": "Landlord Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "landlordContact", "label": "Landlord Contact", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Phone()" },
+      { "name": "titleDeedVerified", "label": "Title Deed Verified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{titleDeedVerified} == true, \"Title deed must be verified\")" },
+      { "name": "leaseTermYears", "label": "Lease Term (years)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "10", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1) AND Max(50)" },
+      { "name": "communityConsent", "label": "Community Consultation Done", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "localAuthorityPermit", "label": "Local Authority Planning Permit", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{localAuthorityPermit} == true, \"Planning permit required\")" },
+      { "name": "emfCompliance", "label": "EMF Compliance Certificate", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{emfCompliance} == true, \"EMF compliance required\")" },
+      { "name": "eiaApproval", "label": "EIA Approval (if applicable)", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "monthlyRent", "label": "Monthly Rent", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "capex", "label": "Build Capex", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "expectedOnAirDate", "label": "Expected On-Air Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "expectedRevenue", "label": "Estimated Annual Revenue", "fieldType": "CURRENCY", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Min(0)" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Site Acquisition Specialist", "approverType": "ROLE", "roleName": "SA_SPECIALIST", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Rollout / RAN Manager", "approverType": "ROLE", "roleName": "ROLLOUT_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Rollout / Networks", "approverType": "ROLE", "roleName": "HEAD_ROLLOUT", "amountLimit": 500000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CTO", "approverType": "ROLE", "roleName": "CTO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

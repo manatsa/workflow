@@ -1,1 +1,0 @@
-import{H as o,s as a}from"./chunk-JPPAXSHL.js";import{Z as e,ob as r}from"./chunk-KET2PIKN.js";var s=(()=>{class t{static \u0275fac=function(i){return new(i||t)};static \u0275mod=r({type:t});static \u0275inj=e({imports:[o,a,o]})}return t})();export{s as a};

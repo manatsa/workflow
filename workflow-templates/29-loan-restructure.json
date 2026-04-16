@@ -1,0 +1,661 @@
+{
+  "_comment": "Loan Restructure / Reschedule — modify terms of an existing loan with credit committee approval.",
+  "name": "Loan Restructure / Reschedule",
+  "code": "LR",
+  "description": "Restructure or reschedule the terms of an existing loan facility (rate, tenor, instalment, moratorium).",
+  "icon": "edit_calendar",
+  "displayOrder": 29,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{restructRef} - @{customerName} (@{loanAccount})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 96,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Loan Restructure @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Loan restructure <strong>@{referenceNumber}</strong> awaiting your decision (pending @{daysPending} day(s)).</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Loan",
+          "displayOrder": 1,
+          "icon": "request_quote"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Reason",
+          "displayOrder": 2,
+          "icon": "edit_note"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Proposed Terms",
+          "displayOrder": 3,
+          "icon": "tune"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Documents",
+          "displayOrder": 4,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Review & Submit",
+          "displayOrder": 5,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Existing Loan",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Current Status",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Reason for Restructure",
+          "displayOrder": 3,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Proposed New Terms",
+          "displayOrder": 4,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Impact & Recommendation",
+          "displayOrder": 5,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Supporting Documents",
+          "displayOrder": 6,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        }
+      ],
+      "fields": [
+        {
+          "name": "restructRef",
+          "label": "Restructure Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"LR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "officer",
+          "label": "Officer",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerNumber",
+          "label": "Customer Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerName",
+          "label": "Customer Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "loanAccount",
+          "label": "Loan Account",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "loanProduct",
+          "label": "Loan Product",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "originalAmount",
+          "label": "Original Amount",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "originalTermMonths",
+          "label": "Original Term (months)",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Min(1)"
+        },
+        {
+          "name": "originalRate",
+          "label": "Original Rate (% p.a.)",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "displayOrder": 16,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Min(0) AND Max(100)"
+        },
+        {
+          "name": "disbursementDate",
+          "label": "Disbursement Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 17,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "outstandingPrincipal",
+          "label": "Outstanding Principal",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "accruedInterest",
+          "label": "Accrued Interest",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "defaultValue": "0",
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "arrearsAmount",
+          "label": "Arrears Amount",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "daysPastDue",
+          "label": "Days Past Due",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "currentClassification",
+          "label": "Loan Classification",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "PERFORMING",
+              "label": "Performing",
+              "displayOrder": 0
+            },
+            {
+              "value": "WATCH",
+              "label": "Special Mention / Watch",
+              "displayOrder": 1
+            },
+            {
+              "value": "SUBSTANDARD",
+              "label": "Substandard",
+              "displayOrder": 2
+            },
+            {
+              "value": "DOUBTFUL",
+              "label": "Doubtful",
+              "displayOrder": 3
+            },
+            {
+              "value": "LOSS",
+              "label": "Loss",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "restructureReason",
+          "label": "Reason Category",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "INCOME_REDUCTION",
+              "label": "Income Reduction",
+              "displayOrder": 0
+            },
+            {
+              "value": "JOB_LOSS",
+              "label": "Loss of Employment",
+              "displayOrder": 1
+            },
+            {
+              "value": "ILLNESS",
+              "label": "Illness / Medical",
+              "displayOrder": 2
+            },
+            {
+              "value": "BUSINESS_DOWNTURN",
+              "label": "Business Downturn",
+              "displayOrder": 3
+            },
+            {
+              "value": "FX_SHOCK",
+              "label": "FX / Macro Shock",
+              "displayOrder": 4
+            },
+            {
+              "value": "DEATH",
+              "label": "Death of Co-borrower",
+              "displayOrder": 5
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 6
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "reasonNarrative",
+          "label": "Reason Detail",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND MinLength(50)"
+        },
+        {
+          "name": "previouslyRestructured",
+          "label": "Previously Restructured?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4"
+        },
+        {
+          "name": "previousRestructureCount",
+          "label": "Number of Prior Restructures",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{previouslyRestructured} == true",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "restructureType",
+          "label": "Restructure Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "options": [
+            {
+              "value": "TENOR_EXTENSION",
+              "label": "Tenor Extension",
+              "displayOrder": 0
+            },
+            {
+              "value": "RATE_REDUCTION",
+              "label": "Rate Reduction",
+              "displayOrder": 1
+            },
+            {
+              "value": "MORATORIUM",
+              "label": "Payment Moratorium",
+              "displayOrder": 2
+            },
+            {
+              "value": "PRINCIPAL_HAIRCUT",
+              "label": "Principal Haircut",
+              "displayOrder": 3
+            },
+            {
+              "value": "INTEREST_CAPITALIZATION",
+              "label": "Interest Capitalisation",
+              "displayOrder": 4
+            },
+            {
+              "value": "COMBINATION",
+              "label": "Combination",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "newPrincipal",
+          "label": "New Principal",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "newRate",
+          "label": "New Rate (% p.a.)",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND Min(0) AND Max(100)"
+        },
+        {
+          "name": "newTermMonths",
+          "label": "New Term (months)",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND Min(1)"
+        },
+        {
+          "name": "newMonthlyInstallment",
+          "label": "New Monthly Instalment",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 44,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "moratoriumMonths",
+          "label": "Moratorium Period (months)",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 45,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Min(0) AND Max(24)"
+        },
+        {
+          "name": "effectiveDate",
+          "label": "Effective Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 46,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required()"
+        },
+        {
+          "name": "expectedRecovery",
+          "label": "Expected Recovery / Cure",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required() AND MinLength(30)"
+        },
+        {
+          "name": "officerRecommendation",
+          "label": "Officer Recommendation",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 51,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "customerRequest",
+          "label": "Customer Request Letter",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 60,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Customer request is required\")"
+        },
+        {
+          "name": "updatedFinancials",
+          "label": "Updated Financials / Income Proof",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 61,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "allowedFileTypes": "pdf,xls,xlsx,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        },
+        {
+          "name": "additionalDocs",
+          "label": "Additional Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 62,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "allowedFileTypes": "pdf,doc,docx,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Loan Officer",
+      "approverType": "ROLE",
+      "roleName": "LOAN_OFFICER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Credit Risk Officer",
+      "approverType": "ROLE",
+      "roleName": "CREDIT_RISK",
+      "amountLimit": 50000,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Head of Credit",
+      "approverType": "ROLE",
+      "roleName": "HEAD_OF_CREDIT",
+      "amountLimit": 250000,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 4,
+      "name": "Credit Committee",
+      "approverType": "ROLE",
+      "roleName": "CREDIT_COMMITTEE",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "BANKING",
+  "workflowTypeCode": "FINANCE"
+}

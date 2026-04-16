@@ -1,0 +1,64 @@
+{
+  "_comment": "Restaurant Outlet Opening — open a new restaurant / QSR outlet with fit-out, staffing and licensing.",
+  "name": "Restaurant Outlet Opening",
+  "code": "RRO",
+  "description": "Open a new restaurant or QSR outlet: site, fit-out, staffing, food licensing and opening inventory.",
+  "icon": "restaurant",
+  "displayOrder": 100,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "RESTAURANT",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{outletRef} - @{outletName} (@{city})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Outlet", "displayOrder": 0, "icon": "restaurant" },
+      { "id": "temp_screen_2", "title": "Readiness", "displayOrder": 1, "icon": "checklist" },
+      { "id": "temp_screen_3", "title": "Financials", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Outlet", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Location", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Licensing", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Operational Readiness", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Financials", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "outletRef", "label": "Outlet Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RRO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "proposalDate", "label": "Proposal Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "outletName", "label": "Outlet Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "concept", "label": "Concept", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "FINE_DINING", "label": "Fine Dining", "displayOrder": 0 }, { "value": "CASUAL", "label": "Casual Dining", "displayOrder": 1 }, { "value": "QSR", "label": "QSR / Fast Food", "displayOrder": 2 }, { "value": "CAFE", "label": "Café / Bakery", "displayOrder": 3 }, { "value": "CLOUD_KITCHEN", "label": "Cloud Kitchen", "displayOrder": 4 }, { "value": "BAR", "label": "Bar / Pub", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "seats", "label": "Seats", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND Min(0)" },
+      { "name": "city", "label": "City", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "address", "label": "Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "plannedOpening", "label": "Planned Opening Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Opening must be future\")" },
+      { "name": "tradingArea", "label": "Trading Area (m²)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "foodLicence", "label": "Food / Health Licence", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{foodLicence} == true, \"Food licence required\")" },
+      { "name": "liquorLicence", "label": "Liquor Licence (if needed)", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "fireCert", "label": "Fire Safety Certificate", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{fireCert} == true, \"Fire certificate required\")" },
+      { "name": "healthInspectionPassed", "label": "Health Inspection Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{healthInspectionPassed} == true, \"Health inspection required\")" },
+      { "name": "chef", "label": "Head Chef Assigned", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "outletManager", "label": "Outlet Manager", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "staffHired", "label": "Staff Hired", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "0", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "staffTrained", "label": "Staff Trained (HACCP, Service)", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{staffTrained} == true, \"Staff must be trained\")" },
+      { "name": "posConfigured", "label": "POS & Ordering Configured", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "deliveryPartners", "label": "Delivery Partners Connected", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "capexBudget", "label": "Capex Budget", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "openingInventory", "label": "Opening Inventory Value", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "forecastRevenue", "label": "Year 1 Revenue Forecast", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "paybackMonths", "label": "Projected Payback (months)", "fieldType": "NUMBER", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Min(1)" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPS_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Head of Operations", "approverType": "ROLE", "roleName": "HEAD_OF_OPERATIONS", "amountLimit": 300000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "CFO", "approverType": "ROLE", "roleName": "CFO", "amountLimit": 2000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CEO", "approverType": "ROLE", "roleName": "CEO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

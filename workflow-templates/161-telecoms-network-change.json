@@ -1,0 +1,61 @@
+{
+  "_comment": "Network Change Request — controlled change to telecom network config / equipment.",
+  "name": "Network Change Request",
+  "code": "TNC",
+  "description": "Controlled change to the telecom core / access network with rollback plan.",
+  "icon": "router",
+  "displayOrder": 161,
+  "requiresApproval": true, "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "TELECOMS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{changeRef} - @{changeTitle} (@{risk})",
+  "reminderEnabled": true, "reminderFrequencyHours": 8, "reminderMaxCount": 4, "reminderStartAfterHours": 4,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Change", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Risk & Plan", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Change Detail", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Affected Elements", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Risk & Impact", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Execution & Rollback", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "changeRef", "label": "Change Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"TNC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "raisedDate", "label": "Raised Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "changeOwner", "label": "Change Owner", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "changeType", "label": "Change Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "STANDARD", "label": "Standard (Pre-Approved)", "displayOrder": 0 }, { "value": "NORMAL", "label": "Normal", "displayOrder": 1 }, { "value": "EMERGENCY", "label": "Emergency", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "changeTitle", "label": "Change Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(5)" },
+      { "name": "description", "label": "Change Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(30)" },
+      { "name": "businessDriver", "label": "Business Driver / Justification", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(20)" },
+      { "name": "networkDomain", "label": "Network Domain", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "RAN", "label": "RAN / Access", "displayOrder": 0 }, { "value": "CORE", "label": "Core", "displayOrder": 1 }, { "value": "TRANSPORT", "label": "Transport / Backhaul", "displayOrder": 2 }, { "value": "BSS", "label": "BSS / OSS", "displayOrder": 3 }, { "value": "DATACENTRE", "label": "Data Centre", "displayOrder": 4 }, { "value": "SECURITY", "label": "Security / Firewall", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "affectedElements", "label": "Affected Elements / Sites", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "customersImpacted", "label": "Estimated Customers Impacted", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "risk", "label": "Risk Level", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "LOW", "label": "Low", "displayOrder": 0 }, { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 }, { "value": "HIGH", "label": "High", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "serviceOutageExpected", "label": "Service Outage Expected?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "outageDurationMins", "label": "Outage Duration (min)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{serviceOutageExpected} == true", "validation": "Min(0)" },
+      { "name": "regulatoryImplications", "label": "Regulatory Implications?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "changeWindow", "label": "Change Window Start", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "windowDurationHours", "label": "Window Duration (hours)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0.5)" },
+      { "name": "rollbackPlan", "label": "Rollback Plan", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(30)" },
+      { "name": "testEnvironmentTested", "label": "Tested in UAT / Lab", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{changeType} == 'EMERGENCY' OR @{testEnvironmentTested} == true, \"Testing required\")" },
+      { "name": "customerComms", "label": "Customer Communication Plan", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "NOC Shift Lead", "approverType": "ROLE", "roleName": "NOC_LEAD", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Network Engineering Manager", "approverType": "ROLE", "roleName": "NETWORK_ENG_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "CAB (Change Advisory Board)", "approverType": "ROLE", "roleName": "CAB", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CTO", "approverType": "ROLE", "roleName": "CTO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

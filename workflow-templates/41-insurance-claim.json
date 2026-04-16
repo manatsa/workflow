@@ -1,0 +1,180 @@
+{
+  "_comment": "Insurance Claim — capture FNOL, assess, price and approve settlement for general / short-term claims.",
+  "name": "Insurance Claim",
+  "code": "INC2",
+  "description": "Lodge, assess and settle an insurance claim (motor, property, liability, marine etc.).",
+  "icon": "gavel",
+  "displayOrder": 41,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "INSURANCE",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{claimRef} - @{insuredName} (@{claimAmount})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 5,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 96,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Claim @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Claim <strong>@{referenceNumber}</strong> awaiting your action.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Policy", "displayOrder": 1, "icon": "policy" },
+      { "id": "temp_screen_3", "title": "Loss Event", "displayOrder": 2, "icon": "warning" },
+      { "id": "temp_screen_4", "title": "Assessment", "displayOrder": 3, "icon": "assessment" },
+      { "id": "temp_screen_5", "title": "Settlement", "displayOrder": 4, "icon": "payments" },
+      { "id": "temp_screen_6", "title": "Documents", "displayOrder": 5, "icon": "attach_file" },
+      { "id": "temp_screen_7", "title": "Review & Submit", "displayOrder": 6, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Policy & Insured", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Loss Details", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_4", "title": "Third Party", "displayOrder": 3, "columns": 2, "isCollapsible": true, "isCollapsedByDefault": true, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Claim Assessment", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_6", "title": "Settlement", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_7", "title": "Evidence", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_6" }
+    ],
+
+    "fields": [
+      { "name": "claimRef", "label": "Claim Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"INC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Date Reported", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "claimOfficer", "label": "Claims Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "channel", "label": "Report Channel", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [
+          { "value": "BRANCH", "label": "Branch", "displayOrder": 0 },
+          { "value": "CALL_CENTER", "label": "Call Centre", "displayOrder": 1 },
+          { "value": "EMAIL", "label": "Email", "displayOrder": 2 },
+          { "value": "BROKER", "label": "Broker", "displayOrder": 3 },
+          { "value": "WEB", "label": "Web / App", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "policyNumber", "label": "Policy Number", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "insuredName", "label": "Insured Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "productClass", "label": "Class of Business", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "MOTOR", "label": "Motor", "displayOrder": 0 },
+          { "value": "PROPERTY", "label": "Property / Fire", "displayOrder": 1 },
+          { "value": "LIABILITY", "label": "Liability", "displayOrder": 2 },
+          { "value": "MARINE", "label": "Marine", "displayOrder": 3 },
+          { "value": "ENGINEERING", "label": "Engineering", "displayOrder": 4 },
+          { "value": "HEALTH", "label": "Health", "displayOrder": 5 },
+          { "value": "TRAVEL", "label": "Travel", "displayOrder": 6 },
+          { "value": "LIFE", "label": "Life", "displayOrder": 7 }
+        ],
+        "validation": "Required()" },
+      { "name": "policyStatus", "label": "Policy Status at Loss Date", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "ACTIVE", "label": "Active / Paid-Up", "displayOrder": 0 },
+          { "value": "ARREARS", "label": "In Arrears", "displayOrder": 1 },
+          { "value": "LAPSED", "label": "Lapsed", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "dateOfLoss", "label": "Date of Loss", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "placeOfLoss", "label": "Place of Loss", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "causeOfLoss", "label": "Cause / Peril", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "options": [
+          { "value": "ACCIDENT", "label": "Accident / Collision", "displayOrder": 0 },
+          { "value": "THEFT", "label": "Theft / Burglary", "displayOrder": 1 },
+          { "value": "FIRE", "label": "Fire", "displayOrder": 2 },
+          { "value": "FLOOD", "label": "Flood / Weather", "displayOrder": 3 },
+          { "value": "MEDICAL", "label": "Medical", "displayOrder": 4 },
+          { "value": "THIRD_PARTY", "label": "Third-Party Liability", "displayOrder": 5 },
+          { "value": "OTHER", "label": "Other", "displayOrder": 6 }
+        ],
+        "validation": "Required()" },
+      { "name": "lossDescription", "label": "Description of Loss", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND MinLength(30)" },
+      { "name": "policeReportFiled", "label": "Police Report Filed?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3" },
+      { "name": "policeReferenceNumber", "label": "Police Reference No.", "fieldType": "TEXT", "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "visibilityExpression": "@{policeReportFiled} == true",
+        "validation": "ValidWhen(@{policeReportFiled} == false OR IS_NOT_EMPTY(@{policeReferenceNumber}), \"Police reference required\")" },
+
+      { "name": "hasThirdParty", "label": "Third party involved?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "thirdPartyName", "label": "Third Party Name", "fieldType": "TEXT", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{hasThirdParty} == true",
+        "validation": "ValidWhen(@{hasThirdParty} == false OR IS_NOT_EMPTY(@{thirdPartyName}), \"Name required\")" },
+      { "name": "thirdPartyContact", "label": "Third Party Contact", "fieldType": "TEXT", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{hasThirdParty} == true" },
+      { "name": "thirdPartyInsurer", "label": "Third Party Insurer", "fieldType": "TEXT", "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{hasThirdParty} == true" },
+
+      { "name": "claimedAmount", "label": "Amount Claimed", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND Min(0.01)" },
+      { "name": "assessorFinding", "label": "Assessed Loss", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND Min(0)" },
+      { "name": "excess", "label": "Policy Excess", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Min(0)" },
+      { "name": "salvageValue", "label": "Salvage Value", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Min(0)" },
+      { "name": "claimAmount", "label": "Net Claim Payable", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUBTRACT(@{assessorFinding}, SUM(@{excess}, @{salvageValue}))" },
+      { "name": "liabilityAccepted", "label": "Liability Accepted?", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 45, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "FULL", "label": "Full", "displayOrder": 0 },
+          { "value": "PARTIAL", "label": "Partial", "displayOrder": 1 },
+          { "value": "REJECTED", "label": "Rejected", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+      { "name": "assessorNotes", "label": "Assessor Findings & Recommendation", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 46, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND MinLength(30)" },
+
+      { "name": "settlementMethod", "label": "Settlement Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "visibilityExpression": "@{liabilityAccepted} != 'REJECTED'",
+        "options": [
+          { "value": "BANK_TRANSFER", "label": "Bank Transfer", "displayOrder": 0 },
+          { "value": "MOBILE_MONEY", "label": "Mobile Money", "displayOrder": 1 },
+          { "value": "CHEQUE", "label": "Cheque", "displayOrder": 2 },
+          { "value": "GARAGE", "label": "Pay Garage / Service Provider", "displayOrder": 3 }
+        ],
+        "validation": "ValidWhen(@{liabilityAccepted} == 'REJECTED' OR IS_NOT_EMPTY(@{settlementMethod}), \"Settlement method required\")" },
+      { "name": "payeeDetails", "label": "Payee Account / Reference", "fieldType": "TEXT", "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "visibilityExpression": "@{liabilityAccepted} != 'REJECTED'",
+        "validation": "ValidWhen(@{liabilityAccepted} == 'REJECTED' OR IS_NOT_EMPTY(@{payeeDetails}), \"Payee details required\")" },
+      { "name": "settlementDate", "label": "Settlement Date", "fieldType": "DATE", "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "visibilityExpression": "@{liabilityAccepted} != 'REJECTED'" },
+
+      { "name": "claimForm", "label": "Signed Claim Form", "fieldType": "FILE", "isMandatory": true, "displayOrder": 60, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "lossPhotos", "label": "Photos / Videos of Loss", "fieldType": "FILE", "multiple": true, "displayOrder": 61, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "allowedFileTypes": "jpg,jpeg,png,mp4", "maxFileSize": 20971520, "maxFiles": 20 },
+      { "name": "quotationsInvoices", "label": "Quotations / Invoices", "fieldType": "FILE", "multiple": true, "displayOrder": 62, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "allowedFileTypes": "pdf,jpg,jpeg,png,xls,xlsx", "maxFileSize": 10485760, "maxFiles": 15 },
+      { "name": "policeReport", "label": "Police Report", "fieldType": "FILE", "displayOrder": 63, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "visibilityExpression": "@{policeReportFiled} == true",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "medicalReport", "label": "Medical Report", "fieldType": "FILE", "displayOrder": 64, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "visibilityExpression": "@{productClass} == 'HEALTH' OR @{causeOfLoss} == 'MEDICAL'",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Claims Officer", "approverType": "ROLE", "roleName": "CLAIMS_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Claims Assessor", "approverType": "ROLE", "roleName": "CLAIMS_ASSESSOR", "amountLimit": 10000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Claims Manager", "approverType": "ROLE", "roleName": "CLAIMS_MANAGER", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Head of Claims", "approverType": "ROLE", "roleName": "HEAD_OF_CLAIMS", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "_comment": "FMCG New Product Launch — launch a new SKU with packaging, pricing, listing and channel rollout.",
+  "name": "FMCG New Product Launch",
+  "code": "FNP",
+  "description": "Launch a new FMCG SKU: pack development, pricing, regulatory, channel listing and trade rollout.",
+  "icon": "rocket_launch",
+  "displayOrder": 94,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FMCG",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{launchRef} - @{productName} (@{launchDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Product", "displayOrder": 0, "icon": "inventory" },
+      { "id": "temp_screen_2", "title": "Pricing & Margin", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Readiness", "displayOrder": 2, "icon": "checklist" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Product", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Positioning", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Pricing", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Volumes & Forecast", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Readiness Checklist", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "launchRef", "label": "Launch Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FNP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "productName", "label": "Product Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND MinLength(3)" },
+      { "name": "sku", "label": "SKU Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "packSize", "label": "Pack Size", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "brand", "label": "Brand", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "category", "label": "Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FOOD", "label": "Food", "displayOrder": 0 }, { "value": "BEVERAGE", "label": "Beverage", "displayOrder": 1 }, { "value": "PERSONAL_CARE", "label": "Personal Care", "displayOrder": 2 }, { "value": "HOME_CARE", "label": "Home Care", "displayOrder": 3 }, { "value": "HEALTH", "label": "Health & Wellness", "displayOrder": 4 }, { "value": "TOBACCO", "label": "Tobacco / Alcohol", "displayOrder": 5 }, { "value": "OTHER", "label": "Other", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "launchDate", "label": "Planned Launch Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Launch must be future\")" },
+      { "name": "rationale", "label": "Launch Rationale", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(50)" },
+      { "name": "costPrice", "label": "Cost Price", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "trader PriceList", "label": "Trade / List Price", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "rrp", "label": "Recommended Retail Price", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "grossMarginPercent", "label": "Gross Margin %", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "year1Volume", "label": "Year 1 Volume Forecast (units)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "year1Revenue", "label": "Year 1 Revenue Forecast", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "launchInvestment", "label": "Launch Investment (A&P + Trade)", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "packagingReady", "label": "Packaging Artwork Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{packagingReady} == true, \"Packaging must be approved\")" },
+      { "name": "regulatoryApproved", "label": "Regulatory Registration Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{regulatoryApproved} == true, \"Regulatory approval required\")" },
+      { "name": "supplyConfirmed", "label": "Supply / Production Confirmed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{supplyConfirmed} == true, \"Supply must be confirmed\")" },
+      { "name": "customerListings", "label": "Key Customer Listings Secured", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "marketingPlanReady", "label": "Marketing Plan Ready", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "businessCase", "label": "Launch Business Case", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 20971520, "validation": "Required()" },
+      { "name": "packagingArtwork", "label": "Packaging Artwork", "fieldType": "FILE", "multiple": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,png,jpg,jpeg,ai,eps", "maxFileSize": 52428800, "maxFiles": 10 },
+      { "name": "regulatoryCert", "label": "Regulatory Registration Cert", "fieldType": "FILE", "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Brand / Product Manager", "approverType": "ROLE", "roleName": "BRAND_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Marketing Director", "approverType": "ROLE", "roleName": "MARKETING_DIRECTOR", "amountLimit": 500000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Commercial Director", "approverType": "ROLE", "roleName": "COMMERCIAL_DIRECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CEO", "approverType": "ROLE", "roleName": "CEO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "_comment": "Food Safety Incident — report and manage a food safety or hygiene incident in production / retail.",
+  "name": "Food Safety Incident",
+  "code": "FSI",
+  "description": "Report and manage a food safety / hygiene incident (contamination, foreign body, temperature breach, complaint).",
+  "icon": "warning",
+  "displayOrder": 98,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "FOOD",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{incidentRef} - @{incidentType} (@{severity})",
+  "reminderEnabled": true, "reminderFrequencyHours": 2, "reminderMaxCount": 5, "reminderStartAfterHours": 1,
+  "escalationEnabled": true, "escalationAfterHours": 12, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Incident", "displayOrder": 0, "icon": "warning" },
+      { "id": "temp_screen_2", "title": "Products & Containment", "displayOrder": 1, "icon": "inventory" },
+      { "id": "temp_screen_3", "title": "Root Cause & CAPA", "displayOrder": 2, "icon": "search" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "What & Where", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Affected Products", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Containment", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Root Cause & Actions", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "incidentRef", "label": "Incident Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FSI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportedDate", "label": "Date Reported", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportedBy", "label": "Reported By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "severity", "label": "Severity", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "MINOR", "label": "Minor", "displayOrder": 0 }, { "value": "MODERATE", "label": "Moderate", "displayOrder": 1 }, { "value": "MAJOR", "label": "Major", "displayOrder": 2 }, { "value": "CRITICAL", "label": "Critical - Illness/Recall", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "incidentType", "label": "Incident Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CONTAMINATION_BIO", "label": "Microbial Contamination", "displayOrder": 0 }, { "value": "CONTAMINATION_CHEM", "label": "Chemical Contamination", "displayOrder": 1 }, { "value": "FOREIGN_BODY", "label": "Foreign Body", "displayOrder": 2 }, { "value": "ALLERGEN", "label": "Allergen Cross-Contact", "displayOrder": 3 }, { "value": "TEMP_BREACH", "label": "Temperature Breach", "displayOrder": 4 }, { "value": "PACKAGING", "label": "Packaging Defect", "displayOrder": 5 }, { "value": "MISLABELLING", "label": "Mislabelling", "displayOrder": 6 }, { "value": "CUSTOMER_COMPLAINT", "label": "Customer Complaint / Illness", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "incidentDate", "label": "Incident Date/Time", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "location", "label": "Location / Line", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "description", "label": "Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(30)" },
+      { "name": "affectedSkus", "label": "Affected SKUs", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "batchCodes", "label": "Affected Batch / Lot Codes", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "unitsAffected", "label": "Units Affected (est.)", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "inMarket", "label": "Already in Market?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "productionHeld", "label": "Production Held / Line Stopped", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{severity} == 'MINOR' OR @{productionHeld} == true, \"Production must be held for major incidents\")" },
+      { "name": "stockQuarantined", "label": "Stock Quarantined", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{stockQuarantined} == true, \"Stock must be quarantined\")" },
+      { "name": "customerNotified", "label": "Customers / Regulator Notified", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "recallRequired", "label": "Recall Required", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "rootCause", "label": "Root Cause", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(30)" },
+      { "name": "correctiveActions", "label": "Corrective & Preventive Actions (CAPA)", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(50)" },
+      { "name": "capaOwner", "label": "CAPA Owner", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "capaDueDate", "label": "CAPA Due Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "incidentPhotos", "label": "Photos / Evidence", "fieldType": "FILE", "multiple": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "jpg,jpeg,png,pdf", "maxFileSize": 20971520, "maxFiles": 15 },
+      { "name": "labReport", "label": "Lab Test Report", "fieldType": "FILE", "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Food Safety Officer", "approverType": "ROLE", "roleName": "FOOD_SAFETY_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "QA Manager", "approverType": "ROLE", "roleName": "QA_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Operations Director", "approverType": "ROLE", "roleName": "OPS_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

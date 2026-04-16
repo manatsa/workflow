@@ -1,0 +1,66 @@
+{
+  "_comment": "Retail Promotion Setup — plan and activate a time-bound promotion or campaign across stores.",
+  "name": "Retail Promotion Setup",
+  "code": "RPR",
+  "description": "Plan and activate a time-bound retail promotion or campaign across stores and channels.",
+  "icon": "local_offer",
+  "displayOrder": 86,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "RETAIL",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{promoRef} - @{promoName} (@{startDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Promotion", "displayOrder": 0, "icon": "local_offer" },
+      { "id": "temp_screen_2", "title": "Products & Mechanic", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Financials", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Dates", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Description", "displayOrder": 1, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Mechanic", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Products Included", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Forecast & Funding", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "promoRef", "label": "Promotion Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RPR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "promoName", "label": "Promotion Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND MinLength(3)" },
+      { "name": "startDate", "label": "Start Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND DateAfter(\"today\", \"Start must be future\")" },
+      { "name": "endDate", "label": "End Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "channel", "label": "Channel", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "ALL", "label": "All Channels", "displayOrder": 0 }, { "value": "STORES_ONLY", "label": "Stores Only", "displayOrder": 1 }, { "value": "ONLINE_ONLY", "label": "Online Only", "displayOrder": 2 }, { "value": "APP_EXCLUSIVE", "label": "App Exclusive", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "description", "label": "Description / Campaign Rationale", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(30)" },
+      { "name": "mechanic", "label": "Promotion Mechanic", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "PERCENT_OFF", "label": "% Off", "displayOrder": 0 }, { "value": "AMOUNT_OFF", "label": "Amount Off", "displayOrder": 1 }, { "value": "BOGO", "label": "Buy-One-Get-One", "displayOrder": 2 }, { "value": "BUNDLE", "label": "Bundle", "displayOrder": 3 }, { "value": "COUPON", "label": "Coupon", "displayOrder": 4 }, { "value": "LOYALTY", "label": "Loyalty Points Multiplier", "displayOrder": 5 }, { "value": "FREE_GIFT", "label": "Free Gift with Purchase", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "discountValue", "label": "Discount Value (% or amount)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "minPurchase", "label": "Minimum Purchase", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "limitPerCustomer", "label": "Limit per Customer", "fieldType": "NUMBER", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "includedProducts", "label": "Included SKUs / Categories", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(10)" },
+      { "name": "excludedProducts", "label": "Excluded SKUs", "fieldType": "TEXTAREA", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "forecastUnits", "label": "Forecast Units Sold", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "forecastRevenue", "label": "Forecast Revenue", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "promoCost", "label": "Promotion Cost (discount value)", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "supplierFunded", "label": "Supplier-Funded?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "supplierContribution", "label": "Supplier Contribution", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{supplierFunded} == true", "validation": "Min(0)" },
+      { "name": "netPromoCost", "label": "Net Promotion Cost", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 45, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUBTRACT(@{promoCost}, @{supplierContribution})" },
+      { "name": "creatives", "label": "Creatives / POS Artwork", "fieldType": "FILE", "multiple": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png,zip", "maxFileSize": 52428800, "maxFiles": 15 },
+      { "name": "termsDoc", "label": "Terms & Conditions", "fieldType": "FILE", "isMandatory": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Marketing Manager", "approverType": "ROLE", "roleName": "MARKETING_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Category Manager", "approverType": "ROLE", "roleName": "CATEGORY_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Commercial Director", "approverType": "ROLE", "roleName": "COMMERCIAL_DIRECTOR", "amountLimit": 250000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CFO", "approverType": "ROLE", "roleName": "CFO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "_comment": "Content Rights Acquisition — license content / rights from third party for broadcast.",
+  "name": "Content Rights Acquisition",
+  "code": "MRA",
+  "description": "License content / broadcast rights from a third party.",
+  "icon": "copyright",
+  "displayOrder": 167,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "MEDIA",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{rightsRef} - @{contentTitle} (@{licenseFee})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Content", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "License Terms", "displayOrder": 1, "icon": "gavel" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Content Detail", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Licensor", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "License Terms", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Commercials", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "rightsRef", "label": "Rights Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MRA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "buyer", "label": "Acquisitions Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "contentTitle", "label": "Content Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contentType", "label": "Content Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FILM", "label": "Film / Movie", "displayOrder": 0 }, { "value": "SERIES", "label": "TV Series", "displayOrder": 1 }, { "value": "SPORTS", "label": "Sports Rights", "displayOrder": 2 }, { "value": "DOCUMENTARY", "label": "Documentary", "displayOrder": 3 }, { "value": "MUSIC", "label": "Music / Audio", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "episodes", "label": "Episodes / Items", "fieldType": "NUMBER", "defaultValue": "1", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Min(1)" },
+      { "name": "language", "label": "Language(s)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "licensor", "label": "Licensor / Studio", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "licensorContact", "label": "Licensor Contact Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND IS_EMAIL()" },
+      { "name": "exclusivity", "label": "Exclusivity", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "EXCLUSIVE", "label": "Exclusive", "displayOrder": 0 }, { "value": "NON_EXCLUSIVE", "label": "Non-Exclusive", "displayOrder": 1 }, { "value": "FIRST_WINDOW", "label": "First Window", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "territory", "label": "Territory", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "platforms", "label": "Platforms (TV/OTT/VOD)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "licenseStart", "label": "License Start", "fieldType": "DATE", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "licenseEnd", "label": "License End", "fieldType": "DATE", "isMandatory": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "runs", "label": "Number of Runs / Plays", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "licenseFee", "label": "License Fee", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "paymentTerms", "label": "Payment Terms", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "legalReview", "label": "Legal Review Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{legalReview} == true, \"Legal review required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Acquisitions Manager", "approverType": "ROLE", "roleName": "ACQ_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Head of Programming", "approverType": "ROLE", "roleName": "HEAD_PROGRAMMING", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "CFO", "approverType": "ROLE", "roleName": "CFO", "amountLimit": 500000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CEO", "approverType": "ROLE", "roleName": "CEO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

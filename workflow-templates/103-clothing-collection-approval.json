@@ -1,0 +1,62 @@
+{
+  "_comment": "Seasonal Collection Approval — sign-off on a new seasonal clothing collection before production.",
+  "name": "Seasonal Collection Approval",
+  "code": "CCA",
+  "description": "Design sign-off on a new seasonal collection: styles, pricing, quantity plan and sourcing.",
+  "icon": "style",
+  "displayOrder": 103,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "CLOTHING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{collectionRef} - @{collectionName} (@{season})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Collection", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Styles & Plan", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Documents", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Season & Concept", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Styles", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Commercials", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Documents", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "collectionRef", "label": "Collection Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CCA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "collectionName", "label": "Collection Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND MinLength(3)" },
+      { "name": "season", "label": "Season", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SS", "label": "Spring/Summer", "displayOrder": 0 }, { "value": "AW", "label": "Autumn/Winter", "displayOrder": 1 }, { "value": "RESORT", "label": "Resort / Cruise", "displayOrder": 2 }, { "value": "PRE_FALL", "label": "Pre-Fall", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "year", "label": "Year", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(2024) AND Max(2050)" },
+      { "name": "segment", "label": "Segment", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "MEN", "label": "Men", "displayOrder": 0 }, { "value": "WOMEN", "label": "Women", "displayOrder": 1 }, { "value": "KIDS", "label": "Kids", "displayOrder": 2 }, { "value": "UNISEX", "label": "Unisex", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "designDirector", "label": "Design Director", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "conceptSummary", "label": "Concept / Theme", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(30)" },
+      { "name": "styles", "label": "Styles in Collection", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 200, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"styleCode\",\"label\":\"Style #\",\"type\":\"TEXT\",\"width\":120,\"required\":true},{\"name\":\"styleName\",\"label\":\"Style Name\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"category\",\"label\":\"Category\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"fabric\",\"label\":\"Fabric\",\"type\":\"TEXT\",\"width\":180},{\"name\":\"costPerUnit\",\"label\":\"Cost\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"retailPrice\",\"label\":\"Retail\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"plannedQty\",\"label\":\"Planned Qty\",\"type\":\"NUMBER\",\"width\":120,\"required\":true}]", "validation": "MinRows(1, \"At least one style required\")" },
+      { "name": "totalStyles", "label": "Total Styles", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "COUNT(\"styles\")" },
+      { "name": "totalPlannedUnits", "label": "Total Planned Units", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"styles\", \"plannedQty\")" },
+      { "name": "productionBudget", "label": "Production Budget", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "launchDate", "label": "Launch Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Launch must be future\")" },
+      { "name": "lookbook", "label": "Lookbook / Moodboard", "fieldType": "FILE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png,zip", "maxFileSize": 104857600, "validation": "Required()" },
+      { "name": "techPacks", "label": "Tech Packs", "fieldType": "FILE", "multiple": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,xls,xlsx,zip", "maxFileSize": 52428800, "maxFiles": 20 },
+      { "name": "costingSheet", "label": "Costing Sheet", "fieldType": "FILE", "isMandatory": true, "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "xls,xlsx,pdf", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Design Manager", "approverType": "ROLE", "roleName": "DESIGN_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Buying / Merchandising Head", "approverType": "ROLE", "roleName": "HEAD_MERCHANDISING", "amountLimit": 500000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Creative Director", "approverType": "ROLE", "roleName": "CREATIVE_DIRECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CEO", "approverType": "ROLE", "roleName": "CEO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

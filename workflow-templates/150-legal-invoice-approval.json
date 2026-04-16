@@ -1,0 +1,59 @@
+{
+  "_comment": "Legal Invoice Approval — time-based billing and invoice approval to client.",
+  "name": "Legal Invoice Approval",
+  "code": "LIA",
+  "description": "Time-based billing and invoice approval before issue to client.",
+  "icon": "receipt",
+  "displayOrder": 150,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "LEGAL",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{invoiceRef} - @{clientName} (@{totalAmount})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Invoice", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Time & Disbursements", "displayOrder": 1, "icon": "schedule" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client & Matter", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Billing Period", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Time Entries", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Totals", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "invoiceRef", "label": "Invoice Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"LIA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "invoiceDate", "label": "Invoice Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "preparedBy", "label": "Prepared By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "invoiceType", "label": "Invoice Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "INTERIM", "label": "Interim", "displayOrder": 0 }, { "value": "FINAL", "label": "Final", "displayOrder": 1 }, { "value": "ANNUAL_RETAINER", "label": "Retainer", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "clientName", "label": "Client", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "matterRef", "label": "Matter Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "billingContact", "label": "Billing Contact Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND ValidWhen(IS_EMAIL(@{billingContact}), \"Enter valid email\")" },
+      { "name": "periodFrom", "label": "Period From", "fieldType": "DATE", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "periodTo", "label": "Period To", "fieldType": "DATE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "dueDate", "label": "Due Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "timeEntries", "label": "Time Entries", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 500, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"entryDate\",\"label\":\"Date\",\"type\":\"DATE\",\"width\":130,\"required\":true},{\"name\":\"fee earner\",\"label\":\"Fee Earner\",\"type\":\"TEXT\",\"width\":180,\"required\":true},{\"name\":\"narrative\",\"label\":\"Narrative\",\"type\":\"TEXT\",\"width\":320,\"required\":true},{\"name\":\"hours\",\"label\":\"Hours\",\"type\":\"NUMBER\",\"width\":90,\"required\":true},{\"name\":\"rate\",\"label\":\"Rate\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"amount\",\"label\":\"Amount\",\"type\":\"NUMBER\",\"width\":120,\"computed\":\"MULTIPLY(@{hours}, @{rate})\"}]", "validation": "MinRows(1, \"At least one time entry required\")" },
+      { "name": "feesTotal", "label": "Fees Total", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM_COLUMN(\"timeEntries\", \"amount\")" },
+      { "name": "disbursements", "label": "Disbursements", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "writeOff", "label": "Write-Off / Discount", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "vat", "label": "VAT", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "totalAmount", "label": "Total Amount", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUBTRACT(SUM(@{feesTotal}, @{disbursements}, @{vat}), @{writeOff})" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Responsible Lawyer", "approverType": "ROLE", "roleName": "LAWYER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Billing Partner", "approverType": "ROLE", "roleName": "BILLING_PARTNER", "amountLimit": 50000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Partner", "approverType": "ROLE", "roleName": "MANAGING_PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

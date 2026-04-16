@@ -1,0 +1,631 @@
+{
+  "_comment": "Wire / Funds Transfer Authorization — maker-checker with tiered approval based on amount and currency.",
+  "name": "Wire Transfer Authorization",
+  "code": "WTA",
+  "description": "Authorize an outgoing domestic or international wire transfer using maker-checker controls.",
+  "icon": "send",
+  "displayOrder": 24,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{wireRef} - @{beneficiaryName} (@{transferAmount} @{currency})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 4,
+  "reminderMaxCount": 6,
+  "reminderStartAfterHours": 1,
+  "escalationEnabled": true,
+  "escalationAfterHours": 8,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "URGENT: Wire @{referenceNumber} awaiting authorization",
+  "reminderEmailBody": "<p>Wire transfer <strong>@{referenceNumber}</strong> is pending your authorization. Please action promptly to meet cut-off.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Transfer Details",
+          "displayOrder": 0,
+          "icon": "send"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Originator",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Beneficiary",
+          "displayOrder": 2,
+          "icon": "account_balance"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Compliance",
+          "displayOrder": 3,
+          "icon": "verified_user"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Documents",
+          "displayOrder": 4,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Review & Submit",
+          "displayOrder": 5,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Transfer Amount",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Originator Account",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Beneficiary Details",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Beneficiary Bank",
+          "displayOrder": 4,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Intermediary Bank",
+          "displayOrder": 5,
+          "columns": 2,
+          "isCollapsible": true,
+          "isCollapsedByDefault": true,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Compliance Checks",
+          "displayOrder": 6,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_8",
+          "title": "Supporting Documents",
+          "displayOrder": 7,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        }
+      ],
+      "fields": [
+        {
+          "name": "wireRef",
+          "label": "Wire Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"WT-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "valueDate",
+          "label": "Value Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "defaultValue": "TODAY()",
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "wireType",
+          "label": "Transfer Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "options": [
+            {
+              "value": "DOMESTIC_RTGS",
+              "label": "Domestic RTGS",
+              "displayOrder": 0
+            },
+            {
+              "value": "DOMESTIC_ACH",
+              "label": "Domestic ACH",
+              "displayOrder": 1
+            },
+            {
+              "value": "SWIFT_INTL",
+              "label": "International SWIFT",
+              "displayOrder": 2
+            },
+            {
+              "value": "INTERNAL",
+              "label": "Internal Book Transfer",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "priority",
+          "label": "Priority",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "NORMAL",
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "options": [
+            {
+              "value": "NORMAL",
+              "label": "Normal",
+              "displayOrder": 0
+            },
+            {
+              "value": "URGENT",
+              "label": "Urgent",
+              "displayOrder": 1
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "transferAmount",
+          "label": "Transfer Amount",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Min(0.01)"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "USD",
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "USD",
+              "label": "USD",
+              "displayOrder": 0
+            },
+            {
+              "value": "EUR",
+              "label": "EUR",
+              "displayOrder": 1
+            },
+            {
+              "value": "GBP",
+              "label": "GBP",
+              "displayOrder": 2
+            },
+            {
+              "value": "ZAR",
+              "label": "ZAR",
+              "displayOrder": 3
+            },
+            {
+              "value": "ZWL",
+              "label": "ZWL",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "chargesBorneBy",
+          "label": "Charges Borne By",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "OUR",
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "OUR",
+              "label": "OUR (Originator pays all)",
+              "displayOrder": 0
+            },
+            {
+              "value": "BEN",
+              "label": "BEN (Beneficiary pays all)",
+              "displayOrder": 1
+            },
+            {
+              "value": "SHA",
+              "label": "SHA (Shared)",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "fxRate",
+          "label": "FX Rate",
+          "fieldType": "NUMBER",
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "ValidWhen(IS_EMPTY(@{fxRate}) OR @{fxRate} > 0, \"FX rate must be positive\")"
+        },
+        {
+          "name": "originatorName",
+          "label": "Originator Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()"
+        },
+        {
+          "name": "originatorAccount",
+          "label": "Originator Account No.",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "originatorAddress",
+          "label": "Originator Address",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 22,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()"
+        },
+        {
+          "name": "purpose",
+          "label": "Purpose of Payment",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 23,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(10)"
+        },
+        {
+          "name": "beneficiaryName",
+          "label": "Beneficiary Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND MinLength(2)"
+        },
+        {
+          "name": "beneficiaryAccount",
+          "label": "Beneficiary Account / IBAN",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND MinLength(5)",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "beneficiaryAddress",
+          "label": "Beneficiary Address",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 32,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "beneficiaryCountry",
+          "label": "Beneficiary Country",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "beneficiaryBankName",
+          "label": "Beneficiary Bank Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required()"
+        },
+        {
+          "name": "swiftBic",
+          "label": "SWIFT / BIC Code",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND Pattern(/^[A-Z0-9]{8}([A-Z0-9]{3})?$/, \"Enter a valid 8 or 11 character SWIFT/BIC\")",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "beneficiaryBankAddress",
+          "label": "Beneficiary Bank Address",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 42,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "routingCode",
+          "label": "Routing / Sort Code",
+          "fieldType": "TEXT",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "useIntermediary",
+          "label": "Use intermediary bank?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_6"
+        },
+        {
+          "name": "intermediaryBank",
+          "label": "Intermediary Bank Name",
+          "fieldType": "TEXT",
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{useIntermediary} == true",
+          "validation": "ValidWhen(@{useIntermediary} == false OR IS_NOT_EMPTY(@{intermediaryBank}), \"Intermediary bank required\")"
+        },
+        {
+          "name": "intermediarySwift",
+          "label": "Intermediary SWIFT",
+          "fieldType": "TEXT",
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{useIntermediary} == true",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "sanctionsScreening",
+          "label": "Sanctions Screening Result",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "CLEAR",
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "options": [
+            {
+              "value": "CLEAR",
+              "label": "Clear",
+              "displayOrder": 0
+            },
+            {
+              "value": "FALSE_POSITIVE",
+              "label": "Cleared (False Positive)",
+              "displayOrder": 1
+            },
+            {
+              "value": "HOLD",
+              "label": "On Hold for Investigation",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "amlReviewed",
+          "label": "AML/CFT Review Completed",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "ValidWhen(@{amlReviewed} == true, \"AML review must be completed\")"
+        },
+        {
+          "name": "isHighRiskJurisdiction",
+          "label": "High-Risk Jurisdiction?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7"
+        },
+        {
+          "name": "complianceNotes",
+          "label": "Compliance Notes",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 63,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "visibilityExpression": "@{sanctionsScreening} != 'CLEAR' OR @{isHighRiskJurisdiction} == true",
+          "validation": "ValidWhen(@{sanctionsScreening} == 'CLEAR' AND @{isHighRiskJurisdiction} == false OR HAS_MIN_LENGTH(@{complianceNotes}, 20), \"Provide compliance notes (min 20 chars)\")"
+        },
+        {
+          "name": "customerInstruction",
+          "label": "Customer Instruction / Request",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 70,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Signed customer instruction is required\")"
+        },
+        {
+          "name": "supportingDocs",
+          "label": "Supporting Documents (invoice, contract)",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 71,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        },
+        {
+          "name": "makerCertify",
+          "label": "Maker: I have verified beneficiary details against customer instructions",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "validation": "IsTrue(\"Maker certification required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Operations Maker",
+      "approverType": "ROLE",
+      "roleName": "OPS_MAKER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Operations Checker",
+      "approverType": "ROLE",
+      "roleName": "OPS_CHECKER",
+      "amountLimit": 50000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Treasury / Operations Manager",
+      "approverType": "ROLE",
+      "roleName": "OPS_MANAGER",
+      "amountLimit": 500000,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 4,
+      "name": "Head of Operations",
+      "approverType": "ROLE",
+      "roleName": "HEAD_OF_OPERATIONS",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "BANKING",
+  "workflowTypeCode": "FINANCE"
+}

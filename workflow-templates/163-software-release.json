@@ -1,0 +1,60 @@
+{
+  "_comment": "Software Release Approval — approve a production software release / deployment.",
+  "name": "Software Release Approval",
+  "code": "SRA",
+  "description": "Approve a production software release / deployment with rollback plan.",
+  "icon": "rocket_launch",
+  "displayOrder": 163,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "SOFTWARE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{releaseRef} - @{productName} v@{version}",
+  "reminderEnabled": true, "reminderFrequencyHours": 8, "reminderMaxCount": 4, "reminderStartAfterHours": 4,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Release", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Quality & Risk", "displayOrder": 1, "icon": "verified" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Release Detail", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Scope", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Quality Gates", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Deployment Plan", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "releaseRef", "label": "Release Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SRA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "releaseManager", "label": "Release Manager", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "productName", "label": "Product / Service", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "version", "label": "Version", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Pattern(\"^\\\\d+\\\\.\\\\d+\\\\.\\\\d+.*$\", \"Use semver\")" },
+      { "name": "releaseType", "label": "Release Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "MAJOR", "label": "Major", "displayOrder": 0 }, { "value": "MINOR", "label": "Minor", "displayOrder": 1 }, { "value": "PATCH", "label": "Patch", "displayOrder": 2 }, { "value": "HOTFIX", "label": "Hotfix", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "environment", "label": "Target Environment", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "STAGING", "label": "Staging", "displayOrder": 0 }, { "value": "PROD", "label": "Production", "displayOrder": 1 }, { "value": "DR", "label": "DR / Failover", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "changeNotes", "label": "Release Notes / Changelog", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(30)" },
+      { "name": "ticketsIncluded", "label": "Tickets / PRs Included", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "schemaChanges", "label": "Database / Schema Changes?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "breakingChanges", "label": "Breaking API Changes?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "unitTestsPassed", "label": "Unit Tests Pass", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{unitTestsPassed} == true, \"Tests must pass\")" },
+      { "name": "integrationTestsPassed", "label": "Integration Tests Pass", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{integrationTestsPassed} == true, \"Integration tests required\")" },
+      { "name": "securityScan", "label": "Security / SAST Scan Clean", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{securityScan} == true, \"Security scan required\")" },
+      { "name": "uatSignedOff", "label": "UAT / Product Sign-off", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{releaseType} == 'HOTFIX' OR @{uatSignedOff} == true, \"UAT required\")" },
+      { "name": "deployWindow", "label": "Deployment Window", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "downtimeMins", "label": "Expected Downtime (min)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "rollbackPlan", "label": "Rollback Plan", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(30)" },
+      { "name": "customerComms", "label": "Customer Comms Required?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Engineering Lead", "approverType": "ROLE", "roleName": "ENG_LEAD", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "QA Lead", "approverType": "ROLE", "roleName": "QA_LEAD", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Product Owner", "approverType": "ROLE", "roleName": "PRODUCT_OWNER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CTO / Head of Engineering", "approverType": "ROLE", "roleName": "CTO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

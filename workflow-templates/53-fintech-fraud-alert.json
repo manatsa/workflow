@@ -1,0 +1,157 @@
+{
+  "_comment": "Fraud Alert Investigation — investigate a transaction or account flagged by fraud / rules engine.",
+  "name": "Fraud Alert Investigation",
+  "code": "FFA",
+  "description": "Investigate fraud alerts from rules / ML engine, decide on hold, reversal or account action.",
+  "icon": "security",
+  "displayOrder": 53,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FINTECH",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{alertRef} - @{subjectName} (@{alertSeverity})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 2,
+  "reminderMaxCount": 6,
+  "reminderStartAfterHours": 1,
+  "escalationEnabled": true,
+  "escalationAfterHours": 8,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "URGENT: Fraud Alert @{referenceNumber}",
+  "reminderEmailBody": "<p>Fraud alert <strong>@{referenceNumber}</strong> requires immediate review.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Alert", "displayOrder": 0, "icon": "warning" },
+      { "id": "temp_screen_2", "title": "Subject", "displayOrder": 1, "icon": "person" },
+      { "id": "temp_screen_3", "title": "Flagged Transactions", "displayOrder": 2, "icon": "list" },
+      { "id": "temp_screen_4", "title": "Investigation", "displayOrder": 3, "icon": "search" },
+      { "id": "temp_screen_5", "title": "Decision", "displayOrder": 4, "icon": "gavel" },
+      { "id": "temp_screen_6", "title": "Evidence", "displayOrder": 5, "icon": "attach_file" },
+      { "id": "temp_screen_7", "title": "Review & Submit", "displayOrder": 6, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Alert Header", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Subject / Account", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Device / Session", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Transactions", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Analysis", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_6", "title": "Outcome & Actions", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_7", "title": "Evidence", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_6" }
+    ],
+
+    "fields": [
+      { "name": "alertRef", "label": "Alert Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FFA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "alertDate", "label": "Alert Date / Time", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "source", "label": "Alert Source", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [
+          { "value": "RULES", "label": "Rules Engine", "displayOrder": 0 },
+          { "value": "ML_MODEL", "label": "ML Model", "displayOrder": 1 },
+          { "value": "CUSTOMER", "label": "Customer Report", "displayOrder": 2 },
+          { "value": "INTERNAL", "label": "Internal / Staff", "displayOrder": 3 },
+          { "value": "EXTERNAL", "label": "External Body / Bureau", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+      { "name": "alertSeverity", "label": "Severity", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "MEDIUM", "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [
+          { "value": "LOW", "label": "Low", "displayOrder": 0 },
+          { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 },
+          { "value": "HIGH", "label": "High", "displayOrder": 2 },
+          { "value": "CRITICAL", "label": "Critical", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+      { "name": "analyst", "label": "Analyst", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 4, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+
+      { "name": "subjectType", "label": "Subject Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "CUSTOMER", "label": "Customer / Wallet", "displayOrder": 0 },
+          { "value": "MERCHANT", "label": "Merchant", "displayOrder": 1 },
+          { "value": "AGENT", "label": "Agent", "displayOrder": 2 },
+          { "value": "CARD", "label": "Card", "displayOrder": 3 },
+          { "value": "STAFF", "label": "Staff / Internal", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+      { "name": "subjectId", "label": "Subject ID", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "subjectName", "label": "Subject Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "phone", "label": "Phone / MSISDN", "fieldType": "PHONE", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2" },
+
+      { "name": "deviceId", "label": "Device ID / Fingerprint", "fieldType": "TEXT", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "ipAddress", "label": "IP Address", "fieldType": "TEXT", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "geoLocation", "label": "Geo Location", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "unusualGeo", "label": "Unusual Geo / VPN?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+
+      { "name": "flaggedTxns", "label": "Flagged Transactions", "fieldType": "TABLE", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 100, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"txnDate\",\"label\":\"Date\",\"type\":\"DATE\",\"width\":130,\"required\":true},{\"name\":\"txnRef\",\"label\":\"Reference\",\"type\":\"TEXT\",\"width\":180,\"required\":true},{\"name\":\"channel\",\"label\":\"Channel\",\"type\":\"TEXT\",\"width\":120},{\"name\":\"counterparty\",\"label\":\"Counterparty\",\"type\":\"TEXT\",\"width\":200},{\"name\":\"amount\",\"label\":\"Amount\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"status\",\"label\":\"Status\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"AUTHORIZED\",\"PENDING\",\"SETTLED\",\"REVERSED\",\"HELD\"]}]",
+        "validation": "MinRows(1, \"At least one transaction required\")" },
+      { "name": "totalExposure", "label": "Total Exposure", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"flaggedTxns\", \"amount\")" },
+
+      { "name": "rulesTriggered", "label": "Rules / Signals Triggered", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND MinLength(10)" },
+      { "name": "fraudScore", "label": "Model Fraud Score", "fieldType": "NUMBER", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Min(0) AND Max(1000)" },
+      { "name": "customerVelocity24h", "label": "Transactions / 24h", "fieldType": "NUMBER", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Min(0)" },
+      { "name": "priorAlerts90d", "label": "Prior Alerts (90d)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Min(0)" },
+      { "name": "customerContacted", "label": "Customer Contacted?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5" },
+      { "name": "customerResponse", "label": "Customer Response", "fieldType": "TEXTAREA", "displayOrder": 45, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "visibilityExpression": "@{customerContacted} == true" },
+      { "name": "analystConclusion", "label": "Analyst Conclusion", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 46, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND MinLength(30)" },
+
+      { "name": "decision", "label": "Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "options": [
+          { "value": "FALSE_POSITIVE", "label": "False Positive - Release", "displayOrder": 0 },
+          { "value": "CONFIRMED_FRAUD", "label": "Confirmed Fraud", "displayOrder": 1 },
+          { "value": "SUSPICIOUS_MONITOR", "label": "Suspicious - Continue Monitoring", "displayOrder": 2 },
+          { "value": "ESCALATE_STR", "label": "Escalate to MLRO (STR)", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+      { "name": "accountAction", "label": "Account Action", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "options": [
+          { "value": "NONE", "label": "No Action", "displayOrder": 0 },
+          { "value": "STEP_UP_AUTH", "label": "Step-Up Authentication", "displayOrder": 1 },
+          { "value": "TEMP_BLOCK", "label": "Temporary Block", "displayOrder": 2 },
+          { "value": "PERMANENT_BLOCK", "label": "Permanent Block / Close", "displayOrder": 3 },
+          { "value": "REISSUE_CARD", "label": "Re-Issue Card / Credentials", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+      { "name": "txnAction", "label": "Transaction Action", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "options": [
+          { "value": "RELEASE", "label": "Release", "displayOrder": 0 },
+          { "value": "REVERSE", "label": "Reverse / Recall", "displayOrder": 1 },
+          { "value": "HOLD", "label": "Continue Hold", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+      { "name": "lossAmount", "label": "Confirmed Loss Amount", "fieldType": "CURRENCY", "defaultValue": "0", "inSummary": true, "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "validation": "Min(0)" },
+
+      { "name": "screenshots", "label": "Screenshots / System Logs", "fieldType": "FILE", "multiple": true, "displayOrder": 60, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "allowedFileTypes": "pdf,jpg,jpeg,png,txt,csv,log", "maxFileSize": 20971520, "maxFiles": 20 },
+      { "name": "customerStatement", "label": "Customer Statement", "fieldType": "FILE", "displayOrder": 61, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Fraud Analyst", "approverType": "ROLE", "roleName": "FRAUD_ANALYST", "amountLimit": 1000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Fraud Manager", "approverType": "ROLE", "roleName": "FRAUD_MANAGER", "amountLimit": 25000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Risk", "approverType": "ROLE", "roleName": "HEAD_OF_RISK", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

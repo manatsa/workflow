@@ -1,0 +1,65 @@
+{
+  "_comment": "Hotel Room Booking — reservation for a guest with check-in, rate and payment terms.",
+  "name": "Hotel Room Booking",
+  "code": "THB",
+  "description": "Room reservation for a guest with check-in/out, room type, rate and payment terms.",
+  "icon": "hotel",
+  "displayOrder": 107,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "TOURISM",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{reservationRef} - @{guestName} (@{checkIn})",
+  "reminderEnabled": true, "reminderFrequencyHours": 6, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reservation", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Room & Rate", "displayOrder": 1, "icon": "hotel" },
+      { "id": "temp_screen_3", "title": "Payment", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Guest", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Stay", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Room & Rate", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Special Requests", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Payment & Guarantee", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "reservationRef", "label": "Reservation Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"THB-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "bookingDate", "label": "Booking Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "guestName", "label": "Guest Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "bookingChannel", "label": "Booking Channel", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "DIRECT", "label": "Direct", "displayOrder": 0 }, { "value": "WEB", "label": "Website", "displayOrder": 1 }, { "value": "OTA", "label": "OTA", "displayOrder": 2 }, { "value": "TRAVEL_AGENT", "label": "Travel Agent", "displayOrder": 3 }, { "value": "CORPORATE", "label": "Corporate Contract", "displayOrder": 4 }, { "value": "GROUP", "label": "Group", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND Phone()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter valid email\")" },
+      { "name": "property", "label": "Property / Hotel", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "checkIn", "label": "Check-In Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Check-in must be future\")" },
+      { "name": "checkOut", "label": "Check-Out Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "nights", "label": "Nights", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "adults", "label": "Adults", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "1", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "children", "label": "Children", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "roomType", "label": "Room Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "STANDARD", "label": "Standard", "displayOrder": 0 }, { "value": "DELUXE", "label": "Deluxe", "displayOrder": 1 }, { "value": "SUITE", "label": "Suite", "displayOrder": 2 }, { "value": "FAMILY", "label": "Family", "displayOrder": 3 }, { "value": "VILLA", "label": "Villa / Cottage", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "boardType", "label": "Board", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "BB", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "RO", "label": "Room Only", "displayOrder": 0 }, { "value": "BB", "label": "Bed & Breakfast", "displayOrder": 1 }, { "value": "HB", "label": "Half Board", "displayOrder": 2 }, { "value": "FB", "label": "Full Board", "displayOrder": 3 }, { "value": "AI", "label": "All-Inclusive", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "rooms", "label": "Rooms", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "1", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "ratePerNight", "label": "Rate per Night", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "totalCharge", "label": "Total Charge", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 26, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "defaultValue": "MULTIPLY(MULTIPLY(@{ratePerNight}, @{nights}), @{rooms})" },
+      { "name": "specialRequests", "label": "Special Requests", "fieldType": "TEXTAREA", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "paymentType", "label": "Payment Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "PREPAID", "label": "Prepaid", "displayOrder": 0 }, { "value": "PAY_AT_HOTEL", "label": "Pay at Hotel", "displayOrder": 1 }, { "value": "CORPORATE", "label": "Corporate Account", "displayOrder": 2 }, { "value": "VOUCHER", "label": "Voucher", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "creditCardGuarantee", "label": "Credit Card Guarantee", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "amountPaid", "label": "Amount Paid", "fieldType": "CURRENCY", "defaultValue": "0", "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "cancellationPolicy", "label": "Cancellation Policy", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Reservations Agent", "approverType": "ROLE", "roleName": "RESERVATIONS_AGENT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Front Office Manager", "approverType": "ROLE", "roleName": "FRONT_OFFICE_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": false, "emailNotification": true }
+  ]
+}

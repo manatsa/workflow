@@ -1,0 +1,59 @@
+{
+  "_comment": "Manuscript Acquisition — acquire a manuscript / book for publication.",
+  "name": "Manuscript Acquisition",
+  "code": "PMA",
+  "description": "Acquire a manuscript / book for publication including advance and royalty terms.",
+  "icon": "menu_book",
+  "displayOrder": 169,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "PUBLISHING",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{manuscriptRef} - @{title} (@{author})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Manuscript", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Commercials", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Author & Work", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Editorial Assessment", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Contract Terms", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "manuscriptRef", "label": "Manuscript Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"PMA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "editor", "label": "Acquiring Editor", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "title", "label": "Working Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "author", "label": "Author", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "agent", "label": "Agent (if any)", "fieldType": "TEXT", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "genre", "label": "Genre", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FICTION", "label": "Fiction", "displayOrder": 0 }, { "value": "NONFICTION", "label": "Non-Fiction", "displayOrder": 1 }, { "value": "BIOGRAPHY", "label": "Biography / Memoir", "displayOrder": 2 }, { "value": "ACADEMIC", "label": "Academic", "displayOrder": 3 }, { "value": "CHILDREN", "label": "Children's", "displayOrder": 4 }, { "value": "POETRY", "label": "Poetry", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "wordCount", "label": "Word Count", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1000)" },
+      { "name": "synopsis", "label": "Synopsis", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 15, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(100)" },
+      { "name": "marketability", "label": "Marketability Score (1-10)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1) AND Max(10)" },
+      { "name": "comparableTitles", "label": "Comparable Titles / Comps", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "estCopiesY1", "label": "Estimated Copies (Year 1)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "advance", "label": "Author Advance", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "royaltyPercent", "label": "Royalty %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "10", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(50)" },
+      { "name": "rightsScope", "label": "Rights Scope", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "DOMESTIC", "label": "Domestic Print", "displayOrder": 0 }, { "value": "WORLD_ENG", "label": "World English", "displayOrder": 1 }, { "value": "WORLD_ALL", "label": "World All Languages", "displayOrder": 2 }, { "value": "PRINT_DIGITAL", "label": "Print + Digital + Audio", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "deliveryDate", "label": "Manuscript Delivery Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "pubDate", "label": "Target Pub Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "estRevenue", "label": "Projected Lifetime Revenue", "fieldType": "CURRENCY", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "legalReview", "label": "Contract Legal Reviewed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 36, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{legalReview} == true, \"Legal review required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Acquiring Editor", "approverType": "ROLE", "roleName": "ACQ_EDITOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Editorial Director", "approverType": "ROLE", "roleName": "EDITORIAL_DIRECTOR", "amountLimit": 50000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Publisher", "approverType": "ROLE", "roleName": "PUBLISHER", "amountLimit": 250000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CEO", "approverType": "ROLE", "roleName": "CEO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

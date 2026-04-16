@@ -1,0 +1,852 @@
+{
+  "_comment": "Funeral Policy Application — new member enrolment with plan selection, dependants, premium and underwriting.",
+  "name": "Funeral Policy Application",
+  "code": "FPA",
+  "description": "Apply for a new funeral assurance policy, capture main member, dependants, plan and premium.",
+  "icon": "policy",
+  "displayOrder": 32,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{policyRef} - @{firstName} @{lastName} (@{plan})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Policy Application @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Policy application <strong>@{referenceNumber}</strong> awaiting review.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Application",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Main Member",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Plan & Premium",
+          "displayOrder": 2,
+          "icon": "payments"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Dependants",
+          "displayOrder": 3,
+          "icon": "family_restroom"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Beneficiaries",
+          "displayOrder": 4,
+          "icon": "group"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Underwriting",
+          "displayOrder": 5,
+          "icon": "medical_services"
+        },
+        {
+          "id": "temp_screen_7",
+          "title": "Documents",
+          "displayOrder": 6,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_8",
+          "title": "Review & Submit",
+          "displayOrder": 7,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Identity",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Address & Contact",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Plan",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Premium & Payment",
+          "displayOrder": 4,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Dependants",
+          "displayOrder": 5,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Beneficiaries",
+          "displayOrder": 6,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_8",
+          "title": "Health Declaration",
+          "displayOrder": 7,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_6"
+        },
+        {
+          "id": "temp_grp_9",
+          "title": "Documents",
+          "displayOrder": 8,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_7"
+        }
+      ],
+      "fields": [
+        {
+          "name": "policyRef",
+          "label": "Application Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"FPA-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "applicationDate",
+          "label": "Application Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "agent",
+          "label": "Agent / Officer",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "title",
+          "label": "Title",
+          "fieldType": "SELECT",
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "MR",
+              "label": "Mr",
+              "displayOrder": 0
+            },
+            {
+              "value": "MRS",
+              "label": "Mrs",
+              "displayOrder": 1
+            },
+            {
+              "value": "MISS",
+              "label": "Miss",
+              "displayOrder": 2
+            },
+            {
+              "value": "MS",
+              "label": "Ms",
+              "displayOrder": 3
+            },
+            {
+              "value": "DR",
+              "label": "Dr",
+              "displayOrder": 4
+            },
+            {
+              "value": "REV",
+              "label": "Rev",
+              "displayOrder": 5
+            }
+          ]
+        },
+        {
+          "name": "firstName",
+          "label": "First Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND MinLength(2)",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "lastName",
+          "label": "Last Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND MinLength(2)",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "idNumber",
+          "label": "National ID",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND MinLength(4)",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "dateOfBirth",
+          "label": "Date of Birth",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "gender",
+          "label": "Gender",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "M",
+              "label": "Male",
+              "displayOrder": 0
+            },
+            {
+              "value": "F",
+              "label": "Female",
+              "displayOrder": 1
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "maritalStatus",
+          "label": "Marital Status",
+          "fieldType": "SELECT",
+          "displayOrder": 16,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "SINGLE",
+              "label": "Single",
+              "displayOrder": 0
+            },
+            {
+              "value": "MARRIED",
+              "label": "Married",
+              "displayOrder": 1
+            },
+            {
+              "value": "DIVORCED",
+              "label": "Divorced",
+              "displayOrder": 2
+            },
+            {
+              "value": "WIDOWED",
+              "label": "Widowed",
+              "displayOrder": 3
+            }
+          ]
+        },
+        {
+          "name": "occupation",
+          "label": "Occupation",
+          "fieldType": "TEXT",
+          "displayOrder": 17,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "physicalAddress",
+          "label": "Physical Address",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 20,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(10)"
+        },
+        {
+          "name": "city",
+          "label": "City / Town",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()"
+        },
+        {
+          "name": "mobile",
+          "label": "Mobile Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "displayOrder": 23,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "ValidWhen(IS_EMPTY(@{email}) OR IS_EMAIL(@{email}), \"Enter a valid email\")",
+          "customValidationRule": "TRIM() AND LOWER()"
+        },
+        {
+          "name": "plan",
+          "label": "Plan",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "BRONZE",
+              "label": "Bronze",
+              "displayOrder": 0
+            },
+            {
+              "value": "SILVER",
+              "label": "Silver",
+              "displayOrder": 1
+            },
+            {
+              "value": "GOLD",
+              "label": "Gold",
+              "displayOrder": 2
+            },
+            {
+              "value": "PLATINUM",
+              "label": "Platinum",
+              "displayOrder": 3
+            },
+            {
+              "value": "FAMILY_COMPREHENSIVE",
+              "label": "Family Comprehensive",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "coverType",
+          "label": "Cover Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "CASH",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "CASH",
+              "label": "Cash Payout",
+              "displayOrder": 0
+            },
+            {
+              "value": "SERVICE",
+              "label": "Service (Funeral Package)",
+              "displayOrder": 1
+            },
+            {
+              "value": "HYBRID",
+              "label": "Hybrid (Cash + Service)",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "sumAssured",
+          "label": "Sum Assured (Main Member)",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND Min(100, \"Minimum sum assured is 100\")"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "fieldType": "SELECT",
+          "defaultValue": "USD",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "USD",
+              "label": "USD",
+              "displayOrder": 0
+            },
+            {
+              "value": "EUR",
+              "label": "EUR",
+              "displayOrder": 1
+            },
+            {
+              "value": "GBP",
+              "label": "GBP",
+              "displayOrder": 2
+            },
+            {
+              "value": "ZAR",
+              "label": "ZAR",
+              "displayOrder": 3
+            },
+            {
+              "value": "ZWL",
+              "label": "ZWL",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "monthlyPremium",
+          "label": "Monthly Premium",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND Min(0.01)"
+        },
+        {
+          "name": "paymentFrequency",
+          "label": "Payment Frequency",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "MONTHLY",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "options": [
+            {
+              "value": "MONTHLY",
+              "label": "Monthly",
+              "displayOrder": 0
+            },
+            {
+              "value": "QUARTERLY",
+              "label": "Quarterly",
+              "displayOrder": 1
+            },
+            {
+              "value": "SEMI_ANNUAL",
+              "label": "Semi-Annual",
+              "displayOrder": 2
+            },
+            {
+              "value": "ANNUAL",
+              "label": "Annual",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "paymentMethod",
+          "label": "Payment Method",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "options": [
+            {
+              "value": "DEBIT_ORDER",
+              "label": "Debit Order",
+              "displayOrder": 0
+            },
+            {
+              "value": "PAYROLL",
+              "label": "Payroll Deduction (Stop Order)",
+              "displayOrder": 1
+            },
+            {
+              "value": "CASH",
+              "label": "Cash",
+              "displayOrder": 2
+            },
+            {
+              "value": "MOBILE_MONEY",
+              "label": "Mobile Money",
+              "displayOrder": 3
+            },
+            {
+              "value": "EFT",
+              "label": "EFT / Bank Transfer",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "inceptionDate",
+          "label": "Inception Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "defaultValue": "TODAY()",
+          "inSummary": true,
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required()"
+        },
+        {
+          "name": "dependants",
+          "label": "Dependants",
+          "fieldType": "TABLE",
+          "tooltip": "Spouse, children, extended family covered under this policy",
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "tableMinRows": 0,
+          "tableMaxRows": 20,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"fullName\",\"label\":\"Full Name\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"relationship\",\"label\":\"Relationship\",\"type\":\"SELECT\",\"width\":150,\"required\":true,\"options\":[\"Spouse\",\"Child\",\"Parent\",\"Sibling\",\"Grandparent\",\"Grandchild\",\"Other\"]},{\"name\":\"idNumber\",\"label\":\"ID / Birth Cert\",\"type\":\"TEXT\",\"width\":160},{\"name\":\"dateOfBirth\",\"label\":\"DOB\",\"type\":\"DATE\",\"width\":130,\"required\":true},{\"name\":\"gender\",\"label\":\"Gender\",\"type\":\"SELECT\",\"width\":90,\"options\":[\"M\",\"F\"]},{\"name\":\"sumAssured\",\"label\":\"Sum Assured\",\"type\":\"NUMBER\",\"width\":130,\"required\":true}]"
+        },
+        {
+          "name": "totalDependantsCover",
+          "label": "Total Dependants Cover",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 51,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "defaultValue": "SUM_COLUMN(\"dependants\", \"sumAssured\")"
+        },
+        {
+          "name": "beneficiaries",
+          "label": "Beneficiaries",
+          "fieldType": "TABLE",
+          "isMandatory": true,
+          "displayOrder": 60,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "tableMinRows": 1,
+          "tableMaxRows": 10,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"fullName\",\"label\":\"Full Name\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"relationship\",\"label\":\"Relationship\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"idNumber\",\"label\":\"ID Number\",\"type\":\"TEXT\",\"width\":160},{\"name\":\"phone\",\"label\":\"Phone\",\"type\":\"TEXT\",\"width\":140},{\"name\":\"allocationPercent\",\"label\":\"% Allocation\",\"type\":\"NUMBER\",\"width\":120,\"required\":true}]",
+          "validation": "MinRows(1, \"At least one beneficiary required\")"
+        },
+        {
+          "name": "totalAllocation",
+          "label": "Total Allocation %",
+          "fieldType": "NUMBER",
+          "isReadonly": true,
+          "displayOrder": 61,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "defaultValue": "SUM_COLUMN(\"beneficiaries\", \"allocationPercent\")",
+          "validation": "ValidWhen(@{totalAllocation} == 100, \"Beneficiary allocations must total 100%\")"
+        },
+        {
+          "name": "hasChronicIllness",
+          "label": "Any chronic illness?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_8"
+        },
+        {
+          "name": "chronicIllnessDetails",
+          "label": "Details of Chronic Illness",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 71,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_8",
+          "visibilityExpression": "@{hasChronicIllness} == true",
+          "validation": "ValidWhen(@{hasChronicIllness} == false OR HAS_MIN_LENGTH(@{chronicIllnessDetails}, 10), \"Describe chronic illness\")"
+        },
+        {
+          "name": "recentHospitalisation",
+          "label": "Hospitalised in last 12 months?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 72,
+          "columnSpan": 1,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_8"
+        },
+        {
+          "name": "waitingPeriodMonths",
+          "label": "Waiting Period (months)",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "defaultValue": "6",
+          "inSummary": true,
+          "displayOrder": 73,
+          "columnSpan": 1,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_8",
+          "validation": "Required() AND Min(0) AND Max(24)"
+        },
+        {
+          "name": "underwritingNotes",
+          "label": "Underwriting Notes",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 74,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_8"
+        },
+        {
+          "name": "idCopy",
+          "label": "Main Member ID Copy",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 2,
+          "screenId": "temp_screen_7",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"ID copy is required\")"
+        },
+        {
+          "name": "dependantDocs",
+          "label": "Dependant IDs / Birth Certificates",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 81,
+          "columnSpan": 2,
+          "screenId": "temp_screen_7",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 20
+        },
+        {
+          "name": "proofOfAddress",
+          "label": "Proof of Address",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 82,
+          "columnSpan": 2,
+          "screenId": "temp_screen_7",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Proof of address is required\")"
+        },
+        {
+          "name": "debitOrderMandate",
+          "label": "Debit Order / Stop Order Mandate",
+          "fieldType": "FILE",
+          "displayOrder": 83,
+          "columnSpan": 2,
+          "screenId": "temp_screen_7",
+          "fieldGroupId": "temp_grp_9",
+          "visibilityExpression": "@{paymentMethod} == 'DEBIT_ORDER' OR @{paymentMethod} == 'PAYROLL'",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "ValidWhen(@{paymentMethod} != 'DEBIT_ORDER' AND @{paymentMethod} != 'PAYROLL' OR IS_NOT_EMPTY(@{debitOrderMandate}), \"Mandate required\")"
+        },
+        {
+          "name": "signedApplication",
+          "label": "Signed Application Form",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 84,
+          "columnSpan": 2,
+          "screenId": "temp_screen_7",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Signed application form required\")"
+        },
+        {
+          "name": "declaration",
+          "label": "I confirm the information given is true and complete",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 90,
+          "columnSpan": 2,
+          "screenId": "temp_screen_8",
+          "validation": "IsTrue(\"Declaration required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Agent / Branch Officer",
+      "approverType": "ROLE",
+      "roleName": "POLICY_OFFICER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Underwriter",
+      "approverType": "ROLE",
+      "roleName": "UNDERWRITER",
+      "amountLimit": 10000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Senior Underwriter",
+      "approverType": "ROLE",
+      "roleName": "SENIOR_UNDERWRITER",
+      "amountLimit": 50000,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 4,
+      "name": "Head of Underwriting",
+      "approverType": "ROLE",
+      "roleName": "HEAD_OF_UNDERWRITING",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "FUNERAL",
+  "workflowTypeCode": "APPROVAL"
+}

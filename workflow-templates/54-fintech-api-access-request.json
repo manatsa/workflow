@@ -1,0 +1,141 @@
+{
+  "_comment": "API Access Request — grant partner / internal access to platform APIs with scopes & rate limits.",
+  "name": "API Access Request",
+  "code": "FAA",
+  "description": "Provision API keys / OAuth credentials for a partner or internal system with scopes and rate limits.",
+  "icon": "vpn_key",
+  "displayOrder": 54,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "FINTECH",
+  "workflowTypeCode": "IT",
+  "titleTemplate": "@{apiRef} - @{requesterOrg} (@{environment})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: API Access @{referenceNumber} pending",
+  "reminderEmailBody": "<p>API access request <strong>@{referenceNumber}</strong> awaiting review.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Requester", "displayOrder": 1, "icon": "business" },
+      { "id": "temp_screen_3", "title": "Use Case", "displayOrder": 2, "icon": "integration_instructions" },
+      { "id": "temp_screen_4", "title": "Access Scope", "displayOrder": 3, "icon": "lock" },
+      { "id": "temp_screen_5", "title": "Security", "displayOrder": 4, "icon": "security" },
+      { "id": "temp_screen_6", "title": "Documents", "displayOrder": 5, "icon": "attach_file" },
+      { "id": "temp_screen_7", "title": "Review & Submit", "displayOrder": 6, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Organisation", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Technical Contact", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Use Case", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Scope & Limits", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_6", "title": "Endpoints Requested", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_7", "title": "Security Controls", "displayOrder": 6, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_8", "title": "Documents", "displayOrder": 7, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_6" }
+    ],
+
+    "fields": [
+      { "name": "apiRef", "label": "Request Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FAA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requester", "label": "Submitted By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "environment", "label": "Environment", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "SANDBOX", "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [
+          { "value": "SANDBOX", "label": "Sandbox", "displayOrder": 0 },
+          { "value": "UAT", "label": "UAT / Staging", "displayOrder": 1 },
+          { "value": "PRODUCTION", "label": "Production", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "requesterOrg", "label": "Organisation Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "partnerType", "label": "Partner Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "INTERNAL", "label": "Internal System", "displayOrder": 0 },
+          { "value": "MERCHANT", "label": "Merchant", "displayOrder": 1 },
+          { "value": "RESELLER", "label": "Reseller / PSP", "displayOrder": 2 },
+          { "value": "BANK", "label": "Bank / FI", "displayOrder": 3 },
+          { "value": "FINTECH", "label": "Fintech Partner", "displayOrder": 4 },
+          { "value": "REGULATOR", "label": "Regulator", "displayOrder": 5 }
+        ],
+        "validation": "Required()" },
+      { "name": "merchantOrPartnerId", "label": "Existing Merchant / Partner ID", "fieldType": "TEXT", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2" },
+      { "name": "hasSignedAgreement", "label": "Signed Master Agreement?", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2" },
+
+      { "name": "techContactName", "label": "Technical Contact Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "techContactEmail", "label": "Technical Contact Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND ValidWhen(IS_EMAIL(@{techContactEmail}), \"Enter valid email\")",
+        "customValidationRule": "TRIM() AND LOWER()" },
+      { "name": "techContactPhone", "label": "Technical Contact Phone", "fieldType": "PHONE", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "ValidWhen(IS_EMPTY(@{techContactPhone}) OR Phone(@{techContactPhone}), \"Enter valid phone\")" },
+
+      { "name": "useCaseTitle", "label": "Use Case Title", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND MinLength(5)" },
+      { "name": "useCaseDescription", "label": "Use Case Description", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND MinLength(50)" },
+      { "name": "goLiveDate", "label": "Target Go-Live Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND DateAfter(\"today\", \"Go-live must be future\")" },
+
+      { "name": "authType", "label": "Authentication Type", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "OAUTH2", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "API_KEY", "label": "API Key", "displayOrder": 0 },
+          { "value": "OAUTH2", "label": "OAuth 2.0 Client Credentials", "displayOrder": 1 },
+          { "value": "MTLS", "label": "mTLS + OAuth", "displayOrder": 2 },
+          { "value": "JWT", "label": "JWT (Signed Request)", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+      { "name": "rateLimitPerMin", "label": "Requested Rate (req/min)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "60", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND Min(1) AND Max(100000)" },
+      { "name": "dailyTxnCap", "label": "Daily Transaction Cap", "fieldType": "CURRENCY", "isLimited": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "visibilityExpression": "@{environment} == 'PRODUCTION'",
+        "validation": "Min(0)" },
+      { "name": "validUntil", "label": "Credentials Valid Until", "fieldType": "DATE", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND DateAfter(\"today\", \"Expiry must be future\")" },
+
+      { "name": "endpoints", "label": "Endpoints / Scopes Requested", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"endpoint\",\"label\":\"Endpoint / Scope\",\"type\":\"TEXT\",\"width\":280,\"required\":true},{\"name\":\"method\",\"label\":\"Method\",\"type\":\"SELECT\",\"width\":100,\"options\":[\"GET\",\"POST\",\"PUT\",\"DELETE\",\"*\"]},{\"name\":\"purpose\",\"label\":\"Purpose\",\"type\":\"TEXT\",\"width\":320,\"required\":true}]",
+        "validation": "MinRows(1, \"Specify at least one endpoint/scope\")" },
+
+      { "name": "ipWhitelist", "label": "Source IP Allow-List (CIDR)", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 60, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "validation": "Required() AND MinLength(7)" },
+      { "name": "callbackUrl", "label": "Webhook / Callback URL", "fieldType": "URL", "displayOrder": 61, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "validation": "ValidWhen(IS_EMPTY(@{callbackUrl}) OR IS_URL(@{callbackUrl}), \"Enter valid URL\")" },
+      { "name": "webhookSecret", "label": "Callback Signing Required?", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 62, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7" },
+      { "name": "pciScope", "label": "Access to PCI / Sensitive Data?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 63, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7" },
+      { "name": "securityReviewPassed", "label": "Security Review Completed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 64, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "validation": "ValidWhen(@{environment} != 'PRODUCTION' OR @{securityReviewPassed} == true, \"Security review required for production access\")" },
+
+      { "name": "integrationSpec", "label": "Integration Specification", "fieldType": "FILE", "displayOrder": 70, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_8",
+        "allowedFileTypes": "pdf,doc,docx,md,txt", "maxFileSize": 10485760 },
+      { "name": "dataFlowDiagram", "label": "Data Flow Diagram", "fieldType": "FILE", "displayOrder": 71, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_8",
+        "allowedFileTypes": "pdf,png,jpg,jpeg,svg", "maxFileSize": 10485760 },
+      { "name": "complianceCertificate", "label": "Compliance Certificate (PCI / SOC2)", "fieldType": "FILE", "displayOrder": 72, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_8",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "API Platform Admin", "approverType": "ROLE", "roleName": "API_ADMIN", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Security Engineer", "approverType": "ROLE", "roleName": "SECURITY_ENGINEER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Engineering", "approverType": "ROLE", "roleName": "HEAD_OF_ENGINEERING", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

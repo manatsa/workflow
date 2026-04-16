@@ -1,0 +1,59 @@
+{
+  "_comment": "Rail Freight Wagon Booking — book wagons/locomotives for a bulk freight consignment.",
+  "name": "Rail Freight Wagon Booking",
+  "code": "RWB",
+  "description": "Book wagons and a locomotive for a bulk freight consignment on the rail network.",
+  "icon": "train",
+  "displayOrder": 118,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "RAIL",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{bookingRef} - @{customerName} (@{origin} → @{destination})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Booking", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Wagons & Route", "displayOrder": 1, "icon": "train" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Route & Schedule", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Rolling Stock", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Cargo & Charges", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "bookingRef", "label": "Booking Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RWB-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "bookingDate", "label": "Booking Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "customerAccount", "label": "Customer Account", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "contactPhone", "label": "Contact Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 4, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Phone()" },
+      { "name": "origin", "label": "Origin Station", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "destination", "label": "Destination Station", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "plannedDeparture", "label": "Planned Departure", "fieldType": "DATE", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "etaArrival", "label": "ETA Arrival", "fieldType": "DATE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "wagonType", "label": "Wagon Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "BOX", "label": "Box / Covered", "displayOrder": 0 }, { "value": "OPEN", "label": "Open High-Sided", "displayOrder": 1 }, { "value": "FLAT", "label": "Flat / Container", "displayOrder": 2 }, { "value": "HOPPER", "label": "Hopper (Bulk)", "displayOrder": 3 }, { "value": "TANK", "label": "Tank", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "wagonsRequired", "label": "Wagons Required", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "locomotivesRequired", "label": "Locomotives", "fieldType": "NUMBER", "defaultValue": "1", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(1)" },
+      { "name": "tractionMode", "label": "Traction", "fieldType": "SELECT", "defaultValue": "DIESEL", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "DIESEL", "label": "Diesel", "displayOrder": 0 }, { "value": "ELECTRIC", "label": "Electric", "displayOrder": 1 } ] },
+      { "name": "cargoDescription", "label": "Cargo Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(10)" },
+      { "name": "totalTonnage", "label": "Total Tonnage (t)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "isHazardous", "label": "Hazardous Cargo?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "ratePerTonne", "label": "Rate per Tonne", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "totalCharge", "label": "Total Charge", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "MULTIPLY(@{totalTonnage}, @{ratePerTonne})" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Freight Sales Agent", "approverType": "ROLE", "roleName": "FREIGHT_AGENT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Train Planner", "approverType": "ROLE", "roleName": "TRAIN_PLANNER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Operations Control Manager", "approverType": "ROLE", "roleName": "OPS_CONTROL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

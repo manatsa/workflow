@@ -1,0 +1,58 @@
+{
+  "_comment": "Audit Report Sign-Off — issue the audit opinion / management letter.",
+  "name": "Audit Report Sign-Off",
+  "code": "AAR",
+  "description": "Issue the audit opinion and management letter after final review and EQR.",
+  "icon": "fact_check",
+  "displayOrder": 152,
+  "requiresApproval": true, "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "ACCOUNTING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{reportRef} - @{clientName} (@{opinion})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Engagement", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Findings & Opinion", "displayOrder": 1, "icon": "rate_review" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client & Period", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Materiality", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Findings", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Opinion & Sign-off", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "reportRef", "label": "Report Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"AAR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "engagementPartner", "label": "Engagement Partner", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "engagementRef", "label": "Engagement Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "clientName", "label": "Client", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "yearEnd", "label": "Financial Year End", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "reportingFramework", "label": "Reporting Framework", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "totalAssets", "label": "Total Assets", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "revenue", "label": "Revenue", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "materialityAmount", "label": "Overall Materiality", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "uncorrectedMisstatements", "label": "Uncorrected Misstatements", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "goingConcernBasis", "label": "Going Concern Basis Appropriate", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "keyAuditMatters", "label": "Key Audit Matters (KAMs)", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(50)" },
+      { "name": "significantFindings", "label": "Significant Findings / Control Weaknesses", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(30)" },
+      { "name": "fraudIndicators", "label": "Fraud Indicators Identified", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "opinion", "label": "Audit Opinion", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "UNMODIFIED", "label": "Unmodified (Clean)", "displayOrder": 0 }, { "value": "QUALIFIED", "label": "Qualified", "displayOrder": 1 }, { "value": "ADVERSE", "label": "Adverse", "displayOrder": 2 }, { "value": "DISCLAIMER", "label": "Disclaimer", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "emphasisOfMatter", "label": "Emphasis of Matter?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "eqrCompleted", "label": "Engagement Quality Review Completed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{eqrCompleted} == true OR @{opinion} == 'UNMODIFIED', \"EQR required for modified opinions\")" },
+      { "name": "fileArchived", "label": "Working File Archived", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{fileArchived} == true, \"Working file must be archived\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Audit Manager", "approverType": "ROLE", "roleName": "AUDIT_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Engagement Quality Reviewer (EQR)", "approverType": "ROLE", "roleName": "EQR_PARTNER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Engagement Partner", "approverType": "ROLE", "roleName": "ENGAGEMENT_PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

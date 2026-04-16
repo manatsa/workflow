@@ -1,0 +1,463 @@
+{
+  "_comment": "Equipment Request — request hardware or equipment like laptops, phones, furniture.",
+  "name": "Equipment Request",
+  "code": "EQ",
+  "description": "Request company equipment (laptop, phone, desk, etc.)",
+  "icon": "devices",
+  "displayOrder": 110,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{eqNumber} - @{equipmentType} (@{requesterName})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Request",
+          "displayOrder": 0,
+          "icon": "edit"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Equipment",
+          "displayOrder": 1,
+          "icon": "devices"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Review",
+          "displayOrder": 2,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Request Details",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Requester",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Equipment Details",
+          "displayOrder": 2,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Delivery",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        }
+      ],
+      "fields": [
+        {
+          "name": "eqNumber",
+          "label": "Request #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"EQ-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "urgency",
+          "label": "Urgency",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "NORMAL",
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low",
+              "displayOrder": 0
+            },
+            {
+              "value": "NORMAL",
+              "label": "Normal",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High",
+              "displayOrder": 2
+            },
+            {
+              "value": "URGENT",
+              "label": "Urgent",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "requestReason",
+          "label": "Request Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "NEW_HIRE",
+              "label": "New Hire",
+              "displayOrder": 0
+            },
+            {
+              "value": "REPLACEMENT",
+              "label": "Replacement (broken/lost/stolen)",
+              "displayOrder": 1
+            },
+            {
+              "value": "UPGRADE",
+              "label": "Upgrade",
+              "displayOrder": 2
+            },
+            {
+              "value": "ADDITIONAL",
+              "label": "Additional Equipment",
+              "displayOrder": 3
+            },
+            {
+              "value": "PROJECT",
+              "label": "Project Need",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "requesterName",
+          "label": "Requested For",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "requesterEmail",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "requesterDepartment",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "jobRole",
+          "label": "Job Role",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "equipmentType",
+          "label": "Equipment Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "options": [
+            {
+              "value": "LAPTOP",
+              "label": "Laptop",
+              "displayOrder": 0
+            },
+            {
+              "value": "DESKTOP",
+              "label": "Desktop PC",
+              "displayOrder": 1
+            },
+            {
+              "value": "MONITOR",
+              "label": "Monitor",
+              "displayOrder": 2
+            },
+            {
+              "value": "PHONE",
+              "label": "Mobile Phone",
+              "displayOrder": 3
+            },
+            {
+              "value": "TABLET",
+              "label": "Tablet",
+              "displayOrder": 4
+            },
+            {
+              "value": "HEADSET",
+              "label": "Headset",
+              "displayOrder": 5
+            },
+            {
+              "value": "WEBCAM",
+              "label": "Webcam",
+              "displayOrder": 6
+            },
+            {
+              "value": "PRINTER",
+              "label": "Printer / Scanner",
+              "displayOrder": 7
+            },
+            {
+              "value": "KEYBOARD",
+              "label": "Keyboard / Mouse",
+              "displayOrder": 8
+            },
+            {
+              "value": "DOCK",
+              "label": "Docking Station",
+              "displayOrder": 9
+            },
+            {
+              "value": "CHAIR",
+              "label": "Office Chair",
+              "displayOrder": 10
+            },
+            {
+              "value": "DESK",
+              "label": "Desk",
+              "displayOrder": 11
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 12
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "specifications",
+          "label": "Specifications / Model Preferences",
+          "fieldType": "TEXTAREA",
+          "placeholder": "e.g. Dell Latitude 7440, 16GB RAM, 512GB SSD",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(10)"
+        },
+        {
+          "name": "quantity",
+          "label": "Quantity",
+          "fieldType": "NUMBER",
+          "defaultValue": "1",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Range(1, 100)"
+        },
+        {
+          "name": "justification",
+          "label": "Business Justification",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Why do you need this equipment?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "estimatedCost",
+          "label": "Estimated Unit Cost",
+          "fieldType": "CURRENCY",
+          "inSummary": true,
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "totalAmount",
+          "label": "Estimated Total",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "defaultValue": "MULTIPLY(@{estimatedCost}, @{quantity})",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "oldEquipmentAssetTag",
+          "label": "Old Equipment Asset Tag",
+          "fieldType": "TEXT",
+          "placeholder": "For replacements/upgrades",
+          "displayOrder": 26,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "visibilityExpression": "@{requestReason} == 'REPLACEMENT' OR @{requestReason} == 'UPGRADE'"
+        },
+        {
+          "name": "replacementReason",
+          "label": "Replacement Reason",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 27,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "visibilityExpression": "@{requestReason} == 'REPLACEMENT'"
+        },
+        {
+          "name": "deliveryLocation",
+          "label": "Delivery Location",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 30,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()"
+        },
+        {
+          "name": "neededBy",
+          "label": "Needed By",
+          "fieldType": "DATE",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "ValidWhen(IS_EMPTY(@{neededBy}) OR DATE_AFTER(@{neededBy}, \"today\"), \"Needed-by date must be in the future\")"
+        },
+        {
+          "name": "supportingDocs",
+          "label": "Supporting Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "allowedFileTypes": "pdf,doc,docx,jpg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 5
+        },
+        {
+          "name": "acknowledgement",
+          "label": "I confirm the equipment will be used for business purposes and will be returned upon leaving the company",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "validation": "IsTrue(\"Confirmation required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Line Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "amountLimit": 2000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "IT Manager",
+      "approverType": "ROLE",
+      "roleName": "IT_MANAGER",
+      "amountLimit": 10000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Finance",
+      "approverType": "ROLE",
+      "roleName": "FINANCE_CONTROLLER",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "ADMIN",
+  "workflowTypeCode": "REQUISITION"
+}

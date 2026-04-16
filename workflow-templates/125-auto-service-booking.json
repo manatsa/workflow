@@ -1,0 +1,59 @@
+{
+  "_comment": "Vehicle Service Booking — book a workshop service / repair appointment.",
+  "name": "Vehicle Service Booking",
+  "code": "ASB",
+  "description": "Book a workshop service or repair appointment for a customer vehicle.",
+  "icon": "build",
+  "displayOrder": 125,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "AUTOMOTIVE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{serviceRef} - @{regNumber} (@{serviceType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 4,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Booking", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Work & Quote", "displayOrder": 1, "icon": "build" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Vehicle", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Service Requested", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Estimate", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "serviceRef", "label": "Service Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ASB-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "bookingDate", "label": "Booking Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "appointmentDate", "label": "Appointment Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "dropOffTime", "label": "Drop-Off Time (HH:mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Phone()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "ValidWhen(IS_EMPTY(@{email}) OR IS_EMAIL(@{email}), \"Enter valid email\")" },
+      { "name": "regNumber", "label": "Registration #", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "makeModel", "label": "Make / Model", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "mileage", "label": "Current Mileage (km)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "vin", "label": "VIN", "fieldType": "TEXT", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "serviceType", "label": "Service Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "MINOR", "label": "Minor Service", "displayOrder": 0 }, { "value": "MAJOR", "label": "Major Service", "displayOrder": 1 }, { "value": "DIAGNOSTIC", "label": "Diagnostic", "displayOrder": 2 }, { "value": "REPAIR", "label": "Repair", "displayOrder": 3 }, { "value": "TYRES", "label": "Tyres / Alignment", "displayOrder": 4 }, { "value": "BODY", "label": "Bodyshop / Panel", "displayOrder": 5 }, { "value": "WARRANTY", "label": "Warranty Work", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "complaint", "label": "Customer Complaint / Request", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(10)" },
+      { "name": "underWarranty", "label": "Under Manufacturer Warranty?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "courtesyCar", "label": "Courtesy Car Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "laborHours", "label": "Estimated Labour Hours", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "laborCost", "label": "Labour Cost", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "partsCost", "label": "Parts Cost", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "totalEstimate", "label": "Total Estimate", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM(@{laborCost}, @{partsCost})" },
+      { "name": "customerApproved", "label": "Customer Approved Estimate", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{customerApproved} == true OR @{underWarranty} == true, \"Customer approval required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Service Advisor", "approverType": "ROLE", "roleName": "SERVICE_ADVISOR", "amountLimit": 1000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Workshop Manager", "approverType": "ROLE", "roleName": "WORKSHOP_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": false, "emailNotification": true }
+  ]
+}

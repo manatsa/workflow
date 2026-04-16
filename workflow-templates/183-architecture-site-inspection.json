@@ -1,0 +1,55 @@
+{
+  "_comment": "Site Inspection Report — record and approve a site inspection / snag list.",
+  "name": "Site Inspection Report",
+  "code": "ASI",
+  "description": "Record and approve a construction site inspection with defects / snag list.",
+  "icon": "engineering",
+  "displayOrder": 183,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "ARCHITECTURE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{inspectionRef} - @{projectName} (@{inspectionDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Inspection", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Findings", "displayOrder": 1, "icon": "checklist" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Site & Stage", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Weather & Conditions", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Findings & Defects", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Overall Assessment", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "inspectionRef", "label": "Inspection Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ASI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "inspectionDate", "label": "Inspection Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isMandatory": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "inspector", "label": "Inspector", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "projectName", "label": "Project", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "siteAddress", "label": "Site Address", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contractor", "label": "Main Contractor", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "stage", "label": "Construction Stage", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SUBSTRUCTURE", "label": "Substructure / Foundations", "displayOrder": 0 }, { "value": "SUPERSTRUCTURE", "label": "Superstructure", "displayOrder": 1 }, { "value": "ENVELOPE", "label": "Envelope / Facade", "displayOrder": 2 }, { "value": "MEP", "label": "MEP / Services", "displayOrder": 3 }, { "value": "FINISHES", "label": "Finishes", "displayOrder": 4 }, { "value": "HANDOVER", "label": "Snag / Handover", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "weather", "label": "Weather", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "workersOnSite", "label": "Workers on Site", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "safetyObservations", "label": "Safety Observations", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "findings", "label": "Findings / Defects", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 100, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"location\",\"label\":\"Location\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"defect\",\"label\":\"Defect / Observation\",\"type\":\"TEXT\",\"width\":280,\"required\":true},{\"name\":\"severity\",\"label\":\"Severity\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"Minor\",\"Major\",\"Critical\"],\"required\":true},{\"name\":\"responsible\",\"label\":\"Responsible\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"due\",\"label\":\"Due Date\",\"type\":\"DATE\",\"width\":140,\"required\":true}]", "validation": "MinRows(1, \"Record at least one observation\")" },
+      { "name": "criticalIssues", "label": "Critical Issues Found?", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "workStopRequired", "label": "Work Stop Required", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "overallSummary", "label": "Overall Summary", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(30)" },
+      { "name": "nextInspection", "label": "Next Inspection Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Project Architect", "approverType": "ROLE", "roleName": "PROJECT_ARCHITECT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Project Manager", "approverType": "ROLE", "roleName": "PROJECT_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "_comment": "Policy Endorsement — mid-term change to an insurance policy (sum insured, risk, cover, beneficiary).",
+  "name": "Insurance Policy Endorsement",
+  "code": "INE",
+  "description": "Amend an insurance policy mid-term — sum insured, risk item, beneficiary, or cover.",
+  "icon": "edit_note",
+  "displayOrder": 43,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "INSURANCE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{endorsementRef} - @{policyNumber} (@{endorsementType})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Endorsement @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Policy endorsement <strong>@{referenceNumber}</strong> awaiting your action.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Policy", "displayOrder": 1, "icon": "policy" },
+      { "id": "temp_screen_3", "title": "Endorsement", "displayOrder": 2, "icon": "edit" },
+      { "id": "temp_screen_4", "title": "Premium Impact", "displayOrder": 3, "icon": "payments" },
+      { "id": "temp_screen_5", "title": "Documents", "displayOrder": 4, "icon": "attach_file" },
+      { "id": "temp_screen_6", "title": "Review & Submit", "displayOrder": 5, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Policy", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Change Requested", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_4", "title": "Additional / Return Premium", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_5", "title": "Documents", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_5" }
+    ],
+
+    "fields": [
+      { "name": "endorsementRef", "label": "Endorsement Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"INE-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "officer", "label": "Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "effectiveDate", "label": "Effective Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required()" },
+
+      { "name": "policyNumber", "label": "Policy Number", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "insuredName", "label": "Insured Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "productClass", "label": "Class of Business", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "policyExpiry", "label": "Policy Expiry", "fieldType": "DATE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+
+      { "name": "endorsementType", "label": "Endorsement Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "options": [
+          { "value": "SUM_INSURED", "label": "Change Sum Insured", "displayOrder": 0 },
+          { "value": "ADD_ITEM", "label": "Add Insured Item", "displayOrder": 1 },
+          { "value": "REMOVE_ITEM", "label": "Remove Insured Item", "displayOrder": 2 },
+          { "value": "COVER_EXTENSION", "label": "Cover Extension", "displayOrder": 3 },
+          { "value": "COVER_REDUCTION", "label": "Cover Reduction", "displayOrder": 4 },
+          { "value": "NAME_CHANGE", "label": "Name Change", "displayOrder": 5 },
+          { "value": "ADDRESS_CHANGE", "label": "Address Change", "displayOrder": 6 },
+          { "value": "BENEFICIARY", "label": "Beneficiary Change", "displayOrder": 7 },
+          { "value": "OTHER", "label": "Other", "displayOrder": 8 }
+        ],
+        "validation": "Required()" },
+      { "name": "description", "label": "Description of Change", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND MinLength(20)" },
+      { "name": "oldSumInsured", "label": "Current Sum Insured", "fieldType": "CURRENCY", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "visibilityExpression": "@{endorsementType} == 'SUM_INSURED' OR @{endorsementType} == 'COVER_EXTENSION' OR @{endorsementType} == 'COVER_REDUCTION'",
+        "validation": "Min(0)" },
+      { "name": "newSumInsured", "label": "New Sum Insured", "fieldType": "CURRENCY", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "visibilityExpression": "@{endorsementType} == 'SUM_INSURED' OR @{endorsementType} == 'COVER_EXTENSION' OR @{endorsementType} == 'COVER_REDUCTION'",
+        "validation": "Min(0)" },
+
+      { "name": "premiumImpactType", "label": "Premium Impact", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "options": [
+          { "value": "ADDITIONAL", "label": "Additional Premium Due", "displayOrder": 0 },
+          { "value": "RETURN", "label": "Return Premium Payable", "displayOrder": 1 },
+          { "value": "NONE", "label": "No Impact", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+      { "name": "amount", "label": "Amount", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{premiumImpactType} != 'NONE'",
+        "validation": "ValidWhen(@{premiumImpactType} == 'NONE' OR @{amount} > 0, \"Amount required\")" },
+      { "name": "daysProRata", "label": "Pro-rata Days", "fieldType": "NUMBER", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{premiumImpactType} != 'NONE'",
+        "validation": "Min(0) AND Max(366)" },
+      { "name": "settlementMethod", "label": "Settlement Method", "fieldType": "SELECT", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{premiumImpactType} != 'NONE'",
+        "options": [
+          { "value": "BANK_TRANSFER", "label": "Bank Transfer", "displayOrder": 0 },
+          { "value": "MOBILE_MONEY", "label": "Mobile Money", "displayOrder": 1 },
+          { "value": "CASH", "label": "Cash", "displayOrder": 2 },
+          { "value": "OFFSET", "label": "Offset against Policy Ledger", "displayOrder": 3 }
+        ] },
+
+      { "name": "endorsementRequest", "label": "Signed Endorsement Request", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_5",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "supportingDocs", "label": "Supporting Documents", "fieldType": "FILE", "multiple": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_5",
+        "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx", "maxFileSize": 10485760, "maxFiles": 10 }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Underwriter", "approverType": "ROLE", "roleName": "UNDERWRITER", "amountLimit": 25000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Senior Underwriter", "approverType": "ROLE", "roleName": "SENIOR_UNDERWRITER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

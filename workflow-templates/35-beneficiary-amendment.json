@@ -1,0 +1,477 @@
+{
+  "_comment": "Beneficiary / Policy Amendment — change policy beneficiaries, contact details or non-financial fields.",
+  "name": "Beneficiary / Policy Amendment",
+  "code": "PAM",
+  "description": "Amend beneficiaries, contact details, add or remove dependants on an existing funeral policy.",
+  "icon": "edit",
+  "displayOrder": 35,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{amendmentRef} - @{policyNumber} (@{amendmentType})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Amendment @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Policy amendment <strong>@{referenceNumber}</strong> awaiting your action.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Policy",
+          "displayOrder": 1,
+          "icon": "policy"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Amendment",
+          "displayOrder": 2,
+          "icon": "edit"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "New Beneficiaries",
+          "displayOrder": 3,
+          "icon": "group"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Dependant Changes",
+          "displayOrder": 4,
+          "icon": "family_restroom"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Documents",
+          "displayOrder": 5,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_7",
+          "title": "Review & Submit",
+          "displayOrder": 6,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Policy",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Amendment Type",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Contact Changes",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Beneficiary List",
+          "displayOrder": 4,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Dependants Added / Removed",
+          "displayOrder": 5,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Documents",
+          "displayOrder": 6,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_6"
+        }
+      ],
+      "fields": [
+        {
+          "name": "amendmentRef",
+          "label": "Amendment Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"PAM-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "officer",
+          "label": "Officer",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "policyNumber",
+          "label": "Policy Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "policyholderName",
+          "label": "Policyholder Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "policyholderId",
+          "label": "Policyholder ID",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "plan",
+          "label": "Plan",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "amendmentType",
+          "label": "Amendment Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "BENEFICIARY",
+              "label": "Beneficiary Change",
+              "displayOrder": 0
+            },
+            {
+              "value": "CONTACT",
+              "label": "Contact / Address",
+              "displayOrder": 1
+            },
+            {
+              "value": "DEPENDANT_ADD",
+              "label": "Add Dependant",
+              "displayOrder": 2
+            },
+            {
+              "value": "DEPENDANT_REMOVE",
+              "label": "Remove Dependant",
+              "displayOrder": 3
+            },
+            {
+              "value": "NAME_CHANGE",
+              "label": "Name Change",
+              "displayOrder": 4
+            },
+            {
+              "value": "PAYMENT_METHOD",
+              "label": "Payment Method Change",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "reason",
+          "label": "Reason for Amendment",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(10)"
+        },
+        {
+          "name": "newName",
+          "label": "New Name",
+          "fieldType": "TEXT",
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{amendmentType} == 'NAME_CHANGE'",
+          "validation": "ValidWhen(@{amendmentType} != 'NAME_CHANGE' OR IS_NOT_EMPTY(@{newName}), \"New name required\")"
+        },
+        {
+          "name": "newAddress",
+          "label": "New Address",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 31,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{amendmentType} == 'CONTACT'",
+          "validation": "ValidWhen(@{amendmentType} != 'CONTACT' OR HAS_MIN_LENGTH(@{newAddress}, 10), \"Provide new address\")"
+        },
+        {
+          "name": "newMobile",
+          "label": "New Mobile",
+          "fieldType": "PHONE",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{amendmentType} == 'CONTACT'",
+          "validation": "ValidWhen(@{amendmentType} != 'CONTACT' OR IS_EMPTY(@{newMobile}) OR Phone(@{newMobile}), \"Enter valid phone\")"
+        },
+        {
+          "name": "newEmail",
+          "label": "New Email",
+          "fieldType": "EMAIL",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{amendmentType} == 'CONTACT'",
+          "validation": "ValidWhen(@{amendmentType} != 'CONTACT' OR IS_EMPTY(@{newEmail}) OR IS_EMAIL(@{newEmail}), \"Enter valid email\")"
+        },
+        {
+          "name": "newPaymentMethod",
+          "label": "New Payment Method",
+          "fieldType": "SELECT",
+          "displayOrder": 34,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{amendmentType} == 'PAYMENT_METHOD'",
+          "options": [
+            {
+              "value": "DEBIT_ORDER",
+              "label": "Debit Order",
+              "displayOrder": 0
+            },
+            {
+              "value": "PAYROLL",
+              "label": "Payroll Deduction",
+              "displayOrder": 1
+            },
+            {
+              "value": "CASH",
+              "label": "Cash",
+              "displayOrder": 2
+            },
+            {
+              "value": "MOBILE_MONEY",
+              "label": "Mobile Money",
+              "displayOrder": 3
+            },
+            {
+              "value": "EFT",
+              "label": "EFT",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "ValidWhen(@{amendmentType} != 'PAYMENT_METHOD' OR IS_NOT_EMPTY(@{newPaymentMethod}), \"New payment method required\")"
+        },
+        {
+          "name": "newBeneficiaries",
+          "label": "New Beneficiaries",
+          "fieldType": "TABLE",
+          "displayOrder": 40,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "visibilityExpression": "@{amendmentType} == 'BENEFICIARY'",
+          "tableMinRows": 0,
+          "tableMaxRows": 10,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"fullName\",\"label\":\"Full Name\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"relationship\",\"label\":\"Relationship\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"idNumber\",\"label\":\"ID Number\",\"type\":\"TEXT\",\"width\":160},{\"name\":\"phone\",\"label\":\"Phone\",\"type\":\"TEXT\",\"width\":140},{\"name\":\"allocationPercent\",\"label\":\"% Allocation\",\"type\":\"NUMBER\",\"width\":120,\"required\":true}]",
+          "validation": "ValidWhen(@{amendmentType} != 'BENEFICIARY' OR MinRows(1, \"Provide at least one beneficiary\"), \"Beneficiary list required\")"
+        },
+        {
+          "name": "totalAllocation",
+          "label": "Total Allocation %",
+          "fieldType": "NUMBER",
+          "isReadonly": true,
+          "displayOrder": 41,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "visibilityExpression": "@{amendmentType} == 'BENEFICIARY'",
+          "defaultValue": "SUM_COLUMN(\"newBeneficiaries\", \"allocationPercent\")",
+          "validation": "ValidWhen(@{amendmentType} != 'BENEFICIARY' OR @{totalAllocation} == 100, \"Allocations must total 100%\")"
+        },
+        {
+          "name": "dependantChanges",
+          "label": "Dependants Added / Removed",
+          "fieldType": "TABLE",
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{amendmentType} == 'DEPENDANT_ADD' OR @{amendmentType} == 'DEPENDANT_REMOVE'",
+          "tableMinRows": 0,
+          "tableMaxRows": 20,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"action\",\"label\":\"Action\",\"type\":\"SELECT\",\"width\":110,\"required\":true,\"options\":[\"ADD\",\"REMOVE\"]},{\"name\":\"fullName\",\"label\":\"Full Name\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"relationship\",\"label\":\"Relationship\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"idNumber\",\"label\":\"ID / Birth Cert\",\"type\":\"TEXT\",\"width\":160},{\"name\":\"dateOfBirth\",\"label\":\"DOB\",\"type\":\"DATE\",\"width\":130},{\"name\":\"sumAssured\",\"label\":\"Sum Assured\",\"type\":\"NUMBER\",\"width\":130}]"
+        },
+        {
+          "name": "amendmentForm",
+          "label": "Signed Amendment Request",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 60,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_7",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Signed request required\")"
+        },
+        {
+          "name": "idCopy",
+          "label": "Policyholder ID",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 61,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_7",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required()"
+        },
+        {
+          "name": "supportingDocs",
+          "label": "Supporting Documents (e.g. marriage cert, birth cert, new ID)",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 62,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_7",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Policy Services Officer",
+      "approverType": "ROLE",
+      "roleName": "POLICY_OFFICER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Policy Services Manager",
+      "approverType": "ROLE",
+      "roleName": "POLICY_MANAGER",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": false,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "FUNERAL",
+  "workflowTypeCode": "APPROVAL"
+}

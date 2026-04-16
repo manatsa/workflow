@@ -1,0 +1,67 @@
+{
+  "_comment": "Personnel Posting / Transfer — reassign military/defence personnel between units or roles.",
+  "name": "Personnel Posting",
+  "code": "DPP",
+  "description": "Reassign military or defence personnel between units, duty stations or roles.",
+  "icon": "swap_horiz",
+  "displayOrder": 73,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "DEFENCE",
+  "workflowTypeCode": "HR",
+  "titleTemplate": "@{postingRef} - @{memberName} (@{newUnit})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Member", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Posting", "displayOrder": 1, "icon": "swap_horiz" },
+      { "id": "temp_screen_3", "title": "Entitlements", "displayOrder": 2, "icon": "card_giftcard" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Member", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Current Posting", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "New Posting", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Reason & Tenure", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Allowances & Movement", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "postingRef", "label": "Posting Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"DPP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "issueDate", "label": "Issue Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "memberName", "label": "Member Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "serviceNumber", "label": "Service Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "rank", "label": "Rank", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "branch", "label": "Service Branch", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "ARMY", "label": "Army", "displayOrder": 0 }, { "value": "NAVY", "label": "Navy", "displayOrder": 1 }, { "value": "AIR", "label": "Air Force", "displayOrder": 2 }, { "value": "POLICE", "label": "Police", "displayOrder": 3 }, { "value": "CIVILIAN", "label": "Civilian Defence", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "currentUnit", "label": "Current Unit", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "currentRole", "label": "Current Role", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "currentStation", "label": "Current Duty Station", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "newUnit", "label": "New Unit", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "newRole", "label": "New Role / Appointment", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "newStation", "label": "New Duty Station", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "reason", "label": "Reason for Posting", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "ROTATION", "label": "Routine Rotation", "displayOrder": 0 }, { "value": "PROMOTION", "label": "Promotion", "displayOrder": 1 }, { "value": "OPERATIONAL", "label": "Operational Requirement", "displayOrder": 2 }, { "value": "TRAINING", "label": "Training / Course", "displayOrder": 3 }, { "value": "DISCIPLINARY", "label": "Disciplinary", "displayOrder": 4 }, { "value": "COMPASSIONATE", "label": "Compassionate", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "reportByDate", "label": "Report By Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "tenureMonths", "label": "Tenure (months)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "24", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "familyAccompanied", "label": "Family Accompanied?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "disturbanceAllowance", "label": "Disturbance Allowance", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "movementAllowance", "label": "Movement / Travel Allowance", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "quartersType", "label": "Quarters", "fieldType": "SELECT", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "BARRACKS", "label": "Barracks", "displayOrder": 0 }, { "value": "FAMILY_QUARTERS", "label": "Family Quarters", "displayOrder": 1 }, { "value": "RENTAL", "label": "Rental Allowance", "displayOrder": 2 } ] },
+      { "name": "securityImplications", "label": "Security / Clearance Implications", "fieldType": "TEXTAREA", "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "postingOrder", "label": "Signed Posting Order", "fieldType": "FILE", "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf", "maxFileSize": 10485760 },
+      { "name": "medicalClearance", "label": "Medical Clearance", "fieldType": "FILE", "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "HR / Personnel Officer", "approverType": "ROLE", "roleName": "HR_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Commanding Officer (Releasing)", "approverType": "ROLE", "roleName": "UNIT_COMMANDER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Director of Personnel", "approverType": "ROLE", "roleName": "DIRECTOR_PERSONNEL", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

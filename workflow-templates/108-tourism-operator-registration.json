@@ -1,0 +1,72 @@
+{
+  "_comment": "Tour Operator / Guide Registration — register a tour operator or guide with the tourism authority.",
+  "name": "Tour Operator / Guide Registration",
+  "code": "TOR",
+  "description": "Register a tour operator or guide with the tourism authority: licensing, insurance and training verification.",
+  "icon": "badge",
+  "displayOrder": 108,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "TOURISM",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{registrationRef} - @{applicantName} (@{applicationType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Applicant", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Qualifications", "displayOrder": 1, "icon": "school" },
+      { "id": "temp_screen_3", "title": "Insurance & Fees", "displayOrder": 2, "icon": "shield" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Applicant Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Operation Scope", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Qualifications", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Insurance", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Fees", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_7", "title": "Documents", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "registrationRef", "label": "Registration Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"TOR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationType", "label": "Application Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "NEW_OPERATOR", "label": "New Tour Operator", "displayOrder": 0 }, { "value": "RENEW_OPERATOR", "label": "Renewal - Operator", "displayOrder": 1 }, { "value": "NEW_GUIDE", "label": "New Guide", "displayOrder": 2 }, { "value": "RENEW_GUIDE", "label": "Renewal - Guide", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "validityYears", "label": "Validity (years)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "2", "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND Min(1) AND Max(5)" },
+      { "name": "applicantName", "label": "Applicant / Company Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "idOrReg", "label": "ID / Registration", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Phone()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter valid email\")" },
+      { "name": "address", "label": "Office / Residential Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "operationType", "label": "Type of Operation", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "INBOUND", "label": "Inbound", "displayOrder": 0 }, { "value": "OUTBOUND", "label": "Outbound", "displayOrder": 1 }, { "value": "DOMESTIC", "label": "Domestic", "displayOrder": 2 }, { "value": "SAFARI", "label": "Safari / Adventure", "displayOrder": 3 }, { "value": "CRUISE", "label": "Cruise", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "languages", "label": "Languages Spoken", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "specialisations", "label": "Specialisations", "fieldType": "TEXTAREA", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "yearsExperience", "label": "Years of Experience", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "trainingCert", "label": "Accredited Training Completed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{trainingCert} == true, \"Training certification required\")" },
+      { "name": "firstAidCert", "label": "Valid First Aid Certificate", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "criminalRecordClear", "label": "Criminal Record Clear", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{criminalRecordClear} == true, \"Criminal record must be clear\")" },
+      { "name": "insurerName", "label": "Insurer", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "liabilityCoverAmount", "label": "Public Liability Cover Amount", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "policyExpiry", "label": "Policy Expiry", "fieldType": "DATE", "isMandatory": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Policy must be current\")" },
+      { "name": "applicationFee", "label": "Application Fee", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "licenceFee", "label": "Licence Fee", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "totalFees", "label": "Total Fees", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "defaultValue": "SUM(@{applicationFee}, @{licenceFee})" },
+      { "name": "paid", "label": "Fees Paid", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "ValidWhen(@{paid} == true, \"Fees must be paid\")" },
+      { "name": "idCopy", "label": "ID / Registration Copy", "fieldType": "FILE", "isMandatory": true, "displayOrder": 60, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "trainingCertFile", "label": "Training Certificate", "fieldType": "FILE", "isMandatory": true, "displayOrder": 61, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "insuranceCert", "label": "Insurance Certificate", "fieldType": "FILE", "isMandatory": true, "displayOrder": 62, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "policeClearance", "label": "Police Clearance", "fieldType": "FILE", "isMandatory": true, "displayOrder": 63, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_7", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Registration Officer", "approverType": "ROLE", "roleName": "REGISTRATION_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Licensing Manager", "approverType": "ROLE", "roleName": "LICENSING_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Director of Tourism Licensing", "approverType": "ROLE", "roleName": "DIRECTOR_TOURISM", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

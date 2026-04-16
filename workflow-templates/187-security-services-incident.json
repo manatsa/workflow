@@ -1,0 +1,58 @@
+{
+  "_comment": "Security Incident Report — record and investigate an on-site security incident.",
+  "name": "Security Incident Report",
+  "code": "SIR",
+  "description": "Record and investigate an on-site security incident (theft, breach, assault).",
+  "icon": "crisis_alert",
+  "displayOrder": 187,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "SECURITY_SERVICES",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{incidentRef} - @{siteName} (@{incidentType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 4, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 12, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Incident", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Response & Actions", "displayOrder": 1, "icon": "medical_services" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Site", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Incident Detail", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Response", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Follow-up", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "incidentRef", "label": "Incident Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SIR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportingGuard", "label": "Reporting Guard", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "siteName", "label": "Site", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientName", "label": "Client", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "incidentDateTime", "label": "Incident Date/Time", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "incidentType", "label": "Incident Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "THEFT", "label": "Theft / Robbery", "displayOrder": 0 }, { "value": "BREACH", "label": "Unauthorised Access / Breach", "displayOrder": 1 }, { "value": "ASSAULT", "label": "Assault", "displayOrder": 2 }, { "value": "VANDALISM", "label": "Vandalism", "displayOrder": 3 }, { "value": "FIRE", "label": "Fire / Emergency", "displayOrder": 4 }, { "value": "MEDICAL", "label": "Medical Incident", "displayOrder": 5 }, { "value": "SUSPICIOUS", "label": "Suspicious Activity", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "severity", "label": "Severity", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "MINOR", "label": "Minor", "displayOrder": 0 }, { "value": "MODERATE", "label": "Moderate", "displayOrder": 1 }, { "value": "MAJOR", "label": "Major", "displayOrder": 2 }, { "value": "CRITICAL", "label": "Critical", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "description", "label": "Incident Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(50)" },
+      { "name": "injuries", "label": "Injuries?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "lossAmount", "label": "Estimated Loss", "fieldType": "CURRENCY", "defaultValue": "0", "isLimited": true, "inSummary": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "actionTaken", "label": "Action Taken On Scene", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(30)" },
+      { "name": "policeReported", "label": "Police / Emergency Services Notified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{severity} != 'CRITICAL' OR @{policeReported} == true, \"Police must be notified for critical\")" },
+      { "name": "caseNumber", "label": "Police Case Number", "fieldType": "TEXT", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{policeReported} == true", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "clientNotified", "label": "Client Notified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{clientNotified} == true, \"Client must be notified\")" },
+      { "name": "cctvReviewed", "label": "CCTV Reviewed / Footage Preserved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "correctiveActions", "label": "Corrective / Preventive Actions", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" },
+      { "name": "followUpDate", "label": "Follow-up Review Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Shift Supervisor", "approverType": "ROLE", "roleName": "SHIFT_SUPERVISOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPS_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Operations", "approverType": "ROLE", "roleName": "HEAD_OPS", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

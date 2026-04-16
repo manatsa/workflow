@@ -1,0 +1,123 @@
+{
+  "_comment": "Loan Disbursement Authorisation — release approved loan funds to member after final checks.",
+  "name": "Loan Disbursement Authorisation",
+  "code": "MLD",
+  "description": "Authorise disbursement of an approved microloan to the member after pre-disbursement checks.",
+  "icon": "payments",
+  "displayOrder": 48,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "MICROFINANCE",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{disbRef} - @{memberName} (@{disbursedAmount})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 6,
+  "reminderMaxCount": 5,
+  "reminderStartAfterHours": 2,
+  "escalationEnabled": true,
+  "escalationAfterHours": 24,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Disbursement @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Loan disbursement <strong>@{referenceNumber}</strong> awaiting authorisation.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Approved Loan", "displayOrder": 1, "icon": "request_quote" },
+      { "id": "temp_screen_3", "title": "Pre-Disbursement Checks", "displayOrder": 2, "icon": "checklist" },
+      { "id": "temp_screen_4", "title": "Disbursement", "displayOrder": 3, "icon": "payments" },
+      { "id": "temp_screen_5", "title": "Documents", "displayOrder": 4, "icon": "attach_file" },
+      { "id": "temp_screen_6", "title": "Review & Submit", "displayOrder": 5, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Loan Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Checks", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_4", "title": "Deductions", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_5", "title": "Payout Method", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_5" }
+    ],
+
+    "fields": [
+      { "name": "disbRef", "label": "Disbursement Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MLD-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "officer", "label": "Requesting Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "branch", "label": "Branch", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required()" },
+
+      { "name": "loanRef", "label": "Approved Loan Reference", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "memberName", "label": "Member / Group Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "approvedAmount", "label": "Approved Amount", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Min(1)" },
+      { "name": "approvalDate", "label": "Approval Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "productCode", "label": "Loan Product", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "interestRate", "label": "Interest Rate", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Min(0)" },
+
+      { "name": "kycVerified", "label": "KYC Verified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "ValidWhen(@{kycVerified} == true, \"KYC must be verified\")" },
+      { "name": "loanAgreementSigned", "label": "Loan Agreement Signed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "ValidWhen(@{loanAgreementSigned} == true, \"Loan agreement must be signed\")" },
+      { "name": "guarantorSignatures", "label": "Guarantor Signatures Captured", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "ValidWhen(@{guarantorSignatures} == true, \"Guarantor signatures required\")" },
+      { "name": "noArrearsOnOtherLoans", "label": "No Arrears on Other Loans", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "ValidWhen(@{noArrearsOnOtherLoans} == true, \"Member must not be in arrears\")" },
+      { "name": "collateralPerfected", "label": "Collateral Perfected (if any)", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3" },
+      { "name": "creditBureauChecked", "label": "Credit Bureau Checked", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3" },
+
+      { "name": "insuranceDeduction", "label": "Credit Life Insurance Deduction", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "Min(0)" },
+      { "name": "processingFee", "label": "Processing Fee", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "Min(0)" },
+      { "name": "compulsorySavings", "label": "Compulsory Savings", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "Min(0)" },
+      { "name": "otherDeductions", "label": "Other Deductions", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "Min(0)" },
+      { "name": "totalDeductions", "label": "Total Deductions", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM(@{insuranceDeduction}, @{processingFee}, @{compulsorySavings}, @{otherDeductions})" },
+      { "name": "disbursedAmount", "label": "Net Disbursed Amount", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUBTRACT(@{approvedAmount}, @{totalDeductions})" },
+
+      { "name": "payoutMethod", "label": "Payout Method", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "CASH", "label": "Cash (Branch)", "displayOrder": 0 },
+          { "value": "MOBILE_MONEY", "label": "Mobile Money", "displayOrder": 1 },
+          { "value": "BANK_TRANSFER", "label": "Bank Transfer", "displayOrder": 2 },
+          { "value": "CHEQUE", "label": "Cheque", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+      { "name": "payoutAccount", "label": "Account / Mobile Number", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "visibilityExpression": "@{payoutMethod} == 'MOBILE_MONEY' OR @{payoutMethod} == 'BANK_TRANSFER'",
+        "validation": "ValidWhen(@{payoutMethod} == 'CASH' OR @{payoutMethod} == 'CHEQUE' OR IS_NOT_EMPTY(@{payoutAccount}), \"Account required\")" },
+      { "name": "disbursementDate", "label": "Planned Disbursement Date", "fieldType": "DATE", "isMandatory": true, "defaultValue": "TODAY()", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required()" },
+
+      { "name": "loanAgreement", "label": "Signed Loan Agreement", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "approvalLetter", "label": "Approval Letter / Minutes", "fieldType": "FILE", "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Branch Accountant", "approverType": "ROLE", "roleName": "BRANCH_ACCOUNTANT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Branch Manager", "approverType": "ROLE", "roleName": "BRANCH_MANAGER", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Head of Operations", "approverType": "ROLE", "roleName": "HEAD_OF_OPERATIONS", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "_comment": "Vessel Port Call — request berthing / pilotage / agency services for an arriving vessel.",
+  "name": "Vessel Port Call",
+  "code": "SPC",
+  "description": "Request berthing, pilotage and agency services for an arriving vessel.",
+  "icon": "directions_boat",
+  "displayOrder": 113,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "SHIPPING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{portCallRef} - @{vesselName} (@{eta})",
+  "reminderEnabled": true, "reminderFrequencyHours": 2, "reminderMaxCount": 5, "reminderStartAfterHours": 1,
+  "escalationEnabled": true, "escalationAfterHours": 12, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Vessel", "displayOrder": 0, "icon": "directions_boat" },
+      { "id": "temp_screen_2", "title": "Schedule & Services", "displayOrder": 1, "icon": "schedule" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Vessel Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Arrival", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Services Requested", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Charges", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "portCallRef", "label": "Port Call Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SPC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "agent", "label": "Ship Agent", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "port", "label": "Port", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "vesselName", "label": "Vessel Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "imoNumber", "label": "IMO Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Pattern(/^IMO[0-9]{7}$|^[0-9]{7}$/, \"Enter valid IMO number\")", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "flag", "label": "Flag State", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "vesselType", "label": "Vessel Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CONTAINER", "label": "Container", "displayOrder": 0 }, { "value": "BULK", "label": "Bulk Carrier", "displayOrder": 1 }, { "value": "TANKER", "label": "Tanker", "displayOrder": 2 }, { "value": "RO_RO", "label": "Ro-Ro", "displayOrder": 3 }, { "value": "GENERAL_CARGO", "label": "General Cargo", "displayOrder": 4 }, { "value": "PASSENGER", "label": "Passenger / Cruise", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "loa", "label": "LOA (m)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "dwt", "label": "DWT", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "eta", "label": "ETA", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "etd", "label": "ETD", "fieldType": "DATE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "purposeOfCall", "label": "Purpose of Call", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "LOADING", "label": "Loading", "displayOrder": 0 }, { "value": "DISCHARGE", "label": "Discharge", "displayOrder": 1 }, { "value": "BUNKERING", "label": "Bunkering", "displayOrder": 2 }, { "value": "CREW_CHANGE", "label": "Crew Change", "displayOrder": 3 }, { "value": "REPAIR", "label": "Repair / Dry Dock", "displayOrder": 4 }, { "value": "TRANSIT", "label": "Transit", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "cargoDetails", "label": "Cargo Operations Details", "fieldType": "TEXTAREA", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "pilotageNeeded", "label": "Pilotage Required", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "tugsNeeded", "label": "Tug Boats", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "bunkers", "label": "Bunkers (MT)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "freshWater", "label": "Fresh Water (MT)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "crewChange", "label": "Crew Change?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "wasteDisposal", "label": "Waste Disposal (Annex V)", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "portDues", "label": "Port Dues", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "pilotageFee", "label": "Pilotage Fee", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "agencyFee", "label": "Agency Fee", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "totalCharges", "label": "Total Port Charges", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM(@{portDues}, @{pilotageFee}, @{agencyFee})" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Port Agent", "approverType": "ROLE", "roleName": "PORT_AGENT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Agency Manager", "approverType": "ROLE", "roleName": "AGENCY_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Harbour Master / Port Control", "approverType": "ROLE", "roleName": "HARBOUR_MASTER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

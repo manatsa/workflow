@@ -1,0 +1,569 @@
+{
+  "_comment": "KYC Periodic Refresh / Customer Due Diligence Review — risk-based recurring review of customer KYC.",
+  "name": "KYC Refresh / Periodic Review",
+  "code": "KYR",
+  "description": "Periodic re-verification of customer KYC information based on risk rating.",
+  "icon": "task_alt",
+  "displayOrder": 27,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{reviewRef} - @{customerName} (@{newRiskRating})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 48,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 48,
+  "escalationEnabled": true,
+  "escalationAfterHours": 168,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: KYC Refresh @{referenceNumber} pending",
+  "reminderEmailBody": "<p>KYC refresh review <strong>@{referenceNumber}</strong> awaiting your decision.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Review Info",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Customer",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Updated KYC",
+          "displayOrder": 2,
+          "icon": "edit"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Risk & Screening",
+          "displayOrder": 3,
+          "icon": "verified_user"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Documents",
+          "displayOrder": 4,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Review & Submit",
+          "displayOrder": 5,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Customer Info",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Updated Information",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Source of Funds",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Screening",
+          "displayOrder": 4,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Risk Reassessment",
+          "displayOrder": 5,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Refreshed Documents",
+          "displayOrder": 6,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        }
+      ],
+      "fields": [
+        {
+          "name": "reviewRef",
+          "label": "Review Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"KYR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "reviewDate",
+          "label": "Review Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "reviewedBy",
+          "label": "Reviewed By",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "reviewType",
+          "label": "Review Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "options": [
+            {
+              "value": "PERIODIC",
+              "label": "Periodic (Scheduled)",
+              "displayOrder": 0
+            },
+            {
+              "value": "TRIGGER",
+              "label": "Trigger / Event-Based",
+              "displayOrder": 1
+            },
+            {
+              "value": "REGULATORY",
+              "label": "Regulatory Requested",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "customerNumber",
+          "label": "Customer Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerName",
+          "label": "Customer Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "currentRiskRating",
+          "label": "Current Risk Rating",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low",
+              "displayOrder": 0
+            },
+            {
+              "value": "MEDIUM",
+              "label": "Medium",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "lastReviewDate",
+          "label": "Last Review Date",
+          "fieldType": "DATE",
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "addressChanged",
+          "label": "Has address changed?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "newAddress",
+          "label": "New Address",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 21,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "visibilityExpression": "@{addressChanged} == true",
+          "validation": "ValidWhen(@{addressChanged} == false OR HAS_MIN_LENGTH(@{newAddress}, 10), \"Provide new address\")"
+        },
+        {
+          "name": "phoneChanged",
+          "label": "Has phone changed?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "newPhone",
+          "label": "New Phone",
+          "fieldType": "PHONE",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "visibilityExpression": "@{phoneChanged} == true",
+          "validation": "ValidWhen(@{phoneChanged} == false OR Phone(@{newPhone}), \"Enter valid phone\")"
+        },
+        {
+          "name": "occupationChanged",
+          "label": "Has occupation/employment changed?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "newOccupation",
+          "label": "New Occupation / Employer",
+          "fieldType": "TEXT",
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "visibilityExpression": "@{occupationChanged} == true"
+        },
+        {
+          "name": "idRenewed",
+          "label": "Has ID been renewed?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 26,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "newIdExpiry",
+          "label": "New ID Expiry",
+          "fieldType": "DATE",
+          "displayOrder": 27,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "visibilityExpression": "@{idRenewed} == true",
+          "validation": "ValidWhen(@{idRenewed} == false OR DateAfter(\"today\", \"ID must not be expired\"), \"ID expiry must be in future\")"
+        },
+        {
+          "name": "currentMonthlyIncome",
+          "label": "Current Monthly Income",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "incomeChange",
+          "label": "Significant Income Change?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4"
+        },
+        {
+          "name": "sourceOfFundsChanged",
+          "label": "Source of Funds Changed?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4"
+        },
+        {
+          "name": "newSourceOfFunds",
+          "label": "New Source of Funds Description",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 33,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{sourceOfFundsChanged} == true",
+          "validation": "ValidWhen(@{sourceOfFundsChanged} == false OR HAS_MIN_LENGTH(@{newSourceOfFunds}, 20), \"Describe new source of funds\")"
+        },
+        {
+          "name": "pepStatus",
+          "label": "PEP Status",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "NO",
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "options": [
+            {
+              "value": "NO",
+              "label": "Not a PEP",
+              "displayOrder": 0
+            },
+            {
+              "value": "DOMESTIC",
+              "label": "Domestic PEP",
+              "displayOrder": 1
+            },
+            {
+              "value": "FOREIGN",
+              "label": "Foreign PEP",
+              "displayOrder": 2
+            },
+            {
+              "value": "ASSOCIATE",
+              "label": "Close Associate / Family",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "sanctionsResult",
+          "label": "Sanctions Screening",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "CLEAR",
+          "inSummary": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "options": [
+            {
+              "value": "CLEAR",
+              "label": "Clear",
+              "displayOrder": 0
+            },
+            {
+              "value": "FALSE_POSITIVE",
+              "label": "False Positive",
+              "displayOrder": 1
+            },
+            {
+              "value": "MATCH",
+              "label": "Confirmed Match",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "adverseMedia",
+          "label": "Adverse Media Found?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "transactionPatternConsistent",
+          "label": "Transaction Pattern Consistent with Profile?",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "true",
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6"
+        },
+        {
+          "name": "newRiskRating",
+          "label": "New Risk Rating",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low",
+              "displayOrder": 0
+            },
+            {
+              "value": "MEDIUM",
+              "label": "Medium",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "nextReviewDue",
+          "label": "Next Review Due",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required() AND DateAfter(\"today\", \"Next review must be in the future\")"
+        },
+        {
+          "name": "reviewSummary",
+          "label": "Reviewer Notes",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 53,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "updatedDocs",
+          "label": "Updated KYC Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 60,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx",
+          "maxFileSize": 10485760,
+          "maxFiles": 15
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "KYC Analyst",
+      "approverType": "ROLE",
+      "roleName": "KYC_ANALYST",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Compliance Officer",
+      "approverType": "ROLE",
+      "roleName": "COMPLIANCE_OFFICER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "MLRO / Head of Compliance",
+      "approverType": "ROLE",
+      "roleName": "MLRO",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "BANKING",
+  "workflowTypeCode": "APPROVAL"
+}

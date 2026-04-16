@@ -1,0 +1,625 @@
+{
+  "_comment": "First Article Inspection (FAI) — verifies that a new or revised part meets all drawing/spec requirements before production release.",
+  "name": "First Article Inspection",
+  "code": "FAI",
+  "description": "Verify that the first article produced meets all drawing and specification requirements before full production release.",
+  "icon": "verified",
+  "displayOrder": 240,
+  "requiresApproval": true,
+  "commentsMandatory": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{faiNumber} - @{partNumber} Rev @{revision}",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Part Info",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Dimensional Inspection",
+          "displayOrder": 1,
+          "icon": "straighten"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Other Characteristics",
+          "displayOrder": 2,
+          "icon": "checklist"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Result",
+          "displayOrder": 3,
+          "icon": "verified"
+        },
+        {
+          "id": "temp_s5",
+          "title": "Submit",
+          "displayOrder": 4,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "FAI Identification",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Part Details",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Production Info",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Dimensional Checks",
+          "displayOrder": 3,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Material & Process",
+          "displayOrder": 4,
+          "columns": 1,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g6",
+          "title": "Functional Tests",
+          "displayOrder": 5,
+          "columns": 1,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g7",
+          "title": "Overall Result",
+          "displayOrder": 6,
+          "columns": 1,
+          "screenId": "temp_s4"
+        },
+        {
+          "id": "temp_g8",
+          "title": "Attachments",
+          "displayOrder": 7,
+          "columns": 1,
+          "screenId": "temp_s4"
+        }
+      ],
+      "fields": [
+        {
+          "name": "faiNumber",
+          "label": "FAI Report #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"FAI-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "inspectionDate",
+          "label": "Inspection Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "faiType",
+          "label": "FAI Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "INITIAL",
+              "label": "Initial - New Part",
+              "displayOrder": 0
+            },
+            {
+              "value": "REVISION",
+              "label": "Revision - Drawing/Spec Change",
+              "displayOrder": 1
+            },
+            {
+              "value": "PROCESS",
+              "label": "Process Change",
+              "displayOrder": 2
+            },
+            {
+              "value": "SUPPLIER",
+              "label": "New Supplier / Source",
+              "displayOrder": 3
+            },
+            {
+              "value": "LAPSE",
+              "label": "Production Lapse (24+ months)",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "customerName",
+          "label": "Customer (if applicable)",
+          "fieldType": "TEXT",
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "partNumber",
+          "label": "Part Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "partDescription",
+          "label": "Part Description",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "revision",
+          "label": "Revision",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "drawingNumber",
+          "label": "Drawing Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "material",
+          "label": "Material",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "specReference",
+          "label": "Specification Reference",
+          "fieldType": "TEXT",
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "workOrderNumber",
+          "label": "Work Order #",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "lotNumber",
+          "label": "Lot / Batch #",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "serialNumber",
+          "label": "Serial Number (if applicable)",
+          "fieldType": "TEXT",
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "productionLine",
+          "label": "Production Line / Cell",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "manufactureDate",
+          "label": "Manufacture Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND ValidWhen(IS_PAST(@{manufactureDate}) OR IS_TODAY(@{manufactureDate}), \"Manufacture date must be past or today\")"
+        },
+        {
+          "name": "inspectorName",
+          "label": "Inspector",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "dimensionalChecks",
+          "label": "Dimensional Characteristics",
+          "fieldType": "TABLE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "tableMinRows": 1,
+          "tableMaxRows": 200,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableResizable": true,
+          "tableColumns": "[{\"name\":\"balloonNum\",\"label\":\"Balloon #\",\"type\":\"TEXT\",\"width\":80,\"required\":true},{\"name\":\"characteristic\",\"label\":\"Characteristic / Feature\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"nominal\",\"label\":\"Nominal\",\"type\":\"TEXT\",\"width\":100,\"required\":true},{\"name\":\"tolPlus\",\"label\":\"Tol (+)\",\"type\":\"TEXT\",\"width\":80},{\"name\":\"tolMinus\",\"label\":\"Tol (-)\",\"type\":\"TEXT\",\"width\":80},{\"name\":\"unit\",\"label\":\"Unit\",\"type\":\"SELECT\",\"width\":80,\"options\":[\"mm\",\"in\",\"deg\",\"Ra\",\"HRC\",\"HRB\",\"HV\",\"g\",\"kg\"]},{\"name\":\"actual\",\"label\":\"Actual Measured\",\"type\":\"TEXT\",\"width\":120,\"required\":true},{\"name\":\"tool\",\"label\":\"Tool / Gauge\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"result\",\"label\":\"Result\",\"type\":\"SELECT\",\"width\":80,\"required\":true,\"options\":[\"PASS\",\"FAIL\",\"MARGINAL\"]}]",
+          "validation": "MinRows(1, \"Record at least one dimensional check\")"
+        },
+        {
+          "name": "materialCert",
+          "label": "Material Certification Verified?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "materialCertNumber",
+          "label": "Material Cert Number",
+          "fieldType": "TEXT",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{materialCert} == true",
+          "validation": "ValidWhen(@{materialCert} != true OR IS_NOT_EMPTY(@{materialCertNumber}), \"Provide certificate number\")"
+        },
+        {
+          "name": "heatTreatment",
+          "label": "Heat Treatment Required?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "heatTreatResults",
+          "label": "Heat Treat Results",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{heatTreatment} == true"
+        },
+        {
+          "name": "surfaceFinish",
+          "label": "Surface Finish Required?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 44,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "surfaceFinishResult",
+          "label": "Surface Finish Result",
+          "fieldType": "TEXT",
+          "displayOrder": 45,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{surfaceFinish} == true"
+        },
+        {
+          "name": "visualInspection",
+          "label": "Visual Inspection Result",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 46,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "options": [
+            {
+              "value": "PASS",
+              "label": "PASS - No visual defects",
+              "displayOrder": 0
+            },
+            {
+              "value": "FAIL",
+              "label": "FAIL - Visual defects found",
+              "displayOrder": 1
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "visualNotes",
+          "label": "Visual Inspection Notes",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 47,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "functionalTests",
+          "label": "Functional / Performance Tests",
+          "fieldType": "TABLE",
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "tableMinRows": 0,
+          "tableMaxRows": 30,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"testName\",\"label\":\"Test Name\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"specified\",\"label\":\"Specified\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"actual\",\"label\":\"Actual\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"result\",\"label\":\"Result\",\"type\":\"SELECT\",\"width\":100,\"required\":true,\"options\":[\"PASS\",\"FAIL\",\"N/A\"]},{\"name\":\"comments\",\"label\":\"Comments\",\"type\":\"TEXT\",\"width\":250}]"
+        },
+        {
+          "name": "overallResult",
+          "label": "Overall FAI Result",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "options": [
+            {
+              "value": "ACCEPT",
+              "label": "ACCEPT - Approved for Production",
+              "displayOrder": 0
+            },
+            {
+              "value": "ACCEPT_DEVIATION",
+              "label": "ACCEPT WITH DEVIATION - Concession",
+              "displayOrder": 1
+            },
+            {
+              "value": "REJECT",
+              "label": "REJECT - Further Action Required",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "deviationDetails",
+          "label": "Deviation / Concession Details",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{overallResult} == 'ACCEPT_DEVIATION'",
+          "validation": "ValidWhen(@{overallResult} != 'ACCEPT_DEVIATION' OR HAS_MIN_LENGTH(@{deviationDetails}, 30), \"Describe deviation and approval (min 30 chars)\")"
+        },
+        {
+          "name": "rejectionReason",
+          "label": "Rejection Reason",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{overallResult} == 'REJECT'",
+          "validation": "ValidWhen(@{overallResult} != 'REJECT' OR HAS_MIN_LENGTH(@{rejectionReason}, 30), \"Describe rejection reason (min 30 chars)\")"
+        },
+        {
+          "name": "productionReleaseApproved",
+          "label": "Approved for Production Release?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 63,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7"
+        },
+        {
+          "name": "overallNotes",
+          "label": "Overall Notes",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 64,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7"
+        },
+        {
+          "name": "drawings",
+          "label": "Drawing(s) Used",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "pdf,dwg,step,stp,jpg,png",
+          "maxFileSize": 52428800,
+          "maxFiles": 10
+        },
+        {
+          "name": "measurementReports",
+          "label": "Measurement / CMM Reports",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 71,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "pdf,xls,xlsx,csv,doc,docx",
+          "maxFileSize": 20971520,
+          "maxFiles": 20
+        },
+        {
+          "name": "materialCerts",
+          "label": "Material / Test Certificates",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 72,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "pdf,jpg,png",
+          "maxFileSize": 20971520,
+          "maxFiles": 20
+        },
+        {
+          "name": "photos",
+          "label": "Photos of First Article",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 73,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "jpg,png",
+          "maxFileSize": 20971520,
+          "maxFiles": 20
+        },
+        {
+          "name": "certification",
+          "label": "I certify this inspection was performed in accordance with the drawing and specification requirements",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 1,
+          "screenId": "temp_s5",
+          "validation": "IsTrue(\"Certification required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "QC Inspector",
+      "approverType": "ROLE",
+      "roleName": "QUALITY_INSPECTOR",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Quality Engineer",
+      "approverType": "ROLE",
+      "roleName": "QUALITY_ENGINEER",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Quality Manager",
+      "approverType": "ROLE",
+      "roleName": "QUALITY",
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "MANUFACTURING",
+  "workflowTypeCode": "APPROVAL"
+}

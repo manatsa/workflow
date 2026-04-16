@@ -1,0 +1,62 @@
+{
+  "_comment": "Livestock Movement Permit — authorise movement of livestock with veterinary / traceability checks.",
+  "name": "Livestock Movement Permit",
+  "code": "ALM",
+  "description": "Authorise movement of livestock between farms / districts with veterinary clearance.",
+  "icon": "pets",
+  "displayOrder": 129,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "AGRICULTURE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{permitRef} - @{species} (@{fromLocation} → @{toLocation})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 6,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Movement", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Veterinary Checks", "displayOrder": 1, "icon": "medical_services" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Owner", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Livestock", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Origin & Destination", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Veterinary Clearance", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Transport", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "permitRef", "label": "Permit Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ALM-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "ownerName", "label": "Owner / Farmer", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "ownerIdOrReg", "label": "Owner ID / Herd Reg #", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "species", "label": "Species", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CATTLE", "label": "Cattle", "displayOrder": 0 }, { "value": "SHEEP", "label": "Sheep", "displayOrder": 1 }, { "value": "GOATS", "label": "Goats", "displayOrder": 2 }, { "value": "PIGS", "label": "Pigs", "displayOrder": 3 }, { "value": "POULTRY", "label": "Poultry", "displayOrder": 4 }, { "value": "EQUINE", "label": "Horses / Donkeys", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "breed", "label": "Breed", "fieldType": "TEXT", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "headCount", "label": "Number of Animals", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "earTagRange", "label": "Ear Tag / ID Range", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "purpose", "label": "Purpose of Movement", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SALE", "label": "Sale / Trade", "displayOrder": 0 }, { "value": "SLAUGHTER", "label": "Slaughter", "displayOrder": 1 }, { "value": "GRAZING", "label": "Grazing / Pasture", "displayOrder": 2 }, { "value": "SHOW", "label": "Show / Exhibition", "displayOrder": 3 }, { "value": "BREEDING", "label": "Breeding", "displayOrder": 4 }, { "value": "OWNER_MOVE", "label": "Owner Relocation", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "fromLocation", "label": "From (Farm / GPS)", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "toLocation", "label": "To (Farm / Abattoir / GPS)", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "district", "label": "District / Province", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "movementDate", "label": "Movement Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "lastVaccination", "label": "Last Vaccination Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "diseaseFreeZone", "label": "From Disease-Free Zone", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{diseaseFreeZone} == true, \"Origin must be disease-free zone\")" },
+      { "name": "clinicalExaminationDone", "label": "Clinical Examination Done", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{clinicalExaminationDone} == true, \"Clinical exam required\")" },
+      { "name": "veterinarianName", "label": "Attending Veterinarian", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "dipTankUpToDate", "label": "Dip Tank Records Up-to-Date", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "transportMode", "label": "Transport Mode", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "ROAD", "label": "Road (Truck)", "displayOrder": 0 }, { "value": "FOOT", "label": "On Foot / Trek", "displayOrder": 1 }, { "value": "RAIL", "label": "Rail", "displayOrder": 2 }, { "value": "AIR", "label": "Air", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "vehicleReg", "label": "Vehicle Registration", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{transportMode} == 'ROAD' OR @{transportMode} == 'RAIL'", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "biosecurityMeasures", "label": "Biosecurity Measures", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Farm Veterinarian", "approverType": "ROLE", "roleName": "FARM_VET", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "District Veterinary Officer", "approverType": "ROLE", "roleName": "DISTRICT_VET", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Chief Veterinary Officer", "approverType": "ROLE", "roleName": "CHIEF_VET", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

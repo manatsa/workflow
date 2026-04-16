@@ -1,0 +1,59 @@
+{
+  "_comment": "Creative Concept Approval — internal and client approval of creative concepts before production.",
+  "name": "Creative Concept Approval",
+  "code": "ACC",
+  "description": "Internal and client approval of a creative concept (script, storyboard, layout) prior to production.",
+  "icon": "brush",
+  "displayOrder": 159,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "ADVERTISING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{creativeRef} - @{campaignName} (@{conceptName})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Concept", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Review & Compliance", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Campaign", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Concept Details", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Quality Checks", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Decision", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "creativeRef", "label": "Creative Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ACC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "creativeDirector", "label": "Creative Director", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "artDirector", "label": "Art Director / Copy Lead", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "campaignName", "label": "Campaign", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientName", "label": "Client / Brand", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "briefRef", "label": "Brief Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "conceptName", "label": "Concept Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "format", "label": "Format", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "TVC", "label": "TV Commercial", "displayOrder": 0 }, { "value": "RADIO", "label": "Radio Ad", "displayOrder": 1 }, { "value": "PRINT", "label": "Print", "displayOrder": 2 }, { "value": "OOH", "label": "Outdoor / OOH", "displayOrder": 3 }, { "value": "DIGITAL", "label": "Digital / Social", "displayOrder": 4 }, { "value": "INTEGRATED", "label": "Integrated Campaign", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "concept", "label": "Concept Summary / Script", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(50)" },
+      { "name": "duration", "label": "Duration / Size", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "callToAction", "label": "Call to Action", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "onStrategyCheck", "label": "On-Strategy (Brief Alignment)", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{onStrategyCheck} == true, \"Must be on-strategy\")" },
+      { "name": "legalReview", "label": "Legal / Compliance Cleared", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{legalReview} == true, \"Legal clearance required\")" },
+      { "name": "brandGuidelines", "label": "Follows Brand Guidelines", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{brandGuidelines} == true, \"Brand guidelines required\")" },
+      { "name": "culturalSensitivity", "label": "Cultural / Ethical Review Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "reviewComments", "label": "Review Comments", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" },
+      { "name": "decision", "label": "Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "APPROVE_PRODUCTION", "label": "Approve for Production", "displayOrder": 0 }, { "value": "APPROVE_CLIENT_CHANGES", "label": "Approve with Client-Requested Changes", "displayOrder": 1 }, { "value": "REVISE", "label": "Revise & Resubmit", "displayOrder": 2 }, { "value": "REJECT", "label": "Reject", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "clientApproved", "label": "Client Approval Received", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{decision} != 'APPROVE_PRODUCTION' OR @{clientApproved} == true, \"Client approval required for production\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Creative Director", "approverType": "ROLE", "roleName": "CREATIVE_DIRECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Account Director", "approverType": "ROLE", "roleName": "ACCOUNT_DIRECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Director", "approverType": "ROLE", "roleName": "MD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

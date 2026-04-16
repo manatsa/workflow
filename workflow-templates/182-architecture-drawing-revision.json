@@ -1,0 +1,56 @@
+{
+  "_comment": "Drawing Issue / Revision — issue a new drawing revision to site / contractor.",
+  "name": "Drawing Issue / Revision",
+  "code": "ADR",
+  "description": "Issue a new drawing / revision to site / contractor with change reason.",
+  "icon": "description",
+  "displayOrder": 182,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "ARCHITECTURE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{issueRef} - @{drawingNumber} Rev @{revision}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 8,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Drawing", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Change & Distribution", "displayOrder": 1, "icon": "send" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Drawing Detail", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Change", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Distribution", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "issueRef", "label": "Issue Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ADR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "issueDate", "label": "Issue Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "issuedBy", "label": "Issued By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "projectRef", "label": "Project Reference", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "drawingNumber", "label": "Drawing Number", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "drawingTitle", "label": "Drawing Title", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "revision", "label": "Revision", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "scale", "label": "Scale", "fieldType": "TEXT", "isMandatory": true, "defaultValue": "1:100", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "drawingType", "label": "Drawing Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "PLAN", "label": "Floor Plan", "displayOrder": 0 }, { "value": "ELEVATION", "label": "Elevation", "displayOrder": 1 }, { "value": "SECTION", "label": "Section", "displayOrder": 2 }, { "value": "DETAIL", "label": "Detail", "displayOrder": 3 }, { "value": "SITE", "label": "Site Plan", "displayOrder": 4 }, { "value": "3D", "label": "3D / Render", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "issueStatus", "label": "Issue Status", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "PRELIM", "label": "Preliminary", "displayOrder": 0 }, { "value": "INFORMATION", "label": "For Information", "displayOrder": 1 }, { "value": "APPROVAL", "label": "For Approval", "displayOrder": 2 }, { "value": "TENDER", "label": "For Tender", "displayOrder": 3 }, { "value": "CONSTRUCTION", "label": "For Construction", "displayOrder": 4 }, { "value": "AS_BUILT", "label": "As-Built", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "changeDescription", "label": "Change Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(20)" },
+      { "name": "changeReason", "label": "Change Reason", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "CLIENT", "label": "Client Request", "displayOrder": 0 }, { "value": "DESIGN", "label": "Design Development", "displayOrder": 1 }, { "value": "RFI", "label": "Contractor RFI", "displayOrder": 2 }, { "value": "ERROR", "label": "Error Correction", "displayOrder": 3 }, { "value": "REGULATORY", "label": "Regulatory / Code", "displayOrder": 4 }, { "value": "COORDINATION", "label": "Discipline Coordination", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "costImpact", "label": "Cost Impact (if any)", "fieldType": "CURRENCY", "defaultValue": "0", "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "programmeImpact", "label": "Programme Impact (days)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "coordinated", "label": "Coordinated with Other Disciplines", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{coordinated} == true, \"Coordination required\")" },
+      { "name": "distributionList", "label": "Distribution List", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "fileFormat", "label": "File Format(s)", "fieldType": "TEXT", "isMandatory": true, "defaultValue": "PDF, DWG", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Project Architect", "approverType": "ROLE", "roleName": "PROJECT_ARCHITECT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Principal / Associate", "approverType": "ROLE", "roleName": "ASSOCIATE_ARCHITECT", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

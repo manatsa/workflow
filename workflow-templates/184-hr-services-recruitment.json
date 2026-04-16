@@ -1,0 +1,61 @@
+{
+  "_comment": "Candidate Placement — external HR agency placement of a candidate with client.",
+  "name": "Candidate Placement",
+  "code": "HCP",
+  "description": "External HR / recruitment agency placement of a candidate with a client.",
+  "icon": "person_search",
+  "displayOrder": 184,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "HR_SERVICES",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{placementRef} - @{candidateName} @ @{clientName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Placement", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Fee & Compliance", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client & Role", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Candidate", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Placement Fee", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Compliance & Guarantee", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "placementRef", "label": "Placement Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"HCP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "consultant", "label": "Recruitment Consultant", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Company", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientContact", "label": "Client Hiring Manager", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "jobTitle", "label": "Job Title", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "placementType", "label": "Placement Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "PERMANENT", "label": "Permanent", "displayOrder": 0 }, { "value": "CONTRACT", "label": "Contract / Interim", "displayOrder": 1 }, { "value": "TEMP", "label": "Temp", "displayOrder": 2 }, { "value": "EXECUTIVE", "label": "Executive Search", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "startDate", "label": "Expected Start Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "candidateName", "label": "Candidate Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "candidateEmail", "label": "Candidate Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND IS_EMAIL()" },
+      { "name": "candidatePhone", "label": "Candidate Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Phone()" },
+      { "name": "candidateSalary", "label": "Candidate Annual Salary (offered)", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "offerAccepted", "label": "Offer Accepted by Candidate", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{offerAccepted} == true, \"Offer must be accepted\")" },
+      { "name": "feePercent", "label": "Fee %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "20", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(50)" },
+      { "name": "placementFee", "label": "Placement Fee", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "PERCENT_OF(@{candidateSalary}, @{feePercent})" },
+      { "name": "invoicingTerms", "label": "Invoicing Terms", "fieldType": "TEXT", "isMandatory": true, "defaultValue": "30 days from start", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "guaranteeDays", "label": "Replacement Guarantee (days)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "90", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "rightToWork", "label": "Right to Work Verified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{rightToWork} == true, \"Right to work check required\")" },
+      { "name": "referencesChecked", "label": "References Checked", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{referencesChecked} == true, \"References required\")" },
+      { "name": "bgCheck", "label": "Background Check Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{bgCheck} == true, \"Background check required\")" },
+      { "name": "clientContractInPlace", "label": "Signed Client Terms in Place", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{clientContractInPlace} == true, \"Client terms required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Recruitment Consultant", "approverType": "ROLE", "roleName": "RECRUITMENT_CONSULTANT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Team Lead", "approverType": "ROLE", "roleName": "TEAM_LEAD", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Branch Manager", "approverType": "ROLE", "roleName": "BRANCH_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

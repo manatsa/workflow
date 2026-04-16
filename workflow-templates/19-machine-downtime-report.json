@@ -1,0 +1,681 @@
+{
+  "_comment": "Machine Downtime Report — record machine stops, repairs, and lost production time.",
+  "name": "Machine Downtime Report",
+  "code": "MD",
+  "description": "Record a machine downtime event including root cause, duration, and production impact.",
+  "icon": "precision_manufacturing",
+  "displayOrder": 230,
+  "requiresApproval": true,
+  "commentsMandatory": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{mdNumber} - @{machineId} (@{downtimeCategory})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 6,
+  "reminderMaxCount": 4,
+  "escalationEnabled": true,
+  "escalationAfterHours": 12,
+  "escalationAction": "NOTIFY_ADMIN",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Event Details",
+          "displayOrder": 0,
+          "icon": "warning"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Machine & Duration",
+          "displayOrder": 1,
+          "icon": "schedule"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Cause & Action",
+          "displayOrder": 2,
+          "icon": "build_circle"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Submit",
+          "displayOrder": 3,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Report",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Reporter",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Machine",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Downtime Period",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Production Impact",
+          "displayOrder": 4,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g6",
+          "title": "Root Cause",
+          "displayOrder": 5,
+          "columns": 1,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g7",
+          "title": "Actions & Cost",
+          "displayOrder": 6,
+          "columns": 2,
+          "screenId": "temp_s3"
+        }
+      ],
+      "fields": [
+        {
+          "name": "mdNumber",
+          "label": "Downtime Report #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"MD-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "reportedAt",
+          "label": "Reported At",
+          "fieldType": "DATETIME",
+          "defaultValue": "NOW()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "downtimeCategory",
+          "label": "Downtime Category",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "BREAKDOWN",
+              "label": "Unplanned Breakdown",
+              "displayOrder": 0
+            },
+            {
+              "value": "SETUP",
+              "label": "Setup / Changeover",
+              "displayOrder": 1
+            },
+            {
+              "value": "PLANNED_MAINT",
+              "label": "Planned Maintenance",
+              "displayOrder": 2
+            },
+            {
+              "value": "MINOR_STOP",
+              "label": "Minor Stop / Jam",
+              "displayOrder": 3
+            },
+            {
+              "value": "SPEED_LOSS",
+              "label": "Reduced Speed",
+              "displayOrder": 4
+            },
+            {
+              "value": "NO_MATERIAL",
+              "label": "No Material",
+              "displayOrder": 5
+            },
+            {
+              "value": "NO_OPERATOR",
+              "label": "No Operator",
+              "displayOrder": 6
+            },
+            {
+              "value": "POWER",
+              "label": "Power / Utility Loss",
+              "displayOrder": 7
+            },
+            {
+              "value": "QUALITY",
+              "label": "Quality / Scrap",
+              "displayOrder": 8
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 9
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "severity",
+          "label": "Severity",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "MEDIUM",
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low - Minor impact",
+              "displayOrder": 0
+            },
+            {
+              "value": "MEDIUM",
+              "label": "Medium - Reduced output",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High - Line stopped",
+              "displayOrder": 2
+            },
+            {
+              "value": "CRITICAL",
+              "label": "Critical - Safety or major outage",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "reporterName",
+          "label": "Reporter",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "reporterRole",
+          "label": "Role",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "OPERATOR",
+              "label": "Operator",
+              "displayOrder": 0
+            },
+            {
+              "value": "TECHNICIAN",
+              "label": "Technician",
+              "displayOrder": 1
+            },
+            {
+              "value": "SUPERVISOR",
+              "label": "Supervisor",
+              "displayOrder": 2
+            },
+            {
+              "value": "ENGINEER",
+              "label": "Engineer",
+              "displayOrder": 3
+            },
+            {
+              "value": "MAINTENANCE",
+              "label": "Maintenance",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "shift",
+          "label": "Shift",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "A",
+              "label": "A Shift (Morning)",
+              "displayOrder": 0
+            },
+            {
+              "value": "B",
+              "label": "B Shift (Afternoon)",
+              "displayOrder": 1
+            },
+            {
+              "value": "C",
+              "label": "C Shift (Night)",
+              "displayOrder": 2
+            },
+            {
+              "value": "DAY",
+              "label": "Day Shift",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "contactPhone",
+          "label": "Contact Phone",
+          "fieldType": "PHONE",
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "ValidWhen(IS_EMPTY(@{contactPhone}) OR IS_PHONE(@{contactPhone}))"
+        },
+        {
+          "name": "machineId",
+          "label": "Machine / Asset ID",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. CNC-001",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "machineName",
+          "label": "Machine Name / Description",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "lineOrCell",
+          "label": "Line / Cell",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "department",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "startDateTime",
+          "label": "Downtime Start",
+          "fieldType": "DATETIME",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required() AND ValidWhen(IS_PAST(@{startDateTime}) OR IS_TODAY(@{startDateTime}), \"Start must be past or current\")"
+        },
+        {
+          "name": "endDateTime",
+          "label": "Downtime End",
+          "fieldType": "DATETIME",
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "tooltip": "Leave blank if machine still down",
+          "validation": "ValidWhen(IS_EMPTY(@{endDateTime}) OR IS_AFTER(@{endDateTime}, @{startDateTime}), \"End must be after start\")"
+        },
+        {
+          "name": "downtimeMinutes",
+          "label": "Duration (minutes)",
+          "fieldType": "NUMBER",
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "defaultValue": "DATE_DIFF(@{startDateTime}, @{endDateTime}, \"minutes\")",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "stillDown",
+          "label": "Machine Still Down?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "plannedOutput",
+          "label": "Planned Output (units)",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "actualOutput",
+          "label": "Actual Output (units)",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "lostOutput",
+          "label": "Lost Output (units)",
+          "fieldType": "NUMBER",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "defaultValue": "SUBTRACT(@{plannedOutput}, @{actualOutput})"
+        },
+        {
+          "name": "scrapProduced",
+          "label": "Scrap Produced (units)",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "workOrderAffected",
+          "label": "Work Order(s) Affected",
+          "fieldType": "TEXT",
+          "placeholder": "WO numbers affected",
+          "displayOrder": 44,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "symptomDescription",
+          "label": "Symptom / What Happened",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe what was observed when the issue occurred",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "Required() AND MinLength(30) AND MaxLength(3000)"
+        },
+        {
+          "name": "rootCauseCategory",
+          "label": "Root Cause Category",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "options": [
+            {
+              "value": "MECHANICAL",
+              "label": "Mechanical",
+              "displayOrder": 0
+            },
+            {
+              "value": "ELECTRICAL",
+              "label": "Electrical",
+              "displayOrder": 1
+            },
+            {
+              "value": "HYDRAULIC",
+              "label": "Hydraulic / Pneumatic",
+              "displayOrder": 2
+            },
+            {
+              "value": "CONTROL",
+              "label": "Control / PLC / Software",
+              "displayOrder": 3
+            },
+            {
+              "value": "TOOLING",
+              "label": "Tooling / Die / Fixture",
+              "displayOrder": 4
+            },
+            {
+              "value": "MATERIAL",
+              "label": "Material Issue",
+              "displayOrder": 5
+            },
+            {
+              "value": "OPERATOR",
+              "label": "Operator Error",
+              "displayOrder": 6
+            },
+            {
+              "value": "UTILITY",
+              "label": "Utility (Power/Air/Water)",
+              "displayOrder": 7
+            },
+            {
+              "value": "UNKNOWN",
+              "label": "Unknown",
+              "displayOrder": 8
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "rootCauseDescription",
+          "label": "Root Cause Description",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Detailed root cause analysis",
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "actionTaken",
+          "label": "Action Taken",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What was done to restore operation?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 2,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "partsUsed",
+          "label": "Parts Used for Repair",
+          "fieldType": "TABLE",
+          "displayOrder": 61,
+          "columnSpan": 2,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "tableMinRows": 0,
+          "tableMaxRows": 30,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"partNumber\",\"label\":\"Part #\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"description\",\"label\":\"Description\",\"type\":\"TEXT\",\"width\":250},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":80,\"required\":true},{\"name\":\"cost\",\"label\":\"Cost\",\"type\":\"NUMBER\",\"width\":120}]"
+        },
+        {
+          "name": "technicianName",
+          "label": "Technician(s)",
+          "fieldType": "TEXT",
+          "placeholder": "Names of people who performed the repair",
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7"
+        },
+        {
+          "name": "laborHours",
+          "label": "Labor Hours",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 63,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "requiresFollowUp",
+          "label": "Requires Follow-up / CAPA?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 64,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7"
+        },
+        {
+          "name": "followUpDetails",
+          "label": "Follow-up Details",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What CAPA or follow-up action is needed?",
+          "displayOrder": 65,
+          "columnSpan": 2,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{requiresFollowUp} == true",
+          "validation": "ValidWhen(@{requiresFollowUp} != true OR HAS_MIN_LENGTH(@{followUpDetails}, 20), \"Describe follow-up (min 20 chars)\")"
+        },
+        {
+          "name": "photos",
+          "label": "Photos / Evidence",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 66,
+          "columnSpan": 2,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "allowedFileTypes": "jpg,png,pdf",
+          "maxFileSize": 20971520,
+          "maxFiles": 10
+        },
+        {
+          "name": "certification",
+          "label": "I certify this report is accurate to the best of my knowledge",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "validation": "IsTrue(\"Certification required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Shift Supervisor",
+      "approverType": "ROLE",
+      "roleName": "SUPERVISOR",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Maintenance Manager",
+      "approverType": "ROLE",
+      "roleName": "MAINTENANCE_MANAGER",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Production Manager",
+      "approverType": "ROLE",
+      "roleName": "PRODUCTION_MANAGER",
+      "canEscalate": false,
+      "requireComment": false,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "MANUFACTURING",
+  "workflowTypeCode": "APPROVAL"
+}

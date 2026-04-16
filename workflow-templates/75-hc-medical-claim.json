@@ -1,0 +1,71 @@
+{
+  "_comment": "Medical Claim — provider submits a claim to medical aid / insurer for reimbursement.",
+  "name": "Medical Claim (Provider)",
+  "code": "HMC",
+  "description": "Healthcare provider submits a claim to a medical aid / insurance scheme for services rendered.",
+  "icon": "receipt_long",
+  "displayOrder": 75,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "HEALTHCARE",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{claimRef} - @{patientName} (@{claimAmount})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Claim Info", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Services Rendered", "displayOrder": 1, "icon": "medical_services" },
+      { "id": "temp_screen_3", "title": "Adjudication", "displayOrder": 2, "icon": "gavel" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Claim & Provider", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Patient & Scheme", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Diagnosis", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Service Line Items", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Amounts", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "claimRef", "label": "Claim Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"HMC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "claimDate", "label": "Claim Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "providerName", "label": "Provider / Facility", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "providerNumber", "label": "Provider Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "serviceType", "label": "Service Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "OUTPATIENT", "label": "Outpatient", "displayOrder": 0 }, { "value": "INPATIENT", "label": "Inpatient", "displayOrder": 1 }, { "value": "EMERGENCY", "label": "Emergency", "displayOrder": 2 }, { "value": "PHARMACY", "label": "Pharmacy", "displayOrder": 3 }, { "value": "LAB", "label": "Laboratory", "displayOrder": 4 }, { "value": "RADIOLOGY", "label": "Radiology", "displayOrder": 5 }, { "value": "DENTAL", "label": "Dental", "displayOrder": 6 }, { "value": "MATERNITY", "label": "Maternity", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "patientMrn", "label": "Patient MRN", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "patientName", "label": "Patient Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "insurerName", "label": "Medical Scheme / Insurer", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "memberNumber", "label": "Member Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "dateOfService", "label": "Date of Service", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "authNumber", "label": "Pre-Authorisation Number", "fieldType": "TEXT", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "icd10Primary", "label": "Primary ICD-10 Code", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "icd10Secondary", "label": "Secondary ICD-10 Codes", "fieldType": "TEXT", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "diagnosisDescription", "label": "Diagnosis Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "lineItems", "label": "Service Line Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 100, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"serviceCode\",\"label\":\"Tariff / CPT Code\",\"type\":\"TEXT\",\"width\":140,\"required\":true},{\"name\":\"description\",\"label\":\"Description\",\"type\":\"TEXT\",\"width\":280,\"required\":true},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":90,\"defaultValue\":\"1\"},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"lineTotal\",\"label\":\"Line Total\",\"type\":\"NUMBER\",\"width\":130,\"computed\":\"MULTIPLY(@{quantity}, @{unitPrice})\"}]", "validation": "MinRows(1, \"At least one service item required\")" },
+      { "name": "grossAmount", "label": "Gross Claim Amount", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM_COLUMN(\"lineItems\", \"lineTotal\")" },
+      { "name": "copay", "label": "Patient Co-Pay", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "claimAmount", "label": "Net Claim Amount", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUBTRACT(@{grossAmount}, @{copay})" },
+      { "name": "adjudicationDecision", "label": "Adjudication Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "APPROVED", "label": "Approved in Full", "displayOrder": 0 }, { "value": "PARTIAL", "label": "Partially Approved", "displayOrder": 1 }, { "value": "REJECTED", "label": "Rejected", "displayOrder": 2 }, { "value": "PENDED", "label": "Pended for Info", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "paidAmount", "label": "Amount Paid", "fieldType": "CURRENCY", "defaultValue": "0", "inSummary": true, "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "rejectionReason", "label": "Rejection / Short-Pay Reason", "fieldType": "TEXTAREA", "displayOrder": 45, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{adjudicationDecision} == 'PARTIAL' OR @{adjudicationDecision} == 'REJECTED' OR @{adjudicationDecision} == 'PENDED'" },
+      { "name": "claimForm", "label": "Signed Claim Form", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "supportingDocs", "label": "Clinical Notes / Reports / Scripts", "fieldType": "FILE", "multiple": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx", "maxFileSize": 10485760, "maxFiles": 20 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Claims Assessor", "approverType": "ROLE", "roleName": "CLAIMS_ASSESSOR", "amountLimit": 500, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Claims Manager", "approverType": "ROLE", "roleName": "CLAIMS_MANAGER", "amountLimit": 10000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Medical Director", "approverType": "ROLE", "roleName": "MEDICAL_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

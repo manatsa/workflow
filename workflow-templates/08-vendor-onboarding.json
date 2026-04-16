@@ -1,0 +1,673 @@
+{
+  "_comment": "Vendor / Supplier Onboarding — add a new supplier to the approved vendor list.",
+  "name": "Vendor Onboarding",
+  "code": "VND",
+  "description": "Onboard a new vendor/supplier. Captures KYC, tax, banking, and compliance info.",
+  "icon": "storefront",
+  "displayOrder": 80,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{vndNumber} - @{vendorName}",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Vendor Info",
+          "displayOrder": 0,
+          "icon": "business"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Contact & Address",
+          "displayOrder": 1,
+          "icon": "contacts"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Tax & Banking",
+          "displayOrder": 2,
+          "icon": "account_balance"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Compliance",
+          "displayOrder": 3,
+          "icon": "verified_user"
+        },
+        {
+          "id": "temp_s5",
+          "title": "Review",
+          "displayOrder": 4,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Request",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Company Details",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Primary Contact",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Physical Address",
+          "displayOrder": 3,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Banking",
+          "displayOrder": 4,
+          "columns": 2,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g6",
+          "title": "Tax Info",
+          "displayOrder": 5,
+          "columns": 2,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g7",
+          "title": "Compliance Documents",
+          "displayOrder": 6,
+          "columns": 1,
+          "screenId": "temp_s4"
+        }
+      ],
+      "fields": [
+        {
+          "name": "vndNumber",
+          "label": "Request #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"VND-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestedBy",
+          "label": "Requested By",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestedByDept",
+          "label": "Requesting Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "vendorName",
+          "label": "Legal Company Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(2) AND MaxLength(200)",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "tradingName",
+          "label": "Trading / Brand Name",
+          "fieldType": "TEXT",
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "registrationNumber",
+          "label": "Company Registration #",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "yearFounded",
+          "label": "Year Founded",
+          "fieldType": "NUMBER",
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Range(1800, 2100)"
+        },
+        {
+          "name": "businessType",
+          "label": "Business Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "SOLE_PROPRIETOR",
+              "label": "Sole Proprietor",
+              "displayOrder": 0
+            },
+            {
+              "value": "PARTNERSHIP",
+              "label": "Partnership",
+              "displayOrder": 1
+            },
+            {
+              "value": "PRIVATE_LIMITED",
+              "label": "Private Limited (Ltd / LLC)",
+              "displayOrder": 2
+            },
+            {
+              "value": "PUBLIC_LIMITED",
+              "label": "Public Limited (PLC)",
+              "displayOrder": 3
+            },
+            {
+              "value": "NON_PROFIT",
+              "label": "Non-Profit",
+              "displayOrder": 4
+            },
+            {
+              "value": "GOVERNMENT",
+              "label": "Government / Parastatal",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "industry",
+          "label": "Industry / Sector",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "servicesOffered",
+          "label": "Products / Services Offered",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe what this vendor provides",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 16,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(20) AND MaxLength(2000)"
+        },
+        {
+          "name": "website",
+          "label": "Website",
+          "fieldType": "URL",
+          "placeholder": "https://",
+          "displayOrder": 17,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "ValidWhen(IS_EMPTY(@{website}) OR IS_URL(@{website}))"
+        },
+        {
+          "name": "contactFirstName",
+          "label": "Contact First Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND CAPITALIZE()"
+        },
+        {
+          "name": "contactLastName",
+          "label": "Contact Last Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND CAPITALIZE()"
+        },
+        {
+          "name": "contactPosition",
+          "label": "Position / Title",
+          "fieldType": "TEXT",
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "contactEmail",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Email()"
+        },
+        {
+          "name": "contactPhone",
+          "label": "Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "contactMobile",
+          "label": "Mobile (optional)",
+          "fieldType": "PHONE",
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "streetAddress",
+          "label": "Street Address",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()"
+        },
+        {
+          "name": "city",
+          "label": "City",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "country",
+          "label": "Country",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "postalCode",
+          "label": "Postal / ZIP Code",
+          "fieldType": "TEXT",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "bankName",
+          "label": "Bank Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Required()"
+        },
+        {
+          "name": "accountName",
+          "label": "Account Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Required()"
+        },
+        {
+          "name": "accountNumber",
+          "label": "Account Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Required() AND MinLength(6)"
+        },
+        {
+          "name": "swiftBic",
+          "label": "SWIFT / BIC Code",
+          "fieldType": "TEXT",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "iban",
+          "label": "IBAN (optional)",
+          "fieldType": "TEXT",
+          "displayOrder": 44,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "customValidationRule": "TRIM() AND UPPER() AND REMOVE_SPACES()"
+        },
+        {
+          "name": "branchCode",
+          "label": "Branch / Routing Code",
+          "fieldType": "TEXT",
+          "displayOrder": 45,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "taxNumber",
+          "label": "Tax / VAT Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "vatRegistered",
+          "label": "VAT Registered?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "paymentTerms",
+          "label": "Payment Terms",
+          "fieldType": "SELECT",
+          "defaultValue": "NET_30",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "options": [
+            {
+              "value": "NET_7",
+              "label": "Net 7 days",
+              "displayOrder": 0
+            },
+            {
+              "value": "NET_14",
+              "label": "Net 14 days",
+              "displayOrder": 1
+            },
+            {
+              "value": "NET_30",
+              "label": "Net 30 days",
+              "displayOrder": 2
+            },
+            {
+              "value": "NET_60",
+              "label": "Net 60 days",
+              "displayOrder": 3
+            },
+            {
+              "value": "COD",
+              "label": "Cash on Delivery",
+              "displayOrder": 4
+            },
+            {
+              "value": "PREPAID",
+              "label": "Prepaid",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "preferredCurrency",
+          "label": "Preferred Payment Currency",
+          "fieldType": "SELECT",
+          "defaultValue": "USD",
+          "displayOrder": 53,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "options": [
+            {
+              "value": "USD",
+              "label": "USD",
+              "displayOrder": 0
+            },
+            {
+              "value": "EUR",
+              "label": "EUR",
+              "displayOrder": 1
+            },
+            {
+              "value": "GBP",
+              "label": "GBP",
+              "displayOrder": 2
+            },
+            {
+              "value": "ZAR",
+              "label": "ZAR",
+              "displayOrder": 3
+            },
+            {
+              "value": "ZWL",
+              "label": "ZWL",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "companyRegCert",
+          "label": "Company Registration Certificate",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "allowedFileTypes": "pdf,jpg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Registration certificate required\")"
+        },
+        {
+          "name": "taxClearance",
+          "label": "Tax Clearance Certificate",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "allowedFileTypes": "pdf,jpg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Tax clearance required\")"
+        },
+        {
+          "name": "bankConfirmation",
+          "label": "Bank Account Confirmation Letter",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "allowedFileTypes": "pdf,jpg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Bank confirmation required\")"
+        },
+        {
+          "name": "companyProfile",
+          "label": "Company Profile / Brochure",
+          "fieldType": "FILE",
+          "displayOrder": 63,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "allowedFileTypes": "pdf,doc,docx",
+          "maxFileSize": 20971520
+        },
+        {
+          "name": "references",
+          "label": "References / Testimonials",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 64,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "allowedFileTypes": "pdf,doc,docx",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        },
+        {
+          "name": "additionalDocs",
+          "label": "Other Documents (BEE, ISO, permits)",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 65,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "allowedFileTypes": "pdf,doc,docx,jpg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 20
+        },
+        {
+          "name": "certification",
+          "label": "I confirm that the information provided is accurate and the vendor has been vetted for compliance",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_s5",
+          "validation": "IsTrue(\"Confirmation required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Requesting Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Procurement",
+      "approverType": "ROLE",
+      "roleName": "PROCUREMENT",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Finance (Banking & Tax validation)",
+      "approverType": "ROLE",
+      "roleName": "FINANCE_CONTROLLER",
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "GENERAL",
+  "workflowTypeCode": "APPROVAL"
+}

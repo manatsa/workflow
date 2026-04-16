@@ -1,0 +1,66 @@
+{
+  "_comment": "Laboratory Sample Request — request biological samples (tissue, blood, DNA) from a biobank or repository.",
+  "name": "Laboratory Sample Request",
+  "code": "BSR",
+  "description": "Request biological samples (tissue, blood, DNA) from an internal biobank or external repository.",
+  "icon": "science",
+  "displayOrder": 83,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "BIOTECH",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{sampleRef} - @{requesterName} (@{sampleType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Requester", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Samples", "displayOrder": 1, "icon": "science" },
+      { "id": "temp_screen_3", "title": "Use Case & Ethics", "displayOrder": 2, "icon": "gpp_good" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Requester", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Requested Samples", "displayOrder": 1, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Handling", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Purpose", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Ethics & Consent", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "sampleRef", "label": "Request Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"BSR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requesterName", "label": "Requester / PI", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "department", "label": "Department / Institution", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "projectRef", "label": "Project / Grant Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter valid email\")" },
+      { "name": "sampleType", "label": "Sample Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "BLOOD", "label": "Blood", "displayOrder": 0 }, { "value": "SERUM", "label": "Serum / Plasma", "displayOrder": 1 }, { "value": "TISSUE", "label": "Tissue / FFPE", "displayOrder": 2 }, { "value": "DNA", "label": "DNA", "displayOrder": 3 }, { "value": "RNA", "label": "RNA", "displayOrder": 4 }, { "value": "CELL_LINE", "label": "Cell Line", "displayOrder": 5 }, { "value": "OTHER", "label": "Other", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "samples", "label": "Sample Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "tableMinRows": 1, "tableMaxRows": 100, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"specimenId\",\"label\":\"Specimen ID / Criteria\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"subjectCriteria\",\"label\":\"Cohort / Criteria\",\"type\":\"TEXT\",\"width\":240},{\"name\":\"aliquotVolume\",\"label\":\"Aliquot Vol.\",\"type\":\"TEXT\",\"width\":140},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":100,\"required\":true}]", "validation": "MinRows(1, \"At least one sample item required\")" },
+      { "name": "storageTemp", "label": "Required Storage", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "ROOM", "label": "Room Temperature", "displayOrder": 0 }, { "value": "4C", "label": "Refrigerated (4°C)", "displayOrder": 1 }, { "value": "-20C", "label": "Frozen (-20°C)", "displayOrder": 2 }, { "value": "-80C", "label": "Ultra-Frozen (-80°C)", "displayOrder": 3 }, { "value": "LN2", "label": "Liquid Nitrogen", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "shippingMethod", "label": "Shipping Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "HANDCARRY", "label": "Hand-Carry (Internal)", "displayOrder": 0 }, { "value": "COURIER", "label": "Specialist Courier", "displayOrder": 1 }, { "value": "DRY_ICE", "label": "Dry Ice", "displayOrder": 2 }, { "value": "LN2_SHIPPER", "label": "LN2 Dry Shipper", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "requiredBy", "label": "Required By", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "researchPurpose", "label": "Research Purpose / Assay", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(30)" },
+      { "name": "ethicsApproved", "label": "Ethics / IRB Approval Obtained", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{ethicsApproved} == true, \"Ethics approval required\")" },
+      { "name": "consentScope", "label": "Within Consent Scope", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{consentScope} == true, \"Samples must be within consent scope\")" },
+      { "name": "mta", "label": "MTA (Material Transfer Agreement) Signed", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "destinationOutsideOrg", "label": "Destination Outside Organisation?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "ethicsLetter", "label": "Ethics Approval Letter", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "mtaDoc", "label": "MTA Document", "fieldType": "FILE", "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "visibilityExpression": "@{mta} == true" },
+      { "name": "protocol", "label": "Associated Protocol / SOP", "fieldType": "FILE", "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Biobank Curator", "approverType": "ROLE", "roleName": "BIOBANK_CURATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Biobank Director", "approverType": "ROLE", "roleName": "BIOBANK_DIRECTOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Ethics Committee (if out-of-scope)", "approverType": "ROLE", "roleName": "IRB_CHAIR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

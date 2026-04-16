@@ -1,0 +1,65 @@
+{
+  "_comment": "Bill of Lading Issuance — issue a B/L for a sea or multimodal shipment.",
+  "name": "Bill of Lading Issuance",
+  "code": "SBL",
+  "description": "Issue a Bill of Lading (B/L) for a sea or multimodal shipment after cargo is loaded.",
+  "icon": "article",
+  "displayOrder": 112,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "SHIPPING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{blRef} - @{vesselName} (@{pol} → @{pod})",
+  "reminderEnabled": true, "reminderFrequencyHours": 4, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Shipment", "displayOrder": 0, "icon": "directions_boat" },
+      { "id": "temp_screen_2", "title": "Cargo & Charges", "displayOrder": 1, "icon": "inventory" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "B/L Header", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Parties", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Vessel & Route", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Cargo", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Freight Charges", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "blRef", "label": "B/L Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SBL-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "issueDate", "label": "Issue Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "blType", "label": "B/L Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "ORIGINAL", "label": "Original", "displayOrder": 0 }, { "value": "SEAWAY", "label": "Sea Waybill", "displayOrder": 1 }, { "value": "TELEX_RELEASE", "label": "Telex Release", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "blMaster", "label": "Master / House", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "HOUSE", "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "MASTER", "label": "Master B/L", "displayOrder": 0 }, { "value": "HOUSE", "label": "House B/L", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "shipper", "label": "Shipper", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "consignee", "label": "Consignee", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "notifyParty", "label": "Notify Party", "fieldType": "TEXT", "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "vesselName", "label": "Vessel Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "voyageNo", "label": "Voyage #", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "pol", "label": "Port of Loading", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "pod", "label": "Port of Discharge", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "placeOfDelivery", "label": "Place of Final Delivery", "fieldType": "TEXT", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "loadedDate", "label": "On Board Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "containers", "label": "Containers / Marks", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "numContainers", "label": "Number of Containers", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "packages", "label": "Number of Packages", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "description", "label": "Description of Goods", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(10)" },
+      { "name": "grossWeightKg", "label": "Gross Weight (kg)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "volumeCbm", "label": "Volume (m³)", "fieldType": "NUMBER", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "freightTerms", "label": "Freight Terms", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "PREPAID", "label": "Prepaid", "displayOrder": 0 }, { "value": "COLLECT", "label": "Collect", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "freightAmount", "label": "Freight Amount", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "thcOrigin", "label": "THC Origin", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "thcDestination", "label": "THC Destination", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "totalCharges", "label": "Total Charges", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM(@{freightAmount}, @{thcOrigin}, @{thcDestination})" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Documentation Officer", "approverType": "ROLE", "roleName": "DOC_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Documentation Manager", "approverType": "ROLE", "roleName": "DOC_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

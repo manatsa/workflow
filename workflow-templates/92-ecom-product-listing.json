@@ -1,0 +1,59 @@
+{
+  "_comment": "Product Listing Approval — review and publish a seller's product listing to the marketplace catalog.",
+  "name": "Product Listing Approval",
+  "code": "EPL",
+  "description": "Review and publish a seller's product listing: content quality, imagery, compliance and pricing.",
+  "icon": "list_alt",
+  "displayOrder": 92,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "ECOMMERCE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{listingRef} - @{productTitle}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Product", "displayOrder": 0, "icon": "inventory" },
+      { "id": "temp_screen_2", "title": "Compliance", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Content", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Seller", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Product Info", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Pricing & Stock", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Regulatory & Policy", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Content Files", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "listingRef", "label": "Listing Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"EPL-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "sellerRef", "label": "Seller Reference", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "sellerName", "label": "Seller Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "productTitle", "label": "Product Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(5) AND MaxLength(200)" },
+      { "name": "brand", "label": "Brand", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "category", "label": "Category", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "sku", "label": "SKU", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "gtin", "label": "GTIN / Barcode", "fieldType": "TEXT", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "description", "label": "Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 15, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(50)" },
+      { "name": "listPrice", "label": "List Price", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0.01)" },
+      { "name": "salePrice", "label": "Sale Price", "fieldType": "CURRENCY", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "stockQty", "label": "Stock Quantity", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "weightKg", "label": "Weight (kg)", "fieldType": "NUMBER", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "isRestrictedCategory", "label": "Restricted Category?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "certificationRequired", "label": "Certification Required?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "counterfeitCheck", "label": "Brand Authenticity Verified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{counterfeitCheck} == true, \"Brand authenticity must be verified\")" },
+      { "name": "contentQualityScore", "label": "Content Quality Score (1-5)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1) AND Max(5)" },
+      { "name": "reviewerNotes", "label": "Reviewer Notes", "fieldType": "TEXTAREA", "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "productImages", "label": "Product Images (min 3)", "fieldType": "FILE", "isMandatory": true, "multiple": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "jpg,jpeg,png,webp", "maxFileSize": 10485760, "maxFiles": 15, "validation": "Required()" },
+      { "name": "certification", "label": "Certificate / Test Report", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{certificationRequired} == true", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "ValidWhen(@{certificationRequired} == false OR IS_NOT_EMPTY(@{certification}), \"Certification required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Catalog Reviewer", "approverType": "ROLE", "roleName": "CATALOG_REVIEWER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Category Manager", "approverType": "ROLE", "roleName": "CATEGORY_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": false, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "_comment": "Track Possession — authorise possession of rail track for engineering / maintenance work.",
+  "name": "Track Possession Authorisation",
+  "code": "RTP",
+  "description": "Authorise possession of rail track for engineering / maintenance work with safe-work method.",
+  "icon": "construction",
+  "displayOrder": 120,
+  "requiresApproval": true, "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "RAIL",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{possessionRef} - @{lineSection} (@{date})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Work Plan", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Safety", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Work Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Location & Time", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Safe Work Method", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Impact & Diversions", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "possessionRef", "label": "Possession Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RTP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "workType", "label": "Work Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "TRACK_RENEWAL", "label": "Track Renewal", "displayOrder": 0 }, { "value": "INSPECTION", "label": "Inspection", "displayOrder": 1 }, { "value": "SIGNAL", "label": "Signal Work", "displayOrder": 2 }, { "value": "OHL", "label": "Overhead Line", "displayOrder": 3 }, { "value": "STRUCTURES", "label": "Bridges / Structures", "displayOrder": 4 }, { "value": "EMERGENCY", "label": "Emergency Repair", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "contractor", "label": "Contractor / Team", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "workLeader", "label": "Person In Charge (PIC)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "picCompetency", "label": "PIC Competency Certificate #", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "workDescription", "label": "Work Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 6, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(30)" },
+      { "name": "lineSection", "label": "Line / Section", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "fromKm", "label": "From Km", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "toKm", "label": "To Km", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "date", "label": "Possession Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "startTime", "label": "Start Time (HH:mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "endTime", "label": "End Time (HH:mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "methodStatement", "label": "Method Statement Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{methodStatement} == true, \"Method statement required\")" },
+      { "name": "riskAssessment", "label": "Risk Assessment Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{riskAssessment} == true, \"Risk assessment required\")" },
+      { "name": "lookoutProtection", "label": "Lookout / Protection System", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "ABSOLUTE", "label": "Absolute Possession", "displayOrder": 0 }, { "value": "LOOKOUT", "label": "Lookout Protection", "displayOrder": 1 }, { "value": "TEMP_BLOCK", "label": "Temporary Block Working", "displayOrder": 2 }, { "value": "GREEN_ZONE", "label": "Green Zone / Adj Line Open", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "adjacentLineOpen", "label": "Adjacent Line Open", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "trainsAffected", "label": "Trains Affected", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "0", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "diversionRequired", "label": "Diversion / Bus Replacement", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "customerNoticeGiven", "label": "Customer / Operator Notice Given", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{customerNoticeGiven} == true OR @{workType} == 'EMERGENCY', \"Customer notice required\")" },
+      { "name": "contingencyPlan", "label": "Contingency / Handback Plan", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(30)" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Infrastructure Engineer", "approverType": "ROLE", "roleName": "INFRA_ENGINEER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Area Operations Manager", "approverType": "ROLE", "roleName": "AREA_OPS_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Safety Manager", "approverType": "ROLE", "roleName": "SAFETY_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

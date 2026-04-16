@@ -1,0 +1,588 @@
+{
+  "_comment": "Funeral Service Delivery — coordinate delivery of funeral service package on an approved claim.",
+  "name": "Funeral Service Delivery",
+  "code": "FSD",
+  "description": "Coordinate casket, hearse, catering, tent and other service elements for a funeral on an approved claim.",
+  "icon": "local_florist",
+  "displayOrder": 37,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{serviceRef} - @{deceasedName} (@{serviceDate})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 2,
+  "reminderMaxCount": 8,
+  "reminderStartAfterHours": 1,
+  "escalationEnabled": true,
+  "escalationAfterHours": 12,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "URGENT: Funeral Service @{referenceNumber} coordination",
+  "reminderEmailBody": "<p>Funeral service delivery <strong>@{referenceNumber}</strong> requires immediate coordination.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Linked Claim",
+          "displayOrder": 1,
+          "icon": "link"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Service Details",
+          "displayOrder": 2,
+          "icon": "event"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Service Items",
+          "displayOrder": 3,
+          "icon": "list_alt"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Logistics",
+          "displayOrder": 4,
+          "icon": "local_shipping"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Documents",
+          "displayOrder": 5,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_7",
+          "title": "Review & Submit",
+          "displayOrder": 6,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Claim Link",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Event Info",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Family Contact",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Package Items",
+          "displayOrder": 4,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Transport & Venue",
+          "displayOrder": 5,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Service Provider",
+          "displayOrder": 6,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_8",
+          "title": "Documents",
+          "displayOrder": 7,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_6"
+        }
+      ],
+      "fields": [
+        {
+          "name": "serviceRef",
+          "label": "Service Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"FSD-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "coordinator",
+          "label": "Service Coordinator",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "claimReference",
+          "label": "Linked Claim Reference",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "policyNumber",
+          "label": "Policy Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "plan",
+          "label": "Plan",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "BRONZE",
+              "label": "Bronze",
+              "displayOrder": 0
+            },
+            {
+              "value": "SILVER",
+              "label": "Silver",
+              "displayOrder": 1
+            },
+            {
+              "value": "GOLD",
+              "label": "Gold",
+              "displayOrder": 2
+            },
+            {
+              "value": "PLATINUM",
+              "label": "Platinum",
+              "displayOrder": 3
+            },
+            {
+              "value": "FAMILY_COMPREHENSIVE",
+              "label": "Family Comprehensive",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "packageValue",
+          "label": "Package Value (from Plan)",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "deceasedName",
+          "label": "Deceased Full Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()"
+        },
+        {
+          "name": "serviceDate",
+          "label": "Funeral / Service Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND DateAfter(\"today\", \"Service date must be in the future\")"
+        },
+        {
+          "name": "serviceTime",
+          "label": "Service Time",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()"
+        },
+        {
+          "name": "burialType",
+          "label": "Burial / Cremation",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "BURIAL",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "BURIAL",
+              "label": "Burial",
+              "displayOrder": 0
+            },
+            {
+              "value": "CREMATION",
+              "label": "Cremation",
+              "displayOrder": 1
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "familyContactName",
+          "label": "Family Contact",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "familyContactRelation",
+          "label": "Relationship",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "familyContactPhone",
+          "label": "Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "familyContactAltPhone",
+          "label": "Alternate Phone",
+          "fieldType": "PHONE",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4"
+        },
+        {
+          "name": "serviceItems",
+          "label": "Service Package Items",
+          "fieldType": "TABLE",
+          "isMandatory": true,
+          "displayOrder": 40,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "tableMinRows": 1,
+          "tableMaxRows": 30,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"item\",\"label\":\"Item\",\"type\":\"SELECT\",\"width\":200,\"required\":true,\"options\":[\"Casket\",\"Hearse\",\"Mortuary\",\"Tent\",\"Chairs\",\"PA System\",\"Catering\",\"Grave Digging\",\"Tombstone\",\"Transport of Mourners\",\"Other\"]},{\"name\":\"description\",\"label\":\"Description / Spec\",\"type\":\"TEXT\",\"width\":260},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":80,\"required\":true,\"defaultValue\":\"1\"},{\"name\":\"unitCost\",\"label\":\"Unit Cost\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"lineTotal\",\"label\":\"Line Total\",\"type\":\"NUMBER\",\"width\":120,\"readOnly\":true,\"computed\":\"MULTIPLY(@{quantity}, @{unitCost})\"},{\"name\":\"providerCode\",\"label\":\"Provider\",\"type\":\"TEXT\",\"width\":150}]",
+          "validation": "MinRows(1, \"Add at least one service item\")"
+        },
+        {
+          "name": "totalServiceCost",
+          "label": "Total Service Cost",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 41,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "defaultValue": "SUM_COLUMN(\"serviceItems\", \"lineTotal\")"
+        },
+        {
+          "name": "withinPackageLimit",
+          "label": "Within Package Limit?",
+          "fieldType": "YES_NO",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 42,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "excessReason",
+          "label": "Reason for Over-Limit / Notes",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 43,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "visibilityExpression": "@{totalServiceCost} > @{packageValue}",
+          "validation": "ValidWhen(@{totalServiceCost} <= @{packageValue} OR HAS_MIN_LENGTH(@{excessReason}, 20), \"Explain why cost exceeds package\")"
+        },
+        {
+          "name": "mortuaryName",
+          "label": "Mortuary",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required()"
+        },
+        {
+          "name": "mortuaryAddress",
+          "label": "Mortuary Address",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6"
+        },
+        {
+          "name": "serviceVenue",
+          "label": "Service Venue",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 52,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required()"
+        },
+        {
+          "name": "burialSite",
+          "label": "Burial Site / Cemetery",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 53,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required()"
+        },
+        {
+          "name": "transportDistanceKm",
+          "label": "Transport Distance (km)",
+          "fieldType": "NUMBER",
+          "displayOrder": 54,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "ValidWhen(IS_EMPTY(@{transportDistanceKm}) OR @{transportDistanceKm} >= 0, \"Distance cannot be negative\")"
+        },
+        {
+          "name": "primaryProvider",
+          "label": "Primary Service Provider",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Required()"
+        },
+        {
+          "name": "providerContact",
+          "label": "Provider Contact Person",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Required()"
+        },
+        {
+          "name": "providerPhone",
+          "label": "Provider Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "specialRequests",
+          "label": "Special Requests / Family Instructions",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 63,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7"
+        },
+        {
+          "name": "claimApprovalLetter",
+          "label": "Claim Approval Letter",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 70,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_8",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Claim approval letter required\")"
+        },
+        {
+          "name": "providerQuote",
+          "label": "Service Provider Quote",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 71,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_8",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Provider quote required\")"
+        },
+        {
+          "name": "familyAuthorisation",
+          "label": "Family Authorisation",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 72,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_8",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required()"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Service Coordinator",
+      "approverType": "ROLE",
+      "roleName": "SERVICE_COORDINATOR",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Operations Manager",
+      "approverType": "ROLE",
+      "roleName": "OPS_MANAGER",
+      "amountLimit": 10000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Head of Operations",
+      "approverType": "ROLE",
+      "roleName": "HEAD_OF_OPERATIONS",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "FUNERAL",
+  "workflowTypeCode": "FINANCE"
+}

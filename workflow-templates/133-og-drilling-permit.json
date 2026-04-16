@@ -1,0 +1,68 @@
+{
+  "_comment": "Well Drilling Permit — authorise a new oil / gas well drilling campaign.",
+  "name": "Well Drilling Permit",
+  "code": "OGD",
+  "description": "Authorise drilling of a new oil / gas well with regulatory, HSE and operational approvals.",
+  "icon": "engineering",
+  "displayOrder": 133,
+  "requiresApproval": true, "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "OIL_GAS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{permitRef} - @{wellName} (@{fieldBlock})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Well & Programme", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "HSE & Regulatory", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Budget", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Location", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Well Design", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "HSE", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Regulatory", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "AFE", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "permitRef", "label": "Permit Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"OGD-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "wellName", "label": "Well Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "wellType", "label": "Well Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "EXPLORATION", "label": "Exploration", "displayOrder": 0 }, { "value": "APPRAISAL", "label": "Appraisal", "displayOrder": 1 }, { "value": "DEVELOPMENT", "label": "Development Producer", "displayOrder": 2 }, { "value": "INJECTION", "label": "Injection", "displayOrder": 3 }, { "value": "WORKOVER", "label": "Workover", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "fieldBlock", "label": "Field / Block", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "locationType", "label": "Location Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ONSHORE", "label": "Onshore", "displayOrder": 0 }, { "value": "OFFSHORE", "label": "Offshore", "displayOrder": 1 }, { "value": "DEEPWATER", "label": "Deep Water", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "coordinates", "label": "Surface Coordinates", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "targetDepth", "label": "Target Depth (m TVD)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "targetReservoir", "label": "Target Reservoir / Formation", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "rigName", "label": "Drilling Rig", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "spudDate", "label": "Planned Spud Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "estimatedDays", "label": "Estimated Duration (days)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "bowTiePrepared", "label": "Bow-Tie Analysis Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{bowTiePrepared} == true, \"Bow-tie analysis required\")" },
+      { "name": "wellControlPlan", "label": "Well Control Plan Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{wellControlPlan} == true, \"Well control plan required\")" },
+      { "name": "bowTeamCertified", "label": "IWCF / IADC Certified Crew", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{bowTeamCertified} == true, \"Certified crew required\")" },
+      { "name": "oilSpillResponse", "label": "Oil Spill Response Plan", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "eiaApproved", "label": "EIA / ESIA Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{eiaApproved} == true, \"EIA approval required\")" },
+      { "name": "regulatorPermit", "label": "Regulator (NPC / DPR) Permit Granted", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{regulatorPermit} == true, \"Regulator permit required\")" },
+      { "name": "communityConsent", "label": "Community / Host Consent Obtained", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "insurance", "label": "Operator Insurance Cover", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{insurance} == true, \"Insurance cover required\")" },
+      { "name": "afeTotal", "label": "AFE Total Cost", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "currency", "label": "Currency", "fieldType": "SELECT", "defaultValue": "USD", "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "USD", "label": "USD", "displayOrder": 0 }, { "value": "EUR", "label": "EUR", "displayOrder": 1 }, { "value": "GBP", "label": "GBP", "displayOrder": 2 } ] },
+      { "name": "partnerContribution", "label": "JV Partner Contribution %", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Min(0) AND Max(100)" },
+      { "name": "budgetApproved", "label": "Budget / AFE Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "ValidWhen(@{budgetApproved} == true, \"Budget approval required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Drilling Engineer", "approverType": "ROLE", "roleName": "DRILL_ENGINEER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "HSE Manager", "approverType": "ROLE", "roleName": "HSE_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Drilling Superintendent", "approverType": "ROLE", "roleName": "DRILL_SUPERINTENDENT", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Asset / Country Manager", "approverType": "ROLE", "roleName": "ASSET_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

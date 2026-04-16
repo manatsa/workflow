@@ -1,0 +1,562 @@
+{
+  "_comment": "Training Request — request approval and funding for training, courses, or certifications.",
+  "name": "Training Request",
+  "code": "TRN",
+  "description": "Request approval and funding for training, courses, or professional certifications.",
+  "icon": "school",
+  "displayOrder": 100,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{trnNumber} - @{trainingName} (@{requesterName})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Trainee",
+          "displayOrder": 0,
+          "icon": "person"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Training Details",
+          "displayOrder": 1,
+          "icon": "school"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Cost & Justification",
+          "displayOrder": 2,
+          "icon": "account_balance_wallet"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Review",
+          "displayOrder": 3,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Request",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Trainee Info",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Training Info",
+          "displayOrder": 2,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Dates",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Cost",
+          "displayOrder": 4,
+          "columns": 2,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g6",
+          "title": "Justification & Commitments",
+          "displayOrder": 5,
+          "columns": 1,
+          "screenId": "temp_s3"
+        }
+      ],
+      "fields": [
+        {
+          "name": "trnNumber",
+          "label": "Request #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"TRN-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requesterName",
+          "label": "Trainee Name",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "requesterEmail",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "requesterDepartment",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "jobTitle",
+          "label": "Job Title",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "trainingName",
+          "label": "Training / Course Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(3)",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "trainingType",
+          "label": "Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "options": [
+            {
+              "value": "CERTIFICATION",
+              "label": "Professional Certification",
+              "displayOrder": 0
+            },
+            {
+              "value": "DEGREE",
+              "label": "Degree / Diploma",
+              "displayOrder": 1
+            },
+            {
+              "value": "WORKSHOP",
+              "label": "Workshop / Seminar",
+              "displayOrder": 2
+            },
+            {
+              "value": "ONLINE_COURSE",
+              "label": "Online Course",
+              "displayOrder": 3
+            },
+            {
+              "value": "CONFERENCE",
+              "label": "Conference",
+              "displayOrder": 4
+            },
+            {
+              "value": "IN_HOUSE",
+              "label": "In-house Training",
+              "displayOrder": 5
+            },
+            {
+              "value": "COACHING",
+              "label": "Coaching / Mentoring",
+              "displayOrder": 6
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "provider",
+          "label": "Training Provider",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "deliveryMode",
+          "label": "Delivery Mode",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "options": [
+            {
+              "value": "IN_PERSON",
+              "label": "In-Person",
+              "displayOrder": 0
+            },
+            {
+              "value": "ONLINE_LIVE",
+              "label": "Online (Live)",
+              "displayOrder": 1
+            },
+            {
+              "value": "ONLINE_SELF",
+              "label": "Online (Self-Paced)",
+              "displayOrder": 2
+            },
+            {
+              "value": "HYBRID",
+              "label": "Hybrid",
+              "displayOrder": 3
+            }
+          ]
+        },
+        {
+          "name": "location",
+          "label": "Location (if in-person)",
+          "fieldType": "TEXT",
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "visibilityExpression": "@{deliveryMode} == 'IN_PERSON' OR @{deliveryMode} == 'HYBRID'"
+        },
+        {
+          "name": "courseLink",
+          "label": "Course URL (if available)",
+          "fieldType": "URL",
+          "placeholder": "https://",
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "ValidWhen(IS_EMPTY(@{courseLink}) OR IS_URL(@{courseLink}))"
+        },
+        {
+          "name": "description",
+          "label": "Description / Syllabus",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Summarize what the training covers",
+          "isMandatory": true,
+          "displayOrder": 26,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(30)"
+        },
+        {
+          "name": "startDate",
+          "label": "Start Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required() AND DATE_AFTER(@{startDate}, \"today\")"
+        },
+        {
+          "name": "endDate",
+          "label": "End Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required() AND ValidWhen(IS_AFTER(@{endDate}, @{startDate}) OR IS_SAME_DAY(@{endDate}, @{startDate}), \"End must be on or after start\")"
+        },
+        {
+          "name": "workingDaysOff",
+          "label": "Working Days Off Required",
+          "fieldType": "NUMBER",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "defaultValue": "BUSINESS_DAYS(@{startDate}, @{endDate})"
+        },
+        {
+          "name": "totalHours",
+          "label": "Total Training Hours",
+          "fieldType": "NUMBER",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Min(1)"
+        },
+        {
+          "name": "tuitionFee",
+          "label": "Tuition / Course Fee",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "materialsFee",
+          "label": "Materials / Books",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "travelCost",
+          "label": "Travel Cost (est.)",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "accommodationCost",
+          "label": "Accommodation Cost (est.)",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "totalAmount",
+          "label": "Total Estimated Cost",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 44,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "defaultValue": "SUM(@{tuitionFee}, @{materialsFee}, @{travelCost}, @{accommodationCost})",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "fieldType": "SELECT",
+          "defaultValue": "USD",
+          "displayOrder": 45,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "options": [
+            {
+              "value": "USD",
+              "label": "USD",
+              "displayOrder": 0
+            },
+            {
+              "value": "EUR",
+              "label": "EUR",
+              "displayOrder": 1
+            },
+            {
+              "value": "GBP",
+              "label": "GBP",
+              "displayOrder": 2
+            },
+            {
+              "value": "ZAR",
+              "label": "ZAR",
+              "displayOrder": 3
+            },
+            {
+              "value": "ZWL",
+              "label": "ZWL",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "costCenter",
+          "label": "Cost Centre",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 46,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "businessJustification",
+          "label": "Business Justification",
+          "fieldType": "TEXTAREA",
+          "placeholder": "How will this training benefit the company and your role?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "Required() AND MinLength(50) AND MaxLength(2000)"
+        },
+        {
+          "name": "skillsGained",
+          "label": "Skills / Knowledge to be Gained",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "serviceCommitment",
+          "label": "I commit to remain with the company for at least 12 months post-training (or reimburse the cost pro-rata)",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "IsTrue(\"Service commitment required\")",
+          "visibilityExpression": "@{totalAmount} >= 1000"
+        },
+        {
+          "name": "courseBrochure",
+          "label": "Course Brochure / Quote",
+          "fieldType": "FILE",
+          "displayOrder": 53,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "allowedFileTypes": "pdf,doc,docx,jpg,png",
+          "maxFileSize": 10485760
+        },
+        {
+          "name": "acknowledgement",
+          "label": "I confirm the information is accurate and I intend to complete this training if approved",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "validation": "IsTrue(\"Confirmation required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Line Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "amountLimit": 500,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Department Head",
+      "approverType": "ROLE",
+      "roleName": "DEPARTMENT_HEAD",
+      "amountLimit": 3000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "HR / L&D",
+      "approverType": "ROLE",
+      "roleName": "HR",
+      "amountLimit": 10000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 4,
+      "name": "Finance",
+      "approverType": "ROLE",
+      "roleName": "FINANCE_CONTROLLER",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "HR",
+  "workflowTypeCode": "HR"
+}

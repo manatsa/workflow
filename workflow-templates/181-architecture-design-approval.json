@@ -1,0 +1,59 @@
+{
+  "_comment": "Architectural Design Approval — internal design review and client sign-off on a building design.",
+  "name": "Architectural Design Approval",
+  "code": "ADA",
+  "description": "Internal design review and client sign-off on concept / schematic / detailed design.",
+  "icon": "architecture",
+  "displayOrder": 181,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "ARCHITECTURE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{designRef} - @{projectName} (@{designStage})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Project & Design", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Technical Checks", "displayOrder": 1, "icon": "verified" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Project", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Design Detail", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Code & Compliance", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Decision", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "designRef", "label": "Design Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ADA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "leadArchitect", "label": "Lead Architect", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "projectName", "label": "Project Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientName", "label": "Client", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "siteAddress", "label": "Site Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "buildingType", "label": "Building Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "RESIDENTIAL", "label": "Residential", "displayOrder": 0 }, { "value": "COMMERCIAL", "label": "Commercial", "displayOrder": 1 }, { "value": "INDUSTRIAL", "label": "Industrial", "displayOrder": 2 }, { "value": "INSTITUTIONAL", "label": "Institutional / Public", "displayOrder": 3 }, { "value": "MIXED", "label": "Mixed-Use", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "designStage", "label": "Design Stage", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "CONCEPT", "label": "Concept Design", "displayOrder": 0 }, { "value": "SCHEMATIC", "label": "Schematic Design", "displayOrder": 1 }, { "value": "DETAILED", "label": "Detailed Design", "displayOrder": 2 }, { "value": "TENDER", "label": "Tender Documents", "displayOrder": 3 }, { "value": "CONSTRUCTION", "label": "Construction Documents", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "gfa", "label": "Gross Floor Area (m²)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "storeys", "label": "Number of Storeys", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "1", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "designNarrative", "label": "Design Narrative", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(50)" },
+      { "name": "estBuildCost", "label": "Estimated Build Cost", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "zoningCompliant", "label": "Zoning / Town-Planning Compliant", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{zoningCompliant} == true, \"Must be zoning compliant\")" },
+      { "name": "buildingCode", "label": "Building Code Compliance Checked", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{buildingCode} == true, \"Building code check required\")" },
+      { "name": "fireSafety", "label": "Fire Safety Strategy Reviewed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{fireSafety} == true, \"Fire safety review required\")" },
+      { "name": "structuralCheck", "label": "Structural Engineer Reviewed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{structuralCheck} == true, \"Structural review required\")" },
+      { "name": "sustainability", "label": "Sustainability / Energy Rating", "fieldType": "TEXT", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "clientSignOff", "label": "Client Sign-Off Received", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{clientSignOff} == true, \"Client sign-off required\")" },
+      { "name": "reviewNotes", "label": "Review Notes", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Senior Architect", "approverType": "ROLE", "roleName": "SENIOR_ARCHITECT", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Associate / Principal", "approverType": "ROLE", "roleName": "ASSOCIATE_ARCHITECT", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Director", "approverType": "ROLE", "roleName": "MD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

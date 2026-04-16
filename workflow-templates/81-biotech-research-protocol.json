@@ -1,0 +1,67 @@
+{
+  "_comment": "Research / Ethics Protocol Approval — IRB / Ethics Committee review of a research protocol.",
+  "name": "Research Protocol Approval",
+  "code": "BRP",
+  "description": "Submit a research protocol for Institutional Review Board / Ethics Committee approval.",
+  "icon": "biotech",
+  "displayOrder": 81,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "BIOTECH",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{protocolRef} - @{studyTitle}",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Study", "displayOrder": 0, "icon": "science" },
+      { "id": "temp_screen_2", "title": "Risk & Ethics", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Documents", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Study Info", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Investigator", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Participants", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Risk Assessment", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Ethics", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "protocolRef", "label": "Protocol Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"BRP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "studyTitle", "label": "Study Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND MinLength(10)" },
+      { "name": "studyType", "label": "Study Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "OBSERVATIONAL", "label": "Observational", "displayOrder": 0 }, { "value": "INTERVENTIONAL", "label": "Interventional", "displayOrder": 1 }, { "value": "CLINICAL_TRIAL", "label": "Clinical Trial", "displayOrder": 2 }, { "value": "LABORATORY", "label": "Laboratory / Basic", "displayOrder": 3 }, { "value": "SURVEY", "label": "Survey / Questionnaire", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "phase", "label": "Clinical Phase (if trial)", "fieldType": "SELECT", "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "I", "label": "Phase I", "displayOrder": 0 }, { "value": "II", "label": "Phase II", "displayOrder": 1 }, { "value": "III", "label": "Phase III", "displayOrder": 2 }, { "value": "IV", "label": "Phase IV / Post-Marketing", "displayOrder": 3 } ] },
+      { "name": "principalInvestigator", "label": "Principal Investigator", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "piInstitution", "label": "PI Institution", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "sponsor", "label": "Sponsor / Funder", "fieldType": "TEXT", "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "targetSampleSize", "label": "Target Sample Size", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "involvesVulnerable", "label": "Involves Vulnerable Populations?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "recruitmentStrategy", "label": "Recruitment Strategy", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(30)" },
+      { "name": "riskLevel", "label": "Risk Level", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "MINIMAL", "label": "Minimal Risk", "displayOrder": 0 }, { "value": "LOW", "label": "Low Risk", "displayOrder": 1 }, { "value": "MODERATE", "label": "Moderate Risk", "displayOrder": 2 }, { "value": "HIGH", "label": "High Risk", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "biosafetyLevel", "label": "Biosafety Level (if lab)", "fieldType": "SELECT", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "BSL1", "label": "BSL-1", "displayOrder": 0 }, { "value": "BSL2", "label": "BSL-2", "displayOrder": 1 }, { "value": "BSL3", "label": "BSL-3", "displayOrder": 2 }, { "value": "BSL4", "label": "BSL-4", "displayOrder": 3 }, { "value": "N_A", "label": "Not Applicable", "displayOrder": 4 } ] },
+      { "name": "risksIdentified", "label": "Risks & Mitigations", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(50)" },
+      { "name": "informedConsent", "label": "Informed Consent Process Documented", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{informedConsent} == true, \"Informed consent process must be documented\")" },
+      { "name": "dataPrivacyMeasures", "label": "Data Privacy Measures Documented", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{dataPrivacyMeasures} == true, \"Data privacy measures required\")" },
+      { "name": "conflictOfInterest", "label": "Conflict of Interest Disclosed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{conflictOfInterest} == true, \"COI disclosure required\")" },
+      { "name": "reviewType", "label": "Review Type", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "FULL_BOARD", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "EXEMPT", "label": "Exempt", "displayOrder": 0 }, { "value": "EXPEDITED", "label": "Expedited", "displayOrder": 1 }, { "value": "FULL_BOARD", "label": "Full Board", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "protocolDoc", "label": "Study Protocol", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 20971520, "validation": "Required()" },
+      { "name": "consentForm", "label": "Informed Consent Form", "fieldType": "FILE", "isMandatory": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "investigatorCv", "label": "Investigator CVs", "fieldType": "FILE", "multiple": true, "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760, "maxFiles": 10 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "IRB Administrator", "approverType": "ROLE", "roleName": "IRB_ADMIN", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Biosafety / Scientific Reviewer", "approverType": "ROLE", "roleName": "SCIENTIFIC_REVIEWER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "IRB / Ethics Committee Chair", "approverType": "ROLE", "roleName": "IRB_CHAIR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

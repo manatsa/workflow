@@ -1,0 +1,62 @@
+{
+  "_comment": "Blasting Permit — authorise use of explosives for mining / quarrying operations.",
+  "name": "Blasting Permit",
+  "code": "MBP",
+  "description": "Authorise use of explosives for mining / quarrying operations with safety controls.",
+  "icon": "bolt",
+  "displayOrder": 130,
+  "requiresApproval": true, "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "MINING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{permitRef} - @{pit} (@{blastDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 4, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 12, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Blast Plan", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Safety", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Blaster", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Location & Time", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Blast Design", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Safety Controls", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Environmental", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "permitRef", "label": "Permit Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MBP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "blaster", "label": "Licensed Blaster", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "blasterLicence", "label": "Blaster Licence #", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "pit", "label": "Pit / Bench", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "gpsCoords", "label": "GPS Coordinates", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "blastDate", "label": "Blast Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "blastTime", "label": "Planned Blast Time (HH:mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "numberOfHoles", "label": "Number of Holes", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "holeDepth", "label": "Hole Depth (m)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0.1)" },
+      { "name": "explosiveType", "label": "Explosive Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "ANFO", "label": "ANFO", "displayOrder": 0 }, { "value": "EMULSION", "label": "Emulsion", "displayOrder": 1 }, { "value": "WATERGEL", "label": "Water-Gel", "displayOrder": 2 }, { "value": "DYNAMITE", "label": "Dynamite", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "totalExplosiveKg", "label": "Total Explosive (kg)", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "detonatorType", "label": "Detonator Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "ELECTRIC", "label": "Electric", "displayOrder": 0 }, { "value": "NON_ELECTRIC", "label": "Non-Electric (NONEL)", "displayOrder": 1 }, { "value": "ELECTRONIC", "label": "Electronic", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "exclusionZoneRadius", "label": "Exclusion Zone Radius (m)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(50)" },
+      { "name": "roadsClosed", "label": "Roads / Access Closed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{roadsClosed} == true, \"Roads must be closed\")" },
+      { "name": "sentriesPosted", "label": "Sentries Posted", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{sentriesPosted} == true, \"Sentries required\")" },
+      { "name": "communityNotified", "label": "Community Notified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{communityNotified} == true, \"Community notification required\")" },
+      { "name": "sirensReady", "label": "Warning Sirens Ready", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{sirensReady} == true, \"Warning sirens required\")" },
+      { "name": "weatherOk", "label": "Weather Conditions Acceptable", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{weatherOk} == true, \"Weather must be acceptable\")" },
+      { "name": "dustControlPlan", "label": "Dust Suppression Plan", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{dustControlPlan} == true, \"Dust control required\")" },
+      { "name": "vibrationMonitoring", "label": "Vibration / Airblast Monitoring", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "postBlastPlan", "label": "Post-Blast Inspection Plan", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(30)" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Shift Blaster Supervisor", "approverType": "ROLE", "roleName": "BLAST_SUPERVISOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Mine Captain", "approverType": "ROLE", "roleName": "MINE_CAPTAIN", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Mine Manager / Statutory Manager", "approverType": "ROLE", "roleName": "MINE_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

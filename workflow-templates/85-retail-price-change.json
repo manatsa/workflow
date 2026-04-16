@@ -1,0 +1,61 @@
+{
+  "_comment": "Price Change — markup / markdown on SKUs, requires margin and competitive review.",
+  "name": "Retail Price Change",
+  "code": "RPC",
+  "description": "Approve a price markup or markdown on one or more SKUs after margin and competitive review.",
+  "icon": "sell",
+  "displayOrder": 85,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "RETAIL",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{priceRef} - @{changeType} (@{category})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Change Info", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "SKU Changes", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Justification", "displayOrder": 2, "icon": "description" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Scope", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "SKU Line Items", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Reason", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Documents", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "priceRef", "label": "Price Change Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RPC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "effectiveDate", "label": "Effective Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND DateAfter(\"today\", \"Effective date must be future\")" },
+      { "name": "requestedBy", "label": "Requested By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "changeType", "label": "Change Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "MARKUP", "label": "Price Increase", "displayOrder": 0 }, { "value": "MARKDOWN", "label": "Markdown / Promo", "displayOrder": 1 }, { "value": "CLEARANCE", "label": "Clearance", "displayOrder": 2 }, { "value": "RESET", "label": "Reset (Regular Price)", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "category", "label": "Category / Department", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "scope", "label": "Scope", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "ALL_STORES", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ALL_STORES", "label": "All Stores", "displayOrder": 0 }, { "value": "REGION", "label": "Specific Region", "displayOrder": 1 }, { "value": "SELECT_STORES", "label": "Selected Stores", "displayOrder": 2 }, { "value": "ONLINE_ONLY", "label": "Online Only", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "storeList", "label": "Store List (if selected)", "fieldType": "TEXTAREA", "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "visibilityExpression": "@{scope} == 'REGION' OR @{scope} == 'SELECT_STORES'" },
+      { "name": "skuChanges", "label": "SKU Price Changes", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 500, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"sku\",\"label\":\"SKU\",\"type\":\"TEXT\",\"width\":130,\"required\":true},{\"name\":\"productName\",\"label\":\"Product\",\"type\":\"TEXT\",\"width\":260,\"required\":true},{\"name\":\"currentPrice\",\"label\":\"Current\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"newPrice\",\"label\":\"New\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"cost\",\"label\":\"Cost\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"marginPercent\",\"label\":\"Margin %\",\"type\":\"NUMBER\",\"width\":100}]", "validation": "MinRows(1, \"At least one SKU required\")" },
+      { "name": "numSkus", "label": "Number of SKUs", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "defaultValue": "COUNT(\"skuChanges\")" },
+      { "name": "estimatedImpact", "label": "Estimated Monthly Impact", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "reasonCategory", "label": "Reason", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "COST_INCREASE", "label": "Supplier Cost Increase", "displayOrder": 0 }, { "value": "FX_CHANGE", "label": "FX / Currency Change", "displayOrder": 1 }, { "value": "COMPETITIVE", "label": "Competitive Response", "displayOrder": 2 }, { "value": "SEASONAL", "label": "Seasonal / Promo", "displayOrder": 3 }, { "value": "CLEARANCE", "label": "Clearance / EOL", "displayOrder": 4 }, { "value": "MARGIN_IMPROVE", "label": "Margin Improvement", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "justification", "label": "Detailed Justification", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(30)" },
+      { "name": "competitorPricesFile", "label": "Competitor Pricing Data", "fieldType": "FILE", "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,xls,xlsx,csv", "maxFileSize": 10485760 },
+      { "name": "supplierNotice", "label": "Supplier Cost Increase Notice", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,doc,docx,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Category Manager", "approverType": "ROLE", "roleName": "CATEGORY_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Head of Merchandising", "approverType": "ROLE", "roleName": "HEAD_MERCHANDISING", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Commercial Director", "approverType": "ROLE", "roleName": "COMMERCIAL_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "_comment": "Security Guard Deployment — deploy guards / officers to a client site.",
+  "name": "Security Guard Deployment",
+  "code": "SGD",
+  "description": "Deploy security guards / officers to a client site with roster and equipment.",
+  "icon": "security",
+  "displayOrder": 186,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "SECURITY_SERVICES",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{deploymentRef} - @{clientName} (@{guardsRequired} guards)",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 8,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Client & Site", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Deployment & Pricing", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Site & Risk", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Roster", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Equipment & Pricing", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "deploymentRef", "label": "Deployment Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SGD-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "opsManager", "label": "Operations Manager", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientContact", "label": "Client Contact", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Phone()" },
+      { "name": "contractRef", "label": "Client Contract Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "siteName", "label": "Site Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "siteAddress", "label": "Site Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "siteType", "label": "Site Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "RESIDENTIAL", "label": "Residential / Estate", "displayOrder": 0 }, { "value": "COMMERCIAL", "label": "Commercial / Office", "displayOrder": 1 }, { "value": "RETAIL", "label": "Retail / Mall", "displayOrder": 2 }, { "value": "INDUSTRIAL", "label": "Industrial / Warehouse", "displayOrder": 3 }, { "value": "EVENT", "label": "Event", "displayOrder": 4 }, { "value": "CASH_IN_TRANSIT", "label": "Cash-in-Transit", "displayOrder": 5 }, { "value": "VIP", "label": "VIP / Close Protection", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "riskLevel", "label": "Risk Level", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "LOW", "label": "Low", "displayOrder": 0 }, { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 }, { "value": "HIGH", "label": "High", "displayOrder": 2 }, { "value": "EXTREME", "label": "Extreme", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "startDate", "label": "Deployment Start", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "guardsRequired", "label": "Guards Required", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "shiftPattern", "label": "Shift Pattern", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "24_7", "label": "24/7", "displayOrder": 0 }, { "value": "DAYS", "label": "Days Only", "displayOrder": 1 }, { "value": "NIGHTS", "label": "Nights Only", "displayOrder": 2 }, { "value": "WEEKENDS", "label": "Weekends", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "armed", "label": "Armed Guards Required?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "dogHandler", "label": "K9 / Dog Handler Required?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "equipment", "label": "Equipment (uniforms, radios)", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "monthlyRate", "label": "Monthly Contract Value", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "licenseCheck", "label": "All Guards Licensed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{licenseCheck} == true, \"License check required\")" },
+      { "name": "firearmsLicense", "label": "Firearms Licences Current", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{armed} == false OR @{firearmsLicense} == true, \"Firearms licenses required for armed deployment\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPS_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Regional Manager", "approverType": "ROLE", "roleName": "REGIONAL_MANAGER", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "COO", "approverType": "ROLE", "roleName": "COO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

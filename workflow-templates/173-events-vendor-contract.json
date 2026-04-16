@@ -1,0 +1,58 @@
+{
+  "_comment": "Event Vendor Contract — engage and authorise event vendors (catering, AV, decor).",
+  "name": "Event Vendor Contract",
+  "code": "EVC",
+  "description": "Engage and authorise an event vendor (catering, AV, decor, security).",
+  "icon": "handshake",
+  "displayOrder": 173,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "EVENTS",
+  "workflowTypeCode": "PROCUREMENT",
+  "titleTemplate": "@{contractRef} - @{vendorName} (@{contractValue})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Vendor", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Contract & Compliance", "displayOrder": 1, "icon": "verified" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Linked Event", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Vendor Detail", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Scope & Pricing", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Compliance", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "contractRef", "label": "Contract Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"EVC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "raisedBy", "label": "Raised By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "eventRef", "label": "Linked Event Reference", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "eventDate", "label": "Event Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "vendorName", "label": "Vendor Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "vendorContact", "label": "Vendor Contact", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Phone()" },
+      { "name": "vendorCategory", "label": "Vendor Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "CATERING", "label": "Catering", "displayOrder": 0 }, { "value": "AV", "label": "Audio Visual", "displayOrder": 1 }, { "value": "DECOR", "label": "Decor / Florist", "displayOrder": 2 }, { "value": "SECURITY", "label": "Security", "displayOrder": 3 }, { "value": "TRANSPORT", "label": "Transport", "displayOrder": 4 }, { "value": "ENTERTAINMENT", "label": "Entertainment", "displayOrder": 5 }, { "value": "PHOTO", "label": "Photo / Video", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "preApproved", "label": "Vendor on Pre-Approved List?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "scope", "label": "Scope of Work", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(20)" },
+      { "name": "contractValue", "label": "Contract Value", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "depositPercent", "label": "Deposit %", "fieldType": "NUMBER", "defaultValue": "30", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0) AND Max(100)" },
+      { "name": "depositAmount", "label": "Deposit Amount", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "PERCENT_OF(@{contractValue}, @{depositPercent})" },
+      { "name": "balanceDue", "label": "Balance Due Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "publicLiabInsurance", "label": "Vendor Public Liability Insurance", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{publicLiabInsurance} == true, \"Insurance required\")" },
+      { "name": "healthSafety", "label": "Health & Safety Compliance", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{healthSafety} == true, \"H&S compliance required\")" },
+      { "name": "contractSigned", "label": "Contract Drafted & Reviewed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{contractSigned} == true, \"Contract review required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Event Coordinator", "approverType": "ROLE", "roleName": "EVENT_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPS_MANAGER", "amountLimit": 25000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Finance Manager", "approverType": "ROLE", "roleName": "FINANCE_MANAGER", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Director of Events", "approverType": "ROLE", "roleName": "DIR_EVENTS", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

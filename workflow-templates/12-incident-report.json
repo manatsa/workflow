@@ -1,0 +1,548 @@
+{
+  "_comment": "Incident Report — safety, security, or operational incidents that need investigation.",
+  "name": "Incident Report",
+  "code": "INC",
+  "description": "Report a workplace safety, security, or operational incident.",
+  "icon": "report",
+  "displayOrder": 120,
+  "requiresApproval": true,
+  "commentsMandatory": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{incidentNumber} - @{incidentType} (@{severity})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 8,
+  "reminderMaxCount": 3,
+  "escalationEnabled": true,
+  "escalationAfterHours": 24,
+  "escalationAction": "NOTIFY_ADMIN",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Incident Details",
+          "displayOrder": 0,
+          "icon": "warning"
+        },
+        {
+          "id": "temp_s2",
+          "title": "People Involved",
+          "displayOrder": 1,
+          "icon": "groups"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Response & Evidence",
+          "displayOrder": 2,
+          "icon": "medical_services"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Submit",
+          "displayOrder": 3,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Identification",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "When & Where",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Incident Details",
+          "displayOrder": 2,
+          "columns": 1,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Reporter",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Injured / Affected Persons",
+          "displayOrder": 4,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g6",
+          "title": "Witnesses",
+          "displayOrder": 5,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g7",
+          "title": "Immediate Response",
+          "displayOrder": 6,
+          "columns": 1,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g8",
+          "title": "Evidence",
+          "displayOrder": 7,
+          "columns": 1,
+          "screenId": "temp_s3"
+        }
+      ],
+      "fields": [
+        {
+          "name": "incidentNumber",
+          "label": "Incident #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"INC-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "reportedAt",
+          "label": "Reported At",
+          "fieldType": "DATETIME",
+          "defaultValue": "NOW()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "incidentType",
+          "label": "Incident Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "INJURY",
+              "label": "Injury / Accident",
+              "displayOrder": 0
+            },
+            {
+              "value": "NEAR_MISS",
+              "label": "Near Miss",
+              "displayOrder": 1
+            },
+            {
+              "value": "PROPERTY_DAMAGE",
+              "label": "Property Damage",
+              "displayOrder": 2
+            },
+            {
+              "value": "SECURITY",
+              "label": "Security Incident",
+              "displayOrder": 3
+            },
+            {
+              "value": "IT_SECURITY",
+              "label": "IT Security / Data Breach",
+              "displayOrder": 4
+            },
+            {
+              "value": "ENVIRONMENTAL",
+              "label": "Environmental",
+              "displayOrder": 5
+            },
+            {
+              "value": "FIRE",
+              "label": "Fire / Smoke",
+              "displayOrder": 6
+            },
+            {
+              "value": "THEFT",
+              "label": "Theft",
+              "displayOrder": 7
+            },
+            {
+              "value": "HARASSMENT",
+              "label": "Harassment / Misconduct",
+              "displayOrder": 8
+            },
+            {
+              "value": "OPERATIONAL",
+              "label": "Operational Issue",
+              "displayOrder": 9
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 10
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "severity",
+          "label": "Severity",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low - Minor issue, no injury",
+              "displayOrder": 0
+            },
+            {
+              "value": "MEDIUM",
+              "label": "Medium - Minor injury / limited damage",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High - Serious injury / significant damage",
+              "displayOrder": 2
+            },
+            {
+              "value": "CRITICAL",
+              "label": "Critical - Life-threatening / major loss",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "incidentDateTime",
+          "label": "Date & Time of Incident",
+          "fieldType": "DATETIME",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND ValidWhen(IS_PAST(@{incidentDateTime}) OR IS_TODAY(@{incidentDateTime}), \"Incident time must be in the past or now\")"
+        },
+        {
+          "name": "location",
+          "label": "Location",
+          "fieldType": "TEXT",
+          "placeholder": "Building, floor, room, or specific area",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "specificArea",
+          "label": "Specific Area / Equipment",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. Loading dock, machine #123",
+          "displayOrder": 12,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "description",
+          "label": "Incident Description",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe exactly what happened. Include sequence of events.",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(50) AND MaxLength(5000)"
+        },
+        {
+          "name": "rootCause",
+          "label": "Suspected Root Cause",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What do you think caused the incident?",
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "contributingFactors",
+          "label": "Contributing Factors",
+          "fieldType": "CHECKBOX_GROUP",
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "optionsLayout": "vertical",
+          "options": [
+            {
+              "value": "HUMAN_ERROR",
+              "label": "Human Error",
+              "displayOrder": 0
+            },
+            {
+              "value": "EQUIPMENT_FAILURE",
+              "label": "Equipment Failure",
+              "displayOrder": 1
+            },
+            {
+              "value": "PROCEDURE_NOT_FOLLOWED",
+              "label": "Procedure Not Followed",
+              "displayOrder": 2
+            },
+            {
+              "value": "INADEQUATE_TRAINING",
+              "label": "Inadequate Training",
+              "displayOrder": 3
+            },
+            {
+              "value": "POOR_COMMUNICATION",
+              "label": "Poor Communication",
+              "displayOrder": 4
+            },
+            {
+              "value": "WEATHER",
+              "label": "Weather / Environmental",
+              "displayOrder": 5
+            },
+            {
+              "value": "THIRD_PARTY",
+              "label": "Third Party / External",
+              "displayOrder": 6
+            },
+            {
+              "value": "UNKNOWN",
+              "label": "Unknown",
+              "displayOrder": 7
+            }
+          ]
+        },
+        {
+          "name": "reporterName",
+          "label": "Reporter Name",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "reporterEmail",
+          "label": "Reporter Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "reporterDept",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "reporterPhone",
+          "label": "Contact Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "hasInjuries",
+          "label": "Were there any injuries?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "injuredPersons",
+          "label": "Injured Persons",
+          "fieldType": "TABLE",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{hasInjuries} == true",
+          "tableMinRows": 0,
+          "tableMaxRows": 20,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"name\",\"label\":\"Name\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"role\",\"label\":\"Role / Relation\",\"type\":\"SELECT\",\"width\":150,\"options\":[\"Employee\",\"Contractor\",\"Visitor\",\"Customer\",\"Other\"]},{\"name\":\"injuryType\",\"label\":\"Injury Type\",\"type\":\"TEXT\",\"width\":200},{\"name\":\"bodyPart\",\"label\":\"Body Part Affected\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"medicalTreatment\",\"label\":\"Medical Treatment Given\",\"type\":\"TEXT\",\"width\":250}]"
+        },
+        {
+          "name": "witnesses",
+          "label": "Witnesses",
+          "fieldType": "TABLE",
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g6",
+          "tableMinRows": 0,
+          "tableMaxRows": 20,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"name\",\"label\":\"Name\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"role\",\"label\":\"Role\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"contact\",\"label\":\"Contact\",\"type\":\"TEXT\",\"width\":200},{\"name\":\"statement\",\"label\":\"Statement Summary\",\"type\":\"TEXT\",\"width\":300}]"
+        },
+        {
+          "name": "firstAidGiven",
+          "label": "First Aid Given?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{hasInjuries} == true"
+        },
+        {
+          "name": "emergencyServices",
+          "label": "Emergency Services Called?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7"
+        },
+        {
+          "name": "immediateActions",
+          "label": "Immediate Actions Taken",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What was done immediately after the incident?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "preventiveActions",
+          "label": "Suggested Preventive Actions",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What could prevent this from happening again?",
+          "displayOrder": 63,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7"
+        },
+        {
+          "name": "photos",
+          "label": "Photos / Images",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "jpg,png,gif",
+          "maxFileSize": 20971520,
+          "maxFiles": 20
+        },
+        {
+          "name": "documents",
+          "label": "Documents (Police report, medical, etc.)",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 71,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "pdf,doc,docx,jpg,png",
+          "maxFileSize": 20971520,
+          "maxFiles": 10
+        },
+        {
+          "name": "certification",
+          "label": "I certify the information above is true to the best of my knowledge",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "validation": "IsTrue(\"Certification required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Line Manager / Supervisor",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Health & Safety Officer",
+      "approverType": "ROLE",
+      "roleName": "HS_OFFICER",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Compliance / Risk Officer",
+      "approverType": "ROLE",
+      "roleName": "COMPLIANCE",
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "GENERAL",
+  "workflowTypeCode": "APPROVAL"
+}

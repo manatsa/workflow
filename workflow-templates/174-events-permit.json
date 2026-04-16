@@ -1,0 +1,54 @@
+{
+  "_comment": "Event Permit & Compliance — apply for permits / licenses for a public event.",
+  "name": "Event Permit & Compliance",
+  "code": "EPC",
+  "description": "Apply for and track permits / licenses required for a public event.",
+  "icon": "approval",
+  "displayOrder": 174,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "EVENTS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{permitRef} - @{eventName} (@{permitType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 4, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Event", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Permits & Safety", "displayOrder": 1, "icon": "shield" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Event Detail", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Permits Required", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Safety & Risk", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "permitRef", "label": "Permit Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"EPC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "complianceOfficer", "label": "Compliance Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "eventName", "label": "Event Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "venue", "label": "Venue / Site", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "eventDate", "label": "Event Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "expectedAttendance", "label": "Expected Attendance", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "permitType", "label": "Primary Permit Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "PUBLIC_GATHERING", "label": "Public Gathering Permit", "displayOrder": 0 }, { "value": "LIQUOR", "label": "Liquor License", "displayOrder": 1 }, { "value": "NOISE", "label": "Noise / Music License", "displayOrder": 2 }, { "value": "ROAD_CLOSURE", "label": "Road Closure", "displayOrder": 3 }, { "value": "FOOD", "label": "Food Handling", "displayOrder": 4 }, { "value": "FIRE", "label": "Fire Safety", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "permitsList", "label": "Permits / Licenses Checklist", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 30, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"permit\",\"label\":\"Permit / License\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"authority\",\"label\":\"Issuing Authority\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"appliedDate\",\"label\":\"Applied\",\"type\":\"DATE\",\"width\":140},{\"name\":\"status\",\"label\":\"Status\",\"type\":\"SELECT\",\"width\":140,\"options\":[\"Not Applied\",\"Applied\",\"Approved\",\"Rejected\"],\"required\":true},{\"name\":\"fee\",\"label\":\"Fee\",\"type\":\"NUMBER\",\"width\":120}]", "validation": "MinRows(1, \"At least one permit row required\")" },
+      { "name": "riskAssessment", "label": "Risk Assessment Completed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{riskAssessment} == true, \"Risk assessment required\")" },
+      { "name": "emergencyPlan", "label": "Emergency / Evacuation Plan", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{emergencyPlan} == true, \"Emergency plan required\")" },
+      { "name": "medicalOnSite", "label": "Medical / First Aid On-Site", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{expectedAttendance} < 500 OR @{medicalOnSite} == true, \"Medical required for >=500 attendees\")" },
+      { "name": "securityOnSite", "label": "Security On-Site", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{securityOnSite} == true, \"Security required\")" },
+      { "name": "insuranceConfirmed", "label": "Public Liability Insurance Confirmed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{insuranceConfirmed} == true, \"Insurance confirmation required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Event Coordinator", "approverType": "ROLE", "roleName": "EVENT_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Compliance Officer", "approverType": "ROLE", "roleName": "COMPLIANCE_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Director of Events", "approverType": "ROLE", "roleName": "DIR_EVENTS", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

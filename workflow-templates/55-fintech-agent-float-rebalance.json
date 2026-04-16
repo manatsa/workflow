@@ -1,0 +1,138 @@
+{
+  "_comment": "Agent Float Rebalance — top up or sweep mobile-money agent's cash / e-float to maintain liquidity.",
+  "name": "Agent Float Rebalance",
+  "code": "FFR",
+  "description": "Top up or sweep an agent's e-float or cash balance to maintain liquidity for customer transactions.",
+  "icon": "swap_horiz",
+  "displayOrder": 55,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FINTECH",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{rebalanceRef} - @{agentName} (@{rebalanceAmount})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 2,
+  "reminderMaxCount": 5,
+  "reminderStartAfterHours": 1,
+  "escalationEnabled": true,
+  "escalationAfterHours": 6,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "URGENT: Float Rebalance @{referenceNumber}",
+  "reminderEmailBody": "<p>Agent float rebalance <strong>@{referenceNumber}</strong> awaiting authorisation.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Agent", "displayOrder": 1, "icon": "store" },
+      { "id": "temp_screen_3", "title": "Balances", "displayOrder": 2, "icon": "account_balance" },
+      { "id": "temp_screen_4", "title": "Rebalance", "displayOrder": 3, "icon": "swap_horiz" },
+      { "id": "temp_screen_5", "title": "Documents", "displayOrder": 4, "icon": "attach_file" },
+      { "id": "temp_screen_6", "title": "Review & Submit", "displayOrder": 5, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Agent Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Current Balances", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_4", "title": "Rebalance Transaction", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_5", "title": "Settlement", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_5" }
+    ],
+
+    "fields": [
+      { "name": "rebalanceRef", "label": "Rebalance Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FFR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "officer", "label": "Agent Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "urgency", "label": "Urgency", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "NORMAL", "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [
+          { "value": "NORMAL", "label": "Normal", "displayOrder": 0 },
+          { "value": "URGENT", "label": "Urgent - Out of Float", "displayOrder": 1 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "agentId", "label": "Agent ID", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "agentName", "label": "Agent / Outlet Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "agentTier", "label": "Agent Tier", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "BRONZE", "label": "Bronze", "displayOrder": 0 },
+          { "value": "SILVER", "label": "Silver", "displayOrder": 1 },
+          { "value": "GOLD", "label": "Gold", "displayOrder": 2 },
+          { "value": "SUPER", "label": "Super Agent / Aggregator", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+      { "name": "region", "label": "Region / Branch", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "agentPhone", "label": "Agent MSISDN", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Phone()" },
+
+      { "name": "currentEFloat", "label": "Current E-Float Balance", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Min(0)" },
+      { "name": "currentCash", "label": "Current Cash-in-Till", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Min(0)" },
+      { "name": "commissionDue", "label": "Commission Accrued", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Min(0)" },
+      { "name": "agentFloatLimit", "label": "Approved Float Limit", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Min(0)" },
+
+      { "name": "direction", "label": "Direction", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "options": [
+          { "value": "EFLOAT_TOPUP", "label": "Top-Up E-Float (Cash → E-Float)", "displayOrder": 0 },
+          { "value": "CASH_WITHDRAW", "label": "Cash Sweep (E-Float → Cash)", "displayOrder": 1 },
+          { "value": "BANK_DEPOSIT", "label": "Bank Deposit → E-Float", "displayOrder": 2 },
+          { "value": "BANK_SWEEP", "label": "E-Float → Bank Account", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+      { "name": "rebalanceAmount", "label": "Rebalance Amount", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND Min(1)" },
+      { "name": "postEFloat", "label": "Projected E-Float After", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM(@{currentEFloat}, 0)" },
+      { "name": "withinFloatLimit", "label": "Within Agent Float Limit?", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "ValidWhen(@{withinFloatLimit} == true, \"Rebalance exceeds agent's approved float limit\")" },
+      { "name": "reason", "label": "Reason / Notes", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND MinLength(10)" },
+
+      { "name": "settlementMethod", "label": "Settlement Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "BANK_TRANSFER", "label": "Bank Transfer", "displayOrder": 0 },
+          { "value": "CASH_BRANCH", "label": "Cash at Branch", "displayOrder": 1 },
+          { "value": "CASH_IN_TRANSIT", "label": "Cash in Transit", "displayOrder": 2 },
+          { "value": "EFLOAT_TRANSFER", "label": "E-Float Transfer", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+      { "name": "bankReference", "label": "Bank / Transfer Reference", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "visibilityExpression": "@{settlementMethod} == 'BANK_TRANSFER'",
+        "validation": "ValidWhen(@{settlementMethod} != 'BANK_TRANSFER' OR IS_NOT_EMPTY(@{bankReference}), \"Bank reference required\")" },
+      { "name": "citVendor", "label": "CIT Vendor", "fieldType": "TEXT", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "visibilityExpression": "@{settlementMethod} == 'CASH_IN_TRANSIT'" },
+      { "name": "settlementDate", "label": "Settlement Date", "fieldType": "DATE", "isMandatory": true, "defaultValue": "TODAY()", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required()" },
+
+      { "name": "bankSlip", "label": "Bank Slip / Proof", "fieldType": "FILE", "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "visibilityExpression": "@{settlementMethod} == 'BANK_TRANSFER' OR @{settlementMethod} == 'BANK_SWEEP'",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "citReceipt", "label": "CIT Receipt", "fieldType": "FILE", "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "visibilityExpression": "@{settlementMethod} == 'CASH_IN_TRANSIT'",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "agentSignature", "label": "Agent Acknowledgement", "fieldType": "FILE", "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Agent Support Officer", "approverType": "ROLE", "roleName": "AGENT_OFFICER", "amountLimit": 2000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Agent Operations Manager", "approverType": "ROLE", "roleName": "AGENT_OPS_MANAGER", "amountLimit": 50000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Head of Agent Banking", "approverType": "ROLE", "roleName": "HEAD_AGENT_BANKING", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

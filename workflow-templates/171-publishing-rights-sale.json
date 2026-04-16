@@ -1,0 +1,56 @@
+{
+  "_comment": "Subsidiary Rights Sale — sell translation / film / audio rights for a published title.",
+  "name": "Subsidiary Rights Sale",
+  "code": "PRS",
+  "description": "Sell translation / film / audio / serial rights for an existing title.",
+  "icon": "sell",
+  "displayOrder": 171,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "PUBLISHING",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{saleRef} - @{titleName} (@{rightsType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Sale", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Terms", "displayOrder": 1, "icon": "gavel" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Title & Buyer", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Rights & Territory", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Financial Terms", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "saleRef", "label": "Sale Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"PRS-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "rightsManager", "label": "Rights Manager", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "titleName", "label": "Title Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "originalIsbn", "label": "Original ISBN", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "buyer", "label": "Buyer / Licensee", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "buyerCountry", "label": "Buyer Country", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "rightsType", "label": "Rights Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "TRANSLATION", "label": "Translation", "displayOrder": 0 }, { "value": "FILM_TV", "label": "Film / TV", "displayOrder": 1 }, { "value": "AUDIO", "label": "Audiobook", "displayOrder": 2 }, { "value": "SERIAL", "label": "Serial / Excerpt", "displayOrder": 3 }, { "value": "MERCHANDISE", "label": "Merchandise", "displayOrder": 4 }, { "value": "STAGE", "label": "Stage / Theatrical", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "language", "label": "Language (if translation)", "fieldType": "TEXT", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "visibilityExpression": "@{rightsType} == 'TRANSLATION' OR @{rightsType} == 'AUDIO'" },
+      { "name": "territory", "label": "Territory", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "termYears", "label": "License Term (years)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "7", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1) AND Max(50)" },
+      { "name": "advance", "label": "Advance", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "royaltyPercent", "label": "Royalty %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "10", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(50)" },
+      { "name": "authorShare", "label": "Author Share %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "50", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(100)" },
+      { "name": "authorAdvance", "label": "Author Share of Advance", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "PERCENT_OF(@{advance}, @{authorShare})" },
+      { "name": "authorConsulted", "label": "Author Consulted / Notified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{authorConsulted} == true, \"Author consultation required\")" },
+      { "name": "originalContractAllowsSale", "label": "Original Contract Permits Sale", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{originalContractAllowsSale} == true, \"Original contract must permit sale\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Rights Manager", "approverType": "ROLE", "roleName": "RIGHTS_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Publisher", "approverType": "ROLE", "roleName": "PUBLISHER", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "CEO", "approverType": "ROLE", "roleName": "CEO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

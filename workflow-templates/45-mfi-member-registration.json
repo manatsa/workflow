@@ -1,0 +1,155 @@
+{
+  "_comment": "MFI Member Registration — enrol a new member/client of the microfinance institution or SACCO.",
+  "name": "MFI Member Registration",
+  "code": "MMR",
+  "description": "Enrol a new member into the microfinance institution or SACCO, capture KYC and membership contribution.",
+  "icon": "group_add",
+  "displayOrder": 45,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "MICROFINANCE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{memberRef} - @{firstName} @{lastName}",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Membership @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Member registration <strong>@{referenceNumber}</strong> awaiting approval.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Personal Details", "displayOrder": 1, "icon": "person" },
+      { "id": "temp_screen_3", "title": "Group / Branch", "displayOrder": 2, "icon": "groups" },
+      { "id": "temp_screen_4", "title": "Livelihood", "displayOrder": 3, "icon": "work" },
+      { "id": "temp_screen_5", "title": "Shares & Fees", "displayOrder": 4, "icon": "payments" },
+      { "id": "temp_screen_6", "title": "Documents", "displayOrder": 5, "icon": "attach_file" },
+      { "id": "temp_screen_7", "title": "Review & Submit", "displayOrder": 6, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Identity", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Contact & Address", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Affiliation", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Income Activity", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_6", "title": "Shares / Joining Fees", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_7", "title": "KYC Documents", "displayOrder": 6, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_6" }
+    ],
+
+    "fields": [
+      { "name": "memberRef", "label": "Member Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MMR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "registrationDate", "label": "Registration Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "registeredBy", "label": "Registered By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "branch", "label": "Branch", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required()" },
+
+      { "name": "firstName", "label": "First Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND MinLength(2)", "customValidationRule": "TRIM()" },
+      { "name": "lastName", "label": "Last Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND MinLength(2)", "customValidationRule": "TRIM()" },
+      { "name": "idNumber", "label": "National ID", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND MinLength(4)", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "dateOfBirth", "label": "Date of Birth", "fieldType": "DATE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "gender", "label": "Gender", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "M", "label": "Male", "displayOrder": 0 },
+          { "value": "F", "label": "Female", "displayOrder": 1 }
+        ],
+        "validation": "Required()" },
+      { "name": "maritalStatus", "label": "Marital Status", "fieldType": "SELECT", "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "SINGLE", "label": "Single", "displayOrder": 0 },
+          { "value": "MARRIED", "label": "Married", "displayOrder": 1 },
+          { "value": "DIVORCED", "label": "Divorced", "displayOrder": 2 },
+          { "value": "WIDOWED", "label": "Widowed", "displayOrder": 3 }
+        ] },
+
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Phone()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "ValidWhen(IS_EMPTY(@{email}) OR IS_EMAIL(@{email}), \"Enter a valid email\")" },
+      { "name": "residentialAddress", "label": "Residential Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND MinLength(10)" },
+      { "name": "nearestLandmark", "label": "Nearest Landmark", "fieldType": "TEXT", "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+
+      { "name": "membershipType", "label": "Membership Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [
+          { "value": "INDIVIDUAL", "label": "Individual", "displayOrder": 0 },
+          { "value": "GROUP", "label": "Group / Solidarity", "displayOrder": 1 },
+          { "value": "SAVINGS_ONLY", "label": "Savings Only", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+      { "name": "groupName", "label": "Group Name", "fieldType": "TEXT", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{membershipType} == 'GROUP'",
+        "validation": "ValidWhen(@{membershipType} != 'GROUP' OR IS_NOT_EMPTY(@{groupName}), \"Group name required\")" },
+      { "name": "groupId", "label": "Group Number", "fieldType": "TEXT", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{membershipType} == 'GROUP'",
+        "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "introducerName", "label": "Introducer Name", "fieldType": "TEXT", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "introducerContact", "label": "Introducer Phone", "fieldType": "PHONE", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+
+      { "name": "incomeActivity", "label": "Income-Generating Activity", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "TRADING", "label": "Trading / Vending", "displayOrder": 0 },
+          { "value": "FARMING", "label": "Farming / Livestock", "displayOrder": 1 },
+          { "value": "ARTISAN", "label": "Artisan / Crafts", "displayOrder": 2 },
+          { "value": "SERVICES", "label": "Services (tailoring, salon, etc.)", "displayOrder": 3 },
+          { "value": "TRANSPORT", "label": "Transport", "displayOrder": 4 },
+          { "value": "EMPLOYED", "label": "Salaried Employment", "displayOrder": 5 },
+          { "value": "OTHER", "label": "Other", "displayOrder": 6 }
+        ],
+        "validation": "Required()" },
+      { "name": "businessName", "label": "Business Name (if any)", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5" },
+      { "name": "yearsInBusiness", "label": "Years in Activity", "fieldType": "NUMBER", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Min(0)" },
+      { "name": "monthlyIncome", "label": "Average Monthly Income", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND Min(0)" },
+      { "name": "numDependants", "label": "Number of Dependants", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Min(0)" },
+
+      { "name": "shareValue", "label": "Share Contribution", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "validation": "Required() AND Min(0)" },
+      { "name": "joiningFee", "label": "Joining Fee", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "validation": "Required() AND Min(0)" },
+      { "name": "passbookFee", "label": "Passbook / Card Fee", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "validation": "Min(0)" },
+      { "name": "totalPaid", "label": "Total Paid", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "defaultValue": "SUM(@{shareValue}, @{joiningFee}, @{passbookFee})" },
+      { "name": "receiptReference", "label": "Receipt Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 54, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "validation": "Required()" },
+
+      { "name": "idCopy", "label": "ID Copy", "fieldType": "FILE", "isMandatory": true, "displayOrder": 60, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "passportPhoto", "label": "Passport Photo", "fieldType": "FILE", "isMandatory": true, "displayOrder": 61, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "allowedFileTypes": "jpg,jpeg,png", "maxFileSize": 5242880,
+        "validation": "Required()" },
+      { "name": "residenceProof", "label": "Proof of Residence", "fieldType": "FILE", "displayOrder": 62, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "membershipForm", "label": "Signed Membership Form", "fieldType": "FILE", "isMandatory": true, "displayOrder": 63, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_7",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Field Officer", "approverType": "ROLE", "roleName": "FIELD_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Branch Manager", "approverType": "ROLE", "roleName": "BRANCH_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": false, "emailNotification": true }
+  ]
+}

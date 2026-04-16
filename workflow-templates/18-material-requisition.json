@@ -1,0 +1,427 @@
+{
+  "_comment": "Material Requisition — request materials from stores to a production work order or project.",
+  "name": "Material Requisition",
+  "code": "MR",
+  "description": "Request raw materials or components from stores for production or project use.",
+  "icon": "inventory_2",
+  "displayOrder": 220,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{mrNumber} - @{workOrderNumber} (@{totalValue})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 8,
+  "reminderMaxCount": 3,
+  "escalationEnabled": true,
+  "escalationAfterHours": 24,
+  "escalationAction": "NOTIFY_ADMIN",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Request",
+          "displayOrder": 0,
+          "icon": "edit"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Materials",
+          "displayOrder": 1,
+          "icon": "inventory"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Submit",
+          "displayOrder": 2,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Requisition",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Requester",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Work Order / Project",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Items Required",
+          "displayOrder": 3,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Delivery",
+          "displayOrder": 4,
+          "columns": 2,
+          "screenId": "temp_s2"
+        }
+      ],
+      "fields": [
+        {
+          "name": "mrNumber",
+          "label": "Requisition #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"MR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "urgency",
+          "label": "Urgency",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "NORMAL",
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "NORMAL",
+              "label": "Normal",
+              "displayOrder": 0
+            },
+            {
+              "value": "URGENT",
+              "label": "Urgent - Line Down Risk",
+              "displayOrder": 1
+            },
+            {
+              "value": "LINE_DOWN",
+              "label": "Line Down - Critical",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "requisitionType",
+          "label": "Requisition Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "PRODUCTION",
+              "label": "Production / Work Order",
+              "displayOrder": 0
+            },
+            {
+              "value": "MAINTENANCE",
+              "label": "Maintenance",
+              "displayOrder": 1
+            },
+            {
+              "value": "REWORK",
+              "label": "Rework",
+              "displayOrder": 2
+            },
+            {
+              "value": "RD",
+              "label": "R&D / Prototype",
+              "displayOrder": 3
+            },
+            {
+              "value": "TOOLING",
+              "label": "Tooling / Fixture",
+              "displayOrder": 4
+            },
+            {
+              "value": "CONSUMABLES",
+              "label": "Consumables / Shop Supplies",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "requesterName",
+          "label": "Requested By",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "requesterDept",
+          "label": "Department / Line",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "shiftLeader",
+          "label": "Shift Leader / Supervisor",
+          "fieldType": "TEXT",
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "contactPhone",
+          "label": "Contact Phone",
+          "fieldType": "PHONE",
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "ValidWhen(IS_EMPTY(@{contactPhone}) OR IS_PHONE(@{contactPhone}))"
+        },
+        {
+          "name": "workOrderNumber",
+          "label": "Work Order / Project #",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "partNumber",
+          "label": "Part / Product Number",
+          "fieldType": "TEXT",
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "productionQuantity",
+          "label": "Production Quantity",
+          "fieldType": "NUMBER",
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "costCenter",
+          "label": "Cost Centre",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "items",
+          "label": "Materials Requested",
+          "fieldType": "TABLE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "tableMinRows": 1,
+          "tableMaxRows": 100,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableResizable": true,
+          "tableColumns": "[{\"name\":\"itemCode\",\"label\":\"Item Code\",\"type\":\"TEXT\",\"width\":130,\"required\":true},{\"name\":\"description\",\"label\":\"Description\",\"type\":\"TEXT\",\"width\":250,\"required\":true},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":80,\"required\":true},{\"name\":\"unit\",\"label\":\"UoM\",\"type\":\"SELECT\",\"width\":80,\"options\":[\"EA\",\"KG\",\"G\",\"L\",\"ML\",\"M\",\"CM\",\"MM\",\"M2\",\"M3\",\"BOX\",\"ROLL\",\"SHEET\"]},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":110},{\"name\":\"lineTotal\",\"label\":\"Line Total\",\"type\":\"NUMBER\",\"width\":110,\"readOnly\":true,\"computed\":\"MULTIPLY(@{quantity}, @{unitPrice})\"},{\"name\":\"binLocation\",\"label\":\"Bin/Location\",\"type\":\"TEXT\",\"width\":120},{\"name\":\"notes\",\"label\":\"Notes\",\"type\":\"TEXT\",\"width\":200}]",
+          "validation": "MinRows(1, \"Add at least one material item\")"
+        },
+        {
+          "name": "totalValue",
+          "label": "Total Estimated Value",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "defaultValue": "SUM_COLUMN(\"items\", \"lineTotal\")"
+        },
+        {
+          "name": "requiredBy",
+          "label": "Required By Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "validation": "Required() AND ValidWhen(DATE_AFTER(@{requiredBy}, \"today\") OR IS_TODAY(@{requiredBy}), \"Required-by must be today or future\")"
+        },
+        {
+          "name": "requiredByTime",
+          "label": "Required By Time (if same day)",
+          "fieldType": "TIME",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "deliveryPoint",
+          "label": "Delivery Location",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. Line 3 Stage Area, Bay 7",
+          "isMandatory": true,
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "validation": "Required()"
+        },
+        {
+          "name": "specialHandling",
+          "label": "Special Handling",
+          "fieldType": "CHECKBOX_GROUP",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "optionsLayout": "horizontal",
+          "options": [
+            {
+              "value": "FRAGILE",
+              "label": "Fragile",
+              "displayOrder": 0
+            },
+            {
+              "value": "HAZARDOUS",
+              "label": "Hazardous",
+              "displayOrder": 1
+            },
+            {
+              "value": "COLD_CHAIN",
+              "label": "Cold Chain",
+              "displayOrder": 2
+            },
+            {
+              "value": "ESD",
+              "label": "ESD Sensitive",
+              "displayOrder": 3
+            },
+            {
+              "value": "HEAVY",
+              "label": "Heavy - Forklift Required",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "notes",
+          "label": "Additional Notes",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 44,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5"
+        },
+        {
+          "name": "certification",
+          "label": "I confirm these materials are required for the specified work order",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "validation": "IsTrue(\"Certification required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Shift Supervisor",
+      "approverType": "ROLE",
+      "roleName": "SUPERVISOR",
+      "amountLimit": 1000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Production Manager",
+      "approverType": "ROLE",
+      "roleName": "PRODUCTION_MANAGER",
+      "amountLimit": 10000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Stores Manager",
+      "approverType": "ROLE",
+      "roleName": "STORES",
+      "canEscalate": false,
+      "requireComment": false,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "MANUFACTURING",
+  "workflowTypeCode": "REQUISITION"
+}

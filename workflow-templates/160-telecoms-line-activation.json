@@ -1,0 +1,58 @@
+{
+  "_comment": "Telecoms Line / SIM Activation — activate a new subscriber line / SIM / FTTH connection.",
+  "name": "Telecoms Line Activation",
+  "code": "TLA",
+  "description": "Activate a new subscriber line / SIM / FTTH connection for a customer.",
+  "icon": "sim_card",
+  "displayOrder": 160,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "TELECOMS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{activationRef} - @{customerName} (@{serviceType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 4, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Customer & Service", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Provisioning", "displayOrder": 1, "icon": "settings" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Service & Plan", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Technical Provisioning", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Charges", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "activationRef", "label": "Activation Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"TLA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "idNumber", "label": "ID / Registration", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "customerType", "label": "Customer Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "INDIVIDUAL", "label": "Individual", "displayOrder": 0 }, { "value": "CORPORATE", "label": "Corporate", "displayOrder": 1 }, { "value": "GOVERNMENT", "label": "Government", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "address", "label": "Service Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 5, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(10)" },
+      { "name": "serviceType", "label": "Service Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "PREPAID_MOBILE", "label": "Prepaid Mobile", "displayOrder": 0 }, { "value": "POSTPAID_MOBILE", "label": "Postpaid Mobile", "displayOrder": 1 }, { "value": "FIXED_VOICE", "label": "Fixed Voice", "displayOrder": 2 }, { "value": "FTTH", "label": "FTTH / Broadband", "displayOrder": 3 }, { "value": "LEASED_LINE", "label": "Leased Line / Enterprise", "displayOrder": 4 }, { "value": "IOT", "label": "IoT / M2M", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "planName", "label": "Plan / Bundle", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "contractMonths", "label": "Contract Term (months)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Min(0) AND Max(36)" },
+      { "name": "portIn", "label": "Number Porting Requested?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "msisdn", "label": "MSISDN / Number Assigned", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Phone()" },
+      { "name": "simSerial", "label": "SIM / ICCID", "fieldType": "TEXT", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{serviceType} == 'PREPAID_MOBILE' OR @{serviceType} == 'POSTPAID_MOBILE' OR @{serviceType} == 'IOT'", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "ontSerial", "label": "ONT / CPE Serial", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "visibilityExpression": "@{serviceType} == 'FTTH' OR @{serviceType} == 'LEASED_LINE'" },
+      { "name": "kycVerified", "label": "KYC / SIM Registration Verified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{kycVerified} == true, \"KYC required\")" },
+      { "name": "provisionedInBss", "label": "Provisioned in BSS / Network", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{provisionedInBss} == true, \"Provisioning must be complete\")" },
+      { "name": "activationFee", "label": "Activation Fee", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "deviceCost", "label": "Device Cost", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "monthlyFee", "label": "Monthly Fee", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "upfrontPaid", "label": "Upfront Payment Received", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{upfrontPaid} == true, \"Payment required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Sales / Retail Agent", "approverType": "ROLE", "roleName": "SALES_AGENT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Provisioning Engineer", "approverType": "ROLE", "roleName": "PROVISIONING_ENGINEER", "amountLimit": null, "canEscalate": false, "requireComment": false, "emailNotification": true }
+  ]
+}

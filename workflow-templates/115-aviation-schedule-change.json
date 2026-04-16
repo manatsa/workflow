@@ -1,0 +1,63 @@
+{
+  "_comment": "Flight Schedule Change — propose or approve a flight schedule change (time, equipment, route).",
+  "name": "Flight Schedule Change",
+  "code": "AFS",
+  "description": "Propose or approve a change to a published flight schedule (time, equipment, route, cancellation).",
+  "icon": "flight",
+  "displayOrder": 115,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "AVIATION",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{changeRef} - @{flightNumber} (@{effectiveDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 4, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Flight", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Change Details", "displayOrder": 1, "icon": "edit" },
+      { "id": "temp_screen_3", "title": "Impact", "displayOrder": 2, "icon": "assessment" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Flight Info", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Original Schedule", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "New Schedule", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Passenger & Commercial Impact", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "changeRef", "label": "Schedule Change Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"AFS-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "raisedDate", "label": "Date Raised", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requester", "label": "Requester", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "changeType", "label": "Change Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "RETIME", "label": "Re-Time", "displayOrder": 0 }, { "value": "EQUIPMENT", "label": "Equipment / Aircraft Change", "displayOrder": 1 }, { "value": "ROUTE", "label": "Route Change", "displayOrder": 2 }, { "value": "CANCEL", "label": "Cancellation", "displayOrder": 3 }, { "value": "NEW", "label": "New Flight", "displayOrder": 4 }, { "value": "FREQ_INCREASE", "label": "Frequency Increase", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "flightNumber", "label": "Flight Number", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "effectiveDate", "label": "Effective Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "endDate", "label": "End Date", "fieldType": "DATE", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "daysOfWeek", "label": "Days of Week", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "origOrigin", "label": "Current Origin", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "origDestination", "label": "Current Destination", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "origDeparture", "label": "Current Departure (HH:mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "origArrival", "label": "Current Arrival (HH:mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "origAircraft", "label": "Current Aircraft Type", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "newOrigin", "label": "New Origin", "fieldType": "TEXT", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "newDestination", "label": "New Destination", "fieldType": "TEXT", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "newDeparture", "label": "New Departure (HH:mm)", "fieldType": "TEXT", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "newArrival", "label": "New Arrival (HH:mm)", "fieldType": "TEXT", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "newAircraft", "label": "New Aircraft Type", "fieldType": "TEXT", "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "reason", "label": "Reason", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" },
+      { "name": "pax Affected", "label": "Passengers Affected (est.)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "0", "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "compensationCost", "label": "Estimated Compensation Cost", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "slotConfirmed", "label": "New Slot Confirmed", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "gdsUpdateReady", "label": "GDS / Inventory Update Ready", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Scheduling Analyst", "approverType": "ROLE", "roleName": "SCHEDULE_ANALYST", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Network Planning Manager", "approverType": "ROLE", "roleName": "NETWORK_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "VP Network Planning", "approverType": "ROLE", "roleName": "VP_NETWORK", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

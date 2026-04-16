@@ -1,0 +1,71 @@
+{
+  "_comment": "Consulting Proposal — develop and approve a client proposal / SoW.",
+  "name": "Consulting Proposal",
+  "code": "CCP",
+  "description": "Develop, cost and approve a consulting proposal / Statement of Work for client submission.",
+  "icon": "assignment",
+  "displayOrder": 154,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "CONSULTING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{proposalRef} - @{clientName} (@{feeAmount})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Opportunity", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Scope & Team", "displayOrder": 1, "icon": "groups" },
+      { "id": "temp_screen_3", "title": "Commercials", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Opportunity", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Scope", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Team & Staffing", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Fees & Margin", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "proposalRef", "label": "Proposal Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CCP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDeadline", "label": "Submission Deadline", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "proposalOwner", "label": "Proposal Owner", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "opportunitySource", "label": "Opportunity Source", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "RFP", "label": "RFP / Tender", "displayOrder": 0 }, { "value": "DIRECT", "label": "Direct Client Request", "displayOrder": 1 }, { "value": "REFERRAL", "label": "Referral", "displayOrder": 2 }, { "value": "INBOUND", "label": "Inbound Marketing", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "clientName", "label": "Client", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientIndustry", "label": "Client Industry", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "clientContact", "label": "Client Contact", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "existingClient", "label": "Existing Client?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "engagementTitle", "label": "Engagement Title", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(5)" },
+      { "name": "practiceArea", "label": "Practice Area", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "STRATEGY", "label": "Strategy", "displayOrder": 0 }, { "value": "OPERATIONS", "label": "Operations", "displayOrder": 1 }, { "value": "TECHNOLOGY", "label": "Technology", "displayOrder": 2 }, { "value": "HR", "label": "HR / People", "displayOrder": 3 }, { "value": "FINANCE", "label": "Finance", "displayOrder": 4 }, { "value": "RISK", "label": "Risk & Regulatory", "displayOrder": 5 }, { "value": "CHANGE", "label": "Change / Transformation", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "engagementType", "label": "Engagement Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "DIAGNOSTIC", "label": "Diagnostic / Assessment", "displayOrder": 0 }, { "value": "STRATEGY", "label": "Strategy / Design", "displayOrder": 1 }, { "value": "IMPLEMENTATION", "label": "Implementation", "displayOrder": 2 }, { "value": "MANAGED_SERVICE", "label": "Managed Service", "displayOrder": 3 }, { "value": "TRAINING", "label": "Training / Capability", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "objectives", "label": "Objectives / Deliverables", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(50)" },
+      { "name": "outOfScope", "label": "Out-of-Scope / Assumptions", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(20)" },
+      { "name": "durationWeeks", "label": "Duration (weeks)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "proposedStart", "label": "Proposed Start Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "engagementPartner", "label": "Engagement Partner", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "projectManager", "label": "Project Manager", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "teamSize", "label": "Team Size (FTEs)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "totalEffortDays", "label": "Total Effort (person-days)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "feeType", "label": "Fee Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "FIXED", "label": "Fixed Fee", "displayOrder": 0 }, { "value": "T_AND_M", "label": "Time & Materials", "displayOrder": 1 }, { "value": "CAPPED", "label": "Capped T&M", "displayOrder": 2 }, { "value": "OUTCOME", "label": "Outcome / Value-Based", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "feeAmount", "label": "Fee Amount", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "estimatedCost", "label": "Estimated Internal Cost", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "marginPercent", "label": "Gross Margin %", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "defaultValue": "PERCENTAGE(SUBTRACT(@{feeAmount}, @{estimatedCost}), @{feeAmount})" },
+      { "name": "expenses", "label": "Expenses Treatment", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "PASS_THROUGH", "displayOrder": 54, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "PASS_THROUGH", "label": "Pass-Through at Cost", "displayOrder": 0 }, { "value": "INCLUDED", "label": "Included in Fee", "displayOrder": 1 }, { "value": "CAPPED", "label": "Capped", "displayOrder": 2 } ] }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Engagement Manager", "approverType": "ROLE", "roleName": "ENGAGEMENT_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Engagement Partner", "approverType": "ROLE", "roleName": "ENGAGEMENT_PARTNER", "amountLimit": 250000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Practice Leader", "approverType": "ROLE", "roleName": "PRACTICE_LEADER", "amountLimit": 1000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Managing Partner", "approverType": "ROLE", "roleName": "MANAGING_PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

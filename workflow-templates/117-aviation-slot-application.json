@@ -1,0 +1,65 @@
+{
+  "_comment": "Airport Slot Application — apply for a take-off / landing slot at a coordinated airport.",
+  "name": "Airport Slot Application",
+  "code": "ASA",
+  "description": "Apply for or amend a take-off / landing slot at a coordinated airport.",
+  "icon": "schedule",
+  "displayOrder": 117,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "AVIATION",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{slotRef} - @{flightNumber} (@{airport})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Slot Request", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Operational Info", "displayOrder": 1, "icon": "flight" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Season", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Carrier", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Requested Slot", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Aircraft & Route", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Historics & Priority", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "slotRef", "label": "Slot Application Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ASA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "season", "label": "Season", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "SUMMER", "label": "Summer (S)", "displayOrder": 0 }, { "value": "WINTER", "label": "Winter (W)", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "applicationType", "label": "Application Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "NEW", "label": "New Slot", "displayOrder": 0 }, { "value": "HISTORIC", "label": "Historic Renewal", "displayOrder": 1 }, { "value": "CHANGE", "label": "Change / Retime", "displayOrder": 2 }, { "value": "AD_HOC", "label": "Ad-Hoc", "displayOrder": 3 }, { "value": "CANCEL", "label": "Cancellation", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "iataCode", "label": "Carrier IATA Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Pattern(/^[A-Z0-9]{2,3}$/, \"Enter valid 2-3 char IATA\")", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "carrierName", "label": "Carrier Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contact", "label": "Slot Coordinator Contact", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND ValidWhen(IS_EMAIL(@{contact}), \"Enter valid email\")" },
+      { "name": "airport", "label": "Coordinated Airport", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "flightNumber", "label": "Flight Number", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "direction", "label": "Direction", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "ARRIVAL", "label": "Arrival", "displayOrder": 0 }, { "value": "DEPARTURE", "label": "Departure", "displayOrder": 1 }, { "value": "PAIR", "label": "Paired Arr/Dep", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "requestedTime", "label": "Requested Time (UTC)", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "startDate", "label": "Effective From", "fieldType": "DATE", "isMandatory": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "endDate", "label": "Effective To", "fieldType": "DATE", "isMandatory": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "daysOfOperation", "label": "Days of Operation", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 26, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "aircraftType", "label": "Aircraft Type (ICAO)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "mtow", "label": "MTOW (tonnes)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "seats", "label": "Seats", "fieldType": "NUMBER", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "serviceType", "label": "Service Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "J", "label": "Passenger Scheduled", "displayOrder": 0 }, { "value": "C", "label": "Passenger Charter", "displayOrder": 1 }, { "value": "F", "label": "Cargo", "displayOrder": 2 }, { "value": "G", "label": "General Aviation", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "origin", "label": "Prior / Onward Station", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "hasHistoric", "label": "Historic Precedence (80/20)", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "priorSeasonSlotRef", "label": "Prior Season Slot Reference", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{hasHistoric} == true" },
+      { "name": "slotsUsedPercent", "label": "Prior Season Usage %", "fieldType": "NUMBER", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "visibilityExpression": "@{hasHistoric} == true", "validation": "Min(0) AND Max(100)" },
+      { "name": "newEntrant", "label": "New Entrant Carrier?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Slot Coordinator (Carrier)", "approverType": "ROLE", "roleName": "SLOT_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Network Planning Manager", "approverType": "ROLE", "roleName": "NETWORK_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Airport Slot Coordinator (Host)", "approverType": "ROLE", "roleName": "AIRPORT_COORDINATOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,755 @@
+{
+  "_comment": "Personal Loan Application — credit assessment, DTI capture, collateral, tiered credit approval.",
+  "name": "Personal Loan Application",
+  "code": "PLA",
+  "description": "Apply for a personal/consumer loan. Routed through credit analysis and tiered approval based on amount.",
+  "icon": "request_quote",
+  "displayOrder": 23,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{loanNumber} - @{customerName} (@{loanAmount})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder @{reminderNumber}/@{reminderMax}: Loan @{referenceNumber} pending approval",
+  "reminderEmailBody": "<p>Dear @{approverName},</p><p>Loan application <strong>@{referenceNumber}</strong> from @{submitterName} is awaiting your decision (pending @{daysPending} day(s)).</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Application",
+          "displayOrder": 0,
+          "icon": "description"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Customer",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Loan Details",
+          "displayOrder": 2,
+          "icon": "payments"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Income & Affordability",
+          "displayOrder": 3,
+          "icon": "assessment"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Collateral / Guarantor",
+          "displayOrder": 4,
+          "icon": "security"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Documents",
+          "displayOrder": 5,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_7",
+          "title": "Review & Submit",
+          "displayOrder": 6,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Application Info",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Customer Identification",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Loan Request",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Repayment Schedule",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Income",
+          "displayOrder": 4,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Existing Obligations",
+          "displayOrder": 5,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Affordability Calculation",
+          "displayOrder": 6,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_8",
+          "title": "Collateral",
+          "displayOrder": 7,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_9",
+          "title": "Guarantor",
+          "displayOrder": 8,
+          "columns": 2,
+          "isCollapsible": true,
+          "isCollapsedByDefault": true,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_10",
+          "title": "Supporting Documents",
+          "displayOrder": 9,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_6"
+        }
+      ],
+      "fields": [
+        {
+          "name": "loanNumber",
+          "label": "Loan Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"LN-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "applicationDate",
+          "label": "Application Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "officer",
+          "label": "Loan Officer",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "customerNumber",
+          "label": "Customer Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "customerName",
+          "label": "Customer Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND MinLength(3)"
+        },
+        {
+          "name": "idNumber",
+          "label": "ID / Passport Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "mobile",
+          "label": "Mobile Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "displayOrder": 14,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "ValidWhen(IS_EMPTY(@{email}) OR IS_EMAIL(@{email}), \"Enter a valid email\")"
+        },
+        {
+          "name": "loanProduct",
+          "label": "Loan Product",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "PERSONAL_UNSECURED",
+              "label": "Personal Unsecured",
+              "displayOrder": 0
+            },
+            {
+              "value": "PERSONAL_SECURED",
+              "label": "Personal Secured",
+              "displayOrder": 1
+            },
+            {
+              "value": "SALARY_ADVANCE",
+              "label": "Salary Advance",
+              "displayOrder": 2
+            },
+            {
+              "value": "VEHICLE",
+              "label": "Vehicle Loan",
+              "displayOrder": 3
+            },
+            {
+              "value": "EDUCATION",
+              "label": "Education Loan",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "purpose",
+          "label": "Loan Purpose",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(20, \"Provide a meaningful purpose (at least 20 characters)\")"
+        },
+        {
+          "name": "loanAmount",
+          "label": "Loan Amount",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND Min(100, \"Minimum loan amount is 100\")"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "fieldType": "SELECT",
+          "defaultValue": "USD",
+          "inSummary": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "USD",
+              "label": "USD",
+              "displayOrder": 0
+            },
+            {
+              "value": "EUR",
+              "label": "EUR",
+              "displayOrder": 1
+            },
+            {
+              "value": "GBP",
+              "label": "GBP",
+              "displayOrder": 2
+            },
+            {
+              "value": "ZAR",
+              "label": "ZAR",
+              "displayOrder": 3
+            },
+            {
+              "value": "ZWL",
+              "label": "ZWL",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "termMonths",
+          "label": "Loan Term (months)",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND Min(1) AND Max(360)"
+        },
+        {
+          "name": "interestRate",
+          "label": "Interest Rate (% p.a.)",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND Min(0) AND Max(100)"
+        },
+        {
+          "name": "estimatedMonthlyPayment",
+          "label": "Est. Monthly Payment",
+          "fieldType": "CURRENCY",
+          "tooltip": "Approximate monthly instalment",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "disbursementDate",
+          "label": "Requested Disbursement Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND DateAfter(\"today\", \"Disbursement must be in the future\")"
+        },
+        {
+          "name": "monthlyGrossIncome",
+          "label": "Monthly Gross Income",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "monthlyNetIncome",
+          "label": "Monthly Net Income",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "otherIncome",
+          "label": "Other Monthly Income",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "existingDebts",
+          "label": "Existing Loans / Obligations",
+          "fieldType": "TABLE",
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "tableMinRows": 0,
+          "tableMaxRows": 20,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"creditor\",\"label\":\"Creditor\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"loanType\",\"label\":\"Type\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"outstanding\",\"label\":\"Outstanding\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"monthlyPayment\",\"label\":\"Monthly Payment\",\"type\":\"NUMBER\",\"width\":140,\"required\":true}]"
+        },
+        {
+          "name": "totalMonthlyDebts",
+          "label": "Total Monthly Debt Payments",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "defaultValue": "SUM_COLUMN(\"existingDebts\", \"monthlyPayment\")"
+        },
+        {
+          "name": "monthlyExpenses",
+          "label": "Other Monthly Expenses",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "disposableIncome",
+          "label": "Disposable Income",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "defaultValue": "SUBTRACT(@{monthlyNetIncome}, SUM(@{totalMonthlyDebts}, @{monthlyExpenses}))"
+        },
+        {
+          "name": "dtiRatio",
+          "label": "Debt-to-Income Ratio (%)",
+          "fieldType": "NUMBER",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 63,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "defaultValue": "PERCENTAGE(SUM(@{totalMonthlyDebts}, @{estimatedMonthlyPayment}), @{monthlyGrossIncome})"
+        },
+        {
+          "name": "isSecured",
+          "label": "Is this loan secured?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8"
+        },
+        {
+          "name": "collateralType",
+          "label": "Collateral Type",
+          "fieldType": "SELECT",
+          "displayOrder": 71,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "visibilityExpression": "@{isSecured} == true",
+          "options": [
+            {
+              "value": "PROPERTY",
+              "label": "Property",
+              "displayOrder": 0
+            },
+            {
+              "value": "VEHICLE",
+              "label": "Vehicle",
+              "displayOrder": 1
+            },
+            {
+              "value": "DEPOSIT",
+              "label": "Cash Deposit / FD",
+              "displayOrder": 2
+            },
+            {
+              "value": "SHARES",
+              "label": "Shares / Securities",
+              "displayOrder": 3
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "ValidWhen(@{isSecured} == false OR IS_NOT_EMPTY(@{collateralType}), \"Collateral type required\")"
+        },
+        {
+          "name": "collateralValue",
+          "label": "Collateral Market Value",
+          "fieldType": "CURRENCY",
+          "displayOrder": 72,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "visibilityExpression": "@{isSecured} == true",
+          "validation": "ValidWhen(@{isSecured} == false OR @{collateralValue} > 0, \"Provide collateral value\")"
+        },
+        {
+          "name": "collateralDescription",
+          "label": "Collateral Description",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 73,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "visibilityExpression": "@{isSecured} == true"
+        },
+        {
+          "name": "hasGuarantor",
+          "label": "Guarantor provided?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 80,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9"
+        },
+        {
+          "name": "guarantorName",
+          "label": "Guarantor Name",
+          "fieldType": "TEXT",
+          "displayOrder": 81,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "visibilityExpression": "@{hasGuarantor} == true",
+          "validation": "ValidWhen(@{hasGuarantor} == false OR IS_NOT_EMPTY(@{guarantorName}), \"Guarantor name required\")"
+        },
+        {
+          "name": "guarantorId",
+          "label": "Guarantor ID",
+          "fieldType": "TEXT",
+          "displayOrder": 82,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "visibilityExpression": "@{hasGuarantor} == true"
+        },
+        {
+          "name": "guarantorPhone",
+          "label": "Guarantor Phone",
+          "fieldType": "PHONE",
+          "displayOrder": 83,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "visibilityExpression": "@{hasGuarantor} == true"
+        },
+        {
+          "name": "payslips",
+          "label": "Latest 3 Payslips",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "multiple": true,
+          "displayOrder": 90,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_10",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 6,
+          "validation": "Required(\"Payslips required\")"
+        },
+        {
+          "name": "bankStatements",
+          "label": "Bank Statements (3 months)",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 91,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_10",
+          "allowedFileTypes": "pdf",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Bank statements required\")"
+        },
+        {
+          "name": "idCopy",
+          "label": "ID / Passport Copy",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 92,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_10",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required()"
+        },
+        {
+          "name": "collateralDocs",
+          "label": "Collateral Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 93,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_10",
+          "visibilityExpression": "@{isSecured} == true",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 10,
+          "validation": "ValidWhen(@{isSecured} == false OR IS_NOT_EMPTY(@{collateralDocs}), \"Upload collateral documents\")"
+        },
+        {
+          "name": "creditBureauReport",
+          "label": "Credit Bureau Report",
+          "fieldType": "FILE",
+          "displayOrder": 94,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_10",
+          "allowedFileTypes": "pdf",
+          "maxFileSize": 10485760
+        },
+        {
+          "name": "officerRecommendation",
+          "label": "Officer Recommendation",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 100,
+          "columnSpan": 2,
+          "screenId": "temp_screen_7",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "officerCertify",
+          "label": "I certify that the information has been verified",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 101,
+          "columnSpan": 2,
+          "screenId": "temp_screen_7",
+          "validation": "IsTrue(\"Certification required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Loan Officer (Maker)",
+      "approverType": "ROLE",
+      "roleName": "LOAN_OFFICER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Branch Credit Committee",
+      "approverType": "ROLE",
+      "roleName": "BRANCH_CREDIT",
+      "amountLimit": 25000,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Head of Credit",
+      "approverType": "ROLE",
+      "roleName": "HEAD_OF_CREDIT",
+      "amountLimit": 100000,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 4,
+      "name": "Credit Committee",
+      "approverType": "ROLE",
+      "roleName": "CREDIT_COMMITTEE",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "BANKING",
+  "workflowTypeCode": "FINANCE"
+}

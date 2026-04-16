@@ -1,0 +1,545 @@
+{
+  "_comment": "Suspicious Transaction Report (STR) — internal AML escalation to MLRO for regulator filing decision.",
+  "name": "Suspicious Transaction Report (STR)",
+  "code": "STR",
+  "description": "Raise an internal AML alert/STR to MLRO for review and possible filing with the FIU/regulator.",
+  "icon": "warning_amber",
+  "displayOrder": 28,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{strRef} - @{subjectName} (@{suspicionType})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 5,
+  "reminderStartAfterHours": 12,
+  "escalationEnabled": true,
+  "escalationAfterHours": 48,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "STR @{referenceNumber} - urgent review required",
+  "reminderEmailBody": "<p>An STR <strong>@{referenceNumber}</strong> requires your urgent review. Confidentiality applies.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Report Info",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Subject",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Suspicious Activity",
+          "displayOrder": 2,
+          "icon": "warning"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Transactions",
+          "displayOrder": 3,
+          "icon": "list_alt"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Analysis & Evidence",
+          "displayOrder": 4,
+          "icon": "search"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Review & Submit",
+          "displayOrder": 5,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Subject Identification",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Subject Profile",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Suspicion",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Suspicious Transactions",
+          "displayOrder": 4,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Narrative",
+          "displayOrder": 5,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Evidence Files",
+          "displayOrder": 6,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        }
+      ],
+      "fields": [
+        {
+          "name": "strRef",
+          "label": "STR Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"STR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "reportDate",
+          "label": "Report Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "reportedBy",
+          "label": "Reported By",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch / Unit",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "confidentialityNotice",
+          "label": "I acknowledge tipping-off prohibition: this report is strictly confidential",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 4,
+          "columnSpan": 2,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "IsTrue(\"You must acknowledge the confidentiality notice\")"
+        },
+        {
+          "name": "subjectType",
+          "label": "Subject Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "INDIVIDUAL",
+              "label": "Individual",
+              "displayOrder": 0
+            },
+            {
+              "value": "ENTITY",
+              "label": "Legal Entity",
+              "displayOrder": 1
+            },
+            {
+              "value": "NON_CUSTOMER",
+              "label": "Non-Customer",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "subjectName",
+          "label": "Subject Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND MinLength(2)"
+        },
+        {
+          "name": "customerNumber",
+          "label": "Customer Number (if any)",
+          "fieldType": "TEXT",
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "subjectIdNumber",
+          "label": "ID / Registration Number",
+          "fieldType": "TEXT",
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "subjectAddress",
+          "label": "Address",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 14,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "accountsInvolved",
+          "label": "Account(s) Involved",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 15,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "occupation",
+          "label": "Occupation / Business",
+          "fieldType": "TEXT",
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "currentRiskRating",
+          "label": "Current Risk Rating",
+          "fieldType": "SELECT",
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low",
+              "displayOrder": 0
+            },
+            {
+              "value": "MEDIUM",
+              "label": "Medium",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High",
+              "displayOrder": 2
+            }
+          ]
+        },
+        {
+          "name": "isPep",
+          "label": "PEP?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "relationshipStartDate",
+          "label": "Customer Since",
+          "fieldType": "DATE",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "suspicionType",
+          "label": "Type of Suspicion",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "STRUCTURING",
+              "label": "Structuring / Smurfing",
+              "displayOrder": 0
+            },
+            {
+              "value": "UNUSUAL_PATTERN",
+              "label": "Unusual Transaction Pattern",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH_RISK_JURISDICTION",
+              "label": "High-Risk Jurisdiction",
+              "displayOrder": 2
+            },
+            {
+              "value": "TERRORISM_FINANCING",
+              "label": "Suspected Terrorism Financing",
+              "displayOrder": 3
+            },
+            {
+              "value": "FRAUD",
+              "label": "Suspected Fraud",
+              "displayOrder": 4
+            },
+            {
+              "value": "TAX_EVASION",
+              "label": "Suspected Tax Evasion",
+              "displayOrder": 5
+            },
+            {
+              "value": "CASH_INTENSIVE",
+              "label": "Unusual Cash Activity",
+              "displayOrder": 6
+            },
+            {
+              "value": "SHELL_COMPANY",
+              "label": "Shell Company Indicators",
+              "displayOrder": 7
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 8
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "predicateOffence",
+          "label": "Suspected Predicate Offence",
+          "fieldType": "TEXT",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4"
+        },
+        {
+          "name": "activityStartDate",
+          "label": "Activity Started",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "activityEndDate",
+          "label": "Activity Ended (or ongoing)",
+          "fieldType": "DATE",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4"
+        },
+        {
+          "name": "transactions",
+          "label": "Suspicious Transactions",
+          "fieldType": "TABLE",
+          "isMandatory": true,
+          "displayOrder": 40,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "tableMinRows": 1,
+          "tableMaxRows": 100,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"date\",\"label\":\"Date\",\"type\":\"DATE\",\"width\":120,\"required\":true},{\"name\":\"reference\",\"label\":\"Reference\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"channel\",\"label\":\"Channel\",\"type\":\"TEXT\",\"width\":120},{\"name\":\"counterparty\",\"label\":\"Counterparty\",\"type\":\"TEXT\",\"width\":200},{\"name\":\"amount\",\"label\":\"Amount\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"currency\",\"label\":\"Cur\",\"type\":\"TEXT\",\"width\":70,\"defaultValue\":\"USD\"}]",
+          "validation": "MinRows(1, \"Add at least one suspicious transaction\")"
+        },
+        {
+          "name": "totalSuspiciousAmount",
+          "label": "Total Suspicious Amount",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 41,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "defaultValue": "SUM_COLUMN(\"transactions\", \"amount\")"
+        },
+        {
+          "name": "narrative",
+          "label": "Narrative — what makes this suspicious?",
+          "fieldType": "TEXTAREA",
+          "tooltip": "Describe who, what, when, where, why suspicious, and impact. Be factual and detailed.",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required() AND MinLength(100, \"Narrative must be at least 100 characters\") AND MaxLength(10000)"
+        },
+        {
+          "name": "actionTaken",
+          "label": "Action Already Taken",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 51,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6"
+        },
+        {
+          "name": "recommendedAction",
+          "label": "Recommended Action",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "options": [
+            {
+              "value": "MONITOR",
+              "label": "Continue Monitoring",
+              "displayOrder": 0
+            },
+            {
+              "value": "FREEZE",
+              "label": "Freeze Account",
+              "displayOrder": 1
+            },
+            {
+              "value": "EXIT",
+              "label": "Exit Relationship",
+              "displayOrder": 2
+            },
+            {
+              "value": "FILE_STR",
+              "label": "File STR with FIU",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "evidence",
+          "label": "Supporting Evidence",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 60,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx,xls,xlsx,csv",
+          "maxFileSize": 20971520,
+          "maxFiles": 30
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "AML Analyst",
+      "approverType": "ROLE",
+      "roleName": "AML_ANALYST",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "AML Manager",
+      "approverType": "ROLE",
+      "roleName": "AML_MANAGER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "MLRO (Money Laundering Reporting Officer)",
+      "approverType": "ROLE",
+      "roleName": "MLRO",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "BANKING",
+  "workflowTypeCode": "APPROVAL"
+}

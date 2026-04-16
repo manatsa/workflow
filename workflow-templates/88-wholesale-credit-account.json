@@ -1,0 +1,62 @@
+{
+  "_comment": "Wholesale Credit Account — set up or increase a trade-credit account for a wholesale customer.",
+  "name": "Wholesale Customer Credit Account",
+  "code": "WCA",
+  "description": "Set up or increase a trade-credit account for a wholesale customer (retailer, reseller).",
+  "icon": "account_balance",
+  "displayOrder": 88,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "WHOLESALE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{creditRef} - @{customerName} (@{creditLimit})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Customer", "displayOrder": 0, "icon": "business" },
+      { "id": "temp_screen_2", "title": "Credit Terms", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Risk Check", "displayOrder": 2, "icon": "gpp_good" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Business", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Contact", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Credit Terms", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Risk & References", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Documents", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "creditRef", "label": "Credit Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"WCA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "customerName", "label": "Customer Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "registrationNumber", "label": "Registration Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "taxNumber", "label": "Tax / VAT Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "yearsInBusiness", "label": "Years in Business", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND Min(0)" },
+      { "name": "contactName", "label": "Primary Contact", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Phone()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter valid email\")" },
+      { "name": "creditLimit", "label": "Requested Credit Limit", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(100)" },
+      { "name": "paymentTerms", "label": "Payment Terms", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "NET_30", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "COD", "label": "Cash on Delivery", "displayOrder": 0 }, { "value": "NET_7", "label": "Net 7", "displayOrder": 1 }, { "value": "NET_14", "label": "Net 14", "displayOrder": 2 }, { "value": "NET_30", "label": "Net 30", "displayOrder": 3 }, { "value": "NET_60", "label": "Net 60", "displayOrder": 4 }, { "value": "NET_90", "label": "Net 90", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "earlySettlementDiscount", "label": "Early Settlement Discount %", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0) AND Max(30)" },
+      { "name": "expectedMonthlyVolume", "label": "Expected Monthly Purchase Volume", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "creditBureauScore", "label": "Credit Bureau Score", "fieldType": "NUMBER", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Min(0) AND Max(1000)" },
+      { "name": "tradeReferencesCount", "label": "Trade References Verified", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "bankReferenceOk", "label": "Bank Reference Satisfactory", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{bankReferenceOk} == true, \"Bank reference required\")" },
+      { "name": "securityRequired", "label": "Security Required", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "NONE", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "NONE", "label": "None", "displayOrder": 0 }, { "value": "DEPOSIT", "label": "Cash Deposit", "displayOrder": 1 }, { "value": "GUARANTEE", "label": "Bank Guarantee", "displayOrder": 2 }, { "value": "DIRECTOR_GTEE", "label": "Director's Guarantee", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "registrationCert", "label": "Certificate of Incorporation", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "tradeReferences", "label": "Trade References", "fieldType": "FILE", "multiple": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "maxFiles": 10 },
+      { "name": "financialStatements", "label": "Latest Financial Statements", "fieldType": "FILE", "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 20971520 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Sales Account Manager", "approverType": "ROLE", "roleName": "SALES_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Credit Controller", "approverType": "ROLE", "roleName": "CREDIT_CONTROLLER", "amountLimit": 25000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Finance Director", "approverType": "ROLE", "roleName": "FINANCE_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

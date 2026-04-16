@@ -1,0 +1,138 @@
+{
+  "_comment": "Insurance Policy Issuance — bind accepted quote into a policy, collect first premium and issue certificate.",
+  "name": "Insurance Policy Issuance",
+  "code": "IPI",
+  "description": "Bind an accepted quotation into a policy, collect first premium and issue certificate.",
+  "icon": "policy",
+  "displayOrder": 40,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "INSURANCE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{policyRef} - @{insuredName} (@{productClass})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 12,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 12,
+  "escalationEnabled": true,
+  "escalationAfterHours": 48,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Policy Issuance @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Policy issuance <strong>@{referenceNumber}</strong> awaiting binding.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Insured", "displayOrder": 1, "icon": "person" },
+      { "id": "temp_screen_3", "title": "Policy Details", "displayOrder": 2, "icon": "policy" },
+      { "id": "temp_screen_4", "title": "Premium & Payment", "displayOrder": 3, "icon": "payments" },
+      { "id": "temp_screen_5", "title": "Documents", "displayOrder": 4, "icon": "attach_file" },
+      { "id": "temp_screen_6", "title": "Review & Submit", "displayOrder": 5, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Insured", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Cover", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_4", "title": "Premium", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_5", "title": "Payment", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_5" }
+    ],
+
+    "fields": [
+      { "name": "policyRef", "label": "Policy Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"IPI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "quoteRef", "label": "Linked Quote Reference", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "issueDate", "label": "Issue Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "officer", "label": "Issuing Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+
+      { "name": "insuredName", "label": "Insured Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND MinLength(2)" },
+      { "name": "insuredId", "label": "ID / Registration", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "insuredPhone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Phone()" },
+      { "name": "insuredEmail", "label": "Email", "fieldType": "EMAIL", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "ValidWhen(IS_EMPTY(@{insuredEmail}) OR IS_EMAIL(@{insuredEmail}), \"Enter valid email\")" },
+      { "name": "insuredAddress", "label": "Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND MinLength(10)" },
+
+      { "name": "productClass", "label": "Product Class", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "options": [
+          { "value": "MOTOR", "label": "Motor", "displayOrder": 0 },
+          { "value": "PROPERTY", "label": "Property / Fire", "displayOrder": 1 },
+          { "value": "LIABILITY", "label": "Liability", "displayOrder": 2 },
+          { "value": "MARINE", "label": "Marine & Cargo", "displayOrder": 3 },
+          { "value": "ENGINEERING", "label": "Engineering", "displayOrder": 4 },
+          { "value": "LIFE", "label": "Life", "displayOrder": 5 },
+          { "value": "HEALTH", "label": "Health / Medical", "displayOrder": 6 },
+          { "value": "TRAVEL", "label": "Travel", "displayOrder": 7 }
+        ],
+        "validation": "Required()" },
+      { "name": "sumInsured", "label": "Sum Insured", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Min(1)" },
+      { "name": "inceptionDate", "label": "Inception Date", "fieldType": "DATE", "isMandatory": true, "defaultValue": "TODAY()", "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "expiryDate", "label": "Expiry Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required()" },
+      { "name": "coverDescription", "label": "Cover Description / Schedule", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND MinLength(20)" },
+
+      { "name": "grossPremium", "label": "Gross Premium", "fieldType": "CURRENCY", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND Min(0)" },
+      { "name": "commissionPercent", "label": "Commission %", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "Min(0) AND Max(100)" },
+      { "name": "taxAmount", "label": "Tax / Stamp", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "validation": "Min(0)" },
+      { "name": "totalPayable", "label": "Total Payable", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM(@{grossPremium}, @{taxAmount})" },
+
+      { "name": "paymentMethod", "label": "Payment Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "BANK_TRANSFER", "label": "Bank Transfer", "displayOrder": 0 },
+          { "value": "MOBILE_MONEY", "label": "Mobile Money", "displayOrder": 1 },
+          { "value": "CASH", "label": "Cash", "displayOrder": 2 },
+          { "value": "DEBIT_ORDER", "label": "Debit Order", "displayOrder": 3 },
+          { "value": "CHEQUE", "label": "Cheque", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+      { "name": "paymentPlan", "label": "Payment Plan", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "ANNUAL", "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "ANNUAL", "label": "Annual (Single)", "displayOrder": 0 },
+          { "value": "QUARTERLY", "label": "Quarterly", "displayOrder": 1 },
+          { "value": "MONTHLY", "label": "Monthly", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+      { "name": "firstInstalmentPaid", "label": "First Instalment Received?", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "ValidWhen(@{firstInstalmentPaid} == true, \"First instalment must be received before issue\")" },
+      { "name": "receiptReference", "label": "Receipt Reference", "fieldType": "TEXT", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "visibilityExpression": "@{firstInstalmentPaid} == true",
+        "validation": "ValidWhen(@{firstInstalmentPaid} == false OR IS_NOT_EMPTY(@{receiptReference}), \"Receipt reference required\")" },
+
+      { "name": "acceptedQuote", "label": "Accepted Quotation", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required(\"Accepted quotation required\")" },
+      { "name": "proposalForm", "label": "Signed Proposal Form", "fieldType": "FILE", "isMandatory": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "paymentReceipt", "label": "Payment Receipt", "fieldType": "FILE", "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "visibilityExpression": "@{firstInstalmentPaid} == true",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Underwriter", "approverType": "ROLE", "roleName": "UNDERWRITER", "amountLimit": 100000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Senior Underwriter", "approverType": "ROLE", "roleName": "SENIOR_UNDERWRITER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

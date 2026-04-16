@@ -1,0 +1,66 @@
+{
+  "_comment": "Mine Safety Incident — report and investigate an incident on a mining operation.",
+  "name": "Mine Safety Incident",
+  "code": "MSI",
+  "description": "Report and investigate an incident (injury, fatality, near-miss, environmental) on a mining operation.",
+  "icon": "warning",
+  "displayOrder": 131,
+  "requiresApproval": true, "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "MINING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{incidentRef} - @{incidentType} (@{severity})",
+  "reminderEnabled": true, "reminderFrequencyHours": 2, "reminderMaxCount": 5, "reminderStartAfterHours": 1,
+  "escalationEnabled": true, "escalationAfterHours": 8, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Incident", "displayOrder": 0, "icon": "warning" },
+      { "id": "temp_screen_2", "title": "People & Equipment", "displayOrder": 1, "icon": "groups" },
+      { "id": "temp_screen_3", "title": "Investigation", "displayOrder": 2, "icon": "search" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "What & Where", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "People", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Equipment & Production", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Root Cause & CAPA", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Regulatory", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "incidentRef", "label": "Incident Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MSI-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "incidentDate", "label": "Incident Date/Time", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "reportedBy", "label": "Reported By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "severity", "label": "Severity", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "NEAR_MISS", "label": "Near Miss", "displayOrder": 0 }, { "value": "FAI", "label": "First Aid", "displayOrder": 1 }, { "value": "MTI", "label": "Medical Treatment", "displayOrder": 2 }, { "value": "LTI", "label": "Lost Time Injury", "displayOrder": 3 }, { "value": "DISABILITY", "label": "Permanent Disability", "displayOrder": 4 }, { "value": "FATALITY", "label": "Fatality", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "incidentType", "label": "Incident Type", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FALL_OF_GROUND", "label": "Fall of Ground", "displayOrder": 0 }, { "value": "VEHICLE", "label": "Vehicle / Trackless", "displayOrder": 1 }, { "value": "FALL_FROM_HEIGHT", "label": "Fall from Height", "displayOrder": 2 }, { "value": "BLASTING", "label": "Blasting", "displayOrder": 3 }, { "value": "ELECTRICAL", "label": "Electrical", "displayOrder": 4 }, { "value": "FIRE", "label": "Fire / Explosion", "displayOrder": 5 }, { "value": "ENVIRONMENT", "label": "Environmental Spill", "displayOrder": 6 }, { "value": "OTHER", "label": "Other", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "location", "label": "Location (Shaft / Pit / Level)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "description", "label": "Incident Description", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(50)" },
+      { "name": "immediateAction", "label": "Immediate Action Taken", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(20)" },
+      { "name": "numInjured", "label": "Persons Injured", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "0", "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "numFatalities", "label": "Fatalities", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "0", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "injuredList", "label": "Injured Persons", "fieldType": "TABLE", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 0, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"fullName\",\"label\":\"Name\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"employeeId\",\"label\":\"Employee #\",\"type\":\"TEXT\",\"width\":140,\"required\":true},{\"name\":\"role\",\"label\":\"Role\",\"type\":\"TEXT\",\"width\":160},{\"name\":\"injuryType\",\"label\":\"Injury\",\"type\":\"TEXT\",\"width\":200},{\"name\":\"status\",\"label\":\"Status\",\"type\":\"SELECT\",\"width\":140,\"options\":[\"ADMITTED\",\"TREATED\",\"DECEASED\",\"RECOVERED\"]}]" },
+      { "name": "equipmentInvolved", "label": "Equipment / Machinery Involved", "fieldType": "TEXTAREA", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "productionLost", "label": "Production Lost (tonnes)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "estimatedLoss", "label": "Estimated Financial Loss", "fieldType": "CURRENCY", "isLimited": true, "defaultValue": "0", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "stoppageDuration", "label": "Operations Halted (hours)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "rootCause", "label": "Root Cause", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(30)" },
+      { "name": "capa", "label": "Corrective & Preventive Actions", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(50)" },
+      { "name": "capaOwner", "label": "CAPA Owner", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "capaDueDate", "label": "CAPA Due Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "regulatorNotified", "label": "Regulator Notified (DMR/MSHA)", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "ValidWhen(@{severity} != 'FATALITY' AND @{severity} != 'DISABILITY' OR @{regulatorNotified} == true, \"Regulator must be notified for serious incidents\")" },
+      { "name": "regulatorReference", "label": "Regulator Reference", "fieldType": "TEXT", "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "visibilityExpression": "@{regulatorNotified} == true" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Shift Boss", "approverType": "ROLE", "roleName": "SHIFT_BOSS", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "SHEQ Manager", "approverType": "ROLE", "roleName": "SHEQ_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Mine Manager", "approverType": "ROLE", "roleName": "MINE_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "GM Operations", "approverType": "ROLE", "roleName": "GM_OPERATIONS", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

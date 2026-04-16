@@ -1,0 +1,430 @@
+{
+  "_comment": "IT Access Request — request access to systems, networks, or privileged accounts.",
+  "name": "IT Access Request",
+  "code": "ACC",
+  "description": "Request access to IT systems, applications, or network resources.",
+  "icon": "vpn_key",
+  "displayOrder": 60,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{accNumber} - @{targetUser} (@{accessType})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 12,
+  "reminderMaxCount": 4,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Request Details",
+          "displayOrder": 0,
+          "icon": "edit"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Access Requirements",
+          "displayOrder": 1,
+          "icon": "lock_open"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Review",
+          "displayOrder": 2,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Request",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Target User",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Systems & Access",
+          "displayOrder": 2,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Justification & Duration",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        }
+      ],
+      "fields": [
+        {
+          "name": "accNumber",
+          "label": "Request #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"ACC-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requesterName",
+          "label": "Requested By",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requesterDepartment",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "isForSelf",
+          "label": "Is this request for yourself?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "targetUser",
+          "label": "Target User Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "defaultValue": "CURRENT_USER()",
+          "validation": "Required()",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "targetEmail",
+          "label": "Target User Email",
+          "fieldType": "EMAIL",
+          "isMandatory": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "validation": "Required() AND Email()"
+        },
+        {
+          "name": "targetDepartment",
+          "label": "Target User Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "inSummary": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "targetJobTitle",
+          "label": "Target User Job Title",
+          "fieldType": "TEXT",
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "accessType",
+          "label": "Access Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "options": [
+            {
+              "value": "NEW",
+              "label": "New Access",
+              "displayOrder": 0
+            },
+            {
+              "value": "ADDITIONAL",
+              "label": "Additional Access (to existing accounts)",
+              "displayOrder": 1
+            },
+            {
+              "value": "MODIFY",
+              "label": "Modify Existing Access",
+              "displayOrder": 2
+            },
+            {
+              "value": "REVOKE",
+              "label": "Revoke Access",
+              "displayOrder": 3
+            },
+            {
+              "value": "TEMPORARY",
+              "label": "Temporary / Time-limited Access",
+              "displayOrder": 4
+            },
+            {
+              "value": "PRIVILEGED",
+              "label": "Privileged / Administrator Access",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "systemsRequested",
+          "label": "Systems / Applications",
+          "fieldType": "CHECKBOX_GROUP",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "optionsLayout": "vertical",
+          "options": [
+            {
+              "value": "EMAIL",
+              "label": "Email Account",
+              "displayOrder": 0
+            },
+            {
+              "value": "SHAREPOINT",
+              "label": "SharePoint / Intranet",
+              "displayOrder": 1
+            },
+            {
+              "value": "ERP",
+              "label": "ERP / Finance System",
+              "displayOrder": 2
+            },
+            {
+              "value": "CRM",
+              "label": "CRM System",
+              "displayOrder": 3
+            },
+            {
+              "value": "HRIS",
+              "label": "HRIS",
+              "displayOrder": 4
+            },
+            {
+              "value": "FILE_SHARE",
+              "label": "Shared File Drives",
+              "displayOrder": 5
+            },
+            {
+              "value": "VPN",
+              "label": "VPN / Remote Access",
+              "displayOrder": 6
+            },
+            {
+              "value": "DATABASE",
+              "label": "Database Access",
+              "displayOrder": 7
+            },
+            {
+              "value": "CODE_REPO",
+              "label": "Code Repositories",
+              "displayOrder": 8
+            },
+            {
+              "value": "CLOUD",
+              "label": "Cloud Services (AWS/Azure/GCP)",
+              "displayOrder": 9
+            },
+            {
+              "value": "ADMIN",
+              "label": "Admin Console / Control Panel",
+              "displayOrder": 10
+            },
+            {
+              "value": "OTHER",
+              "label": "Other (describe below)",
+              "displayOrder": 11
+            }
+          ],
+          "validation": "Required() AND MinItems(1, \"Select at least one system\")"
+        },
+        {
+          "name": "permissionLevel",
+          "label": "Permission Level",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "options": [
+            {
+              "value": "READ",
+              "label": "Read-only",
+              "displayOrder": 0
+            },
+            {
+              "value": "WRITE",
+              "label": "Read + Write",
+              "displayOrder": 1
+            },
+            {
+              "value": "ADMIN",
+              "label": "Administrator",
+              "displayOrder": 2
+            },
+            {
+              "value": "OWNER",
+              "label": "Owner / Root",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "systemDetails",
+          "label": "Specific Resources / Folders / Roles",
+          "fieldType": "TEXTAREA",
+          "placeholder": "List specific folders, groups, roles, or modules needed",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "justification",
+          "label": "Business Justification",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Why is this access needed for the user's role?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required() AND MinLength(30) AND MaxLength(1000)"
+        },
+        {
+          "name": "isTemporary",
+          "label": "Is this temporary access?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 31,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "accessStartDate",
+          "label": "Access Start Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "visibilityExpression": "@{isTemporary} == true"
+        },
+        {
+          "name": "accessEndDate",
+          "label": "Access End Date",
+          "fieldType": "DATE",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "visibilityExpression": "@{isTemporary} == true",
+          "validation": "ValidWhen(@{isTemporary} != true OR IS_AFTER(@{accessEndDate}, @{accessStartDate}), \"End date must be after start date\")"
+        },
+        {
+          "name": "acknowledgement",
+          "label": "I confirm this access is needed for legitimate business use and I understand the security implications",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "validation": "IsTrue(\"Confirmation required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Line Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "System Owner",
+      "approverType": "ROLE",
+      "roleName": "SYSTEM_OWNER",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "IT Security",
+      "approverType": "ROLE",
+      "roleName": "IT_SECURITY",
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "IT",
+  "workflowTypeCode": "IT"
+}

@@ -1,0 +1,857 @@
+{
+  "_comment": "Engineering Change Request (ECR/ECN) — formal request to change a design, process, or specification.",
+  "name": "Engineering Change Request",
+  "code": "ECR",
+  "description": "Request a change to a design, drawing, BOM, or manufacturing process. Reviewed by engineering, quality, production, and the Change Advisory Board.",
+  "icon": "engineering",
+  "displayOrder": 200,
+  "requiresApproval": true,
+  "commentsMandatory": true,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{ecrNumber} - @{partNumber} (@{changeCategory})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Change Request",
+          "displayOrder": 0,
+          "icon": "edit"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Affected Items",
+          "displayOrder": 1,
+          "icon": "inventory_2"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Impact Analysis",
+          "displayOrder": 2,
+          "icon": "analytics"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Implementation",
+          "displayOrder": 3,
+          "icon": "build"
+        },
+        {
+          "id": "temp_s5",
+          "title": "Review",
+          "displayOrder": 4,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "ECR Details",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Originator",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Change Description",
+          "displayOrder": 2,
+          "columns": 1,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Part / Product",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Affected Documents",
+          "displayOrder": 4,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g6",
+          "title": "Impact",
+          "displayOrder": 5,
+          "columns": 1,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g7",
+          "title": "Cost Impact",
+          "displayOrder": 6,
+          "columns": 2,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g8",
+          "title": "Plan",
+          "displayOrder": 7,
+          "columns": 2,
+          "screenId": "temp_s4"
+        }
+      ],
+      "fields": [
+        {
+          "name": "ecrNumber",
+          "label": "ECR Number",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"ECR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "priority",
+          "label": "Priority",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "NORMAL",
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "EMERGENCY",
+              "label": "Emergency - Safety / Line Down",
+              "displayOrder": 0
+            },
+            {
+              "value": "URGENT",
+              "label": "Urgent - Production Blocker",
+              "displayOrder": 1
+            },
+            {
+              "value": "NORMAL",
+              "label": "Normal",
+              "displayOrder": 2
+            },
+            {
+              "value": "LOW",
+              "label": "Low - When Convenient",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "changeCategory",
+          "label": "Change Category",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "DESIGN",
+              "label": "Design Change",
+              "displayOrder": 0
+            },
+            {
+              "value": "PROCESS",
+              "label": "Process Change",
+              "displayOrder": 1
+            },
+            {
+              "value": "MATERIAL",
+              "label": "Material / Supplier Change",
+              "displayOrder": 2
+            },
+            {
+              "value": "BOM",
+              "label": "BOM Change",
+              "displayOrder": 3
+            },
+            {
+              "value": "DRAWING",
+              "label": "Drawing / Specification",
+              "displayOrder": 4
+            },
+            {
+              "value": "TOLERANCE",
+              "label": "Tolerance / Dimension",
+              "displayOrder": 5
+            },
+            {
+              "value": "TOOLING",
+              "label": "Tooling / Fixture",
+              "displayOrder": 6
+            },
+            {
+              "value": "PACKAGING",
+              "label": "Packaging / Labeling",
+              "displayOrder": 7
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 8
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "originatorName",
+          "label": "Originator",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "originatorEmail",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "originatorDept",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "originatorPhone",
+          "label": "Contact Phone",
+          "fieldType": "PHONE",
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "ValidWhen(IS_EMPTY(@{originatorPhone}) OR IS_PHONE(@{originatorPhone}))"
+        },
+        {
+          "name": "changeTitle",
+          "label": "Change Title",
+          "fieldType": "TEXT",
+          "placeholder": "Short descriptive title",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(10) AND MaxLength(200)",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "currentState",
+          "label": "Current State (as-is)",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe the current design/process being changed",
+          "isMandatory": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(30) AND MaxLength(3000)"
+        },
+        {
+          "name": "proposedChange",
+          "label": "Proposed Change (to-be)",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe exactly what is being changed",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(30) AND MaxLength(5000)"
+        },
+        {
+          "name": "reasonForChange",
+          "label": "Reason / Driver for Change",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "options": [
+            {
+              "value": "QUALITY",
+              "label": "Quality Improvement",
+              "displayOrder": 0
+            },
+            {
+              "value": "COST",
+              "label": "Cost Reduction",
+              "displayOrder": 1
+            },
+            {
+              "value": "SAFETY",
+              "label": "Safety Requirement",
+              "displayOrder": 2
+            },
+            {
+              "value": "REGULATORY",
+              "label": "Regulatory / Compliance",
+              "displayOrder": 3
+            },
+            {
+              "value": "CUSTOMER",
+              "label": "Customer Request",
+              "displayOrder": 4
+            },
+            {
+              "value": "SUPPLIER",
+              "label": "Supplier Change",
+              "displayOrder": 5
+            },
+            {
+              "value": "CAPACITY",
+              "label": "Capacity / Throughput",
+              "displayOrder": 6
+            },
+            {
+              "value": "OBSOLESCENCE",
+              "label": "Material Obsolescence",
+              "displayOrder": 7
+            },
+            {
+              "value": "ERROR_CORRECTION",
+              "label": "Error Correction",
+              "displayOrder": 8
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 9
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "justification",
+          "label": "Business Justification",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Why is this change needed?",
+          "isMandatory": true,
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(50) AND MaxLength(3000)"
+        },
+        {
+          "name": "partNumber",
+          "label": "Part / Product Number",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. P-12345",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "partDescription",
+          "label": "Part Description",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()"
+        },
+        {
+          "name": "currentRevision",
+          "label": "Current Revision",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. Rev B",
+          "isMandatory": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "newRevision",
+          "label": "New Revision (proposed)",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. Rev C",
+          "isMandatory": true,
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "productFamily",
+          "label": "Product Family / Line",
+          "fieldType": "TEXT",
+          "displayOrder": 34,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "customerAffected",
+          "label": "Customer Affected?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 35,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "customerNames",
+          "label": "Customer(s) Affected",
+          "fieldType": "TEXTAREA",
+          "placeholder": "List customers impacted by this change",
+          "displayOrder": 36,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "visibilityExpression": "@{customerAffected} == true",
+          "validation": "ValidWhen(@{customerAffected} != true OR IS_NOT_EMPTY(@{customerNames}), \"List affected customers\")"
+        },
+        {
+          "name": "affectedDocuments",
+          "label": "Affected Documents / Drawings",
+          "fieldType": "TABLE",
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "tableMinRows": 1,
+          "tableMaxRows": 50,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"docNumber\",\"label\":\"Document #\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"docType\",\"label\":\"Type\",\"type\":\"SELECT\",\"width\":150,\"required\":true,\"options\":[\"Drawing\",\"Specification\",\"Procedure\",\"Work Instruction\",\"BOM\",\"Test Method\",\"Other\"]},{\"name\":\"currentRev\",\"label\":\"Current Rev\",\"type\":\"TEXT\",\"width\":100},{\"name\":\"newRev\",\"label\":\"New Rev\",\"type\":\"TEXT\",\"width\":100},{\"name\":\"description\",\"label\":\"Description of Change\",\"type\":\"TEXT\",\"width\":300}]",
+          "validation": "MinRows(1, \"List at least one affected document\")"
+        },
+        {
+          "name": "currentDrawing",
+          "label": "Current Drawing(s) / Files",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "allowedFileTypes": "pdf,dwg,step,stp,igs,dxf,jpg,png",
+          "maxFileSize": 52428800,
+          "maxFiles": 20
+        },
+        {
+          "name": "proposedDrawing",
+          "label": "Proposed Drawing(s) / Files",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g5",
+          "allowedFileTypes": "pdf,dwg,step,stp,igs,dxf,jpg,png",
+          "maxFileSize": 52428800,
+          "maxFiles": 20
+        },
+        {
+          "name": "fitFormFunction",
+          "label": "Fit / Form / Function Impact",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "options": [
+            {
+              "value": "NONE",
+              "label": "No impact",
+              "displayOrder": 0
+            },
+            {
+              "value": "FIT",
+              "label": "Fit impact (interchangeability)",
+              "displayOrder": 1
+            },
+            {
+              "value": "FORM",
+              "label": "Form impact (appearance/size)",
+              "displayOrder": 2
+            },
+            {
+              "value": "FUNCTION",
+              "label": "Function impact (performance)",
+              "displayOrder": 3
+            },
+            {
+              "value": "MULTIPLE",
+              "label": "Multiple impacts",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "affectsProduction",
+          "label": "Affects Current Production?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "inSummary": true,
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "requiresRework",
+          "label": "Requires Rework of Existing Stock?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "requiresScrap",
+          "label": "Requires Scrap of Existing Stock?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 53,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6"
+        },
+        {
+          "name": "stockOnHand",
+          "label": "Stock on Hand (units)",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 54,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "wipQuantity",
+          "label": "WIP Quantity (units)",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 55,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "impactDetails",
+          "label": "Impact Details",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe the impact on production, inventory, customers, etc.",
+          "displayOrder": 56,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "validation": "MinLength(20)"
+        },
+        {
+          "name": "toolingCost",
+          "label": "Tooling Cost",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "materialCost",
+          "label": "Material Cost Impact",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "laborCost",
+          "label": "Labor Cost",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "scrapReworkCost",
+          "label": "Scrap / Rework Cost",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 63,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "totalCostImpact",
+          "label": "Total Cost Impact",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 64,
+          "columnSpan": 2,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "defaultValue": "SUM(@{toolingCost}, @{materialCost}, @{laborCost}, @{scrapReworkCost})"
+        },
+        {
+          "name": "annualSavings",
+          "label": "Annual Savings (if cost reduction)",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 65,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{reasonForChange} == 'COST'",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "implementationDate",
+          "label": "Target Implementation Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "validation": "Required() AND DATE_AFTER(@{implementationDate}, \"today\")"
+        },
+        {
+          "name": "effectivityType",
+          "label": "Effectivity",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 71,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "options": [
+            {
+              "value": "IMMEDIATE",
+              "label": "Immediate (use existing stock)",
+              "displayOrder": 0
+            },
+            {
+              "value": "NEW_LOT",
+              "label": "Next Lot / Batch",
+              "displayOrder": 1
+            },
+            {
+              "value": "PHASE_IN",
+              "label": "Phased Implementation",
+              "displayOrder": 2
+            },
+            {
+              "value": "SERIAL_CUTOFF",
+              "label": "At Serial # Cut-off",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "requiresCustomerApproval",
+          "label": "Requires Customer Approval (PPAP)?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 72,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8"
+        },
+        {
+          "name": "requiresValidation",
+          "label": "Requires Validation / Testing?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "inSummary": true,
+          "displayOrder": 73,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8"
+        },
+        {
+          "name": "validationPlan",
+          "label": "Validation / Test Plan",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe tests, sample sizes, acceptance criteria",
+          "displayOrder": 74,
+          "columnSpan": 2,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "visibilityExpression": "@{requiresValidation} == true",
+          "validation": "ValidWhen(@{requiresValidation} != true OR HAS_MIN_LENGTH(@{validationPlan}, 30), \"Provide validation plan (min 30 chars)\")"
+        },
+        {
+          "name": "rollbackPlan",
+          "label": "Rollback Plan",
+          "fieldType": "TEXTAREA",
+          "placeholder": "How will this change be reversed if issues arise?",
+          "displayOrder": 75,
+          "columnSpan": 2,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "validation": "MinLength(20)"
+        },
+        {
+          "name": "supportingDocs",
+          "label": "Supporting Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 76,
+          "columnSpan": 2,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "tooltip": "Test data, supplier data, calculations, DFMEA updates",
+          "allowedFileTypes": "pdf,doc,docx,xls,xlsx,jpg,png",
+          "maxFileSize": 20971520,
+          "maxFiles": 20
+        },
+        {
+          "name": "acknowledgement",
+          "label": "I confirm the information above is accurate and complete",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 1,
+          "screenId": "temp_s5",
+          "validation": "IsTrue(\"Acknowledgement required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Engineering Lead",
+      "approverType": "ROLE",
+      "roleName": "ENGINEERING",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Quality Manager",
+      "approverType": "ROLE",
+      "roleName": "QUALITY",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Production Manager",
+      "approverType": "ROLE",
+      "roleName": "PRODUCTION_MANAGER",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 4,
+      "name": "Change Advisory Board (CAB)",
+      "approverType": "ROLE",
+      "roleName": "CAB",
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "MANUFACTURING",
+  "workflowTypeCode": "APPROVAL"
+}

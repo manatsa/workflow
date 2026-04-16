@@ -1,0 +1,58 @@
+{
+  "_comment": "Sports Sponsorship Deal — sign a sponsor / commercial partnership.",
+  "name": "Sponsorship Deal",
+  "code": "SSD",
+  "description": "Sign a sponsor / commercial partnership including rights, deliverables and value.",
+  "icon": "stadium",
+  "displayOrder": 176,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "SPORTS",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{dealRef} - @{sponsorName} (@{totalValue})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Sponsor", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Rights & Value", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Sponsor", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Deal Tier", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Rights Granted", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Commercials", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "dealRef", "label": "Deal Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SSD-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "commercialMgr", "label": "Commercial Manager", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "sponsorName", "label": "Sponsor / Brand", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "sponsorIndustry", "label": "Sponsor Industry", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactName", "label": "Sponsor Contact", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contactEmail", "label": "Sponsor Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND IS_EMAIL()" },
+      { "name": "tier", "label": "Sponsorship Tier", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "TITLE", "label": "Title / Naming", "displayOrder": 0 }, { "value": "PRINCIPAL", "label": "Principal", "displayOrder": 1 }, { "value": "OFFICIAL", "label": "Official Partner", "displayOrder": 2 }, { "value": "ASSOCIATE", "label": "Associate / Supplier", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "category", "label": "Category Exclusivity?", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "rightsGranted", "label": "Rights Granted (logo, kit, naming)", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(20)" },
+      { "name": "deliverables", "label": "Sponsor Deliverables (hospitality, content)", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(20)" },
+      { "name": "termYears", "label": "Term (years)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "3", "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1) AND Max(15)" },
+      { "name": "annualValue", "label": "Annual Cash Value", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "vikValue", "label": "Annual VIK / In-Kind Value", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "totalValue", "label": "Total Deal Value", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "MULTIPLY(SUM(@{annualValue}, @{vikValue}), @{termYears})" },
+      { "name": "ethicsCleared", "label": "Brand / Ethics Cleared", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{ethicsCleared} == true, \"Ethics review required\")" },
+      { "name": "leagueApproval", "label": "League / Federation Approval (if needed)", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 45, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Commercial Manager", "approverType": "ROLE", "roleName": "COMM_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Commercial Director", "approverType": "ROLE", "roleName": "COMM_DIRECTOR", "amountLimit": 1000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "CFO", "approverType": "ROLE", "roleName": "CFO", "amountLimit": 5000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Chairman / Board", "approverType": "ROLE", "roleName": "CHAIRMAN", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,439 @@
+{
+  "_comment": "Visitor Access Request — pre-register visitors coming to the office.",
+  "name": "Visitor Access Request",
+  "code": "VIS",
+  "description": "Pre-register a visitor so they can be greeted and granted access on arrival.",
+  "icon": "badge",
+  "displayOrder": 140,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{visitorName} (@{visitDate}) - Host: @{hostName}",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Visit Details",
+          "displayOrder": 0,
+          "icon": "event"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Visitor Info",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Submit",
+          "displayOrder": 2,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Visit",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Host",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Visitor",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Security & Compliance",
+          "displayOrder": 3,
+          "columns": 1,
+          "screenId": "temp_s2"
+        }
+      ],
+      "fields": [
+        {
+          "name": "visNumber",
+          "label": "Visit #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"VIS-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "visitDate",
+          "label": "Visit Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required() AND ValidWhen(DATE_AFTER(@{visitDate}, \"today\") OR IS_TODAY(@{visitDate}), \"Visit date must be today or in the future\")"
+        },
+        {
+          "name": "arrivalTime",
+          "label": "Expected Arrival",
+          "fieldType": "TIME",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required()"
+        },
+        {
+          "name": "departureTime",
+          "label": "Expected Departure",
+          "fieldType": "TIME",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required()"
+        },
+        {
+          "name": "visitPurpose",
+          "label": "Purpose of Visit",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 4,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "options": [
+            {
+              "value": "MEETING",
+              "label": "Meeting",
+              "displayOrder": 0
+            },
+            {
+              "value": "INTERVIEW",
+              "label": "Interview",
+              "displayOrder": 1
+            },
+            {
+              "value": "DELIVERY",
+              "label": "Delivery / Pickup",
+              "displayOrder": 2
+            },
+            {
+              "value": "MAINTENANCE",
+              "label": "Maintenance / Repairs",
+              "displayOrder": 3
+            },
+            {
+              "value": "AUDIT",
+              "label": "Audit / Inspection",
+              "displayOrder": 4
+            },
+            {
+              "value": "TRAINING",
+              "label": "Training",
+              "displayOrder": 5
+            },
+            {
+              "value": "TOUR",
+              "label": "Office Tour",
+              "displayOrder": 6
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 7
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "visitDescription",
+          "label": "Visit Description",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Brief description of what will be discussed or done",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 5,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required() AND MinLength(15)"
+        },
+        {
+          "name": "meetingLocation",
+          "label": "Meeting Location",
+          "fieldType": "TEXT",
+          "placeholder": "Room / floor / area",
+          "isMandatory": true,
+          "displayOrder": 6,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required()"
+        },
+        {
+          "name": "hostName",
+          "label": "Host Name",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "hostEmail",
+          "label": "Host Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "hostDepartment",
+          "label": "Host Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "hostPhone",
+          "label": "Host Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "visitorName",
+          "label": "Visitor Full Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND MinLength(3)",
+          "customValidationRule": "TRIM() AND CAPITALIZE()"
+        },
+        {
+          "name": "visitorCompany",
+          "label": "Visitor Company",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "visitorEmail",
+          "label": "Visitor Email",
+          "fieldType": "EMAIL",
+          "isMandatory": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Email()"
+        },
+        {
+          "name": "visitorPhone",
+          "label": "Visitor Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "numberOfVisitors",
+          "label": "Number of Visitors",
+          "fieldType": "NUMBER",
+          "defaultValue": "1",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND Range(1, 50)"
+        },
+        {
+          "name": "additionalVisitors",
+          "label": "Additional Visitor Names",
+          "fieldType": "TEXTAREA",
+          "placeholder": "List names of other visitors (one per line)",
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "visibilityExpression": "@{numberOfVisitors} > 1"
+        },
+        {
+          "name": "vehicleRegistration",
+          "label": "Vehicle Registration (if driving)",
+          "fieldType": "TEXT",
+          "placeholder": "License plate number",
+          "displayOrder": 26,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "parkingRequired",
+          "label": "Parking Required?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 27,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "needsBadge",
+          "label": "Visitor Badge Required?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "needsEscort",
+          "label": "Escort Required at All Times?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "ndaRequired",
+          "label": "NDA Required?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        },
+        {
+          "name": "accessAreas",
+          "label": "Areas to be Accessed",
+          "fieldType": "CHECKBOX_GROUP",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "optionsLayout": "vertical",
+          "options": [
+            {
+              "value": "RECEPTION",
+              "label": "Reception / Lobby",
+              "displayOrder": 0
+            },
+            {
+              "value": "MEETING_ROOMS",
+              "label": "Meeting Rooms",
+              "displayOrder": 1
+            },
+            {
+              "value": "OFFICE_FLOORS",
+              "label": "Office Floors",
+              "displayOrder": 2
+            },
+            {
+              "value": "SERVER_ROOM",
+              "label": "Server Room",
+              "displayOrder": 3
+            },
+            {
+              "value": "WAREHOUSE",
+              "label": "Warehouse / Storage",
+              "displayOrder": 4
+            },
+            {
+              "value": "PRODUCTION",
+              "label": "Production Area",
+              "displayOrder": 5
+            },
+            {
+              "value": "KITCHEN",
+              "label": "Kitchen / Break Room",
+              "displayOrder": 6
+            }
+          ]
+        },
+        {
+          "name": "specialRequirements",
+          "label": "Special Requirements",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Accessibility needs, dietary requirements, etc.",
+          "displayOrder": 34,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Reception / Security",
+      "approverType": "ROLE",
+      "roleName": "SECURITY",
+      "canEscalate": false,
+      "requireComment": false,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "ADMIN",
+  "workflowTypeCode": "APPROVAL"
+}

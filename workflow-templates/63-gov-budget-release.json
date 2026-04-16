@@ -1,0 +1,98 @@
+{
+  "_comment": "Budget Release Authorisation — release of appropriated public funds to a vote / programme.",
+  "name": "Budget Release Authorisation",
+  "code": "GBR",
+  "description": "Authorise release of appropriated public funds from Treasury to a Ministry / vote / programme.",
+  "icon": "account_balance",
+  "displayOrder": 63,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "GOVERNMENT",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{releaseRef} - @{voteName} (@{amountRequested})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 96,
+  "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{
+    "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Vote / Programme", "displayOrder": 1, "icon": "account_tree" },
+      { "id": "temp_screen_3", "title": "Request", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review & Submit", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Vote & Programme", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Appropriation Balance", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Release Details", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Documents", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "releaseRef", "label": "Release Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"GBR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requester", "label": "Requesting Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "fiscalYear", "label": "Fiscal Year", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required()" },
+      { "name": "voteName", "label": "Vote / Ministry", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "programmeName", "label": "Programme / Sub-Vote", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "budgetLine", "label": "Budget Line / Item", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "expenditureCategory", "label": "Category", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "RECURRENT", "label": "Recurrent", "displayOrder": 0 },
+          { "value": "CAPITAL", "label": "Capital / Development", "displayOrder": 1 },
+          { "value": "SALARIES", "label": "Salaries & Wages", "displayOrder": 2 },
+          { "value": "TRANSFERS", "label": "Transfers / Subsidies", "displayOrder": 3 },
+          { "value": "DEBT_SERVICE", "label": "Debt Service", "displayOrder": 4 }
+        ], "validation": "Required()" },
+      { "name": "annualAppropriation", "label": "Annual Appropriation", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Min(0)" },
+      { "name": "totalReleasedYTD", "label": "Released YTD", "fieldType": "CURRENCY", "isMandatory": true, "defaultValue": "0", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Min(0)" },
+      { "name": "totalSpentYTD", "label": "Expenditure YTD", "fieldType": "CURRENCY", "isMandatory": true, "defaultValue": "0", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Min(0)" },
+      { "name": "availableBalance", "label": "Available Balance", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "defaultValue": "SUBTRACT(@{annualAppropriation}, @{totalReleasedYTD})" },
+      { "name": "amountRequested", "label": "Amount Requested", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND Min(0.01)" },
+      { "name": "periodCovered", "label": "Period Covered", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "QUARTERLY", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [
+          { "value": "MONTHLY", "label": "Monthly", "displayOrder": 0 },
+          { "value": "QUARTERLY", "label": "Quarterly", "displayOrder": 1 },
+          { "value": "SEMI_ANNUAL", "label": "Semi-Annual", "displayOrder": 2 },
+          { "value": "ANNUAL", "label": "Annual", "displayOrder": 3 },
+          { "value": "SUPPLEMENTARY", "label": "Supplementary", "displayOrder": 4 }
+        ], "validation": "Required()" },
+      { "name": "withinBudget", "label": "Within Budget Ceiling", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "ValidWhen(@{withinBudget} == true, \"Request exceeds budget ceiling - escalate for supplementary approval\")" },
+      { "name": "purpose", "label": "Purpose / Activities to be Funded", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "validation": "Required() AND MinLength(30)" },
+      { "name": "cashflowPlan", "label": "Cash Flow / Disbursement Schedule", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "workPlan", "label": "Annual / Quarterly Work Plan", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 20971520 },
+      { "name": "priorReleaseReport", "label": "Prior-Period Expenditure Report", "fieldType": "FILE", "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Vote Accountant", "approverType": "ROLE", "roleName": "VOTE_ACCOUNTANT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Head of Finance (Ministry)", "approverType": "ROLE", "roleName": "MINISTRY_FINANCE", "amountLimit": 5000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Budget Director (Treasury)", "approverType": "ROLE", "roleName": "BUDGET_DIRECTOR", "amountLimit": 100000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Accountant-General", "approverType": "ROLE", "roleName": "ACCOUNTANT_GENERAL", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

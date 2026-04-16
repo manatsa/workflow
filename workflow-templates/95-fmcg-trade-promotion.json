@@ -1,0 +1,55 @@
+{
+  "_comment": "Trade Promotion — fund a retailer-facing promotion (on-invoice, off-invoice, listing fee, display).",
+  "name": "Trade Promotion Approval",
+  "code": "FTP",
+  "description": "Fund a retailer-facing trade promotion (on/off-invoice, listing fee, display, gondola end).",
+  "icon": "campaign",
+  "displayOrder": 95,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FMCG",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{tpRef} - @{customerName} (@{promoCost})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Promotion", "displayOrder": 0, "icon": "campaign" },
+      { "id": "temp_screen_2", "title": "Economics", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Customer & Mechanic", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Products & Period", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Uplift & ROI", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "tpRef", "label": "Trade Promo Ref", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FTP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "kam", "label": "Key Account Manager", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "region", "label": "Region / Country", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "customerName", "label": "Retail Customer", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "mechanic", "label": "Mechanic", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ON_INVOICE_DISC", "label": "On-Invoice Discount", "displayOrder": 0 }, { "value": "OFF_INVOICE_REBATE", "label": "Off-Invoice Rebate", "displayOrder": 1 }, { "value": "LISTING_FEE", "label": "Listing Fee", "displayOrder": 2 }, { "value": "DISPLAY", "label": "Display / Gondola", "displayOrder": 3 }, { "value": "PRICE_SUPPORT", "label": "Price Support (Feature)", "displayOrder": 4 }, { "value": "BOGO", "label": "Buy-One-Get-One", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "startDate", "label": "Start Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND DateAfter(\"today\", \"Start must be future\")" },
+      { "name": "endDate", "label": "End Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "skusInvolved", "label": "SKUs Involved", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(5)" },
+      { "name": "baselineVolume", "label": "Baseline Volume (units)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "expectedVolume", "label": "Expected Promoted Volume", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "incrementalVolume", "label": "Incremental Volume", "fieldType": "NUMBER", "isReadonly": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUBTRACT(@{expectedVolume}, @{baselineVolume})" },
+      { "name": "promoCost", "label": "Total Promo Cost", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "expectedIncrementalGP", "label": "Expected Incremental Gross Profit", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "roiPercent", "label": "ROI %", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "PERCENTAGE(SUBTRACT(@{expectedIncrementalGP}, @{promoCost}), @{promoCost})" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Key Account Manager", "approverType": "ROLE", "roleName": "KAM", "amountLimit": 10000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Sales Director", "approverType": "ROLE", "roleName": "SALES_DIRECTOR", "amountLimit": 100000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Commercial Director", "approverType": "ROLE", "roleName": "COMMERCIAL_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

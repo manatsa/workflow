@@ -1,0 +1,55 @@
+{
+  "_comment": "Farm Input Requisition — request seed / fertiliser / chemicals / fuel for farm operations.",
+  "name": "Farm Input Requisition",
+  "code": "AFR",
+  "description": "Request seed, fertiliser, chemicals, feed or fuel for farm operations.",
+  "icon": "agriculture",
+  "displayOrder": 127,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "AGRICULTURE",
+  "workflowTypeCode": "REQUISITION",
+  "titleTemplate": "@{reqRef} - @{farmBlock} (@{totalValue})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Request", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Items", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Farm Block & Crop", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Purpose", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Input Items", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Totals", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "reqRef", "label": "Requisition Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"AFR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requester", "label": "Requester", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requiredBy", "label": "Required By Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "farmBlock", "label": "Farm Block / Field", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "hectares", "label": "Hectares", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0.01)" },
+      { "name": "cropType", "label": "Crop / Livestock", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "MAIZE", "label": "Maize", "displayOrder": 0 }, { "value": "WHEAT", "label": "Wheat", "displayOrder": 1 }, { "value": "SOYA", "label": "Soya", "displayOrder": 2 }, { "value": "TOBACCO", "label": "Tobacco", "displayOrder": 3 }, { "value": "COTTON", "label": "Cotton", "displayOrder": 4 }, { "value": "HORTICULTURE", "label": "Horticulture", "displayOrder": 5 }, { "value": "CATTLE", "label": "Cattle", "displayOrder": 6 }, { "value": "POULTRY", "label": "Poultry", "displayOrder": 7 }, { "value": "OTHER", "label": "Other", "displayOrder": 8 } ], "validation": "Required()" },
+      { "name": "season", "label": "Season", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "purpose", "label": "Purpose / Activity", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(20)" },
+      { "name": "items", "label": "Inputs Required", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"inputType\",\"label\":\"Input Type\",\"type\":\"SELECT\",\"width\":160,\"required\":true,\"options\":[\"Seed\",\"Fertiliser\",\"Chemical\",\"Feed\",\"Fuel\",\"Veterinary\",\"Equipment\",\"Other\"]},{\"name\":\"itemName\",\"label\":\"Item\",\"type\":\"TEXT\",\"width\":220,\"required\":true},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"uom\",\"label\":\"UOM\",\"type\":\"SELECT\",\"width\":90,\"required\":true,\"options\":[\"kg\",\"L\",\"bag\",\"pack\",\"pcs\",\"tonne\"]},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"lineTotal\",\"label\":\"Line Total\",\"type\":\"NUMBER\",\"width\":130,\"computed\":\"MULTIPLY(@{quantity}, @{unitPrice})\"}]", "validation": "MinRows(1, \"At least one item required\")" },
+      { "name": "totalValue", "label": "Total Value", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM_COLUMN(\"items\", \"lineTotal\")" },
+      { "name": "budgetCode", "label": "Budget / Cost Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "withinBudget", "label": "Within Budget", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "inSummary": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Farm Manager", "approverType": "ROLE", "roleName": "FARM_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Operations Director", "approverType": "ROLE", "roleName": "OPS_DIRECTOR", "amountLimit": 50000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Director", "approverType": "ROLE", "roleName": "MD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

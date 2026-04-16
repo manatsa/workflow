@@ -1,0 +1,49 @@
+{
+  "_comment": "Consulting Weekly Timesheet — submit and approve weekly billable / non-billable time.",
+  "name": "Consulting Weekly Timesheet",
+  "code": "CTS",
+  "description": "Submit and approve weekly consulting timesheet (billable / non-billable hours).",
+  "icon": "schedule",
+  "displayOrder": 156,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "CONSULTING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{timesheetRef} - @{consultantName} (@{weekEnding})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Timesheet", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Time Entries", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Consultant", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Entries", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Totals & Utilisation", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "timesheetRef", "label": "Timesheet Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CTS-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "weekEnding", "label": "Week Ending", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "consultantName", "label": "Consultant", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "grade", "label": "Grade / Level", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "entries", "label": "Time Entries", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"entryDate\",\"label\":\"Date\",\"type\":\"DATE\",\"width\":120,\"required\":true},{\"name\":\"projectCode\",\"label\":\"Project Code\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"activity\",\"label\":\"Activity\",\"type\":\"TEXT\",\"width\":300,\"required\":true},{\"name\":\"category\",\"label\":\"Category\",\"type\":\"SELECT\",\"width\":140,\"required\":true,\"options\":[\"BILLABLE\",\"PRE_SALES\",\"TRAINING\",\"ADMIN\",\"LEAVE\"]},{\"name\":\"hours\",\"label\":\"Hours\",\"type\":\"NUMBER\",\"width\":90,\"required\":true}]", "validation": "MinRows(1, \"At least one entry required\")" },
+      { "name": "totalHours", "label": "Total Hours", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"entries\", \"hours\")" },
+      { "name": "billableHours", "label": "Billable Hours", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "utilisationPercent", "label": "Utilisation %", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "PERCENTAGE(@{billableHours}, @{totalHours})" },
+      { "name": "notes", "label": "Notes", "fieldType": "TEXTAREA", "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Project Manager", "approverType": "ROLE", "roleName": "PROJECT_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Engagement Partner", "approverType": "ROLE", "roleName": "ENGAGEMENT_PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": false, "emailNotification": true }
+  ]
+}

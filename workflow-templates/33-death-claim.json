@@ -1,0 +1,827 @@
+{
+  "_comment": "Death Claim — process a funeral claim on death of main member or dependant.",
+  "name": "Funeral Death Claim",
+  "code": "FDC",
+  "description": "Submit and process a death claim on a funeral policy for main member or covered dependant.",
+  "icon": "church",
+  "displayOrder": 33,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{claimRef} - @{deceasedName} (@{claimAmount})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 4,
+  "reminderMaxCount": 8,
+  "reminderStartAfterHours": 1,
+  "escalationEnabled": true,
+  "escalationAfterHours": 24,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "URGENT: Death Claim @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Death claim <strong>@{referenceNumber}</strong> requires your urgent review. Family is awaiting payout for funeral.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Claim Info",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Policy",
+          "displayOrder": 1,
+          "icon": "policy"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Deceased",
+          "displayOrder": 2,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Claimant",
+          "displayOrder": 3,
+          "icon": "group"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Claim Assessment",
+          "displayOrder": 4,
+          "icon": "assessment"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Documents",
+          "displayOrder": 5,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_7",
+          "title": "Review & Submit",
+          "displayOrder": 6,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Policy Details",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Deceased Identity",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Cause & Place of Death",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Claimant",
+          "displayOrder": 4,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Payment Destination",
+          "displayOrder": 5,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Eligibility & Calculation",
+          "displayOrder": 6,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_8",
+          "title": "Assessor Notes",
+          "displayOrder": 7,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_9",
+          "title": "Documents",
+          "displayOrder": 8,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_6"
+        }
+      ],
+      "fields": [
+        {
+          "name": "claimRef",
+          "label": "Claim Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"FDC-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "claimDate",
+          "label": "Date Logged",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "claimOfficer",
+          "label": "Claims Officer",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "claimType",
+          "label": "Claim Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 4,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "options": [
+            {
+              "value": "CASH",
+              "label": "Cash Payout",
+              "displayOrder": 0
+            },
+            {
+              "value": "SERVICE",
+              "label": "Service Delivery",
+              "displayOrder": 1
+            },
+            {
+              "value": "HYBRID",
+              "label": "Hybrid",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "policyNumber",
+          "label": "Policy Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "mainMemberName",
+          "label": "Main Member Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "policyStatus",
+          "label": "Policy Status at Date of Death",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "ACTIVE",
+              "label": "Active / Paid-Up",
+              "displayOrder": 0
+            },
+            {
+              "value": "IN_ARREARS",
+              "label": "In Arrears",
+              "displayOrder": 1
+            },
+            {
+              "value": "LAPSED",
+              "label": "Lapsed",
+              "displayOrder": 2
+            },
+            {
+              "value": "WAITING",
+              "label": "Within Waiting Period",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "premiumArrears",
+          "label": "Premium Arrears",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "deceasedName",
+          "label": "Deceased Full Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(3)"
+        },
+        {
+          "name": "deceasedRelation",
+          "label": "Relation to Main Member",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "MAIN",
+              "label": "Main Member",
+              "displayOrder": 0
+            },
+            {
+              "value": "SPOUSE",
+              "label": "Spouse",
+              "displayOrder": 1
+            },
+            {
+              "value": "CHILD",
+              "label": "Child",
+              "displayOrder": 2
+            },
+            {
+              "value": "PARENT",
+              "label": "Parent",
+              "displayOrder": 3
+            },
+            {
+              "value": "EXTENDED",
+              "label": "Extended Family",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "deceasedId",
+          "label": "Deceased ID / Birth Cert",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "deceasedDob",
+          "label": "Date of Birth",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()"
+        },
+        {
+          "name": "dateOfDeath",
+          "label": "Date of Death",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "placeOfDeath",
+          "label": "Place of Death",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "causeOfDeath",
+          "label": "Cause of Death",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "NATURAL",
+              "label": "Natural",
+              "displayOrder": 0
+            },
+            {
+              "value": "ILLNESS",
+              "label": "Illness / Disease",
+              "displayOrder": 1
+            },
+            {
+              "value": "ACCIDENT",
+              "label": "Accident",
+              "displayOrder": 2
+            },
+            {
+              "value": "HOMICIDE",
+              "label": "Homicide",
+              "displayOrder": 3
+            },
+            {
+              "value": "SUICIDE",
+              "label": "Suicide",
+              "displayOrder": 4
+            },
+            {
+              "value": "UNKNOWN",
+              "label": "Unknown / Pending Investigation",
+              "displayOrder": 5
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "causeDetails",
+          "label": "Cause Details",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 33,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4"
+        },
+        {
+          "name": "claimantName",
+          "label": "Claimant Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required()"
+        },
+        {
+          "name": "claimantRelation",
+          "label": "Relationship to Deceased",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required()"
+        },
+        {
+          "name": "claimantId",
+          "label": "Claimant ID",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required()"
+        },
+        {
+          "name": "claimantPhone",
+          "label": "Claimant Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "isNamedBeneficiary",
+          "label": "Named Beneficiary on Policy?",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "true",
+          "displayOrder": 44,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "paymentMethod",
+          "label": "Payment Method",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "options": [
+            {
+              "value": "BANK_TRANSFER",
+              "label": "Bank Transfer",
+              "displayOrder": 0
+            },
+            {
+              "value": "MOBILE_MONEY",
+              "label": "Mobile Money",
+              "displayOrder": 1
+            },
+            {
+              "value": "CHEQUE",
+              "label": "Cheque",
+              "displayOrder": 2
+            },
+            {
+              "value": "CASH",
+              "label": "Cash",
+              "displayOrder": 3
+            },
+            {
+              "value": "SERVICE_PROVIDER",
+              "label": "Direct to Funeral Service Provider",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "bankAccount",
+          "label": "Bank / Mobile Money Account",
+          "fieldType": "TEXT",
+          "displayOrder": 51,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{paymentMethod} == 'BANK_TRANSFER' OR @{paymentMethod} == 'MOBILE_MONEY'",
+          "validation": "ValidWhen(@{paymentMethod} != 'BANK_TRANSFER' AND @{paymentMethod} != 'MOBILE_MONEY' OR IS_NOT_EMPTY(@{bankAccount}), \"Account details required\")"
+        },
+        {
+          "name": "bankName",
+          "label": "Bank Name",
+          "fieldType": "TEXT",
+          "displayOrder": 52,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{paymentMethod} == 'BANK_TRANSFER'"
+        },
+        {
+          "name": "serviceProviderName",
+          "label": "Funeral Service Provider",
+          "fieldType": "TEXT",
+          "displayOrder": 53,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{paymentMethod} == 'SERVICE_PROVIDER'",
+          "validation": "ValidWhen(@{paymentMethod} != 'SERVICE_PROVIDER' OR IS_NOT_EMPTY(@{serviceProviderName}), \"Provider name required\")"
+        },
+        {
+          "name": "sumAssured",
+          "label": "Sum Assured",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "addOnBenefits",
+          "label": "Add-On Benefits",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "deductions",
+          "label": "Arrears / Deductions",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "claimAmount",
+          "label": "Net Claim Amount",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 63,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "defaultValue": "SUBTRACT(SUM(@{sumAssured}, @{addOnBenefits}), @{deductions})"
+        },
+        {
+          "name": "withinWaitingPeriod",
+          "label": "Death within waiting period?",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 64,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7"
+        },
+        {
+          "name": "fraudRisk",
+          "label": "Fraud Risk Indicator",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "NONE",
+          "inSummary": true,
+          "displayOrder": 65,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_7",
+          "options": [
+            {
+              "value": "NONE",
+              "label": "None",
+              "displayOrder": 0
+            },
+            {
+              "value": "LOW",
+              "label": "Low",
+              "displayOrder": 1
+            },
+            {
+              "value": "MEDIUM",
+              "label": "Medium",
+              "displayOrder": 2
+            },
+            {
+              "value": "HIGH",
+              "label": "High - Investigate",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "assessorFindings",
+          "label": "Assessor Findings & Recommendation",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 70,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "validation": "Required() AND MinLength(30)"
+        },
+        {
+          "name": "deathCertificate",
+          "label": "Death Certificate",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Death certificate is required\")"
+        },
+        {
+          "name": "burialOrder",
+          "label": "Burial Order",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 81,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Burial order is required\")"
+        },
+        {
+          "name": "deceasedIdCopy",
+          "label": "Deceased ID Copy",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 82,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required()"
+        },
+        {
+          "name": "claimantIdCopy",
+          "label": "Claimant ID Copy",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 83,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required()"
+        },
+        {
+          "name": "claimForm",
+          "label": "Signed Claim Form",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 84,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required()"
+        },
+        {
+          "name": "medicalReport",
+          "label": "Medical Report / Post-mortem",
+          "fieldType": "FILE",
+          "displayOrder": 85,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_9",
+          "visibilityExpression": "@{causeOfDeath} == 'ACCIDENT' OR @{causeOfDeath} == 'HOMICIDE' OR @{causeOfDeath} == 'SUICIDE' OR @{causeOfDeath} == 'UNKNOWN'",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760
+        },
+        {
+          "name": "policeReport",
+          "label": "Police Report",
+          "fieldType": "FILE",
+          "displayOrder": 86,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_9",
+          "visibilityExpression": "@{causeOfDeath} == 'ACCIDENT' OR @{causeOfDeath} == 'HOMICIDE' OR @{causeOfDeath} == 'SUICIDE'",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760
+        },
+        {
+          "name": "proofOfBanking",
+          "label": "Proof of Banking",
+          "fieldType": "FILE",
+          "displayOrder": 87,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_9",
+          "visibilityExpression": "@{paymentMethod} == 'BANK_TRANSFER'",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Claims Officer",
+      "approverType": "ROLE",
+      "roleName": "CLAIMS_OFFICER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Claims Assessor",
+      "approverType": "ROLE",
+      "roleName": "CLAIMS_ASSESSOR",
+      "amountLimit": 5000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Claims Manager",
+      "approverType": "ROLE",
+      "roleName": "CLAIMS_MANAGER",
+      "amountLimit": 25000,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 4,
+      "name": "Head of Claims",
+      "approverType": "ROLE",
+      "roleName": "HEAD_OF_CLAIMS",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "FUNERAL",
+  "workflowTypeCode": "FINANCE"
+}

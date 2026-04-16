@@ -1,0 +1,66 @@
+{
+  "_comment": "Prescription Approval — controlled / specialist-medication prescription authorisation.",
+  "name": "Prescription Approval",
+  "code": "HPR",
+  "description": "Authorise a prescription for controlled, specialist or high-cost medication.",
+  "icon": "medication",
+  "displayOrder": 76,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "HEALTHCARE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{rxRef} - @{patientName} (@{drugName})",
+  "reminderEnabled": true, "reminderFrequencyHours": 2, "reminderMaxCount": 4, "reminderStartAfterHours": 1,
+  "escalationEnabled": true, "escalationAfterHours": 12, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Patient & Prescriber", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Medication", "displayOrder": 1, "icon": "medication" },
+      { "id": "temp_screen_3", "title": "Clinical Justification", "displayOrder": 2, "icon": "description" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Patient", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Prescriber", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Drug", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Dosage", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Justification", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "rxRef", "label": "Prescription Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"HPR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "issueDate", "label": "Issue Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "patientMrn", "label": "Patient MRN", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "patientName", "label": "Patient Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "patientAge", "label": "Patient Age", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND Min(0) AND Max(150)" },
+      { "name": "patientWeight", "label": "Weight (kg)", "fieldType": "NUMBER", "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Min(0)" },
+      { "name": "prescriberName", "label": "Prescriber", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "prescriberLicence", "label": "Prescriber Licence No.", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "specialty", "label": "Specialty", "fieldType": "TEXT", "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "drugName", "label": "Drug Name (INN / Brand)", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "drugSchedule", "label": "Drug Schedule", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "S0", "label": "Schedule 0 (OTC)", "displayOrder": 0 }, { "value": "S1", "label": "Schedule 1", "displayOrder": 1 }, { "value": "S2", "label": "Schedule 2", "displayOrder": 2 }, { "value": "S3", "label": "Schedule 3", "displayOrder": 3 }, { "value": "S4", "label": "Schedule 4", "displayOrder": 4 }, { "value": "S5", "label": "Schedule 5 (Controlled)", "displayOrder": 5 }, { "value": "S6", "label": "Schedule 6 (Narcotic)", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "isFormulary", "label": "On Hospital Formulary?", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "strength", "label": "Strength / Dose", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "dosage", "label": "Dosage Instruction (SIG)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "durationDays", "label": "Duration (days)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1) AND Max(365)" },
+      { "name": "quantity", "label": "Total Quantity", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "refillsAllowed", "label": "Refills Allowed", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0) AND Max(12)" },
+      { "name": "indication", "label": "Clinical Indication", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" },
+      { "name": "allergies", "label": "Known Allergies / Contraindications Checked", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{allergies} == true, \"Allergies must be verified\")" },
+      { "name": "drugInteractionsChecked", "label": "Drug Interactions Checked", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{drugInteractionsChecked} == true, \"Interactions must be checked\")" },
+      { "name": "alternativesConsidered", "label": "Alternatives Considered", "fieldType": "TEXTAREA", "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "signedPrescription", "label": "Signed Prescription", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "supportingLabs", "label": "Supporting Lab / Diagnostic Results", "fieldType": "FILE", "multiple": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "maxFiles": 10 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Pharmacist", "approverType": "ROLE", "roleName": "PHARMACIST", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Chief Pharmacist / DTC", "approverType": "ROLE", "roleName": "CHIEF_PHARMACIST", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Medical Director", "approverType": "ROLE", "roleName": "MEDICAL_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

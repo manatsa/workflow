@@ -1,0 +1,65 @@
+{
+  "_comment": "Construction Bid / Tender Submission — prepare and approve a construction project bid.",
+  "name": "Construction Bid Submission",
+  "code": "CBS",
+  "description": "Prepare and approve a construction project bid / tender submission with estimate and margin.",
+  "icon": "engineering",
+  "displayOrder": 136,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "CONSTRUCTION",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{bidRef} - @{projectName} (@{bidAmount})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 4, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Project", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Estimate", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client & Project", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Schedule", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Cost Breakdown", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Risk & Margin", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "bidRef", "label": "Bid Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CBS-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "preparedDate", "label": "Prepared Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "tenderDeadline", "label": "Tender Deadline", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "estimator", "label": "Estimator", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Client", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "projectName", "label": "Project Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "projectType", "label": "Project Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "BUILDING", "label": "Building", "displayOrder": 0 }, { "value": "ROAD", "label": "Road / Highway", "displayOrder": 1 }, { "value": "BRIDGE", "label": "Bridge / Civil", "displayOrder": 2 }, { "value": "DAM", "label": "Dam / Water", "displayOrder": 3 }, { "value": "INDUSTRIAL", "label": "Industrial Plant", "displayOrder": 4 }, { "value": "RESIDENTIAL", "label": "Residential", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "location", "label": "Site Location", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "contractType", "label": "Contract Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "LUMP_SUM", "label": "Lump Sum", "displayOrder": 0 }, { "value": "REMEASURE", "label": "Remeasurable", "displayOrder": 1 }, { "value": "COST_PLUS", "label": "Cost-Plus", "displayOrder": 2 }, { "value": "DESIGN_BUILD", "label": "Design-Build", "displayOrder": 3 }, { "value": "EPC", "label": "EPC / Turnkey", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "startDate", "label": "Planned Start", "fieldType": "DATE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "durationMonths", "label": "Duration (months)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "directCost", "label": "Direct Cost (Materials + Labour)", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "subcontractorCost", "label": "Subcontractor Cost", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "equipmentCost", "label": "Plant / Equipment Cost", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "preliminariesCost", "label": "Preliminaries", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "overheadCost", "label": "Overhead", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "contingency", "label": "Contingency", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "totalCost", "label": "Total Estimated Cost", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 36, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM(@{directCost}, @{subcontractorCost}, @{equipmentCost}, @{preliminariesCost}, @{overheadCost}, @{contingency})" },
+      { "name": "marginPercent", "label": "Target Margin %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "10", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0) AND Max(50)" },
+      { "name": "bidAmount", "label": "Bid Amount (Ex VAT)", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "riskLevel", "label": "Project Risk Level", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "LOW", "label": "Low", "displayOrder": 0 }, { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 }, { "value": "HIGH", "label": "High", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "bondsRequired", "label": "Bid / Performance Bond Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Estimating Manager", "approverType": "ROLE", "roleName": "ESTIMATING_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Commercial Director", "approverType": "ROLE", "roleName": "COMMERCIAL_DIRECTOR", "amountLimit": 1000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Director", "approverType": "ROLE", "roleName": "MD", "amountLimit": 10000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Board Tender Committee", "approverType": "ROLE", "roleName": "BOARD_TENDER_COMMITTEE", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

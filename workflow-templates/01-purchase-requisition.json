@@ -1,0 +1,760 @@
+{
+  "_comment": "Purchase Requisition — comprehensive procurement workflow with multi-screen layout, computed totals, conditional visibility, and tiered approvals.",
+  "name": "Purchase Requisition",
+  "code": "PR",
+  "description": "Request to purchase goods or services. Routed for approval based on total amount.",
+  "icon": "shopping_cart",
+  "displayOrder": 10,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{prNumber} - @{vendorName} (@{totalAmount})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderIncludeSubmitter": true,
+  "reminderEmailSubject": "Reminder @{reminderNumber}/@{reminderMax}: PR @{referenceNumber} awaiting your approval",
+  "reminderEmailBody": "<p>Dear @{approverName},</p><p>This is reminder @{reminderNumber} of @{reminderMax} that Purchase Requisition <strong>@{referenceNumber}</strong> submitted by @{submitterName} on @{submittedDate} is awaiting your approval.</p><p>It has been pending for @{daysPending} day(s).</p><p>Please log in to review and approve.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Requester & Request",
+          "description": "Who is requesting and basic request info",
+          "displayOrder": 0,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Vendor Details",
+          "description": "Supplier information",
+          "displayOrder": 1,
+          "icon": "storefront"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Line Items",
+          "description": "Items being purchased",
+          "displayOrder": 2,
+          "icon": "inventory_2"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Budget & Justification",
+          "description": "Financial and business justification",
+          "displayOrder": 3,
+          "icon": "account_balance"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Delivery & Attachments",
+          "description": "Delivery and supporting documents",
+          "displayOrder": 4,
+          "icon": "local_shipping"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Review & Submit",
+          "description": "Summary before submission",
+          "displayOrder": 5,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Request Details",
+          "description": "Auto-generated and request info",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Requester Information",
+          "description": "Populated from logged-in user",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Vendor Information",
+          "description": "Supplier details",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Vendor Contact",
+          "description": "Point of contact at vendor",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": true,
+          "isCollapsedByDefault": true,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Items to Purchase",
+          "description": "Add one or more line items",
+          "displayOrder": 4,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Financial Information",
+          "description": "Budget and cost info",
+          "displayOrder": 5,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_7",
+          "title": "Justification",
+          "description": "Business reason for purchase",
+          "displayOrder": 6,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_8",
+          "title": "Delivery Information",
+          "description": "Where and when to deliver",
+          "displayOrder": 7,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_9",
+          "title": "Supporting Documents",
+          "description": "Quotes, specs, etc.",
+          "displayOrder": 8,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        }
+      ],
+      "fields": [
+        {
+          "name": "prNumber",
+          "label": "PR Number",
+          "fieldType": "TEXT",
+          "tooltip": "Auto-generated unique PR reference",
+          "defaultValue": "SEQUENCE(\"PR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "priority",
+          "label": "Priority",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "NORMAL",
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "options": [
+            {
+              "value": "LOW",
+              "label": "Low",
+              "displayOrder": 0
+            },
+            {
+              "value": "NORMAL",
+              "label": "Normal",
+              "displayOrder": 1
+            },
+            {
+              "value": "HIGH",
+              "label": "High",
+              "displayOrder": 2
+            },
+            {
+              "value": "URGENT",
+              "label": "Urgent - Business Critical",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "requiredBy",
+          "label": "Required By Date",
+          "fieldType": "DATE",
+          "tooltip": "When you need the goods/services",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required() AND DateAfter(\"today\", \"Required date must be in the future\")"
+        },
+        {
+          "name": "requesterName",
+          "label": "Requester Name",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "requesterEmail",
+          "label": "Requester Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "requesterDepartment",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "requesterPhone",
+          "label": "Contact Phone",
+          "fieldType": "PHONE",
+          "placeholder": "+263...",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "vendorName",
+          "label": "Vendor / Supplier Name",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. ABC Office Supplies Ltd",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(2)",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "vendorRegNumber",
+          "label": "Registration / VAT Number",
+          "fieldType": "TEXT",
+          "placeholder": "Vendor registration or VAT number",
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "isNewVendor",
+          "label": "Is this a new vendor?",
+          "fieldType": "YES_NO",
+          "tooltip": "New vendors require Finance pre-approval",
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "vendorAddress",
+          "label": "Vendor Address",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Physical address of vendor",
+          "displayOrder": 23,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3"
+        },
+        {
+          "name": "vendorContactName",
+          "label": "Contact Person",
+          "fieldType": "TEXT",
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_4"
+        },
+        {
+          "name": "vendorContactEmail",
+          "label": "Contact Email",
+          "fieldType": "EMAIL",
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "ValidWhen(IS_EMPTY(@{vendorContactEmail}) OR IS_EMAIL(@{vendorContactEmail}), \"Please enter a valid email\")"
+        },
+        {
+          "name": "vendorContactPhone",
+          "label": "Contact Phone",
+          "fieldType": "PHONE",
+          "displayOrder": 26,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_4"
+        },
+        {
+          "name": "vendorWebsite",
+          "label": "Website",
+          "fieldType": "URL",
+          "placeholder": "https://",
+          "displayOrder": 27,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "ValidWhen(IS_EMPTY(@{vendorWebsite}) OR IS_URL(@{vendorWebsite}))"
+        },
+        {
+          "name": "itemCategory",
+          "label": "Category",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "options": [
+            {
+              "value": "OFFICE_SUPPLIES",
+              "label": "Office Supplies",
+              "displayOrder": 0
+            },
+            {
+              "value": "IT_HARDWARE",
+              "label": "IT Hardware",
+              "displayOrder": 1
+            },
+            {
+              "value": "IT_SOFTWARE",
+              "label": "IT Software / Licenses",
+              "displayOrder": 2
+            },
+            {
+              "value": "FURNITURE",
+              "label": "Furniture & Fixtures",
+              "displayOrder": 3
+            },
+            {
+              "value": "PROFESSIONAL_SERVICES",
+              "label": "Professional Services",
+              "displayOrder": 4
+            },
+            {
+              "value": "MARKETING",
+              "label": "Marketing & Advertising",
+              "displayOrder": 5
+            },
+            {
+              "value": "TRAVEL",
+              "label": "Travel & Accommodation",
+              "displayOrder": 6
+            },
+            {
+              "value": "TRAINING",
+              "label": "Training & Development",
+              "displayOrder": 7
+            },
+            {
+              "value": "UTILITIES",
+              "label": "Utilities",
+              "displayOrder": 8
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 9
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "otherCategoryDescription",
+          "label": "Please specify category",
+          "fieldType": "TEXT",
+          "placeholder": "Describe the category",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "visibilityExpression": "@{itemCategory} == 'OTHER'",
+          "validation": "ValidWhen(@{itemCategory} != 'OTHER' OR IS_NOT_EMPTY(@{otherCategoryDescription}), \"Please describe the category\")"
+        },
+        {
+          "name": "lineItems",
+          "label": "Line Items",
+          "fieldType": "TABLE",
+          "tooltip": "Add each item being purchased",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_5",
+          "tableMinRows": 1,
+          "tableMaxRows": 50,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableResizable": true,
+          "tableColumns": "[{\"name\":\"description\",\"label\":\"Description\",\"type\":\"TEXT\",\"width\":300,\"required\":true},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":80,\"required\":true,\"defaultValue\":\"1\"},{\"name\":\"unit\",\"label\":\"Unit\",\"type\":\"SELECT\",\"width\":100,\"options\":[\"each\",\"hour\",\"day\",\"month\",\"year\",\"kg\",\"litre\",\"m\",\"m2\",\"m3\",\"box\",\"pack\"]},{\"name\":\"unitPrice\",\"label\":\"Unit Price\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"taxRate\",\"label\":\"Tax %\",\"type\":\"NUMBER\",\"width\":80,\"defaultValue\":\"15\"},{\"name\":\"lineTotal\",\"label\":\"Line Total\",\"type\":\"NUMBER\",\"width\":120,\"readOnly\":true,\"computed\":\"MULTIPLY(@{quantity}, @{unitPrice})\"}]",
+          "validation": "MinRows(1, \"Add at least one line item\")"
+        },
+        {
+          "name": "subtotal",
+          "label": "Subtotal",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "defaultValue": "SUM_COLUMN(\"lineItems\", \"lineTotal\")"
+        },
+        {
+          "name": "taxAmount",
+          "label": "Tax Amount",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "defaultValue": "PERCENT_OF(@{subtotal}, 15)"
+        },
+        {
+          "name": "shippingCost",
+          "label": "Shipping / Freight",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "totalAmount",
+          "label": "Total Amount",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "defaultValue": "SUM(@{subtotal}, @{taxAmount}, @{shippingCost})",
+          "validation": "Required() AND Min(0.01, \"Total must be greater than zero\")"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "fieldType": "SELECT",
+          "defaultValue": "USD",
+          "inSummary": true,
+          "displayOrder": 44,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "options": [
+            {
+              "value": "USD",
+              "label": "US Dollar (USD)",
+              "displayOrder": 0
+            },
+            {
+              "value": "EUR",
+              "label": "Euro (EUR)",
+              "displayOrder": 1
+            },
+            {
+              "value": "GBP",
+              "label": "British Pound (GBP)",
+              "displayOrder": 2
+            },
+            {
+              "value": "ZAR",
+              "label": "South African Rand (ZAR)",
+              "displayOrder": 3
+            },
+            {
+              "value": "ZWL",
+              "label": "Zimbabwe Dollar (ZWL)",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "budgetCode",
+          "label": "Budget / GL Code",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. GL-5200-IT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 45,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required() AND Pattern(/^[A-Z0-9\\-]+$/i, \"Budget code may only contain letters, digits and hyphens\")",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "costCenter",
+          "label": "Cost Centre",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 46,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "isBudgeted",
+          "label": "Is this a budgeted expense?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "inSummary": true,
+          "displayOrder": 47,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6"
+        },
+        {
+          "name": "unbudgetedReason",
+          "label": "Reason for Unbudgeted Request",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Explain why this wasn't in the budget",
+          "displayOrder": 48,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{isBudgeted} == false",
+          "validation": "ValidWhen(@{isBudgeted} == true OR HAS_MIN_LENGTH(@{unbudgetedReason}, 20), \"Please explain why this wasn't budgeted (min 20 characters)\")"
+        },
+        {
+          "name": "justification",
+          "label": "Business Justification",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Explain the business need for this purchase and how it supports operations or objectives...",
+          "tooltip": "Clear justification helps approvers decide faster",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_7",
+          "validation": "Required() AND MinLength(30, \"Please provide a meaningful justification (at least 30 characters)\") AND MaxLength(2000)"
+        },
+        {
+          "name": "deliveryAddress",
+          "label": "Delivery Address",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Full delivery address",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "validation": "Required() AND MinLength(10)"
+        },
+        {
+          "name": "deliveryContact",
+          "label": "Delivery Contact",
+          "fieldType": "TEXT",
+          "placeholder": "Person to receive delivery",
+          "defaultValue": "CURRENT_USER()",
+          "isMandatory": true,
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "validation": "Required()"
+        },
+        {
+          "name": "deliveryContactPhone",
+          "label": "Delivery Contact Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "specialInstructions",
+          "label": "Special Instructions",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Handling, scheduling, access instructions...",
+          "displayOrder": 63,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_8"
+        },
+        {
+          "name": "quotation",
+          "label": "Supplier Quotation",
+          "fieldType": "FILE",
+          "tooltip": "Upload the supplier's quotation PDF",
+          "isMandatory": true,
+          "displayOrder": 70,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,doc,docx,jpg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Supplier quotation is required\")"
+        },
+        {
+          "name": "additionalDocs",
+          "label": "Additional Documents",
+          "fieldType": "FILE",
+          "tooltip": "Specifications, comparison quotes, approvals, etc.",
+          "multiple": true,
+          "displayOrder": 71,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "allowedFileTypes": "pdf,doc,docx,xls,xlsx,jpg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        },
+        {
+          "name": "alternateQuotesAttached",
+          "label": "Alternate quotes attached?",
+          "fieldType": "CHECKBOX",
+          "tooltip": "Recommended for purchases above $5,000",
+          "defaultValue": "false",
+          "displayOrder": 72,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_9",
+          "visibilityExpression": "@{totalAmount} >= 5000",
+          "validation": "ValidWhen(@{totalAmount} < 5000 OR IS_TRUE(@{alternateQuotesAttached}), \"Please attach at least 3 alternate quotes for purchases above $5,000\")"
+        },
+        {
+          "name": "acknowledgement",
+          "label": "I confirm the information above is accurate and complies with procurement policy",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "validation": "IsTrue(\"You must confirm before submitting\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Line Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "amountLimit": 5000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Department Head",
+      "approverType": "ROLE",
+      "roleName": "DEPARTMENT_HEAD",
+      "amountLimit": 25000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Finance Controller",
+      "approverType": "ROLE",
+      "roleName": "FINANCE_CONTROLLER",
+      "amountLimit": 100000,
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 4,
+      "name": "CFO / Executive Approval",
+      "approverType": "ROLE",
+      "roleName": "CFO",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "GENERAL",
+  "workflowTypeCode": "REQUISITION"
+}

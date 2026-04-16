@@ -1,0 +1,54 @@
+{
+  "_comment": "Menu Change — add, modify or remove menu items across outlets.",
+  "name": "Restaurant Menu Change",
+  "code": "RMC",
+  "description": "Add, modify or remove menu items across outlets with costing, nutrition and POS updates.",
+  "icon": "menu_book",
+  "displayOrder": 101,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "RESTAURANT",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{menuRef} - @{menuName} (@{changeType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Change Info", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Menu Items", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Scope", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Items", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Readiness", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "menuRef", "label": "Menu Change Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RMC-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "effectiveDate", "label": "Effective Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND DateAfter(\"today\", \"Effective must be future\")" },
+      { "name": "requestedBy", "label": "Requested By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "changeType", "label": "Change Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "ADD", "label": "Add Items", "displayOrder": 0 }, { "value": "REMOVE", "label": "Remove Items", "displayOrder": 1 }, { "value": "PRICE", "label": "Price Update", "displayOrder": 2 }, { "value": "RESTRUCTURE", "label": "Full Restructure", "displayOrder": 3 }, { "value": "SEASONAL", "label": "Seasonal Menu", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "menuName", "label": "Menu / Section Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "outletScope", "label": "Outlet Scope", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "ALL", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "ALL", "label": "All Outlets", "displayOrder": 0 }, { "value": "REGION", "label": "Region", "displayOrder": 1 }, { "value": "SELECT", "label": "Selected Outlets", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "outletList", "label": "Outlet List", "fieldType": "TEXTAREA", "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "visibilityExpression": "@{outletScope} != 'ALL'" },
+      { "name": "rationale", "label": "Rationale", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(20)" },
+      { "name": "items", "label": "Menu Items", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 200, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"action\",\"label\":\"Action\",\"type\":\"SELECT\",\"width\":110,\"required\":true,\"options\":[\"ADD\",\"REMOVE\",\"UPDATE\"]},{\"name\":\"itemName\",\"label\":\"Item\",\"type\":\"TEXT\",\"width\":240,\"required\":true},{\"name\":\"section\",\"label\":\"Section\",\"type\":\"TEXT\",\"width\":150},{\"name\":\"foodCost\",\"label\":\"Food Cost\",\"type\":\"NUMBER\",\"width\":110},{\"name\":\"sellingPrice\",\"label\":\"Price\",\"type\":\"NUMBER\",\"width\":110,\"required\":true},{\"name\":\"marginPercent\",\"label\":\"Margin %\",\"type\":\"NUMBER\",\"width\":100}]", "validation": "MinRows(1, \"At least one item required\")" },
+      { "name": "allergensReviewed", "label": "Allergens Reviewed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{allergensReviewed} == true, \"Allergens must be reviewed\")" },
+      { "name": "nutritionUpdated", "label": "Nutrition Info Updated", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{nutritionUpdated} == true, \"Nutrition info must be updated\")" },
+      { "name": "posUpdated", "label": "POS / Online Ordering Updated", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{posUpdated} == true, \"POS must be updated before go-live\")" },
+      { "name": "marketingAligned", "label": "Marketing Material Aligned", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Head Chef", "approverType": "ROLE", "roleName": "HEAD_CHEF", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Operations Manager", "approverType": "ROLE", "roleName": "OPS_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "F&B Director", "approverType": "ROLE", "roleName": "FB_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

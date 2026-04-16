@@ -1,0 +1,69 @@
+{
+  "_comment": "Marketplace Seller Onboarding — onboard a seller onto an e-commerce marketplace with KYC, tax and payout setup.",
+  "name": "Marketplace Seller Onboarding",
+  "code": "ESO",
+  "description": "Onboard a seller onto the marketplace: KYC/KYB, tax, payout, commissions and category enablement.",
+  "icon": "store",
+  "displayOrder": 91,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "ECOMMERCE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{sellerRef} - @{storeName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Business", "displayOrder": 0, "icon": "business" },
+      { "id": "temp_screen_2", "title": "Store & Catalog", "displayOrder": 1, "icon": "store" },
+      { "id": "temp_screen_3", "title": "Payout & Fees", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Business", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Contact", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Store", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Commercials", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Payout Account", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "sellerRef", "label": "Seller Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ESO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "legalName", "label": "Legal Entity Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "entityType", "label": "Entity Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "SOLE", "label": "Sole Trader", "displayOrder": 0 }, { "value": "COMPANY", "label": "Limited Company", "displayOrder": 1 }, { "value": "PARTNERSHIP", "label": "Partnership", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "taxNumber", "label": "Tax / VAT Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "country", "label": "Country of Operation", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "contactName", "label": "Primary Contact", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Phone()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter valid email\")" },
+      { "name": "storeName", "label": "Store / Brand Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "storeHandle", "label": "Store URL Handle", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Pattern(/^[a-z0-9\\-]+$/, \"Lowercase letters, digits and hyphens only\")", "customValidationRule": "TRIM() AND LOWER()" },
+      { "name": "categories", "label": "Product Categories", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "estimatedSkus", "label": "Estimated SKU Count", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "estimatedMonthlyGmv", "label": "Est. Monthly GMV", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "commissionPercent", "label": "Commission %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "12", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(50)" },
+      { "name": "fulfilmentModel", "label": "Fulfilment Model", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "SELLER_FULFILLED", "label": "Seller-Fulfilled", "displayOrder": 0 }, { "value": "PLATFORM_FULFILLED", "label": "Platform-Fulfilled", "displayOrder": 1 }, { "value": "DROPSHIP", "label": "Dropship", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "returnPolicyDays", "label": "Return Window (days)", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "14", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "payoutFrequency", "label": "Payout Frequency", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "WEEKLY", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "DAILY", "label": "Daily", "displayOrder": 0 }, { "value": "WEEKLY", "label": "Weekly", "displayOrder": 1 }, { "value": "BIWEEKLY", "label": "Biweekly", "displayOrder": 2 }, { "value": "MONTHLY", "label": "Monthly", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "payoutBank", "label": "Payout Bank", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "payoutAccount", "label": "Payout Account Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "sanctionsClear", "label": "Sanctions Check Clear", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{sanctionsClear} == true, \"Sanctions check must be clear\")" },
+      { "name": "incorporationCert", "label": "Certificate of Incorporation", "fieldType": "FILE", "isMandatory": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "taxCertificate", "label": "Tax Clearance / VAT Cert", "fieldType": "FILE", "isMandatory": true, "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "idCopy", "label": "Director / Owner ID", "fieldType": "FILE", "isMandatory": true, "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "signedMsa", "label": "Signed Seller Agreement", "fieldType": "FILE", "isMandatory": true, "displayOrder": 53, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Seller Ops Analyst", "approverType": "ROLE", "roleName": "SELLER_OPS", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Category Lead", "approverType": "ROLE", "roleName": "CATEGORY_LEAD", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Marketplace", "approverType": "ROLE", "roleName": "HEAD_MARKETPLACE", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

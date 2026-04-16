@@ -1,0 +1,63 @@
+{
+  "_comment": "New Recipe / Formula Approval — approve a new food or beverage recipe for production.",
+  "name": "New Recipe / Formula Approval",
+  "code": "FRA",
+  "description": "Approve a new food / beverage recipe or formula change with costing, nutrition and sensory evaluation.",
+  "icon": "restaurant",
+  "displayOrder": 97,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "FOOD",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{recipeRef} - @{productName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Product", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Ingredients", "displayOrder": 1, "icon": "kitchen" },
+      { "id": "temp_screen_3", "title": "Nutrition & Safety", "displayOrder": 2, "icon": "health_and_safety" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Product", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Recipe", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Costing", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Safety & Nutrition", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "recipeRef", "label": "Recipe Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FRA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "productName", "label": "Product Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "changeType", "label": "Change Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "NEW", "label": "New Recipe", "displayOrder": 0 }, { "value": "REFORMULATION", "label": "Reformulation", "displayOrder": 1 }, { "value": "COST_OPTIMISATION", "label": "Cost Optimisation", "displayOrder": 2 }, { "value": "REGULATORY", "label": "Regulatory Mandate", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "batchSize", "label": "Standard Batch Size", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "yieldUnits", "label": "Yield (units)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "ingredients", "label": "Ingredients", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 100, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"ingredient\",\"label\":\"Ingredient\",\"type\":\"TEXT\",\"width\":240,\"required\":true},{\"name\":\"supplier\",\"label\":\"Approved Supplier\",\"type\":\"TEXT\",\"width\":180},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"uom\",\"label\":\"UOM\",\"type\":\"SELECT\",\"width\":90,\"options\":[\"g\",\"kg\",\"ml\",\"L\",\"pcs\"],\"required\":true},{\"name\":\"percent\",\"label\":\"%\",\"type\":\"NUMBER\",\"width\":90},{\"name\":\"cost\",\"label\":\"Cost\",\"type\":\"NUMBER\",\"width\":110}]", "validation": "MinRows(1, \"At least one ingredient required\")" },
+      { "name": "totalIngredientCost", "label": "Total Ingredient Cost", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "SUM_COLUMN(\"ingredients\", \"cost\")" },
+      { "name": "costPerUnit", "label": "Cost per Unit", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "defaultValue": "DIVIDE(@{totalIngredientCost}, @{yieldUnits})" },
+      { "name": "allergens", "label": "Allergens Declared", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "haccpImpact", "label": "HACCP Plan Updated", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{haccpImpact} == true, \"HACCP must be updated\")" },
+      { "name": "shelfLifeDays", "label": "Shelf Life (days)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "nutritionFile", "label": "Nutrition Analysis Attached", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{nutritionFile} == true, \"Nutrition analysis required\")" },
+      { "name": "sensoryPassed", "label": "Sensory Panel Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{sensoryPassed} == true, \"Sensory test must be passed\")" },
+      { "name": "recipeDoc", "label": "Recipe / Formula Document", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "nutritionReport", "label": "Nutrition Analysis Report", "fieldType": "FILE", "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760 },
+      { "name": "sensoryReport", "label": "Sensory Evaluation Report", "fieldType": "FILE", "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6", "allowedFileTypes": "pdf,doc,docx", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "R&D / Product Developer", "approverType": "ROLE", "roleName": "RD_DEVELOPER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Food Safety / QA Manager", "approverType": "ROLE", "roleName": "QA_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of R&D", "approverType": "ROLE", "roleName": "HEAD_RD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

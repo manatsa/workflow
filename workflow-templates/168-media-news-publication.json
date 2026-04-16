@@ -1,0 +1,57 @@
+{
+  "_comment": "News Story Publication Approval — editorial sign-off before publishing a news story.",
+  "name": "News Publication Approval",
+  "code": "MNP",
+  "description": "Editorial sign-off and compliance review before publishing a news story.",
+  "icon": "newspaper",
+  "displayOrder": 168,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "MEDIA",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{storyRef} - @{headline} (@{section})",
+  "reminderEnabled": true, "reminderFrequencyHours": 2, "reminderMaxCount": 4, "reminderStartAfterHours": 1,
+  "escalationEnabled": true, "escalationAfterHours": 8, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Story", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Editorial & Legal", "displayOrder": 1, "icon": "gavel" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Story Detail", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Sources", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Editorial Checks", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Publication", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "storyRef", "label": "Story Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MNP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reporter", "label": "Reporter / Journalist", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "headline", "label": "Headline", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(10) AND MaxLength(200)" },
+      { "name": "section", "label": "Section", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "POLITICS", "label": "Politics", "displayOrder": 0 }, { "value": "BUSINESS", "label": "Business", "displayOrder": 1 }, { "value": "SPORT", "label": "Sport", "displayOrder": 2 }, { "value": "INTERNATIONAL", "label": "International", "displayOrder": 3 }, { "value": "LOCAL", "label": "Local", "displayOrder": 4 }, { "value": "OPINION", "label": "Opinion / Editorial", "displayOrder": 5 }, { "value": "ENTERTAINMENT", "label": "Entertainment", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "wordCount", "label": "Word Count", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(50)" },
+      { "name": "body", "label": "Story Body / Lede", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(100)" },
+      { "name": "sources", "label": "Sources (named / on record)", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(20)" },
+      { "name": "anonSources", "label": "Anonymous Sources Used?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "anonJustification", "label": "Anonymous Source Justification", "fieldType": "TEXTAREA", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "visibilityExpression": "@{anonSources} == true", "validation": "ValidWhen(@{anonSources} == false OR HAS_MIN_LENGTH(@{anonJustification}, 20), \"Justification required\")" },
+      { "name": "factsVerified", "label": "Facts Verified (2+ sources)", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{factsVerified} == true, \"Facts must be verified\")" },
+      { "name": "rightOfReply", "label": "Right of Reply Sought", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "legalRisk", "label": "Defamation / Legal Risk", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "NONE", "label": "None", "displayOrder": 0 }, { "value": "LOW", "label": "Low", "displayOrder": 1 }, { "value": "MEDIUM", "label": "Medium", "displayOrder": 2 }, { "value": "HIGH", "label": "High - Legal Reviewed", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "legalCleared", "label": "Legal Cleared (if needed)", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{legalRisk} != 'HIGH' OR @{legalCleared} == true, \"Legal clearance required for high-risk\")" },
+      { "name": "ethicsCheck", "label": "Editorial Ethics Check Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{ethicsCheck} == true, \"Ethics check required\")" },
+      { "name": "embargoUntil", "label": "Embargo / Publish At", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "channels", "label": "Publish Channels", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Sub-Editor", "approverType": "ROLE", "roleName": "SUB_EDITOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Section Editor", "approverType": "ROLE", "roleName": "SECTION_EDITOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Editor-in-Chief", "approverType": "ROLE", "roleName": "EDITOR_IN_CHIEF", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

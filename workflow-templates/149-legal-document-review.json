@@ -1,0 +1,57 @@
+{
+  "_comment": "Legal Document Review — review, redline and sign-off on a legal document (contract, opinion, pleading).",
+  "name": "Legal Document Review",
+  "code": "LDR",
+  "description": "Review, redline and sign-off on a legal document (contract, opinion, pleading) prior to issue.",
+  "icon": "description",
+  "displayOrder": 149,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "LEGAL",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{docRef} - @{documentTitle}",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Document", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Review Findings", "displayOrder": 1, "icon": "rate_review" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Document Info", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Matter Link", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Risk Assessment", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Findings & Sign-off", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "docRef", "label": "Review Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"LDR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "author", "label": "Drafter / Author", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "deadline", "label": "Review Deadline", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "documentTitle", "label": "Document Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "documentType", "label": "Document Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CONTRACT", "label": "Contract / Agreement", "displayOrder": 0 }, { "value": "OPINION", "label": "Legal Opinion", "displayOrder": 1 }, { "value": "PLEADING", "label": "Pleading / Court Filing", "displayOrder": 2 }, { "value": "POLICY", "label": "Policy / T&Cs", "displayOrder": 3 }, { "value": "NDA", "label": "NDA / Confidentiality", "displayOrder": 4 }, { "value": "LETTER", "label": "Letter / Correspondence", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "version", "label": "Version", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "matterRef", "label": "Matter Reference", "fieldType": "TEXT", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "clientName", "label": "Client / Counterparty", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "governingLaw", "label": "Governing Law", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "riskRating", "label": "Risk Rating", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "MEDIUM", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "LOW", "label": "Low", "displayOrder": 0 }, { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 }, { "value": "HIGH", "label": "High", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "contractValue", "label": "Contract Value (if any)", "fieldType": "CURRENCY", "isLimited": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "regulatorySensitivity", "label": "Regulatory / Sensitive?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "opposingDraft", "label": "Counterparty-Drafted?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "findings", "label": "Review Findings / Redlines Summary", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(30)" },
+      { "name": "keyRisks", "label": "Key Risks / Issues", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" },
+      { "name": "recommendation", "label": "Recommendation", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "APPROVE", "label": "Approve as-is", "displayOrder": 0 }, { "value": "APPROVE_CHANGES", "label": "Approve with Amendments", "displayOrder": 1 }, { "value": "REJECT", "label": "Reject / Do not execute", "displayOrder": 2 } ], "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Senior Associate", "approverType": "ROLE", "roleName": "SENIOR_ASSOCIATE", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Partner", "approverType": "ROLE", "roleName": "PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

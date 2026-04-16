@@ -1,0 +1,128 @@
+{
+  "_comment": "Loan Write-Off — write off an uncollectable microloan balance from the books.",
+  "name": "Loan Write-Off Request",
+  "code": "MLW",
+  "description": "Write off an uncollectable microloan balance following recovery efforts.",
+  "icon": "money_off",
+  "displayOrder": 49,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "MICROFINANCE",
+  "workflowTypeCode": "FINANCE",
+  "titleTemplate": "@{writeoffRef} - @{memberName} (@{writeoffAmount})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 48,
+  "escalationEnabled": true,
+  "escalationAfterHours": 168,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Write-Off @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Write-off <strong>@{referenceNumber}</strong> awaiting Board / EXCO decision.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Loan Details", "displayOrder": 1, "icon": "request_quote" },
+      { "id": "temp_screen_3", "title": "Recovery Efforts", "displayOrder": 2, "icon": "search" },
+      { "id": "temp_screen_4", "title": "Write-Off Justification", "displayOrder": 3, "icon": "edit_note" },
+      { "id": "temp_screen_5", "title": "Documents", "displayOrder": 4, "icon": "attach_file" },
+      { "id": "temp_screen_6", "title": "Review & Submit", "displayOrder": 5, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Loan", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Arrears & Classification", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Recovery Actions", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Justification", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_6", "title": "Documents", "displayOrder": 5, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_5" }
+    ],
+
+    "fields": [
+      { "name": "writeoffRef", "label": "Write-Off Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MLW-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "officer", "label": "Officer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "branch", "label": "Branch", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "validation": "Required()" },
+
+      { "name": "loanRef", "label": "Loan Reference", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "memberName", "label": "Member / Group", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "originalAmount", "label": "Original Loan Amount", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Min(0)" },
+      { "name": "disbursementDate", "label": "Disbursement Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "amountRepaid", "label": "Total Amount Repaid", "fieldType": "CURRENCY", "isMandatory": true, "defaultValue": "0", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND Min(0)" },
+
+      { "name": "outstandingPrincipal", "label": "Outstanding Principal", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Min(0)" },
+      { "name": "outstandingInterest", "label": "Outstanding Interest", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Min(0)" },
+      { "name": "outstandingFees", "label": "Outstanding Fees / Penalties", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Min(0)" },
+      { "name": "writeoffAmount", "label": "Write-Off Amount", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "defaultValue": "SUM(@{outstandingPrincipal}, @{outstandingInterest}, @{outstandingFees})" },
+      { "name": "daysPastDue", "label": "Days Past Due", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND Min(1)" },
+      { "name": "classification", "label": "Loan Classification", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "LOSS", "inSummary": true, "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [
+          { "value": "DOUBTFUL", "label": "Doubtful", "displayOrder": 0 },
+          { "value": "LOSS", "label": "Loss", "displayOrder": 1 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "recoveryActions", "label": "Recovery Actions Taken", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"actionDate\",\"label\":\"Date\",\"type\":\"DATE\",\"width\":120,\"required\":true},{\"name\":\"actionType\",\"label\":\"Action\",\"type\":\"SELECT\",\"width\":200,\"required\":true,\"options\":[\"Phone Call\",\"SMS\",\"Field Visit\",\"Reminder Letter\",\"Demand Letter\",\"Guarantor Follow-Up\",\"Legal Notice\",\"Court Summons\",\"Collateral Sale\"]},{\"name\":\"outcome\",\"label\":\"Outcome\",\"type\":\"TEXT\",\"width\":280,\"required\":true}]",
+        "validation": "MinRows(1, \"At least one recovery action required\")" },
+
+      { "name": "reasonCategory", "label": "Reason for Non-Recovery", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "options": [
+          { "value": "DEATH", "label": "Death of Borrower", "displayOrder": 0 },
+          { "value": "BUSINESS_FAILURE", "label": "Business Failure", "displayOrder": 1 },
+          { "value": "DISAPPEARED", "label": "Borrower Untraceable", "displayOrder": 2 },
+          { "value": "NATURAL_DISASTER", "label": "Natural Disaster", "displayOrder": 3 },
+          { "value": "FRAUD", "label": "Fraud / Identity Issue", "displayOrder": 4 },
+          { "value": "UNCOLLECTIBLE", "label": "Uneconomical to Pursue", "displayOrder": 5 },
+          { "value": "OTHER", "label": "Other", "displayOrder": 6 }
+        ],
+        "validation": "Required()" },
+      { "name": "justification", "label": "Detailed Justification", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND MinLength(50)" },
+      { "name": "provisionHeld", "label": "Provision Already Held", "fieldType": "CURRENCY", "isMandatory": true, "defaultValue": "0", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "validation": "Required() AND Min(0)" },
+      { "name": "netPLImpact", "label": "Net P&L Impact", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUBTRACT(@{writeoffAmount}, @{provisionHeld})" },
+      { "name": "continueRecovery", "label": "Continue Off-Book Recovery?", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5" },
+
+      { "name": "recoveryLog", "label": "Recovery Log / Correspondence", "fieldType": "FILE", "isMandatory": true, "multiple": true, "displayOrder": 50, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,doc,docx,jpg,jpeg,png", "maxFileSize": 10485760, "maxFiles": 15,
+        "validation": "Required(\"Recovery log required\")" },
+      { "name": "deathCertificate", "label": "Death Certificate (if applicable)", "fieldType": "FILE", "displayOrder": 51, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "visibilityExpression": "@{reasonCategory} == 'DEATH'",
+        "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "legalDocs", "label": "Legal / Court Documents", "fieldType": "FILE", "multiple": true, "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_6",
+        "allowedFileTypes": "pdf,doc,docx,jpg,jpeg,png", "maxFileSize": 10485760, "maxFiles": 10 }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Branch Manager", "approverType": "ROLE", "roleName": "BRANCH_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Head of Credit", "approverType": "ROLE", "roleName": "HEAD_OF_CREDIT", "amountLimit": 5000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "CEO / Executive", "approverType": "ROLE", "roleName": "CEO", "amountLimit": 50000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Board Credit Committee", "approverType": "ROLE", "roleName": "BOARD_CREDIT_COMMITTEE", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

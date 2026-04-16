@@ -1,0 +1,68 @@
+{
+  "_comment": "Accounting / Audit Engagement Acceptance — accept a new audit / accounting engagement.",
+  "name": "Audit Engagement Acceptance",
+  "code": "AEA",
+  "description": "Accept a new audit / accounting engagement with independence, risk and fee assessment.",
+  "icon": "assignment",
+  "displayOrder": 151,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "ACCOUNTING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{engagementRef} - @{clientName} (@{serviceType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Client", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Risk & Independence", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Fee & Scope", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Client Info", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Service", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Independence", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Client Risk", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Fees & Team", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "engagementRef", "label": "Engagement Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"AEA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "engagementPartner", "label": "Engagement Partner", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "newOrContinuing", "label": "New / Continuing Client", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "NEW", "label": "New Client", "displayOrder": 0 }, { "value": "CONTINUING", "label": "Continuing", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "clientName", "label": "Client Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "industrySector", "label": "Industry Sector", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "isListed", "label": "Publicly Listed", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "annualRevenue", "label": "Client Annual Revenue", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "serviceType", "label": "Service Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "AUDIT", "label": "External Audit", "displayOrder": 0 }, { "value": "REVIEW", "label": "Review Engagement", "displayOrder": 1 }, { "value": "COMPILATION", "label": "Compilation", "displayOrder": 2 }, { "value": "TAX", "label": "Tax Advisory", "displayOrder": 3 }, { "value": "INTERNAL_AUDIT", "label": "Internal Audit", "displayOrder": 4 }, { "value": "DUE_DILIGENCE", "label": "Due Diligence", "displayOrder": 5 }, { "value": "ACCOUNTING", "label": "Bookkeeping / Outsourced", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "periodAudited", "label": "Period / Year End", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "reportingFramework", "label": "Reporting Framework", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "IFRS", "label": "IFRS", "displayOrder": 0 }, { "value": "IFRS_SME", "label": "IFRS for SMEs", "displayOrder": 1 }, { "value": "US_GAAP", "label": "US GAAP", "displayOrder": 2 }, { "value": "LOCAL", "label": "Local GAAP", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "scope", "label": "Scope / Deliverables", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(30)" },
+      { "name": "independenceCheck", "label": "Independence Check Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{independenceCheck} == true, \"Independence check required\")" },
+      { "name": "priorServicesProvided", "label": "Prior Non-Audit Services Listed", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "rotationRequired", "label": "Partner Rotation Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "clientRiskRating", "label": "Client Risk Rating", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "LOW", "label": "Low", "displayOrder": 0 }, { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 }, { "value": "HIGH", "label": "High", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "aml", "label": "AML / KYC Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{aml} == true, \"AML/KYC required\")" },
+      { "name": "managementIntegrityIssues", "label": "Integrity Concerns Identified", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "goingConcernIssues", "label": "Going Concern Issues?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "estimatedHours", "label": "Estimated Hours", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(1)" },
+      { "name": "feeEstimate", "label": "Fee Estimate", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "teamLead", "label": "Audit / Engagement Manager", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required()" },
+      { "name": "teamSize", "label": "Team Size", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(1)" },
+      { "name": "engagementLetter", "label": "Engagement Letter Drafted", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 54, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "ValidWhen(@{engagementLetter} == true, \"Engagement letter required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Engagement Partner", "approverType": "ROLE", "roleName": "ENGAGEMENT_PARTNER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Quality / Risk Partner", "approverType": "ROLE", "roleName": "RISK_PARTNER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Managing Partner", "approverType": "ROLE", "roleName": "MANAGING_PARTNER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

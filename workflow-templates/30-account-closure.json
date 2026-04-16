@@ -1,0 +1,571 @@
+{
+  "_comment": "Account Closure — close a customer account with balance settlement and dormancy/AML checks.",
+  "name": "Account Closure Request",
+  "code": "AC",
+  "description": "Close a customer account, settle outstanding balances and verify no compliance holds.",
+  "icon": "no_accounts",
+  "displayOrder": 30,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{closureRef} - @{customerName} (@{accountNumber})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Account Closure @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Account closure <strong>@{referenceNumber}</strong> awaiting your action.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Account",
+          "displayOrder": 1,
+          "icon": "account_balance"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Closure Reason",
+          "displayOrder": 2,
+          "icon": "edit_note"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Settlement",
+          "displayOrder": 3,
+          "icon": "payments"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Compliance Checks",
+          "displayOrder": 4,
+          "icon": "checklist"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Documents",
+          "displayOrder": 5,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_7",
+          "title": "Review & Submit",
+          "displayOrder": 6,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Account & Customer",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Reason",
+          "displayOrder": 2,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Balance & Disposition",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Pre-Closure Checks",
+          "displayOrder": 4,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Documents",
+          "displayOrder": 5,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_6"
+        }
+      ],
+      "fields": [
+        {
+          "name": "closureRef",
+          "label": "Closure Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"AC-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "officer",
+          "label": "Officer",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerNumber",
+          "label": "Customer Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerName",
+          "label": "Customer Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "accountNumber",
+          "label": "Account Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "accountType",
+          "label": "Account Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "options": [
+            {
+              "value": "SAVINGS",
+              "label": "Savings",
+              "displayOrder": 0
+            },
+            {
+              "value": "CURRENT",
+              "label": "Current / Cheque",
+              "displayOrder": 1
+            },
+            {
+              "value": "FIXED_DEPOSIT",
+              "label": "Fixed Deposit",
+              "displayOrder": 2
+            },
+            {
+              "value": "STUDENT",
+              "label": "Student",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "accountOpenDate",
+          "label": "Account Opened On",
+          "fieldType": "DATE",
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "defaultValue": "USD",
+          "validation": "Required()"
+        },
+        {
+          "name": "closureReason",
+          "label": "Reason",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "CUSTOMER_REQUEST",
+              "label": "Customer Request",
+              "displayOrder": 0
+            },
+            {
+              "value": "DECEASED",
+              "label": "Customer Deceased",
+              "displayOrder": 1
+            },
+            {
+              "value": "DORMANT",
+              "label": "Long-Term Dormancy",
+              "displayOrder": 2
+            },
+            {
+              "value": "BANK_INITIATED_RISK",
+              "label": "Bank-Initiated (Risk)",
+              "displayOrder": 3
+            },
+            {
+              "value": "BANK_INITIATED_BUSINESS",
+              "label": "Bank-Initiated (Business)",
+              "displayOrder": 4
+            },
+            {
+              "value": "RELATIONSHIP_EXIT",
+              "label": "AML/Compliance Exit",
+              "displayOrder": 5
+            },
+            {
+              "value": "DUPLICATE",
+              "label": "Duplicate Account",
+              "displayOrder": 6
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "reasonDetails",
+          "label": "Reason Details",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 2,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "currentBalance",
+          "label": "Current Balance",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required()"
+        },
+        {
+          "name": "accruedInterest",
+          "label": "Accrued Interest Payable",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "closureFees",
+          "label": "Closure Fees",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "netPayout",
+          "label": "Net Payout",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "defaultValue": "SUBTRACT(SUM(@{currentBalance}, @{accruedInterest}), @{closureFees})"
+        },
+        {
+          "name": "disposition",
+          "label": "Funds Disposition",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 34,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "CASH",
+              "label": "Cash to Customer",
+              "displayOrder": 0
+            },
+            {
+              "value": "TRANSFER_INTERNAL",
+              "label": "Transfer to Other Account (Internal)",
+              "displayOrder": 1
+            },
+            {
+              "value": "TRANSFER_EXTERNAL",
+              "label": "Transfer to External Bank",
+              "displayOrder": 2
+            },
+            {
+              "value": "BANKERS_CHEQUE",
+              "label": "Bankers Cheque / Draft",
+              "displayOrder": 3
+            },
+            {
+              "value": "WRITE_OFF",
+              "label": "Zero Balance / Nothing to Pay",
+              "displayOrder": 4
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "destinationAccount",
+          "label": "Destination Account / Reference",
+          "fieldType": "TEXT",
+          "displayOrder": 35,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{disposition} == 'TRANSFER_INTERNAL' OR @{disposition} == 'TRANSFER_EXTERNAL'",
+          "validation": "ValidWhen(@{disposition} != 'TRANSFER_INTERNAL' AND @{disposition} != 'TRANSFER_EXTERNAL' OR IS_NOT_EMPTY(@{destinationAccount}), \"Destination account required\")"
+        },
+        {
+          "name": "noOpenLoans",
+          "label": "No outstanding loans / facilities",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "ValidWhen(@{noOpenLoans} == true, \"All linked loans must be settled before closure\")"
+        },
+        {
+          "name": "noUnclearedCheques",
+          "label": "No uncleared cheques in process",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "ValidWhen(@{noUnclearedCheques} == true, \"Confirm no uncleared cheques\")"
+        },
+        {
+          "name": "noActiveStandingOrders",
+          "label": "Standing orders / direct debits cancelled",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "ValidWhen(@{noActiveStandingOrders} == true, \"Cancel all standing orders/direct debits first\")"
+        },
+        {
+          "name": "cardsReturned",
+          "label": "Cards / cheque book returned",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "noLegalHolds",
+          "label": "No legal holds / liens / garnishee orders",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 44,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "ValidWhen(@{noLegalHolds} == true, \"Account cannot be closed while a legal hold is active\")"
+        },
+        {
+          "name": "amlClearance",
+          "label": "AML/Compliance clearance obtained",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 45,
+          "columnSpan": 1,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "ValidWhen(@{amlClearance} == true, \"AML clearance is required\")"
+        },
+        {
+          "name": "customerInstruction",
+          "label": "Customer Instruction / Closure Form",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_6",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Signed customer instruction is required\")"
+        },
+        {
+          "name": "deathCertificate",
+          "label": "Death Certificate (if applicable)",
+          "fieldType": "FILE",
+          "displayOrder": 51,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{closureReason} == 'DECEASED'",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "ValidWhen(@{closureReason} != 'DECEASED' OR IS_NOT_EMPTY(@{deathCertificate}), \"Death certificate required\")"
+        },
+        {
+          "name": "additionalDocs",
+          "label": "Additional Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 52,
+          "columnSpan": 2,
+          "screenId": "temp_screen_6",
+          "fieldGroupId": "temp_grp_6",
+          "allowedFileTypes": "pdf,jpg,jpeg,png,doc,docx",
+          "maxFileSize": 10485760,
+          "maxFiles": 10
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Branch Operations Officer",
+      "approverType": "ROLE",
+      "roleName": "BRANCH_OPS",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Branch Manager",
+      "approverType": "ROLE",
+      "roleName": "BRANCH_MANAGER",
+      "amountLimit": 25000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Compliance Officer",
+      "approverType": "ROLE",
+      "roleName": "COMPLIANCE_OFFICER",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "BANKING",
+  "workflowTypeCode": "APPROVAL"
+}

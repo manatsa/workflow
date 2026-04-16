@@ -1,0 +1,59 @@
+{
+  "_comment": "Property Maintenance Request — tenant maintenance request with contractor dispatch and cost approval.",
+  "name": "Property Maintenance Request",
+  "code": "RPM",
+  "description": "Tenant maintenance request with contractor dispatch and cost approval.",
+  "icon": "home_repair_service",
+  "displayOrder": 141,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "PROPERTY_MGMT",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{maintRef} - @{property} (@{issueType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 6, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Request", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Contractor & Cost", "displayOrder": 1, "icon": "handyman" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Property & Tenant", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Issue", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Contractor", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Quote / Costs", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "maintRef", "label": "Maintenance Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"RPM-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "loggedDate", "label": "Logged Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "priority", "label": "Priority", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "NORMAL", "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "EMERGENCY", "label": "Emergency (4 hrs)", "displayOrder": 0 }, { "value": "URGENT", "label": "Urgent (24 hrs)", "displayOrder": 1 }, { "value": "NORMAL", "label": "Normal (5 days)", "displayOrder": 2 }, { "value": "ROUTINE", "label": "Routine / Scheduled", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "source", "label": "Source", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "TENANT", "label": "Tenant Request", "displayOrder": 0 }, { "value": "INSPECTION", "label": "Routine Inspection", "displayOrder": 1 }, { "value": "PREVENTIVE", "label": "Preventive", "displayOrder": 2 }, { "value": "LANDLORD", "label": "Landlord-Initiated", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "property", "label": "Property Address", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "tenantName", "label": "Tenant Name", "fieldType": "TEXT", "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "tenantPhone", "label": "Tenant Phone", "fieldType": "PHONE", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "issueType", "label": "Issue Category", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "PLUMBING", "label": "Plumbing", "displayOrder": 0 }, { "value": "ELECTRICAL", "label": "Electrical", "displayOrder": 1 }, { "value": "HVAC", "label": "HVAC / Aircon", "displayOrder": 2 }, { "value": "STRUCTURAL", "label": "Structural / Roof", "displayOrder": 3 }, { "value": "APPLIANCE", "label": "Appliance", "displayOrder": 4 }, { "value": "PEST", "label": "Pest Control", "displayOrder": 5 }, { "value": "LANDSCAPING", "label": "Landscaping", "displayOrder": 6 }, { "value": "LOCKSMITH", "label": "Locks / Security", "displayOrder": 7 }, { "value": "OTHER", "label": "Other", "displayOrder": 8 } ], "validation": "Required()" },
+      { "name": "description", "label": "Issue Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(20)" },
+      { "name": "contractorName", "label": "Contractor Assigned", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "contractorPhone", "label": "Contractor Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Phone()" },
+      { "name": "scheduledDate", "label": "Scheduled Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "accessArranged", "label": "Access Arranged with Tenant", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "quotedCost", "label": "Quoted Cost", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "costAllocation", "label": "Cost Borne By", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "LANDLORD", "label": "Landlord", "displayOrder": 0 }, { "value": "TENANT", "label": "Tenant (breakage)", "displayOrder": 1 }, { "value": "SPLIT", "label": "Split", "displayOrder": 2 }, { "value": "INSURANCE", "label": "Insurance", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "withinBudget", "label": "Within Maintenance Budget", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "landlordApproval", "label": "Landlord Approval Required?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Property Administrator", "approverType": "ROLE", "roleName": "PROPERTY_ADMIN", "amountLimit": 500, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Property Manager", "approverType": "ROLE", "roleName": "PROPERTY_MANAGER", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Landlord / Portfolio Manager", "approverType": "ROLE", "roleName": "LANDLORD", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

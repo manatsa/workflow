@@ -1,0 +1,63 @@
+{
+  "_comment": "Ingredient Supplier Approval — onboard and approve a raw material / ingredient supplier.",
+  "name": "Ingredient Supplier Approval",
+  "code": "FSA",
+  "description": "Onboard and approve a raw material / ingredient supplier with audit, certification and test history.",
+  "icon": "fact_check",
+  "displayOrder": 99,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "FOOD",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{supplierRef} - @{supplierName} (@{ingredient})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Supplier", "displayOrder": 0, "icon": "business" },
+      { "id": "temp_screen_2", "title": "Ingredient & Audit", "displayOrder": 1, "icon": "fact_check" },
+      { "id": "temp_screen_3", "title": "Documents", "displayOrder": 2, "icon": "attach_file" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Supplier", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Location", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Ingredient", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Certifications & Audit", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Documents", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "supplierRef", "label": "Supplier Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FSA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "supplierName", "label": "Supplier Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "contactName", "label": "Contact Person", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter valid email\")" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND Phone()" },
+      { "name": "country", "label": "Country of Origin", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "manufacturingSite", "label": "Manufacturing Site", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "ingredient", "label": "Ingredient / Material", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "isHighRisk", "label": "High-Risk Ingredient?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "organic", "label": "Organic?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "halalKosher", "label": "Halal / Kosher Certified?", "fieldType": "SELECT", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "NONE", "label": "None", "displayOrder": 0 }, { "value": "HALAL", "label": "Halal", "displayOrder": 1 }, { "value": "KOSHER", "label": "Kosher", "displayOrder": 2 }, { "value": "BOTH", "label": "Both", "displayOrder": 3 } ] },
+      { "name": "gfsiScheme", "label": "GFSI-Recognised Scheme", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "BRC", "label": "BRCGS", "displayOrder": 0 }, { "value": "FSSC_22000", "label": "FSSC 22000", "displayOrder": 1 }, { "value": "IFS", "label": "IFS", "displayOrder": 2 }, { "value": "SQF", "label": "SQF", "displayOrder": 3 }, { "value": "NONE", "label": "None", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "auditResult", "label": "Latest Audit Result", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "PASS_A", "label": "Pass - Grade A", "displayOrder": 0 }, { "value": "PASS_B", "label": "Pass - Grade B", "displayOrder": 1 }, { "value": "CONDITIONAL", "label": "Conditional", "displayOrder": 2 }, { "value": "FAIL", "label": "Fail", "displayOrder": 3 }, { "value": "NOT_AUDITED", "label": "Not Audited", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "auditDate", "label": "Audit Date", "fieldType": "DATE", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "auditValidUntil", "label": "Certificate Valid Until", "fieldType": "DATE", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "sanctionsClear", "label": "Sanctions / Trade Restrictions Clear", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{sanctionsClear} == true, \"Sanctions check must be clear\")" },
+      { "name": "testedSamplesPassed", "label": "Sample Tests Passed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{testedSamplesPassed} == true, \"Sample testing must pass\")" },
+      { "name": "gfsiCertificate", "label": "GFSI Certificate", "fieldType": "FILE", "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,jpg,jpeg,png", "maxFileSize": 10485760 },
+      { "name": "specSheet", "label": "Product Specification Sheet", "fieldType": "FILE", "isMandatory": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,doc,docx,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" },
+      { "name": "coa", "label": "Certificate of Analysis (Sample)", "fieldType": "FILE", "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf", "maxFileSize": 10485760 }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Procurement Officer", "approverType": "ROLE", "roleName": "PROCUREMENT_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "QA Manager", "approverType": "ROLE", "roleName": "QA_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Supply Chain", "approverType": "ROLE", "roleName": "HEAD_SUPPLY_CHAIN", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

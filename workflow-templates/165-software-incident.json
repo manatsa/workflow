@@ -1,0 +1,57 @@
+{
+  "_comment": "Production Incident Postmortem — record and approve postmortem for a production incident.",
+  "name": "Incident Postmortem",
+  "code": "SIP",
+  "description": "Record root cause, impact and corrective actions for a production incident.",
+  "icon": "report",
+  "displayOrder": 165,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "SOFTWARE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{incidentRef} - @{title} (@{severity})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Incident", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Root Cause & Actions", "displayOrder": 1, "icon": "build_circle" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Incident Detail", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Impact", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Root Cause", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Corrective Actions", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "incidentRef", "label": "Incident Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"SIP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "incidentCommander", "label": "Incident Commander", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "title", "label": "Incident Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(5)" },
+      { "name": "severity", "label": "Severity", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SEV1", "label": "SEV1 - Total Outage", "displayOrder": 0 }, { "value": "SEV2", "label": "SEV2 - Major Degradation", "displayOrder": 1 }, { "value": "SEV3", "label": "SEV3 - Minor Degradation", "displayOrder": 2 }, { "value": "SEV4", "label": "SEV4 - Cosmetic", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "detectedAt", "label": "Detected At", "fieldType": "DATE", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "resolvedAt", "label": "Resolved At", "fieldType": "DATE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "downtimeMins", "label": "Downtime (minutes)", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "customersImpacted", "label": "Customers Impacted", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "revenueLoss", "label": "Estimated Revenue Loss", "fieldType": "CURRENCY", "defaultValue": "0", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "dataLoss", "label": "Data Loss / Corruption?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "summary", "label": "Incident Summary", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(50)" },
+      { "name": "rootCause", "label": "Root Cause Analysis", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(50)" },
+      { "name": "fiveWhys", "label": "5-Whys (if applicable)", "fieldType": "TEXTAREA", "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "actions", "label": "Corrective / Preventive Actions", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"action\",\"label\":\"Action\",\"type\":\"TEXT\",\"width\":300,\"required\":true},{\"name\":\"owner\",\"label\":\"Owner\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"due\",\"label\":\"Due Date\",\"type\":\"DATE\",\"width\":140,\"required\":true},{\"name\":\"priority\",\"label\":\"Priority\",\"type\":\"SELECT\",\"width\":120,\"options\":[\"P0\",\"P1\",\"P2\",\"P3\"],\"required\":true}]", "validation": "MinRows(1, \"At least one action required\")" },
+      { "name": "blameless", "label": "Blameless Postmortem Confirmed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{blameless} == true, \"Must be blameless\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Engineering Manager", "approverType": "ROLE", "roleName": "ENG_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Head of Engineering", "approverType": "ROLE", "roleName": "HEAD_ENG", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "CTO", "approverType": "ROLE", "roleName": "CTO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

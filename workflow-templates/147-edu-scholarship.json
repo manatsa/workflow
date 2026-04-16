@@ -1,0 +1,67 @@
+{
+  "_comment": "Scholarship / Bursary Application — apply for financial assistance for studies.",
+  "name": "Scholarship Application",
+  "code": "ESH",
+  "description": "Apply for a scholarship / bursary based on merit or need.",
+  "icon": "school",
+  "displayOrder": 147,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "EDUCATION",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{scholarshipRef} - @{applicantName} (@{awardAmount})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Applicant", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Need & Merit", "displayOrder": 1, "icon": "assessment" },
+      { "id": "temp_screen_3", "title": "Award", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Applicant", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Programme", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Financial Need", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Academic Merit", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Award", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "scholarshipRef", "label": "Application Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ESH-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "scholarshipFund", "label": "Scholarship / Bursary Fund", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "fundType", "label": "Fund Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "MERIT", "label": "Merit-Based", "displayOrder": 0 }, { "value": "NEED", "label": "Needs-Based", "displayOrder": 1 }, { "value": "MERIT_NEED", "label": "Merit & Need", "displayOrder": 2 }, { "value": "SPORTS", "label": "Sports", "displayOrder": 3 }, { "value": "DONOR", "label": "Donor-Sponsored", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "applicantName", "label": "Applicant Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "studentId", "label": "Student ID", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "gender", "label": "Gender", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "F", "label": "Female", "displayOrder": 0 }, { "value": "M", "label": "Male", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "contactEmail", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND ValidWhen(IS_EMAIL(@{contactEmail}), \"Enter valid email\")" },
+      { "name": "programme", "label": "Programme / Course", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "yearOfStudy", "label": "Year of Study", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "institutionName", "label": "Institution", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "householdIncome", "label": "Household Annual Income", "fieldType": "CURRENCY", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "householdSize", "label": "Household Size", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "siblingsInSchool", "label": "Siblings in School / College", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "orphanStatus", "label": "Orphan Status", "fieldType": "SELECT", "defaultValue": "NONE", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "NONE", "label": "Not an Orphan", "displayOrder": 0 }, { "value": "SINGLE", "label": "Single Orphan", "displayOrder": 1 }, { "value": "DOUBLE", "label": "Double Orphan", "displayOrder": 2 } ] },
+      { "name": "gpaOrAverage", "label": "GPA / Academic Average", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "meritRank", "label": "Class Rank / Distinctions", "fieldType": "TEXT", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "personalStatement", "label": "Personal Statement / Motivation", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(100)" },
+      { "name": "decision", "label": "Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "AWARD_FULL", "label": "Full Award", "displayOrder": 0 }, { "value": "AWARD_PARTIAL", "label": "Partial Award", "displayOrder": 1 }, { "value": "WAITLIST", "label": "Waitlist", "displayOrder": 2 }, { "value": "DECLINE", "label": "Decline", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "awardAmount", "label": "Award Amount (per year)", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "coverage", "label": "Coverage", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 52, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required()" },
+      { "name": "renewalConditions", "label": "Renewal Conditions", "fieldType": "TEXTAREA", "displayOrder": 53, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "bondRequired", "label": "Service Bond Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 54, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Scholarships Officer", "approverType": "ROLE", "roleName": "SCHOLARSHIPS_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Scholarships Committee", "approverType": "ROLE", "roleName": "SCHOLARSHIPS_COMMITTEE", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Financial Aid Director", "approverType": "ROLE", "roleName": "FIN_AID_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

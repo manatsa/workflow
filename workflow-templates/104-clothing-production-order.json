@@ -1,0 +1,65 @@
+{
+  "_comment": "Garment Production Order — place a cut-make-trim / CMT production order with a factory.",
+  "name": "Garment Production Order",
+  "code": "CPO",
+  "description": "Place a CMT or FOB production order with a factory: styles, quantities, fabric and delivery schedule.",
+  "icon": "precision_manufacturing",
+  "displayOrder": 104,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "CLOTHING",
+  "workflowTypeCode": "REQUISITION",
+  "titleTemplate": "@{poRef} - @{factoryName} (@{totalValue})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 96, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Order", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Style & Quantity Breakdown", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Schedule & Terms", "displayOrder": 2, "icon": "schedule" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Factory", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Style Quantities", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Schedule", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Payment Terms", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "poRef", "label": "PO Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CPO-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderDate", "label": "Order Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "merchandiser", "label": "Merchandiser", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "orderType", "label": "Order Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "CMT", "label": "CMT", "displayOrder": 0 }, { "value": "FOB", "label": "FOB", "displayOrder": 1 }, { "value": "FULL_PACKAGE", "label": "Full Package", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "factoryName", "label": "Factory / Manufacturer", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "factoryCountry", "label": "Country", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "complianceStatus", "label": "Factory Compliance", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "APPROVED", "label": "Fully Approved", "displayOrder": 0 }, { "value": "CONDITIONAL", "label": "Conditional", "displayOrder": 1 }, { "value": "PROBATION", "label": "Probation", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "styleLines", "label": "Style / Size / Colour Breakdown", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 500, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"styleCode\",\"label\":\"Style\",\"type\":\"TEXT\",\"width\":120,\"required\":true},{\"name\":\"colour\",\"label\":\"Colour\",\"type\":\"TEXT\",\"width\":140,\"required\":true},{\"name\":\"size\",\"label\":\"Size\",\"type\":\"TEXT\",\"width\":80,\"required\":true},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":100,\"required\":true},{\"name\":\"unitCost\",\"label\":\"Unit Cost\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"lineTotal\",\"label\":\"Line Total\",\"type\":\"NUMBER\",\"width\":130,\"computed\":\"MULTIPLY(@{quantity}, @{unitCost})\"}]", "validation": "MinRows(1, \"At least one style line required\")" },
+      { "name": "totalUnits", "label": "Total Units", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "defaultValue": "SUM_COLUMN(\"styleLines\", \"quantity\")" },
+      { "name": "totalValue", "label": "Total Order Value", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "defaultValue": "SUM_COLUMN(\"styleLines\", \"lineTotal\")" },
+      { "name": "fabricReady", "label": "Fabric Sourced / Approved", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{fabricReady} == true, \"Fabric must be approved\")" },
+      { "name": "prePPMeetingDone", "label": "Pre-Production Meeting Done", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "cutDate", "label": "Cut Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "exFactoryDate", "label": "Ex-Factory Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Ex-factory must be future\")" },
+      { "name": "incoterm", "label": "Incoterm", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "FOB", "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "EXW", "label": "EXW", "displayOrder": 0 }, { "value": "FOB", "label": "FOB", "displayOrder": 1 }, { "value": "CIF", "label": "CIF", "displayOrder": 2 }, { "value": "DDP", "label": "DDP", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "paymentTerms", "label": "Payment Terms", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "deposit", "label": "Deposit %", "fieldType": "NUMBER", "defaultValue": "30", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Min(0) AND Max(100)" },
+      { "name": "lcRequired", "label": "LC Required?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Merchandiser", "approverType": "ROLE", "roleName": "MERCHANDISER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Sourcing Manager", "approverType": "ROLE", "roleName": "SOURCING_MANAGER", "amountLimit": 200000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Head of Production", "approverType": "ROLE", "roleName": "HEAD_PRODUCTION", "amountLimit": 2000000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "CFO", "approverType": "ROLE", "roleName": "CFO", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

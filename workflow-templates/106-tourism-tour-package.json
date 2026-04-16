@@ -1,0 +1,66 @@
+{
+  "_comment": "Tour Package Booking — book a multi-service tour package (flights, hotel, activities) for a client.",
+  "name": "Tour Package Booking",
+  "code": "TTB",
+  "description": "Book a multi-service tour package (flights, hotels, transfers, activities) for a client.",
+  "icon": "flight_takeoff",
+  "displayOrder": 106,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "TOURISM",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{bookingRef} - @{clientName} (@{destination})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 4, "reminderStartAfterHours": 4,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Client & Trip", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Services", "displayOrder": 1, "icon": "list" },
+      { "id": "temp_screen_3", "title": "Pricing", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Booking & Client", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Trip", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Travellers", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Services Booked", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Pricing", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "bookingRef", "label": "Booking Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"TTB-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "bookingDate", "label": "Booking Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "consultant", "label": "Consultant", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "clientName", "label": "Lead Traveller Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "phone", "label": "Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 4, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND Phone()" },
+      { "name": "email", "label": "Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 5, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required() AND ValidWhen(IS_EMAIL(@{email}), \"Enter valid email\")" },
+      { "name": "packageType", "label": "Package Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "LEISURE", "label": "Leisure / Holiday", "displayOrder": 0 }, { "value": "HONEYMOON", "label": "Honeymoon", "displayOrder": 1 }, { "value": "SAFARI", "label": "Safari / Adventure", "displayOrder": 2 }, { "value": "BUSINESS", "label": "Business", "displayOrder": 3 }, { "value": "PILGRIMAGE", "label": "Pilgrimage", "displayOrder": 4 }, { "value": "CRUISE", "label": "Cruise", "displayOrder": 5 }, { "value": "GROUP", "label": "Group Tour", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "destination", "label": "Destination(s)", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "departureDate", "label": "Departure Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "returnDate", "label": "Return Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "travellers", "label": "Travellers", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"fullName\",\"label\":\"Full Name (as per passport)\",\"type\":\"TEXT\",\"width\":260,\"required\":true},{\"name\":\"passportNo\",\"label\":\"Passport #\",\"type\":\"TEXT\",\"width\":160,\"required\":true},{\"name\":\"nationality\",\"label\":\"Nationality\",\"type\":\"TEXT\",\"width\":140,\"required\":true},{\"name\":\"passportExpiry\",\"label\":\"Passport Expiry\",\"type\":\"DATE\",\"width\":140,\"required\":true},{\"name\":\"dob\",\"label\":\"DOB\",\"type\":\"DATE\",\"width\":130,\"required\":true}]", "validation": "MinRows(1, \"At least one traveller required\")" },
+      { "name": "services", "label": "Services Booked", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "tableMinRows": 1, "tableMaxRows": 50, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"service\",\"label\":\"Service\",\"type\":\"SELECT\",\"width\":160,\"required\":true,\"options\":[\"Flight\",\"Hotel\",\"Transfer\",\"Car Hire\",\"Activity\",\"Cruise\",\"Rail\",\"Insurance\",\"Visa\"]},{\"name\":\"supplier\",\"label\":\"Supplier\",\"type\":\"TEXT\",\"width\":200},{\"name\":\"description\",\"label\":\"Description\",\"type\":\"TEXT\",\"width\":280,\"required\":true},{\"name\":\"cost\",\"label\":\"Cost\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"sell\",\"label\":\"Sell\",\"type\":\"NUMBER\",\"width\":120,\"required\":true}]", "validation": "MinRows(1, \"At least one service required\")" },
+      { "name": "totalCost", "label": "Total Supplier Cost", "fieldType": "CURRENCY", "isReadonly": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM_COLUMN(\"services\", \"cost\")" },
+      { "name": "totalSell", "label": "Total Selling Price", "fieldType": "CURRENCY", "isReadonly": true, "isLimited": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUM_COLUMN(\"services\", \"sell\")" },
+      { "name": "marginAmount", "label": "Gross Margin", "fieldType": "CURRENCY", "isReadonly": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "SUBTRACT(@{totalSell}, @{totalCost})" },
+      { "name": "marginPercent", "label": "Margin %", "fieldType": "NUMBER", "isReadonly": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "PERCENTAGE(@{marginAmount}, @{totalSell})" },
+      { "name": "depositPaid", "label": "Deposit Paid", "fieldType": "CURRENCY", "isMandatory": true, "defaultValue": "0", "inSummary": true, "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "balanceDueDate", "label": "Balance Due Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 45, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5", "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Senior Consultant", "approverType": "ROLE", "roleName": "SENIOR_CONSULTANT", "amountLimit": 5000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Branch Manager", "approverType": "ROLE", "roleName": "BRANCH_MANAGER", "amountLimit": 50000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GM", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

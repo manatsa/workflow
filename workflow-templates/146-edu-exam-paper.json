@@ -1,0 +1,60 @@
+{
+  "_comment": "Exam Paper Approval — approve a set/moderated exam paper before sitting.",
+  "name": "Exam Paper Approval",
+  "code": "EEP",
+  "description": "Approve a set and moderated exam paper before sitting with security controls.",
+  "icon": "quiz",
+  "displayOrder": 146,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "EDUCATION",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{paperRef} - @{subject} (@{examDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Paper", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Quality & Security", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Subject & Paper", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Setter & Moderator", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Moderation", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Security", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "paperRef", "label": "Paper Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"EEP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "classification", "label": "Classification", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "CONFIDENTIAL", "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "CONFIDENTIAL", "label": "Confidential", "displayOrder": 0 }, { "value": "HIGHLY_CONFIDENTIAL", "label": "Highly Confidential", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "examSession", "label": "Exam Session / Year", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "subject", "label": "Subject / Module", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "paperCode", "label": "Paper Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "level", "label": "Level / Grade", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "durationMinutes", "label": "Duration (minutes)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(15)" },
+      { "name": "totalMarks", "label": "Total Marks", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "examDate", "label": "Exam Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "setter", "label": "Setter", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "internalModerator", "label": "Internal Moderator", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "externalModerator", "label": "External Moderator", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "syllabusCoverage", "label": "Syllabus Coverage %", "fieldType": "NUMBER", "isMandatory": true, "defaultValue": "100", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(100)" },
+      { "name": "bloomsTaxonomyBalanced", "label": "Bloom's Taxonomy Balanced", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{bloomsTaxonomyBalanced} == true, \"Taxonomy must be balanced\")" },
+      { "name": "markingSchemeIncluded", "label": "Marking Scheme Included", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{markingSchemeIncluded} == true, \"Marking scheme required\")" },
+      { "name": "moderationReport", "label": "Moderation Report Attached", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{moderationReport} == true, \"Moderation report required\")" },
+      { "name": "storedInSafe", "label": "Original Stored in Safe", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{storedInSafe} == true, \"Original must be stored in safe\")" },
+      { "name": "copiesLimited", "label": "Copies Limited to Need-to-Know", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{copiesLimited} == true, \"Copies must be limited\")" },
+      { "name": "noLeakageEvent", "label": "No Leakage / Breach Suspected", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "conflictOfInterestDeclared", "label": "COI Declared by Setter/Moderators", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "true", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Subject Head / HOD", "approverType": "ROLE", "roleName": "HOD", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Exams Officer", "approverType": "ROLE", "roleName": "EXAMS_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Dean / Academic Registrar", "approverType": "ROLE", "roleName": "ACADEMIC_REGISTRAR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

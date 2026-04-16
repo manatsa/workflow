@@ -1,0 +1,436 @@
+{
+  "_comment": "Document Approval — generic workflow for reviewing and approving policies, procedures, contracts, or any document.",
+  "name": "Document Approval",
+  "code": "DOC",
+  "description": "Submit a document for structured review and approval.",
+  "icon": "article",
+  "displayOrder": 90,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{docNumber} - @{documentTitle} (v@{version})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 48,
+  "reminderMaxCount": 3,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Document Info",
+          "displayOrder": 0,
+          "icon": "description"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Review Criteria",
+          "displayOrder": 1,
+          "icon": "rule"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Submit",
+          "displayOrder": 2,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Identifiers",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Document Details",
+          "displayOrder": 1,
+          "columns": 1,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "File",
+          "displayOrder": 2,
+          "columns": 1,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Review Context",
+          "displayOrder": 3,
+          "columns": 1,
+          "screenId": "temp_s2"
+        }
+      ],
+      "fields": [
+        {
+          "name": "docNumber",
+          "label": "Document Ref #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"DOC-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "submittedOn",
+          "label": "Submitted On",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "submittedBy",
+          "label": "Submitted By",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "submitterDept",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "documentTitle",
+          "label": "Document Title",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(3) AND MaxLength(200)",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "documentType",
+          "label": "Document Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "options": [
+            {
+              "value": "POLICY",
+              "label": "Policy",
+              "displayOrder": 0
+            },
+            {
+              "value": "PROCEDURE",
+              "label": "Procedure / SOP",
+              "displayOrder": 1
+            },
+            {
+              "value": "CONTRACT",
+              "label": "Contract / Agreement",
+              "displayOrder": 2
+            },
+            {
+              "value": "REPORT",
+              "label": "Report",
+              "displayOrder": 3
+            },
+            {
+              "value": "PROPOSAL",
+              "label": "Proposal",
+              "displayOrder": 4
+            },
+            {
+              "value": "PRESENTATION",
+              "label": "Presentation",
+              "displayOrder": 5
+            },
+            {
+              "value": "SPECIFICATION",
+              "label": "Technical Specification",
+              "displayOrder": 6
+            },
+            {
+              "value": "LEGAL",
+              "label": "Legal Document",
+              "displayOrder": 7
+            },
+            {
+              "value": "MARKETING",
+              "label": "Marketing Material",
+              "displayOrder": 8
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 9
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "version",
+          "label": "Version",
+          "fieldType": "TEXT",
+          "defaultValue": "1.0",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND Pattern(/^\\d+(\\.\\d+)*$/, \"Version must look like 1.0 or 2.3.1\")"
+        },
+        {
+          "name": "isNewDocument",
+          "label": "Is this a new document?",
+          "fieldType": "YES_NO",
+          "defaultValue": "true",
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "previousVersionRef",
+          "label": "Replaces Document #",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. DOC-00123",
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "visibilityExpression": "@{isNewDocument} == false"
+        },
+        {
+          "name": "summary",
+          "label": "Document Summary",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Brief summary of what this document covers...",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(30) AND MaxLength(2000)"
+        },
+        {
+          "name": "documentFile",
+          "label": "Document File",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "allowedFileTypes": "pdf,doc,docx,xls,xlsx,ppt,pptx",
+          "maxFileSize": 52428800,
+          "validation": "Required(\"Document file required\")"
+        },
+        {
+          "name": "supportingFiles",
+          "label": "Supporting Files",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g3",
+          "allowedFileTypes": "pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,png",
+          "maxFileSize": 52428800,
+          "maxFiles": 20
+        },
+        {
+          "name": "approvalReason",
+          "label": "Reason for Approval",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Why does this document need approval?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "targetAudience",
+          "label": "Intended Audience",
+          "fieldType": "SELECT",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "options": [
+            {
+              "value": "INTERNAL_ALL",
+              "label": "All Staff (Internal)",
+              "displayOrder": 0
+            },
+            {
+              "value": "DEPARTMENT",
+              "label": "Specific Department",
+              "displayOrder": 1
+            },
+            {
+              "value": "MANAGEMENT",
+              "label": "Management Only",
+              "displayOrder": 2
+            },
+            {
+              "value": "CLIENTS",
+              "label": "External Clients",
+              "displayOrder": 3
+            },
+            {
+              "value": "REGULATORS",
+              "label": "Regulatory / Legal",
+              "displayOrder": 4
+            },
+            {
+              "value": "PUBLIC",
+              "label": "Public / Website",
+              "displayOrder": 5
+            }
+          ]
+        },
+        {
+          "name": "effectiveDate",
+          "label": "Effective Date",
+          "fieldType": "DATE",
+          "tooltip": "Date the document takes effect (if approved)",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "ValidWhen(IS_EMPTY(@{effectiveDate}) OR DATE_AFTER(@{effectiveDate}, \"today\") OR IS_TODAY(@{effectiveDate}), \"Effective date must be today or in the future\")"
+        },
+        {
+          "name": "reviewDate",
+          "label": "Next Review Date",
+          "fieldType": "DATE",
+          "tooltip": "When should this document be reviewed again?",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "defaultValue": "DATE_ADD(TODAY(), 12, \"months\")",
+          "validation": "ValidWhen(IS_EMPTY(@{reviewDate}) OR IS_FUTURE(@{reviewDate}), \"Review date must be in the future\")"
+        },
+        {
+          "name": "confidentiality",
+          "label": "Confidentiality Level",
+          "fieldType": "SELECT",
+          "defaultValue": "INTERNAL",
+          "inSummary": true,
+          "displayOrder": 34,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "options": [
+            {
+              "value": "PUBLIC",
+              "label": "Public",
+              "displayOrder": 0
+            },
+            {
+              "value": "INTERNAL",
+              "label": "Internal Use Only",
+              "displayOrder": 1
+            },
+            {
+              "value": "CONFIDENTIAL",
+              "label": "Confidential",
+              "displayOrder": 2
+            },
+            {
+              "value": "RESTRICTED",
+              "label": "Restricted / Secret",
+              "displayOrder": 3
+            }
+          ]
+        },
+        {
+          "name": "changesFromPrevious",
+          "label": "Key Changes from Previous Version",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Summarize key changes since last version",
+          "displayOrder": 35,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "visibilityExpression": "@{isNewDocument} == false"
+        },
+        {
+          "name": "certification",
+          "label": "I have reviewed this document and submit it for approval",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "validation": "IsTrue(\"Confirmation required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Department Head",
+      "approverType": "ROLE",
+      "roleName": "DEPARTMENT_HEAD",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Legal / Compliance (if applicable)",
+      "approverType": "ROLE",
+      "roleName": "LEGAL",
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Final Approver",
+      "approverType": "ROLE",
+      "roleName": "EXECUTIVE",
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "GENERAL",
+  "workflowTypeCode": "APPROVAL"
+}

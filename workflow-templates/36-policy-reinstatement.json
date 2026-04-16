@@ -1,0 +1,449 @@
+{
+  "_comment": "Policy Reinstatement — reinstate a lapsed funeral policy with arrears and re-underwriting where required.",
+  "name": "Policy Reinstatement",
+  "code": "PRI",
+  "description": "Reinstate a lapsed funeral policy, collect arrears and re-underwrite where necessary.",
+  "icon": "restart_alt",
+  "displayOrder": 36,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{reinstateRef} - @{policyholderName} (@{policyNumber})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 96,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Reinstatement @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Policy reinstatement <strong>@{referenceNumber}</strong> awaiting your action.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Lapsed Policy",
+          "displayOrder": 1,
+          "icon": "policy"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Arrears",
+          "displayOrder": 2,
+          "icon": "payments"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Re-Underwriting",
+          "displayOrder": 3,
+          "icon": "medical_services"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Documents",
+          "displayOrder": 4,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Review & Submit",
+          "displayOrder": 5,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Policy",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Lapse Info",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Arrears Calculation",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Health Re-Declaration",
+          "displayOrder": 4,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Documents",
+          "displayOrder": 5,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        }
+      ],
+      "fields": [
+        {
+          "name": "reinstateRef",
+          "label": "Reinstatement Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"PRI-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "officer",
+          "label": "Officer",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "policyNumber",
+          "label": "Policy Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "policyholderName",
+          "label": "Policyholder Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "plan",
+          "label": "Plan",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "monthlyPremium",
+          "label": "Monthly Premium",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "lapseDate",
+          "label": "Lapse Date",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()"
+        },
+        {
+          "name": "monthsLapsed",
+          "label": "Months Lapsed",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND Min(1)"
+        },
+        {
+          "name": "reasonForLapse",
+          "label": "Reason for Lapse",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 22,
+          "columnSpan": 2,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "arrearsPremiums",
+          "label": "Arrears Premiums",
+          "fieldType": "CURRENCY",
+          "isMandatory": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "interestCharge",
+          "label": "Interest / Penalty",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "reinstatementFee",
+          "label": "Reinstatement Fee",
+          "fieldType": "CURRENCY",
+          "defaultValue": "0",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "totalPayable",
+          "label": "Total Amount Payable",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "defaultValue": "SUM(@{arrearsPremiums}, @{interestCharge}, @{reinstatementFee})"
+        },
+        {
+          "name": "paymentReceived",
+          "label": "Payment Received?",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "inSummary": true,
+          "displayOrder": 34,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "ValidWhen(@{paymentReceived} == true, \"Payment must be received before reinstatement\")"
+        },
+        {
+          "name": "receiptReference",
+          "label": "Receipt Reference",
+          "fieldType": "TEXT",
+          "displayOrder": 35,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{paymentReceived} == true",
+          "validation": "ValidWhen(@{paymentReceived} == false OR IS_NOT_EMPTY(@{receiptReference}), \"Receipt reference required\")"
+        },
+        {
+          "name": "newWaitingPeriod",
+          "label": "Apply New Waiting Period?",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "true",
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "waitingPeriodMonths",
+          "label": "Waiting Period (months)",
+          "fieldType": "NUMBER",
+          "defaultValue": "3",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "visibilityExpression": "@{newWaitingPeriod} == true",
+          "validation": "ValidWhen(@{newWaitingPeriod} == false OR @{waitingPeriodMonths} >= 0, \"Enter waiting period\")"
+        },
+        {
+          "name": "healthChangedSinceLapse",
+          "label": "Health changes since lapse?",
+          "fieldType": "YES_NO",
+          "isMandatory": true,
+          "defaultValue": "false",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "healthDetails",
+          "label": "Health Details",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 43,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "visibilityExpression": "@{healthChangedSinceLapse} == true",
+          "validation": "ValidWhen(@{healthChangedSinceLapse} == false OR HAS_MIN_LENGTH(@{healthDetails}, 20), \"Describe health changes\")"
+        },
+        {
+          "name": "underwriterNotes",
+          "label": "Underwriter Notes",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 44,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5"
+        },
+        {
+          "name": "reinstatementForm",
+          "label": "Signed Reinstatement Request",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Signed request required\")"
+        },
+        {
+          "name": "paymentReceipt",
+          "label": "Payment Receipt",
+          "fieldType": "FILE",
+          "displayOrder": 51,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{paymentReceived} == true",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760
+        },
+        {
+          "name": "healthDeclaration",
+          "label": "Health Re-Declaration Form",
+          "fieldType": "FILE",
+          "displayOrder": 52,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{healthChangedSinceLapse} == true",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Policy Services Officer",
+      "approverType": "ROLE",
+      "roleName": "POLICY_OFFICER",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Underwriter",
+      "approverType": "ROLE",
+      "roleName": "UNDERWRITER",
+      "amountLimit": 5000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Head of Underwriting",
+      "approverType": "ROLE",
+      "roleName": "HEAD_OF_UNDERWRITING",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "FUNERAL",
+  "workflowTypeCode": "FINANCE"
+}

@@ -1,0 +1,60 @@
+{
+  "_comment": "Delivery Exception / Misrouted Parcel — report and resolve a delivery issue (lost, damaged, misrouted, refused).",
+  "name": "Delivery Exception",
+  "code": "CDE",
+  "description": "Report and resolve a delivery exception: lost, damaged, misrouted, refused or delayed parcel.",
+  "icon": "report_problem",
+  "displayOrder": 122,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "COURIER",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{exceptionRef} - @{awb} (@{exceptionType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 6, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Exception", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Investigation & Resolution", "displayOrder": 1, "icon": "search" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Parcel", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Exception Details", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Investigation", "displayOrder": 3, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Resolution", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "exceptionRef", "label": "Exception Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"CDE-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportedDate", "label": "Reported Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportedBy", "label": "Reported By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reporterType", "label": "Reporter", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "SENDER", "label": "Sender", "displayOrder": 0 }, { "value": "RECIPIENT", "label": "Recipient", "displayOrder": 1 }, { "value": "INTERNAL", "label": "Internal Staff", "displayOrder": 2 }, { "value": "AGENT", "label": "Agent / Partner", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "awb", "label": "AWB / Tracking Number", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "origin", "label": "Origin", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "destination", "label": "Destination", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "declaredValue", "label": "Declared Value", "fieldType": "CURRENCY", "isMandatory": true, "isLimited": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "exceptionType", "label": "Exception Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "LOST", "label": "Lost", "displayOrder": 0 }, { "value": "DAMAGED", "label": "Damaged", "displayOrder": 1 }, { "value": "MISROUTED", "label": "Misrouted", "displayOrder": 2 }, { "value": "DELAYED", "label": "Delayed", "displayOrder": 3 }, { "value": "REFUSED", "label": "Refused", "displayOrder": 4 }, { "value": "ADDRESS_INVALID", "label": "Invalid Address", "displayOrder": 5 }, { "value": "CONTENT_PILFERED", "label": "Content Pilfered", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "description", "label": "Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(20)" },
+      { "name": "lastScanLocation", "label": "Last Scan Location", "fieldType": "TEXT", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "lastScanTime", "label": "Last Scan Time", "fieldType": "DATE", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "investigationFindings", "label": "Investigation Findings", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(20)" },
+      { "name": "rootCause", "label": "Root Cause", "fieldType": "SELECT", "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "SORT_ERROR", "label": "Sort Error", "displayOrder": 0 }, { "value": "BAD_PACKAGING", "label": "Inadequate Packaging", "displayOrder": 1 }, { "value": "HANDLING", "label": "Handling Damage", "displayOrder": 2 }, { "value": "LABELING", "label": "Label / Address Error", "displayOrder": 3 }, { "value": "THEFT", "label": "Theft", "displayOrder": 4 }, { "value": "WEATHER", "label": "Weather / Act of God", "displayOrder": 5 }, { "value": "CUSTOMS", "label": "Customs Hold", "displayOrder": 6 } ] },
+      { "name": "resolution", "label": "Resolution", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "DELIVERED", "label": "Delivered (Located)", "displayOrder": 0 }, { "value": "RE_DELIVERED", "label": "Re-Delivered", "displayOrder": 1 }, { "value": "RETURNED", "label": "Returned to Sender", "displayOrder": 2 }, { "value": "REFUND", "label": "Refund / Compensation", "displayOrder": 3 }, { "value": "REJECTED", "label": "Claim Rejected", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "compensationAmount", "label": "Compensation Amount", "fieldType": "CURRENCY", "defaultValue": "0", "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "customerNotified", "label": "Customer Notified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "capaAction", "label": "Preventive Action", "fieldType": "TEXTAREA", "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Claims Agent", "approverType": "ROLE", "roleName": "CLAIMS_AGENT", "amountLimit": 100, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Claims Manager", "approverType": "ROLE", "roleName": "CLAIMS_MANAGER", "amountLimit": 2500, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Operations", "approverType": "ROLE", "roleName": "HEAD_OF_OPERATIONS", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

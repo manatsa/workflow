@@ -1,0 +1,64 @@
+{
+  "_comment": "Mineral Production Report — report daily / shift mineral production from a mining operation.",
+  "name": "Mineral Production Report",
+  "code": "MPR",
+  "description": "Report daily / shift mineral production from a mining operation with tonnage, grade and recovery.",
+  "icon": "analytics",
+  "displayOrder": 132,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "MINING",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{reportRef} - @{mine} (@{reportDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 6, "reminderMaxCount": 3, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Report", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Production", "displayOrder": 1, "icon": "analytics" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference & Mine", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Reporting Period", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Ore & Waste", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Mill / Process", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Output vs Plan", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "reportRef", "label": "Report Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"MPR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "preparedBy", "label": "Prepared By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "mine", "label": "Mine / Operation", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "commodity", "label": "Commodity", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "GOLD", "label": "Gold", "displayOrder": 0 }, { "value": "COPPER", "label": "Copper", "displayOrder": 1 }, { "value": "COAL", "label": "Coal", "displayOrder": 2 }, { "value": "IRON", "label": "Iron Ore", "displayOrder": 3 }, { "value": "DIAMOND", "label": "Diamond", "displayOrder": 4 }, { "value": "PGM", "label": "Platinum Group Metals", "displayOrder": 5 }, { "value": "LITHIUM", "label": "Lithium", "displayOrder": 6 }, { "value": "OTHER", "label": "Other", "displayOrder": 7 } ], "validation": "Required()" },
+      { "name": "reportType", "label": "Report Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "SHIFT", "label": "Shift", "displayOrder": 0 }, { "value": "DAILY", "label": "Daily", "displayOrder": 1 }, { "value": "WEEKLY", "label": "Weekly", "displayOrder": 2 }, { "value": "MONTHLY", "label": "Monthly", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "isMandatory": true, "defaultValue": "TODAY()", "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "shift", "label": "Shift", "fieldType": "SELECT", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "DAY", "label": "Day", "displayOrder": 0 }, { "value": "NIGHT", "label": "Night", "displayOrder": 1 }, { "value": "EVENING", "label": "Evening", "displayOrder": 2 } ] },
+      { "name": "oreTonnes", "label": "Ore Mined (tonnes)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "wasteTonnes", "label": "Waste Moved (tonnes)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "stripRatio", "label": "Strip Ratio (W:O)", "fieldType": "NUMBER", "isReadonly": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "defaultValue": "DIVIDE(@{wasteTonnes}, @{oreTonnes})" },
+      { "name": "headGrade", "label": "Head Grade (g/t or %)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "millFeed", "label": "Mill Feed (tonnes)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "recoveryPercent", "label": "Recovery %", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(100)" },
+      { "name": "metalProduced", "label": "Metal / Mineral Produced", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "uom", "label": "Unit of Measure", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "KG", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "KG", "label": "kg", "displayOrder": 0 }, { "value": "OZ", "label": "oz", "displayOrder": 1 }, { "value": "TONNE", "label": "tonne", "displayOrder": 2 }, { "value": "CARAT", "label": "carat", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "plannedProduction", "label": "Plan for Period", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "variancePercent", "label": "Variance vs Plan %", "fieldType": "NUMBER", "isReadonly": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "defaultValue": "PERCENTAGE(SUBTRACT(@{metalProduced}, @{plannedProduction}), @{plannedProduction})" },
+      { "name": "downtimeHours", "label": "Downtime (hours)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "incidents", "label": "Safety Incidents Reported", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "notes", "label": "Notes / Variance Explanation", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Shift Supervisor", "approverType": "ROLE", "roleName": "SHIFT_SUPERVISOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Mine Production Manager", "approverType": "ROLE", "roleName": "MINE_PROD_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GM", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

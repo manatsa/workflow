@@ -1,0 +1,485 @@
+{
+  "_comment": "Cheque Stop Payment — instruct to stop payment on a cheque or range of cheques.",
+  "name": "Cheque Stop Payment Request",
+  "code": "CSP",
+  "description": "Request a stop payment on a single cheque or a range of cheques on a customer account.",
+  "icon": "block",
+  "displayOrder": 31,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{stopRef} - @{customerName} (@{chequeRange})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 2,
+  "reminderMaxCount": 6,
+  "reminderStartAfterHours": 1,
+  "escalationEnabled": true,
+  "escalationAfterHours": 4,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "URGENT: Stop Payment @{referenceNumber} pending",
+  "reminderEmailBody": "<p>Stop payment instruction <strong>@{referenceNumber}</strong> requires immediate action to prevent cheque clearing.</p>",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_screen_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_screen_2",
+          "title": "Customer & Account",
+          "displayOrder": 1,
+          "icon": "person"
+        },
+        {
+          "id": "temp_screen_3",
+          "title": "Cheque Details",
+          "displayOrder": 2,
+          "icon": "receipt_long"
+        },
+        {
+          "id": "temp_screen_4",
+          "title": "Reason & Indemnity",
+          "displayOrder": 3,
+          "icon": "gavel"
+        },
+        {
+          "id": "temp_screen_5",
+          "title": "Documents",
+          "displayOrder": 4,
+          "icon": "attach_file"
+        },
+        {
+          "id": "temp_screen_6",
+          "title": "Review & Submit",
+          "displayOrder": 5,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_grp_1",
+          "title": "Reference",
+          "displayOrder": 0,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_1"
+        },
+        {
+          "id": "temp_grp_2",
+          "title": "Customer & Account",
+          "displayOrder": 1,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_2"
+        },
+        {
+          "id": "temp_grp_3",
+          "title": "Cheque(s)",
+          "displayOrder": 2,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_3"
+        },
+        {
+          "id": "temp_grp_4",
+          "title": "Stop Reason",
+          "displayOrder": 3,
+          "columns": 2,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_5",
+          "title": "Indemnity",
+          "displayOrder": 4,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_4"
+        },
+        {
+          "id": "temp_grp_6",
+          "title": "Documents",
+          "displayOrder": 5,
+          "columns": 1,
+          "isCollapsible": false,
+          "screenId": "temp_screen_5"
+        }
+      ],
+      "fields": [
+        {
+          "name": "stopRef",
+          "label": "Stop Payment Reference",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"CSP-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "requestDate",
+          "label": "Request Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "officer",
+          "label": "Officer",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1"
+        },
+        {
+          "name": "branch",
+          "label": "Branch",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "validation": "Required()"
+        },
+        {
+          "name": "urgency",
+          "label": "Urgency",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "defaultValue": "URGENT",
+          "inSummary": true,
+          "displayOrder": 4,
+          "columnSpan": 1,
+          "screenId": "temp_screen_1",
+          "fieldGroupId": "temp_grp_1",
+          "options": [
+            {
+              "value": "URGENT",
+              "label": "Urgent (before next clearing)",
+              "displayOrder": 0
+            },
+            {
+              "value": "NORMAL",
+              "label": "Normal",
+              "displayOrder": 1
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "customerNumber",
+          "label": "Customer Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerName",
+          "label": "Customer Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "accountNumber",
+          "label": "Cheque Account Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required()"
+        },
+        {
+          "name": "customerPhone",
+          "label": "Customer Phone",
+          "fieldType": "PHONE",
+          "isMandatory": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_screen_2",
+          "fieldGroupId": "temp_grp_2",
+          "validation": "Required() AND Phone()"
+        },
+        {
+          "name": "stopType",
+          "label": "Stop Type",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "options": [
+            {
+              "value": "SINGLE",
+              "label": "Single Cheque",
+              "displayOrder": 0
+            },
+            {
+              "value": "RANGE",
+              "label": "Range of Cheques",
+              "displayOrder": 1
+            },
+            {
+              "value": "ALL",
+              "label": "All Unused Cheques (book)",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "chequeRange",
+          "label": "Cheque Number / Range",
+          "fieldType": "TEXT",
+          "tooltip": "e.g. 000123 or 000123-000130",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM()"
+        },
+        {
+          "name": "chequeAmount",
+          "label": "Cheque Amount (if known)",
+          "fieldType": "CURRENCY",
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "visibilityExpression": "@{stopType} == 'SINGLE'",
+          "validation": "ValidWhen(@{stopType} != 'SINGLE' OR IS_EMPTY(@{chequeAmount}) OR @{chequeAmount} > 0, \"Amount must be positive\")"
+        },
+        {
+          "name": "payee",
+          "label": "Payee Name (if known)",
+          "fieldType": "TEXT",
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "visibilityExpression": "@{stopType} == 'SINGLE'"
+        },
+        {
+          "name": "issueDate",
+          "label": "Issue Date",
+          "fieldType": "DATE",
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_screen_3",
+          "fieldGroupId": "temp_grp_3",
+          "visibilityExpression": "@{stopType} == 'SINGLE'"
+        },
+        {
+          "name": "stopReason",
+          "label": "Reason for Stop Payment",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "options": [
+            {
+              "value": "LOST",
+              "label": "Lost",
+              "displayOrder": 0
+            },
+            {
+              "value": "STOLEN",
+              "label": "Stolen",
+              "displayOrder": 1
+            },
+            {
+              "value": "DAMAGED",
+              "label": "Damaged / Spoilt",
+              "displayOrder": 2
+            },
+            {
+              "value": "DISPUTE_PAYEE",
+              "label": "Dispute with Payee",
+              "displayOrder": 3
+            },
+            {
+              "value": "ISSUED_IN_ERROR",
+              "label": "Issued in Error",
+              "displayOrder": 4
+            },
+            {
+              "value": "FRAUD_SUSPECTED",
+              "label": "Suspected Fraud",
+              "displayOrder": 5
+            },
+            {
+              "value": "OTHER",
+              "label": "Other",
+              "displayOrder": 6
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "policeReportFiled",
+          "label": "Police Report Filed?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{stopReason} == 'STOLEN' OR @{stopReason} == 'FRAUD_SUSPECTED'"
+        },
+        {
+          "name": "policeRefNumber",
+          "label": "Police Reference Number",
+          "fieldType": "TEXT",
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "visibilityExpression": "@{policeReportFiled} == true",
+          "validation": "ValidWhen(@{policeReportFiled} == false OR IS_NOT_EMPTY(@{policeRefNumber}), \"Police reference required\")"
+        },
+        {
+          "name": "reasonNarrative",
+          "label": "Reason Details",
+          "fieldType": "TEXTAREA",
+          "isMandatory": true,
+          "displayOrder": 33,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_4",
+          "validation": "Required() AND MinLength(20)"
+        },
+        {
+          "name": "indemnityAccepted",
+          "label": "Customer accepts indemnity for any loss arising from the stop payment",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 40,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "IsTrue(\"Customer must accept indemnity\")"
+        },
+        {
+          "name": "stopFeeAcceptance",
+          "label": "Customer accepts the applicable stop payment fee",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 41,
+          "columnSpan": 2,
+          "screenId": "temp_screen_4",
+          "fieldGroupId": "temp_grp_5",
+          "validation": "IsTrue(\"Customer must accept fee\")"
+        },
+        {
+          "name": "customerInstruction",
+          "label": "Signed Customer Instruction",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Signed customer instruction is required\")"
+        },
+        {
+          "name": "indemnityForm",
+          "label": "Indemnity Form",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 51,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760,
+          "validation": "Required(\"Indemnity form is required\")"
+        },
+        {
+          "name": "policeReport",
+          "label": "Police Report (if applicable)",
+          "fieldType": "FILE",
+          "displayOrder": 52,
+          "columnSpan": 2,
+          "screenId": "temp_screen_5",
+          "fieldGroupId": "temp_grp_6",
+          "visibilityExpression": "@{policeReportFiled} == true",
+          "allowedFileTypes": "pdf,jpg,jpeg,png",
+          "maxFileSize": 10485760
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Branch Operations Officer",
+      "approverType": "ROLE",
+      "roleName": "BRANCH_OPS",
+      "amountLimit": null,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Branch Manager",
+      "approverType": "ROLE",
+      "roleName": "BRANCH_MANAGER",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": false,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "BANKING",
+  "workflowTypeCode": "APPROVAL"
+}

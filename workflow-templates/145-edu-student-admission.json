@@ -1,0 +1,67 @@
+{
+  "_comment": "Student Admission — process a student admission application.",
+  "name": "Student Admission",
+  "code": "ESA",
+  "description": "Process a student admission application: academic review, interview, offer and enrolment.",
+  "icon": "school",
+  "displayOrder": 145,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "EDUCATION",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{admissionRef} - @{studentName} (@{programme})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Student", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Programme & Academic", "displayOrder": 1, "icon": "school" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Student Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Guardian", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Programme", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Academic Record", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Decision", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "admissionRef", "label": "Admission Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"ESA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "academicYear", "label": "Academic Year / Intake", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "level", "label": "Level", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "ECD", "label": "Early Childhood", "displayOrder": 0 }, { "value": "PRIMARY", "label": "Primary", "displayOrder": 1 }, { "value": "SECONDARY", "label": "Secondary", "displayOrder": 2 }, { "value": "DIPLOMA", "label": "Diploma", "displayOrder": 3 }, { "value": "UNDERGRAD", "label": "Undergraduate", "displayOrder": 4 }, { "value": "POSTGRAD", "label": "Postgraduate", "displayOrder": 5 }, { "value": "PHD", "label": "Doctoral", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "studentName", "label": "Student Full Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "studentId", "label": "Birth Cert / Student ID", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "dateOfBirth", "label": "Date of Birth", "fieldType": "DATE", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "gender", "label": "Gender", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "F", "label": "Female", "displayOrder": 0 }, { "value": "M", "label": "Male", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "guardianName", "label": "Parent / Guardian", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "guardianPhone", "label": "Guardian Phone", "fieldType": "PHONE", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Phone()" },
+      { "name": "guardianEmail", "label": "Guardian Email", "fieldType": "EMAIL", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND ValidWhen(IS_EMAIL(@{guardianEmail}), \"Enter valid email\")" },
+      { "name": "programme", "label": "Programme / Class", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "startTerm", "label": "Start Term", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "boarding", "label": "Boarding / Day?", "fieldType": "SELECT", "defaultValue": "DAY", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "DAY", "label": "Day Scholar", "displayOrder": 0 }, { "value": "BOARDING", "label": "Boarding", "displayOrder": 1 } ] },
+      { "name": "specialNeeds", "label": "Special Needs / Accommodations", "fieldType": "TEXTAREA", "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "previousSchool", "label": "Previous School", "fieldType": "TEXT", "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "previousGradeAvg", "label": "Grade Average %", "fieldType": "NUMBER", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0) AND Max(100)" },
+      { "name": "entranceTestScore", "label": "Entrance Test Score", "fieldType": "NUMBER", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "interviewScore", "label": "Interview Score / Rating", "fieldType": "NUMBER", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "meetsEntryRequirements", "label": "Meets Entry Requirements", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "decision", "label": "Decision", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_6",
+        "options": [ { "value": "ADMIT", "label": "Admit", "displayOrder": 0 }, { "value": "CONDITIONAL", "label": "Conditional Offer", "displayOrder": 1 }, { "value": "WAITLIST", "label": "Waitlist", "displayOrder": 2 }, { "value": "DECLINE", "label": "Decline", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "scholarshipPercent", "label": "Scholarship / Bursary %", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_6", "validation": "Min(0) AND Max(100)" },
+      { "name": "registrationFee", "label": "Registration Fee", "fieldType": "CURRENCY", "isLimited": true, "inSummary": true, "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_6", "validation": "Min(0)" },
+      { "name": "acceptanceDate", "label": "Acceptance Deadline", "fieldType": "DATE", "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_6" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Admissions Officer", "approverType": "ROLE", "roleName": "ADMISSIONS_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Admissions Head / Dean", "approverType": "ROLE", "roleName": "ADMISSIONS_HEAD", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Principal / Registrar", "approverType": "ROLE", "roleName": "PRINCIPAL", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

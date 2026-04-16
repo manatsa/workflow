@@ -1,0 +1,166 @@
+{
+  "_comment": "Product / Release Change — deploy a new feature, pricing or rule change to the fintech platform.",
+  "name": "Product Release Change",
+  "code": "FPR",
+  "description": "Controlled deployment of a new feature, pricing or business-rule change to the fintech platform (CAB).",
+  "icon": "rocket_launch",
+  "displayOrder": 56,
+  "requiresApproval": true,
+  "commentsMandatory": false,
+  "commentsMandatoryOnReject": true,
+  "commentsMandatoryOnEscalate": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "FINTECH",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{releaseRef} - @{changeTitle} (@{impact})",
+
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 12,
+  "reminderMaxCount": 4,
+  "reminderStartAfterHours": 12,
+  "escalationEnabled": true,
+  "escalationAfterHours": 48,
+  "escalationAction": "NOTIFY_ADMIN",
+  "reminderEmailSubject": "Reminder: Release @{referenceNumber} pending CAB approval",
+  "reminderEmailBody": "<p>Release <strong>@{referenceNumber}</strong> awaiting Change Advisory Board (CAB) approval.</p>",
+
+  "forms": [{
+    "name": "Main Form",
+    "displayOrder": 0,
+
+    "screens": [
+      { "id": "temp_screen_1", "title": "Reference", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Change Detail", "displayOrder": 1, "icon": "edit" },
+      { "id": "temp_screen_3", "title": "Impact & Risk", "displayOrder": 2, "icon": "warning" },
+      { "id": "temp_screen_4", "title": "Testing", "displayOrder": 3, "icon": "science" },
+      { "id": "temp_screen_5", "title": "Deployment Plan", "displayOrder": 4, "icon": "schedule" },
+      { "id": "temp_screen_6", "title": "Rollback", "displayOrder": 5, "icon": "undo" },
+      { "id": "temp_screen_7", "title": "Documents", "displayOrder": 6, "icon": "attach_file" },
+      { "id": "temp_screen_8", "title": "Review & Submit", "displayOrder": 7, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Change Info", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_3", "title": "Description", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Impact Assessment", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Affected Components", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_6", "title": "Testing Results", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_4" },
+      { "id": "temp_grp_7", "title": "Deployment", "displayOrder": 6, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_5" },
+      { "id": "temp_grp_8", "title": "Rollback", "displayOrder": 7, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_6" },
+      { "id": "temp_grp_9", "title": "Documents", "displayOrder": 8, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_7" }
+    ],
+
+    "fields": [
+      { "name": "releaseRef", "label": "Release Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FPR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "raisedDate", "label": "Date Raised", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "owner", "label": "Change Owner", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "changeType", "label": "Change Type", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "NORMAL", "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [
+          { "value": "STANDARD", "label": "Standard (Pre-approved)", "displayOrder": 0 },
+          { "value": "NORMAL", "label": "Normal", "displayOrder": 1 },
+          { "value": "EMERGENCY", "label": "Emergency", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+
+      { "name": "changeTitle", "label": "Change Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required() AND MinLength(5)" },
+      { "name": "category", "label": "Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "options": [
+          { "value": "FEATURE", "label": "New Feature", "displayOrder": 0 },
+          { "value": "PRICING", "label": "Pricing / MDR Change", "displayOrder": 1 },
+          { "value": "RULE", "label": "Business Rule / Risk", "displayOrder": 2 },
+          { "value": "INFRA", "label": "Infrastructure", "displayOrder": 3 },
+          { "value": "SECURITY", "label": "Security Patch", "displayOrder": 4 },
+          { "value": "BUGFIX", "label": "Bug Fix", "displayOrder": 5 },
+          { "value": "DATA", "label": "Data / Schema", "displayOrder": 6 }
+        ],
+        "validation": "Required()" },
+      { "name": "jiraRef", "label": "Jira / Tracking Reference", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "version", "label": "Version / Build", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+      { "name": "businessOwner", "label": "Business Owner", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_2",
+        "validation": "Required()" },
+
+      { "name": "description", "label": "Change Description & Business Benefit", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "validation": "Required() AND MinLength(50)" },
+
+      { "name": "impact", "label": "Impact", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "MEDIUM", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [
+          { "value": "LOW", "label": "Low", "displayOrder": 0 },
+          { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 },
+          { "value": "HIGH", "label": "High", "displayOrder": 2 },
+          { "value": "CRITICAL", "label": "Critical", "displayOrder": 3 }
+        ],
+        "validation": "Required()" },
+      { "name": "riskLevel", "label": "Risk Level", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "MEDIUM", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [
+          { "value": "LOW", "label": "Low", "displayOrder": 0 },
+          { "value": "MEDIUM", "label": "Medium", "displayOrder": 1 },
+          { "value": "HIGH", "label": "High", "displayOrder": 2 }
+        ],
+        "validation": "Required()" },
+      { "name": "affectsCustomers", "label": "Customer-Facing?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "downtimeRequired", "label": "Downtime Required?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "estimatedDowntimeMinutes", "label": "Est. Downtime (minutes)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "visibilityExpression": "@{downtimeRequired} == true",
+        "validation": "Min(0)" },
+      { "name": "regulatoryApprovalRequired", "label": "Regulatory Approval Needed?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 35, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+
+      { "name": "affectedComponents", "label": "Affected Components / Services", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5",
+        "tableMinRows": 1, "tableMaxRows": 30, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"component\",\"label\":\"Component\",\"type\":\"TEXT\",\"width\":240,\"required\":true},{\"name\":\"type\",\"label\":\"Type\",\"type\":\"SELECT\",\"width\":140,\"options\":[\"API\",\"UI\",\"DB\",\"CONFIG\",\"RULE\",\"INFRA\"]},{\"name\":\"changeSummary\",\"label\":\"Change Summary\",\"type\":\"TEXT\",\"width\":320}]",
+        "validation": "MinRows(1, \"At least one affected component required\")" },
+
+      { "name": "testsPassed", "label": "Unit / Integration Tests Pass", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "validation": "ValidWhen(@{testsPassed} == true, \"Tests must pass\")" },
+      { "name": "uatSignOff", "label": "UAT Sign-Off Obtained", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "validation": "ValidWhen(@{uatSignOff} == true OR @{changeType} == 'EMERGENCY', \"UAT sign-off required for non-emergency changes\")" },
+      { "name": "securityReview", "label": "Security Review Complete", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6" },
+      { "name": "performanceTest", "label": "Performance / Load Test", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6" },
+      { "name": "testingSummary", "label": "Testing Summary", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 54, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_6",
+        "validation": "Required() AND MinLength(30)" },
+
+      { "name": "deploymentWindow", "label": "Deployment Window Start", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 60, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "validation": "Required() AND DateAfter(\"today\", \"Window must be future\")" },
+      { "name": "deploymentDuration", "label": "Est. Duration (minutes)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 61, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "validation": "Required() AND Min(1)" },
+      { "name": "deploymentStrategy", "label": "Strategy", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "ROLLING", "displayOrder": 62, "columnSpan": 1, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "options": [
+          { "value": "BIG_BANG", "label": "Big Bang", "displayOrder": 0 },
+          { "value": "ROLLING", "label": "Rolling", "displayOrder": 1 },
+          { "value": "BLUE_GREEN", "label": "Blue/Green", "displayOrder": 2 },
+          { "value": "CANARY", "label": "Canary / Gradual", "displayOrder": 3 },
+          { "value": "FEATURE_FLAG", "label": "Feature Flag", "displayOrder": 4 }
+        ],
+        "validation": "Required()" },
+      { "name": "communicationPlan", "label": "Communication Plan", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 63, "columnSpan": 2, "screenId": "temp_screen_5", "fieldGroupId": "temp_grp_7",
+        "validation": "Required() AND MinLength(20)" },
+
+      { "name": "rollbackPlan", "label": "Rollback Plan", "fieldType": "TEXTAREA", "isMandatory": true, "inSummary": true, "displayOrder": 70, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_8",
+        "validation": "Required() AND MinLength(30)" },
+      { "name": "rollbackTimeMinutes", "label": "Rollback Time (minutes)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 71, "columnSpan": 2, "screenId": "temp_screen_6", "fieldGroupId": "temp_grp_8",
+        "validation": "Required() AND Min(0)" },
+
+      { "name": "specDoc", "label": "Specification / Design Doc", "fieldType": "FILE", "displayOrder": 80, "columnSpan": 2, "screenId": "temp_screen_7", "fieldGroupId": "temp_grp_9",
+        "allowedFileTypes": "pdf,doc,docx,md,txt", "maxFileSize": 10485760 },
+      { "name": "testReport", "label": "Test Report", "fieldType": "FILE", "isMandatory": true, "displayOrder": 81, "columnSpan": 2, "screenId": "temp_screen_7", "fieldGroupId": "temp_grp_9",
+        "allowedFileTypes": "pdf,doc,docx,html,xlsx", "maxFileSize": 10485760,
+        "validation": "Required()" },
+      { "name": "runbook", "label": "Runbook / Deployment Runbook", "fieldType": "FILE", "isMandatory": true, "displayOrder": 82, "columnSpan": 2, "screenId": "temp_screen_7", "fieldGroupId": "temp_grp_9",
+        "allowedFileTypes": "pdf,doc,docx,md,txt", "maxFileSize": 10485760,
+        "validation": "Required()" }
+    ]
+  }],
+
+  "approvers": [
+    { "level": 1, "name": "Engineering Lead", "approverType": "ROLE", "roleName": "ENGINEERING_LEAD", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "QA / Release Manager", "approverType": "ROLE", "roleName": "RELEASE_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 3, "name": "Security Engineer", "approverType": "ROLE", "roleName": "SECURITY_ENGINEER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Change Advisory Board", "approverType": "ROLE", "roleName": "CAB", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

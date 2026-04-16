@@ -1,0 +1,61 @@
+{
+  "_comment": "Research Ethics Approval — IRB / ethics committee review of a research study.",
+  "name": "Research Ethics Approval",
+  "code": "REA",
+  "description": "IRB / ethics committee review and approval of a research study protocol.",
+  "icon": "policy",
+  "displayOrder": 189,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "RESEARCH",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{ethicsRef} - @{studyTitle} (@{riskLevel})",
+  "reminderEnabled": true, "reminderFrequencyHours": 72, "reminderMaxCount": 3, "reminderStartAfterHours": 72,
+  "escalationEnabled": true, "escalationAfterHours": 336, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Study", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Participants & Risk", "displayOrder": 1, "icon": "group" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Investigator", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Study Detail", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Participants", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Risk & Safeguards", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "ethicsRef", "label": "Ethics Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"REA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submissionDate", "label": "Submission Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "piName", "label": "Principal Investigator", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "institution", "label": "Institution", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "piQualifications", "label": "PI Qualifications", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "studyTitle", "label": "Study Title", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "studyType", "label": "Study Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "OBSERVATIONAL", "label": "Observational", "displayOrder": 0 }, { "value": "INTERVENTIONAL", "label": "Interventional / Clinical Trial", "displayOrder": 1 }, { "value": "SURVEY", "label": "Survey / Questionnaire", "displayOrder": 2 }, { "value": "RETROSPECTIVE", "label": "Retrospective Data", "displayOrder": 3 }, { "value": "FOCUS_GROUP", "label": "Focus Group / Interview", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "hypothesis", "label": "Hypothesis / Objective", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(50)" },
+      { "name": "methodology", "label": "Methodology", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(100)" },
+      { "name": "durationMonths", "label": "Study Duration (months)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "participantCount", "label": "Planned Participant Count", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "vulnerablePopulation", "label": "Vulnerable Populations (minors/prisoners)?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "recruitmentMethod", "label": "Recruitment Method", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(20)" },
+      { "name": "informedConsent", "label": "Informed Consent Form Attached", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{informedConsent} == true, \"Informed consent required\")" },
+      { "name": "compensationOffered", "label": "Participant Compensation Offered?", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "riskLevel", "label": "Risk Level", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "MINIMAL", "label": "Minimal", "displayOrder": 0 }, { "value": "LOW", "label": "Low", "displayOrder": 1 }, { "value": "MODERATE", "label": "Moderate", "displayOrder": 2 }, { "value": "HIGH", "label": "High", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "dataAnonymised", "label": "Data Anonymised / De-identified", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{dataAnonymised} == true, \"Data anonymisation required\")" },
+      { "name": "dataSecurity", "label": "Data Storage / Security Plan Attached", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{dataSecurity} == true, \"Data security plan required\")" },
+      { "name": "adverseEventPlan", "label": "Adverse Event Reporting Plan", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{studyType} != 'INTERVENTIONAL' OR @{adverseEventPlan} == true, \"AE plan required for interventional\")" },
+      { "name": "committeeRecommendation", "label": "Committee Recommendation", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 44, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "APPROVE", "label": "Approve", "displayOrder": 0 }, { "value": "APPROVE_CONDITIONS", "label": "Approve with Conditions", "displayOrder": 1 }, { "value": "REVISE", "label": "Revise & Resubmit", "displayOrder": 2 }, { "value": "REJECT", "label": "Reject", "displayOrder": 3 } ], "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Ethics Coordinator", "approverType": "ROLE", "roleName": "ETHICS_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "IRB / Ethics Committee", "approverType": "ROLE", "roleName": "IRB", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Dean of Research", "approverType": "ROLE", "roleName": "DEAN_RESEARCH", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

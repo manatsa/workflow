@@ -1,0 +1,693 @@
+{
+  "_comment": "Batch Release / Product Release — authorize a production batch or lot for shipment after QC sign-off.",
+  "name": "Batch Release",
+  "code": "BR",
+  "description": "Formal release authorization for a completed production batch after all QC checks have passed.",
+  "icon": "approval",
+  "displayOrder": 250,
+  "requiresApproval": true,
+  "commentsMandatory": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "titleTemplate": "@{brNumber} - @{productCode} Lot @{lotNumber} (@{quantity} @{unit})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 12,
+  "reminderMaxCount": 3,
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Batch Info",
+          "displayOrder": 0,
+          "icon": "info"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Production",
+          "displayOrder": 1,
+          "icon": "factory"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Quality Checks",
+          "displayOrder": 2,
+          "icon": "fact_check"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Release Decision",
+          "displayOrder": 3,
+          "icon": "verified"
+        },
+        {
+          "id": "temp_s5",
+          "title": "Submit",
+          "displayOrder": 4,
+          "icon": "done_all",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Identification",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Product & Batch",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Production Details",
+          "displayOrder": 2,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Yield",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Quality Records",
+          "displayOrder": 4,
+          "columns": 2,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g6",
+          "title": "Test Results",
+          "displayOrder": 5,
+          "columns": 1,
+          "screenId": "temp_s3"
+        },
+        {
+          "id": "temp_g7",
+          "title": "Release",
+          "displayOrder": 6,
+          "columns": 2,
+          "screenId": "temp_s4"
+        },
+        {
+          "id": "temp_g8",
+          "title": "Documents",
+          "displayOrder": 7,
+          "columns": 1,
+          "screenId": "temp_s4"
+        }
+      ],
+      "fields": [
+        {
+          "name": "brNumber",
+          "label": "Release #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"BR-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "releaseDate",
+          "label": "Release Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "submittedBy",
+          "label": "Submitted By",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "submittedByDept",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "productCode",
+          "label": "Product Code",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "productName",
+          "label": "Product Name",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()"
+        },
+        {
+          "name": "lotNumber",
+          "label": "Lot / Batch Number",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "batchSize",
+          "label": "Batch Size",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND Min(1)"
+        },
+        {
+          "name": "productRevision",
+          "label": "Product Revision",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 14,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "customer",
+          "label": "Customer (if customer-specific)",
+          "fieldType": "TEXT",
+          "displayOrder": 15,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "poNumber",
+          "label": "Customer PO #",
+          "fieldType": "TEXT",
+          "displayOrder": 16,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "workOrderNumber",
+          "label": "Work Order #",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "productionStart",
+          "label": "Production Start",
+          "fieldType": "DATETIME",
+          "isMandatory": true,
+          "displayOrder": 21,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND ValidWhen(IS_PAST(@{productionStart}) OR IS_TODAY(@{productionStart}), \"Start must be past or today\")"
+        },
+        {
+          "name": "productionEnd",
+          "label": "Production End",
+          "fieldType": "DATETIME",
+          "isMandatory": true,
+          "displayOrder": 22,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required() AND IS_AFTER(@{productionEnd}, @{productionStart})"
+        },
+        {
+          "name": "productionLine",
+          "label": "Line / Cell",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 23,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "productionShift",
+          "label": "Shift(s)",
+          "fieldType": "TEXT",
+          "placeholder": "e.g. A, A+B",
+          "displayOrder": 24,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3"
+        },
+        {
+          "name": "productionSupervisor",
+          "label": "Production Supervisor",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "displayOrder": 25,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "validation": "Required()"
+        },
+        {
+          "name": "quantityProduced",
+          "label": "Qty Produced",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "quantityAccepted",
+          "label": "Qty Accepted",
+          "fieldType": "NUMBER",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Required() AND Min(0)"
+        },
+        {
+          "name": "quantityRejected",
+          "label": "Qty Rejected / Scrap",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "quantityRework",
+          "label": "Qty in Rework",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 33,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "quantity",
+          "label": "Qty for Release",
+          "fieldType": "NUMBER",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 34,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "defaultValue": "@{quantityAccepted}"
+        },
+        {
+          "name": "unit",
+          "label": "Unit of Measure",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 35,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "defaultValue": "each",
+          "options": [
+            {
+              "value": "each",
+              "label": "each",
+              "displayOrder": 0
+            },
+            {
+              "value": "kg",
+              "label": "kg",
+              "displayOrder": 1
+            },
+            {
+              "value": "g",
+              "label": "g",
+              "displayOrder": 2
+            },
+            {
+              "value": "L",
+              "label": "L",
+              "displayOrder": 3
+            },
+            {
+              "value": "mL",
+              "label": "mL",
+              "displayOrder": 4
+            },
+            {
+              "value": "box",
+              "label": "box",
+              "displayOrder": 5
+            },
+            {
+              "value": "pallet",
+              "label": "pallet",
+              "displayOrder": 6
+            }
+          ]
+        },
+        {
+          "name": "inProcessChecksPassed",
+          "label": "All In-Process QC Checks Passed?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "IsTrue(\"All in-process checks must pass before release\")"
+        },
+        {
+          "name": "finalInspectionPassed",
+          "label": "Final Inspection Passed?",
+          "fieldType": "YES_NO",
+          "defaultValue": "false",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "IsTrue(\"Final inspection must pass before release\")"
+        },
+        {
+          "name": "ncrCount",
+          "label": "Related NCR Count",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "ncrNumbers",
+          "label": "Related NCR Numbers",
+          "fieldType": "TEXTAREA",
+          "placeholder": "List NCR numbers related to this batch",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{ncrCount} > 0"
+        },
+        {
+          "name": "deviationsCount",
+          "label": "Deviations Count",
+          "fieldType": "NUMBER",
+          "defaultValue": "0",
+          "displayOrder": 44,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "validation": "Min(0)"
+        },
+        {
+          "name": "deviationsDescription",
+          "label": "Deviations Description",
+          "fieldType": "TEXTAREA",
+          "placeholder": "Describe any deviations that occurred and their disposition",
+          "displayOrder": 45,
+          "columnSpan": 2,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{deviationsCount} > 0",
+          "validation": "ValidWhen(@{deviationsCount} == 0 OR HAS_MIN_LENGTH(@{deviationsDescription}, 20), \"Describe deviations (min 20 chars)\")"
+        },
+        {
+          "name": "testResults",
+          "label": "Test Results Summary",
+          "fieldType": "TABLE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 50,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g6",
+          "tableMinRows": 1,
+          "tableMaxRows": 50,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"testName\",\"label\":\"Test / Parameter\",\"type\":\"TEXT\",\"width\":200,\"required\":true},{\"name\":\"specification\",\"label\":\"Specification\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"actual\",\"label\":\"Actual Result\",\"type\":\"TEXT\",\"width\":150,\"required\":true},{\"name\":\"result\",\"label\":\"Pass/Fail\",\"type\":\"SELECT\",\"width\":100,\"required\":true,\"options\":[\"PASS\",\"FAIL\",\"N/A\"]},{\"name\":\"testMethod\",\"label\":\"Method / Std\",\"type\":\"TEXT\",\"width\":150}]",
+          "validation": "MinRows(1, \"Record at least one test result\")"
+        },
+        {
+          "name": "releaseDecision",
+          "label": "Release Decision",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 60,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "options": [
+            {
+              "value": "RELEASE",
+              "label": "RELEASE - Approved for shipment",
+              "displayOrder": 0
+            },
+            {
+              "value": "CONDITIONAL",
+              "label": "CONDITIONAL RELEASE - With restrictions",
+              "displayOrder": 1
+            },
+            {
+              "value": "HOLD",
+              "label": "HOLD - Pending further investigation",
+              "displayOrder": 2
+            },
+            {
+              "value": "REJECT",
+              "label": "REJECT - Do not release",
+              "displayOrder": 3
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "conditionalDetails",
+          "label": "Conditional Release Terms",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 61,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{releaseDecision} == 'CONDITIONAL'",
+          "validation": "ValidWhen(@{releaseDecision} != 'CONDITIONAL' OR HAS_MIN_LENGTH(@{conditionalDetails}, 20), \"Specify conditional release terms\")"
+        },
+        {
+          "name": "holdReason",
+          "label": "Hold Reason",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 62,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{releaseDecision} == 'HOLD'",
+          "validation": "ValidWhen(@{releaseDecision} != 'HOLD' OR HAS_MIN_LENGTH(@{holdReason}, 20), \"Specify hold reason\")"
+        },
+        {
+          "name": "rejectReason",
+          "label": "Rejection Reason",
+          "fieldType": "TEXTAREA",
+          "displayOrder": 63,
+          "columnSpan": 2,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{releaseDecision} == 'REJECT'",
+          "validation": "ValidWhen(@{releaseDecision} != 'REJECT' OR HAS_MIN_LENGTH(@{rejectReason}, 20), \"Specify rejection reason\")"
+        },
+        {
+          "name": "warehouseLocation",
+          "label": "Warehouse Location (after release)",
+          "fieldType": "TEXT",
+          "displayOrder": 64,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "visibilityExpression": "@{releaseDecision} == 'RELEASE' OR @{releaseDecision} == 'CONDITIONAL'"
+        },
+        {
+          "name": "shelfLife",
+          "label": "Expiry / Shelf-Life Date (if applicable)",
+          "fieldType": "DATE",
+          "displayOrder": 65,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g7",
+          "validation": "ValidWhen(IS_EMPTY(@{shelfLife}) OR IS_FUTURE(@{shelfLife}), \"Shelf-life must be a future date\")"
+        },
+        {
+          "name": "batchRecord",
+          "label": "Batch Record / Traveler",
+          "fieldType": "FILE",
+          "isMandatory": true,
+          "displayOrder": 70,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "pdf,doc,docx",
+          "maxFileSize": 20971520,
+          "validation": "Required(\"Batch record required\")"
+        },
+        {
+          "name": "coaDocument",
+          "label": "Certificate of Analysis / Conformity",
+          "fieldType": "FILE",
+          "displayOrder": 71,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "pdf,doc,docx",
+          "maxFileSize": 20971520
+        },
+        {
+          "name": "testData",
+          "label": "Test Data / Lab Reports",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 72,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "pdf,xls,xlsx,csv,doc,docx",
+          "maxFileSize": 20971520,
+          "maxFiles": 20
+        },
+        {
+          "name": "supportingDocs",
+          "label": "Other Supporting Documents",
+          "fieldType": "FILE",
+          "multiple": true,
+          "displayOrder": 73,
+          "columnSpan": 1,
+          "screenId": "temp_s4",
+          "fieldGroupId": "temp_g8",
+          "allowedFileTypes": "pdf,doc,docx,xls,xlsx,jpg,png",
+          "maxFileSize": 20971520,
+          "maxFiles": 20
+        },
+        {
+          "name": "certification",
+          "label": "I certify that this batch meets all required specifications and is authorized for release based on the documented evidence",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 80,
+          "columnSpan": 1,
+          "screenId": "temp_s5",
+          "validation": "IsTrue(\"Certification required\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Production Supervisor",
+      "approverType": "ROLE",
+      "roleName": "SUPERVISOR",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "QC Manager",
+      "approverType": "ROLE",
+      "roleName": "QUALITY",
+      "canEscalate": true,
+      "requireComment": true,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Quality Assurance (QP)",
+      "approverType": "ROLE",
+      "roleName": "QA_RELEASE",
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "MANUFACTURING",
+  "workflowTypeCode": "APPROVAL"
+}

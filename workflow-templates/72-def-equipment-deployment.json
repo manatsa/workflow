@@ -1,0 +1,63 @@
+{
+  "_comment": "Equipment Deployment Authorisation — authorise movement / issue of weapons, vehicles or equipment to a unit.",
+  "name": "Equipment Deployment Authorisation",
+  "code": "DED",
+  "description": "Authorise the movement or issue of weapons, vehicles or specialised equipment to a unit or operation.",
+  "icon": "inventory",
+  "displayOrder": 72,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "DEFENCE",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{deploymentRef} - @{deployingUnit} (@{operationName})",
+  "reminderEnabled": true, "reminderFrequencyHours": 6, "reminderMaxCount": 4, "reminderStartAfterHours": 2,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Operation", "displayOrder": 0, "icon": "info" },
+      { "id": "temp_screen_2", "title": "Equipment", "displayOrder": 1, "icon": "inventory" },
+      { "id": "temp_screen_3", "title": "Logistics", "displayOrder": 2, "icon": "local_shipping" },
+      { "id": "temp_screen_4", "title": "Documents", "displayOrder": 3, "icon": "attach_file" },
+      { "id": "temp_screen_5", "title": "Review", "displayOrder": 4, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Operation", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Equipment List", "displayOrder": 2, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Transport & Timing", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Documents", "displayOrder": 4, "columns": 1, "isCollapsible": false, "screenId": "temp_screen_4" }
+    ],
+    "fields": [
+      { "name": "deploymentRef", "label": "Deployment Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"DED-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "classification", "label": "Classification", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "SECRET", "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "UNCLASSIFIED", "label": "Unclassified", "displayOrder": 0 }, { "value": "CONFIDENTIAL", "label": "Confidential", "displayOrder": 1 }, { "value": "SECRET", "label": "Secret", "displayOrder": 2 }, { "value": "TOP_SECRET", "label": "Top Secret", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "urgency", "label": "Urgency", "fieldType": "SELECT", "isMandatory": true, "defaultValue": "NORMAL", "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "ROUTINE", "label": "Routine", "displayOrder": 0 }, { "value": "NORMAL", "label": "Normal", "displayOrder": 1 }, { "value": "PRIORITY", "label": "Priority", "displayOrder": 2 }, { "value": "FLASH", "label": "FLASH / Immediate", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "operationName", "label": "Operation Name / Code", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "deployingUnit", "label": "Deploying Unit", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "commandingOfficer", "label": "Commanding Officer", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "deploymentLocation", "label": "Deployment Location / AO", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "missionBrief", "label": "Mission Brief", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(30)" },
+      { "name": "equipmentList", "label": "Equipment / Weapons to Deploy", "fieldType": "TABLE", "isMandatory": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "tableMinRows": 1, "tableMaxRows": 100, "tableStriped": true, "tableBordered": true,
+        "tableColumns": "[{\"name\":\"category\",\"label\":\"Category\",\"type\":\"SELECT\",\"width\":160,\"required\":true,\"options\":[\"Weapon\",\"Ammunition\",\"Vehicle\",\"Communication\",\"Protective Gear\",\"Medical\",\"Other\"]},{\"name\":\"nomenclature\",\"label\":\"Nomenclature\",\"type\":\"TEXT\",\"width\":260,\"required\":true},{\"name\":\"serial\",\"label\":\"Serial / Reg No.\",\"type\":\"TEXT\",\"width\":180},{\"name\":\"quantity\",\"label\":\"Qty\",\"type\":\"NUMBER\",\"width\":100,\"required\":true}]", "validation": "MinRows(1, \"Equipment list required\")" },
+      { "name": "transportMode", "label": "Transport Mode", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "ROAD", "label": "Road Convoy", "displayOrder": 0 }, { "value": "AIR", "label": "Air Lift", "displayOrder": 1 }, { "value": "RAIL", "label": "Rail", "displayOrder": 2 }, { "value": "SEA", "label": "Sea / Maritime", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "moveDate", "label": "Planned Move Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "returnDate", "label": "Expected Return Date", "fieldType": "DATE", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "escortRequired", "label": "Security Escort Required?", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "operationOrder", "label": "Operation Order (OPORD)", "fieldType": "FILE", "isMandatory": true, "displayOrder": 40, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf", "maxFileSize": 20971520, "validation": "Required()" },
+      { "name": "manifest", "label": "Equipment Manifest", "fieldType": "FILE", "isMandatory": true, "displayOrder": 41, "columnSpan": 2, "screenId": "temp_screen_4", "fieldGroupId": "temp_grp_5", "allowedFileTypes": "pdf,xls,xlsx", "maxFileSize": 10485760, "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Unit Logistics Officer", "approverType": "ROLE", "roleName": "UNIT_LOG_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Commanding Officer", "approverType": "ROLE", "roleName": "UNIT_COMMANDER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Brigade / Formation Commander", "approverType": "ROLE", "roleName": "BRIGADE_COMMANDER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 4, "name": "Chief of Staff / HQ", "approverType": "ROLE", "roleName": "CHIEF_OF_STAFF", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

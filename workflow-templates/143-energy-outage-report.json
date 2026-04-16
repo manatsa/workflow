@@ -1,0 +1,60 @@
+{
+  "_comment": "Outage Report — report and manage an electricity supply outage.",
+  "name": "Energy Outage Report",
+  "code": "EOR",
+  "description": "Report and manage an unplanned / planned electricity supply outage with restoration tracking.",
+  "icon": "power_off",
+  "displayOrder": 143,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "ENERGY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{outageRef} - @{affectedArea} (@{outageType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 1, "reminderMaxCount": 6, "reminderStartAfterHours": 1,
+  "escalationEnabled": true, "escalationAfterHours": 6, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Outage", "displayOrder": 0, "icon": "warning" },
+      { "id": "temp_screen_2", "title": "Response & Restoration", "displayOrder": 1, "icon": "engineering" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Outage Info", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Impact", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Response", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Restoration", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "outageRef", "label": "Outage Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"EOR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportedBy", "label": "Reported By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "startTime", "label": "Outage Start Time", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1", "validation": "Required()" },
+      { "name": "outageType", "label": "Outage Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 3, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1",
+        "options": [ { "value": "UNPLANNED_FAULT", "label": "Unplanned - Fault", "displayOrder": 0 }, { "value": "PLANNED_MAINT", "label": "Planned Maintenance", "displayOrder": 1 }, { "value": "LOAD_SHED", "label": "Load Shedding", "displayOrder": 2 }, { "value": "WEATHER", "label": "Storm / Weather", "displayOrder": 3 }, { "value": "EQUIPMENT", "label": "Equipment Failure", "displayOrder": 4 }, { "value": "VANDALISM", "label": "Theft / Vandalism", "displayOrder": 5 }, { "value": "EMERGENCY", "label": "Emergency Safety", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "cause", "label": "Cause / Initiating Event", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 10, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(20)" },
+      { "name": "feeder", "label": "Affected Feeder / Line", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()", "customValidationRule": "TRIM() AND UPPER()" },
+      { "name": "substation", "label": "Substation", "fieldType": "TEXT", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "voltageLevel", "label": "Voltage Level", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "affectedArea", "label": "Affected Area(s)", "fieldType": "TEXTAREA", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(10)" },
+      { "name": "customersAffected", "label": "Customers Affected", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "loadLostMW", "label": "Load Lost (MW)", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "criticalCustomers", "label": "Critical Customers Affected?", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "crewDispatched", "label": "Crew Dispatched", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{outageType} == 'PLANNED_MAINT' OR @{crewDispatched} == true, \"Crew must be dispatched\")" },
+      { "name": "crewDispatchTime", "label": "Dispatch Time", "fieldType": "DATE", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "estRestorationTime", "label": "ETR (Est. Restoration)", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "customersNotified", "label": "Customers Notified (SMS/App)", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{customersNotified} == true, \"Customers must be notified\")" },
+      { "name": "actualRestorationTime", "label": "Actual Restoration Time", "fieldType": "DATE", "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "durationMinutes", "label": "Outage Duration (min)", "fieldType": "NUMBER", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "rootCause", "label": "Root Cause", "fieldType": "TEXTAREA", "displayOrder": 42, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "actionsTaken", "label": "Actions Taken / Repairs", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND MinLength(20)" },
+      { "name": "preventiveAction", "label": "Preventive Action", "fieldType": "TEXTAREA", "displayOrder": 44, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Control Room Operator", "approverType": "ROLE", "roleName": "CONTROL_OPERATOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Network Operations Supervisor", "approverType": "ROLE", "roleName": "NETWORK_SUPERVISOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Head of Distribution", "approverType": "ROLE", "roleName": "HEAD_DISTRIBUTION", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

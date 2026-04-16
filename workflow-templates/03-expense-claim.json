@@ -1,0 +1,415 @@
+{
+  "_comment": "Expense Claim / Reimbursement — staff submits receipts for reimbursement.",
+  "name": "Expense Claim",
+  "code": "EXP",
+  "description": "Submit business expenses for reimbursement. Multi-line items with receipts.",
+  "icon": "receipt_long",
+  "displayOrder": 30,
+  "requiresApproval": true,
+  "commentsMandatoryOnReject": true,
+  "showSummary": true,
+  "showApprovalMatrix": true,
+  "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "titleTemplate": "@{claimNumber} - @{requesterName} (@{totalAmount} @{currency})",
+  "reminderEnabled": true,
+  "reminderFrequencyHours": 24,
+  "reminderMaxCount": 3,
+  "reminderStartAfterHours": 24,
+  "escalationEnabled": true,
+  "escalationAfterHours": 72,
+  "escalationAction": "NOTIFY_ADMIN",
+  "forms": [
+    {
+      "name": "Main Form",
+      "displayOrder": 0,
+      "screens": [
+        {
+          "id": "temp_s1",
+          "title": "Claim Details",
+          "displayOrder": 0,
+          "icon": "description"
+        },
+        {
+          "id": "temp_s2",
+          "title": "Expense Items",
+          "displayOrder": 1,
+          "icon": "receipt"
+        },
+        {
+          "id": "temp_s3",
+          "title": "Payment Info",
+          "displayOrder": 2,
+          "icon": "account_balance"
+        },
+        {
+          "id": "temp_s4",
+          "title": "Review",
+          "displayOrder": 3,
+          "icon": "fact_check",
+          "isSummaryScreen": true
+        }
+      ],
+      "fieldGroups": [
+        {
+          "id": "temp_g1",
+          "title": "Claim",
+          "displayOrder": 0,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g2",
+          "title": "Claimant",
+          "displayOrder": 1,
+          "columns": 2,
+          "screenId": "temp_s1"
+        },
+        {
+          "id": "temp_g3",
+          "title": "Items",
+          "displayOrder": 2,
+          "columns": 1,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g4",
+          "title": "Totals",
+          "displayOrder": 3,
+          "columns": 2,
+          "screenId": "temp_s2"
+        },
+        {
+          "id": "temp_g5",
+          "title": "Payment",
+          "displayOrder": 4,
+          "columns": 2,
+          "screenId": "temp_s3"
+        }
+      ],
+      "fields": [
+        {
+          "name": "claimNumber",
+          "label": "Claim #",
+          "fieldType": "TEXT",
+          "defaultValue": "SEQUENCE(\"EXP-\")",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 0,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "claimDate",
+          "label": "Claim Date",
+          "fieldType": "DATE",
+          "defaultValue": "TODAY()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 1,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1"
+        },
+        {
+          "name": "claimPeriodStart",
+          "label": "Period Start",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 2,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required() AND DATE_BEFORE(@{claimPeriodStart}, \"today\")"
+        },
+        {
+          "name": "claimPeriodEnd",
+          "label": "Period End",
+          "fieldType": "DATE",
+          "isMandatory": true,
+          "displayOrder": 3,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g1",
+          "validation": "Required() AND ValidWhen(IS_AFTER(@{claimPeriodEnd}, @{claimPeriodStart}) OR IS_SAME_DAY(@{claimPeriodEnd}, @{claimPeriodStart}), \"End must be on or after start\")"
+        },
+        {
+          "name": "requesterName",
+          "label": "Claimant",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER()",
+          "isReadonly": true,
+          "isTitle": true,
+          "inSummary": true,
+          "displayOrder": 10,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "requesterEmail",
+          "label": "Email",
+          "fieldType": "EMAIL",
+          "defaultValue": "CURRENT_USER_EMAIL()",
+          "isReadonly": true,
+          "displayOrder": 11,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "department",
+          "label": "Department",
+          "fieldType": "TEXT",
+          "defaultValue": "CURRENT_USER_DEPT()",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 12,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2"
+        },
+        {
+          "name": "costCenter",
+          "label": "Cost Centre",
+          "fieldType": "TEXT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 13,
+          "columnSpan": 1,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required()",
+          "customValidationRule": "TRIM() AND UPPER()"
+        },
+        {
+          "name": "purpose",
+          "label": "Business Purpose",
+          "fieldType": "TEXTAREA",
+          "placeholder": "What business activity do these expenses relate to?",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 14,
+          "columnSpan": 2,
+          "screenId": "temp_s1",
+          "fieldGroupId": "temp_g2",
+          "validation": "Required() AND MinLength(20) AND MaxLength(1000)"
+        },
+        {
+          "name": "expenseLines",
+          "label": "Expense Items",
+          "fieldType": "TABLE",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 20,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g3",
+          "tableMinRows": 1,
+          "tableMaxRows": 50,
+          "tableStriped": true,
+          "tableBordered": true,
+          "tableColumns": "[{\"name\":\"date\",\"label\":\"Date\",\"type\":\"DATE\",\"width\":120,\"required\":true},{\"name\":\"category\",\"label\":\"Category\",\"type\":\"SELECT\",\"width\":150,\"required\":true,\"options\":[\"Meals\",\"Transport\",\"Accommodation\",\"Office Supplies\",\"Fuel\",\"Parking\",\"Communications\",\"Entertainment\",\"Other\"]},{\"name\":\"description\",\"label\":\"Description\",\"type\":\"TEXT\",\"width\":250,\"required\":true},{\"name\":\"amount\",\"label\":\"Amount\",\"type\":\"NUMBER\",\"width\":120,\"required\":true},{\"name\":\"receiptRef\",\"label\":\"Receipt #\",\"type\":\"TEXT\",\"width\":120}]",
+          "validation": "MinRows(1, \"Add at least one expense item\")"
+        },
+        {
+          "name": "subtotal",
+          "label": "Subtotal",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "inSummary": true,
+          "displayOrder": 30,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "defaultValue": "SUM_COLUMN(\"expenseLines\", \"amount\")"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "fieldType": "SELECT",
+          "defaultValue": "USD",
+          "inSummary": true,
+          "displayOrder": 31,
+          "columnSpan": 1,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "options": [
+            {
+              "value": "USD",
+              "label": "USD",
+              "displayOrder": 0
+            },
+            {
+              "value": "EUR",
+              "label": "EUR",
+              "displayOrder": 1
+            },
+            {
+              "value": "GBP",
+              "label": "GBP",
+              "displayOrder": 2
+            },
+            {
+              "value": "ZAR",
+              "label": "ZAR",
+              "displayOrder": 3
+            },
+            {
+              "value": "ZWL",
+              "label": "ZWL",
+              "displayOrder": 4
+            }
+          ]
+        },
+        {
+          "name": "totalAmount",
+          "label": "Total Amount",
+          "fieldType": "CURRENCY",
+          "isReadonly": true,
+          "isLimited": true,
+          "inSummary": true,
+          "displayOrder": 32,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "defaultValue": "@{subtotal}",
+          "validation": "Required() AND Min(0.01)"
+        },
+        {
+          "name": "receipts",
+          "label": "Receipts",
+          "fieldType": "FILE",
+          "multiple": true,
+          "isMandatory": true,
+          "displayOrder": 33,
+          "columnSpan": 2,
+          "screenId": "temp_s2",
+          "fieldGroupId": "temp_g4",
+          "tooltip": "Upload all receipts as PDF or images",
+          "allowedFileTypes": "pdf,jpg,png",
+          "maxFileSize": 10485760,
+          "maxFiles": 50,
+          "validation": "Required(\"Receipts are required\")"
+        },
+        {
+          "name": "paymentMethod",
+          "label": "Payment Method",
+          "fieldType": "SELECT",
+          "isMandatory": true,
+          "inSummary": true,
+          "displayOrder": 40,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "options": [
+            {
+              "value": "BANK_TRANSFER",
+              "label": "Bank Transfer",
+              "displayOrder": 0
+            },
+            {
+              "value": "PAYROLL",
+              "label": "Add to Next Payroll",
+              "displayOrder": 1
+            },
+            {
+              "value": "CASH",
+              "label": "Cash / Petty Cash",
+              "displayOrder": 2
+            }
+          ],
+          "validation": "Required()"
+        },
+        {
+          "name": "bankName",
+          "label": "Bank Name",
+          "fieldType": "TEXT",
+          "displayOrder": 41,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{paymentMethod} == 'BANK_TRANSFER'",
+          "validation": "ValidWhen(@{paymentMethod} != 'BANK_TRANSFER' OR IS_NOT_EMPTY(@{bankName}), \"Bank name required for transfer\")"
+        },
+        {
+          "name": "accountNumber",
+          "label": "Account Number",
+          "fieldType": "TEXT",
+          "displayOrder": 42,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{paymentMethod} == 'BANK_TRANSFER'",
+          "validation": "ValidWhen(@{paymentMethod} != 'BANK_TRANSFER' OR IS_NOT_EMPTY(@{accountNumber}), \"Account number required\")"
+        },
+        {
+          "name": "accountName",
+          "label": "Account Name",
+          "fieldType": "TEXT",
+          "displayOrder": 43,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{paymentMethod} == 'BANK_TRANSFER'"
+        },
+        {
+          "name": "swiftCode",
+          "label": "SWIFT / Branch Code",
+          "fieldType": "TEXT",
+          "displayOrder": 44,
+          "columnSpan": 1,
+          "screenId": "temp_s3",
+          "fieldGroupId": "temp_g5",
+          "visibilityExpression": "@{paymentMethod} == 'BANK_TRANSFER'"
+        },
+        {
+          "name": "certification",
+          "label": "I certify that these expenses were incurred for legitimate business purposes and have not been previously claimed",
+          "fieldType": "CHECKBOX",
+          "isMandatory": true,
+          "displayOrder": 50,
+          "columnSpan": 2,
+          "screenId": "temp_s4",
+          "validation": "IsTrue(\"You must certify before submitting\")"
+        }
+      ]
+    }
+  ],
+  "approvers": [
+    {
+      "level": 1,
+      "name": "Line Manager",
+      "approverType": "ROLE",
+      "roleName": "MANAGER",
+      "amountLimit": 1000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 2,
+      "name": "Department Head",
+      "approverType": "ROLE",
+      "roleName": "DEPARTMENT_HEAD",
+      "amountLimit": 5000,
+      "canEscalate": true,
+      "requireComment": false,
+      "emailNotification": true
+    },
+    {
+      "level": 3,
+      "name": "Finance",
+      "approverType": "ROLE",
+      "roleName": "FINANCE_CONTROLLER",
+      "amountLimit": null,
+      "canEscalate": false,
+      "requireComment": true,
+      "emailNotification": true
+    }
+  ],
+  "industryCode": "GENERAL",
+  "workflowTypeCode": "EXPENSE"
+}
