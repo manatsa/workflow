@@ -147,9 +147,13 @@ public class WorkflowFieldDTO {
     private String apiParams; // JSON array of {key, value} - query parameters
     private String apiBody;
     private String apiResponsePath;
+    private String apiOnResponse;
 
     // Whether API_ARRAY/API_OBJECT_ARRAY fields show their own control in the form
     private Boolean apiShowInForm;
+
+    // API trigger mode: AUTO = fetch on form load, MANUAL = fetch on button click
+    private String apiTriggerMode;
 
     // API data source for SELECT/RADIO/CHECKBOX_GROUP/MULTISELECT options
     private String apiDataSourceField;

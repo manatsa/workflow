@@ -29,6 +29,10 @@ public class WorkflowDTO {
     private String description;
     private UUID workflowTypeId;
     private String workflowTypeName;
+    private String workflowTypeCode;
+    private UUID industryId;
+    private String industryName;
+    private String industryCode;
     private String icon;
     private Integer displayOrder;
     private Boolean requiresApproval;
@@ -43,6 +47,7 @@ public class WorkflowDTO {
     private Boolean lockApproved;
     private Boolean lockChildOnParentApproval;
     private Workflow.WorkflowCategory workflowCategory;
+    private String titleTemplate;
     private UUID stampId;
     private String stampName;
     private UUID parentWorkflowId;

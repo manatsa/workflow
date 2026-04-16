@@ -257,9 +257,16 @@ public class WorkflowField extends BaseEntity {
     @Column(name = "api_response_path")
     private String apiResponsePath; // JSONPath-like dot notation to extract data from response
 
+    @Column(name = "api_on_response", columnDefinition = "TEXT")
+    private String apiOnResponse; // Expression evaluated after API response; response accessible as APIResponse
+
     // Whether API_ARRAY/API_OBJECT_ARRAY fields show their own control in the form
     @Column(name = "api_show_in_form")
     private Boolean apiShowInForm = true;
+
+    // API trigger mode: AUTO = fetch on form load, MANUAL = fetch on button click
+    @Column(name = "api_trigger_mode")
+    private String apiTriggerMode = "AUTO";
 
     // API data source for SELECT/RADIO/CHECKBOX_GROUP/MULTISELECT options
     @Column(name = "api_data_source_field")
@@ -292,7 +299,7 @@ public class WorkflowField extends BaseEntity {
         // Container field types
         ACCORDION, COLLAPSIBLE,
         // API field types - fetch data from external APIs
-        API_ARRAY, API_OBJECT_ARRAY, API_VALUE, API_OBJECT, API_LIST,
+        API_VALUE,
         // Object viewer - displays nested JSON objects with expand/collapse
         OBJECT_VIEWER,
         // SQL Table - execute SQL query and display results as read-only table

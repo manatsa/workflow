@@ -30,6 +30,10 @@ public class Workflow extends BaseEntity {
     @JoinColumn(name = "workflow_type_id")
     private WorkflowType workflowType;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "industry_id")
+    private Category industry;
+
     @Column(name = "icon")
     private String icon;
 
@@ -133,6 +137,9 @@ public class Workflow extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "workflow_category")
     private WorkflowCategory workflowCategory = WorkflowCategory.NON_FINANCIAL;
+
+    @Column(name = "title_template", columnDefinition = "TEXT")
+    private String titleTemplate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stamp_id")

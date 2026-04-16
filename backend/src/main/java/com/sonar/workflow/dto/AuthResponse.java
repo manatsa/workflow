@@ -36,6 +36,7 @@ public class AuthResponse {
     private List<UUID> corporateIds;
     private List<UUID> sbuIds;
     private List<UUID> branchIds;
+    private List<UUID> departmentIds;
     private boolean mustChangePassword;
     private LocalDateTime lastLogin;
     private LocalDateTime createdAt;

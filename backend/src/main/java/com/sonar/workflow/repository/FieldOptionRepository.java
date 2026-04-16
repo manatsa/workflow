@@ -19,4 +19,9 @@ public interface FieldOptionRepository extends JpaRepository<FieldOption, UUID> 
     @Modifying
     @Query("DELETE FROM FieldOption o WHERE o.field.id = :fieldId")
     void deleteByFieldId(@Param("fieldId") UUID fieldId);
+
+    /** Native SQL delete — bypasses all JPA/Hibernate entity lifecycle to avoid version conflicts. */
+    @Modifying
+    @Query(value = "DELETE FROM field_options WHERE field_id = :fieldId", nativeQuery = true)
+    void deleteByFieldIdNative(@Param("fieldId") UUID fieldId);
 }

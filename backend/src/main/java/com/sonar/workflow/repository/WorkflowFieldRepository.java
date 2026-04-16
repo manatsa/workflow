@@ -18,6 +18,11 @@ public interface WorkflowFieldRepository extends JpaRepository<WorkflowField, UU
     @Query("DELETE FROM WorkflowField f WHERE f.id = :fieldId")
     void deleteFieldById(@Param("fieldId") UUID fieldId);
 
+    /** Native SQL delete — bypasses all JPA/Hibernate entity lifecycle to avoid version conflicts. */
+    @Modifying
+    @Query(value = "DELETE FROM workflow_fields WHERE id = :fieldId", nativeQuery = true)
+    void deleteFieldByIdNative(@Param("fieldId") UUID fieldId);
+
     @Query("SELECT f FROM WorkflowField f WHERE f.form.id = :formId ORDER BY f.displayOrder")
     List<WorkflowField> findByFormId(@Param("formId") UUID formId);
 
