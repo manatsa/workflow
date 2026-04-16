@@ -117,13 +117,13 @@ public class WorkflowReminderService {
         if (subject == null || subject.isBlank()) {
             subject = "Reminder " + reminderNumber + "/" + maxCount + ": Pending approval for " + workflowName + " - " + subjectRef;
         } else {
-            subject = replacePlaceholders(subject, approverName, workflowName, submitterName, referenceNumber, submittedDate);
+            subject = replacePlaceholders(subject, instance, workflow, approverName, approverEmail, reminderNumber, maxCount);
         }
 
         if (body == null || body.isBlank()) {
             body = buildDefaultReminderBody(approverName, workflowName, referenceNumber, submitterName, submittedDate, reminderNumber, maxCount);
         } else {
-            body = replacePlaceholders(body, approverName, workflowName, submitterName, referenceNumber, submittedDate);
+            body = replacePlaceholders(body, instance, workflow, approverName, approverEmail, reminderNumber, maxCount);
         }
 
         try {
@@ -232,14 +232,60 @@ public class WorkflowReminderService {
         }
     }
 
-    private String replacePlaceholders(String template, String approverName, String workflowName,
-                                        String submitterName, String referenceNumber, String submittedDate) {
-        return template
-                .replace("{{approverName}}", approverName != null ? approverName : "")
+    private String replacePlaceholders(String template, WorkflowInstance instance, Workflow workflow,
+                                        String approverName, String approverEmail, int reminderNumber, int maxCount) {
+        String workflowName = workflow.getName();
+        String workflowCode = workflow.getCode();
+        String referenceNumber = instance.getReferenceNumber() != null ? instance.getReferenceNumber() : "";
+        String submissionTitle = instance.getTitle() != null ? instance.getTitle() : "";
+        String status = instance.getStatus() != null ? instance.getStatus().name() : "";
+        String submitterName = instance.getInitiator() != null ? instance.getInitiator().getFullName() : "";
+        String submitterEmail = instance.getInitiator() != null && instance.getInitiator().getEmail() != null ? instance.getInitiator().getEmail() : "";
+        String submitterDepartment = instance.getInitiator() != null && instance.getInitiator().getDepartment() != null ? instance.getInitiator().getDepartment() : "";
+        String submittedDate = instance.getSubmittedAt() != null ? instance.getSubmittedAt().toLocalDate().toString() : "";
+        String submittedTime = instance.getSubmittedAt() != null ? instance.getSubmittedAt().toLocalTime().withNano(0).toString() : "";
+        String submittedDateTime = instance.getSubmittedAt() != null ? instance.getSubmittedAt().withNano(0).toString().replace("T", " ") : "";
+        String currentLevel = instance.getCurrentLevel() != null ? String.valueOf(instance.getCurrentLevel()) : "0";
+        String amount = instance.getAmount() != null ? instance.getAmount().toPlainString() : "";
+        String sbuName = instance.getSbu() != null ? instance.getSbu().getName() : "";
+        long daysPending = instance.getSubmittedAt() != null ? java.time.temporal.ChronoUnit.DAYS.between(instance.getSubmittedAt(), java.time.LocalDateTime.now()) : 0;
+
+        String result = template
+                // Workflow info
+                .replace("@{workflowName}", workflowName != null ? workflowName : "")
+                .replace("@{workflowCode}", workflowCode != null ? workflowCode : "")
+                // Submission info
+                .replace("@{referenceNumber}", referenceNumber)
+                .replace("@{submissionTitle}", submissionTitle)
+                .replace("@{status}", status)
+                .replace("@{amount}", amount)
+                .replace("@{sbuName}", sbuName)
+                // Approver info
+                .replace("@{approverName}", approverName != null ? approverName : "")
+                .replace("@{approverEmail}", approverEmail != null ? approverEmail : "")
+                .replace("@{approvalLevel}", currentLevel)
+                // Submitter info
+                .replace("@{submitterName}", submitterName)
+                .replace("@{submitterEmail}", submitterEmail)
+                .replace("@{submitterDepartment}", submitterDepartment)
+                // Date/time info
+                .replace("@{submittedDate}", submittedDate)
+                .replace("@{submittedTime}", submittedTime)
+                .replace("@{submittedDateTime}", submittedDateTime)
+                .replace("@{daysPending}", String.valueOf(daysPending))
+                // Reminder info
+                .replace("@{reminderNumber}", String.valueOf(reminderNumber))
+                .replace("@{reminderMax}", String.valueOf(maxCount));
+
+        // Backwards compatibility with old {{}} syntax
+        result = result
                 .replace("{{workflowName}}", workflowName != null ? workflowName : "")
-                .replace("{{submitterName}}", submitterName != null ? submitterName : "")
-                .replace("{{referenceNumber}}", referenceNumber != null ? referenceNumber : "")
-                .replace("{{submittedDate}}", submittedDate != null ? submittedDate : "");
+                .replace("{{approverName}}", approverName != null ? approverName : "")
+                .replace("{{submitterName}}", submitterName)
+                .replace("{{referenceNumber}}", referenceNumber)
+                .replace("{{submittedDate}}", submittedDate);
+
+        return result;
     }
 
     private String buildDefaultReminderBody(String approverName, String workflowName, String referenceNumber,

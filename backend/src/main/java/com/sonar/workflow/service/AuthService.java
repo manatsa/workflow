@@ -115,6 +115,7 @@ public class AuthService {
                     .corporateIds(userDetails.getCorporateIds().stream().toList())
                     .sbuIds(userDetails.getSbuIds().stream().toList())
                     .branchIds(userDetails.getBranchIds().stream().toList())
+                    .departmentIds(userDetails.getDepartmentIds().stream().toList())
                     .mustChangePassword(user.getMustChangePassword())
                     .lastLogin(user.getLastLogin())
                     .createdAt(user.getCreatedAt())
@@ -160,6 +161,7 @@ public class AuthService {
                     .corporateIds(Collections.emptyList())
                     .sbuIds(Collections.emptyList())
                     .branchIds(Collections.emptyList())
+                    .departmentIds(Collections.emptyList())
                     .mustChangePassword(false)
                     .build();
         } catch (BadCredentialsException e) {

@@ -29,6 +29,97 @@ public class ReportService {
     private final AccessScopeService accessScopeService;
 
     @Transactional(readOnly = true)
+    public List<Map<String, String>> getAccessibleWorkflows() {
+        List<com.sonar.workflow.entity.Workflow> allWorkflows = workflowRepository.findByIsActiveTrue();
+        com.sonar.workflow.entity.User currentUser = accessScopeService.getCurrentUser();
+
+        if (currentUser != null && !accessScopeService.isAdmin(currentUser)) {
+            allWorkflows = allWorkflows.stream()
+                    .filter(w -> accessScopeService.canAccessWorkflow(w, currentUser))
+                    .collect(Collectors.toList());
+        }
+
+        return allWorkflows.stream()
+                .map(w -> Map.of("id", w.getId().toString(), "name", w.getName()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, String>> getAccessibleUsers() {
+        List<com.sonar.workflow.entity.User> allUsers = userRepository.findAll();
+        com.sonar.workflow.entity.User currentUser = accessScopeService.getCurrentUser();
+
+        if (currentUser != null && !accessScopeService.isAdmin(currentUser) && !accessScopeService.isUnrestricted(currentUser)) {
+            allUsers = allUsers.stream()
+                    .filter(u -> sharesScope(currentUser, u))
+                    .collect(Collectors.toList());
+        }
+
+        return allUsers.stream()
+                .map(u -> Map.of("id", u.getId().toString(), "name", u.getFullName() != null ? u.getFullName() : u.getUsername()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, String>> getAccessibleBranches() {
+        com.sonar.workflow.entity.User currentUser = accessScopeService.getCurrentUser();
+
+        if (currentUser != null && !accessScopeService.isAdmin(currentUser) && !accessScopeService.isUnrestricted(currentUser)) {
+            // Return only branches the user is assigned to
+            if (currentUser.getBranches() != null && !currentUser.getBranches().isEmpty()) {
+                return currentUser.getBranches().stream()
+                        .map(b -> Map.of("id", b.getId().toString(), "name", b.getName()))
+                        .collect(Collectors.toList());
+            }
+            // If user has SBUs but no branches, return branches under their SBUs
+            if (currentUser.getSbus() != null && !currentUser.getSbus().isEmpty()) {
+                Set<UUID> sbuIds = currentUser.getSbus().stream().map(s -> s.getId()).collect(Collectors.toSet());
+                return sbuRepository.findAllById(sbuIds).stream()
+                        .flatMap(sbu -> sbu.getBranches() != null ? sbu.getBranches().stream() : java.util.stream.Stream.empty())
+                        .map(b -> Map.of("id", b.getId().toString(), "name", b.getName()))
+                        .distinct()
+                        .collect(Collectors.toList());
+            }
+        }
+
+        // Admin/unrestricted — return all branches
+        return sbuRepository.findAll().stream()
+                .flatMap(sbu -> sbu.getBranches() != null ? sbu.getBranches().stream() : java.util.stream.Stream.empty())
+                .map(b -> Map.of("id", b.getId().toString(), "name", b.getName()))
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private boolean sharesScope(com.sonar.workflow.entity.User currentUser, com.sonar.workflow.entity.User other) {
+        // Check if the other user shares at least one organizational scope level with the current user
+        if (currentUser.getCorporates() != null && !currentUser.getCorporates().isEmpty()) {
+            if (other.getCorporates() == null || other.getCorporates().isEmpty()) return false;
+            boolean match = currentUser.getCorporates().stream().anyMatch(uc ->
+                    other.getCorporates().stream().anyMatch(oc -> oc.getId().equals(uc.getId())));
+            if (!match) return false;
+        }
+        if (currentUser.getSbus() != null && !currentUser.getSbus().isEmpty()) {
+            if (other.getSbus() == null || other.getSbus().isEmpty()) return false;
+            boolean match = currentUser.getSbus().stream().anyMatch(us ->
+                    other.getSbus().stream().anyMatch(os -> os.getId().equals(us.getId())));
+            if (!match) return false;
+        }
+        if (currentUser.getBranches() != null && !currentUser.getBranches().isEmpty()) {
+            if (other.getBranches() == null || other.getBranches().isEmpty()) return false;
+            boolean match = currentUser.getBranches().stream().anyMatch(ub ->
+                    other.getBranches().stream().anyMatch(ob -> ob.getId().equals(ub.getId())));
+            if (!match) return false;
+        }
+        if (currentUser.getDepartments() != null && !currentUser.getDepartments().isEmpty()) {
+            if (other.getDepartments() == null || other.getDepartments().isEmpty()) return false;
+            boolean match = currentUser.getDepartments().stream().anyMatch(ud ->
+                    other.getDepartments().stream().anyMatch(od -> od.getId().equals(ud.getId())));
+            if (!match) return false;
+        }
+        return true;
+    }
+
+    @Transactional(readOnly = true)
     public ReportResultDTO generateReport(String reportId, Map<String, String> parameters) {
         LocalDate startDate = parseDate(parameters.get("startDate"), LocalDate.now().minusMonths(1));
         LocalDate endDate = parseDate(parameters.get("endDate"), LocalDate.now());

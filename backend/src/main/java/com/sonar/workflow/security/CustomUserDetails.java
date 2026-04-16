@@ -27,6 +27,7 @@ public class CustomUserDetails implements UserDetails {
     private final Set<UUID> corporateIds;
     private final Set<UUID> sbuIds;
     private final Set<UUID> branchIds;
+    private final Set<UUID> departmentIds;
 
     public CustomUserDetails(User user) {
         this.id = user.getId();
@@ -40,6 +41,7 @@ public class CustomUserDetails implements UserDetails {
         this.corporateIds = user.getCorporates().stream().map(corporate -> corporate.getId()).collect(Collectors.toSet());
         this.sbuIds = user.getSbus().stream().map(sbu -> sbu.getId()).collect(Collectors.toSet());
         this.branchIds = user.getBranches().stream().map(branch -> branch.getId()).collect(Collectors.toSet());
+        this.departmentIds = user.getDepartments().stream().map(dept -> dept.getId()).collect(Collectors.toSet());
 
         this.authorities = Stream.concat(
                 user.getRoles().stream()

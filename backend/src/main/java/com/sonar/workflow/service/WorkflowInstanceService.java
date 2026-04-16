@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,6 +46,8 @@ public class WorkflowInstanceService {
     private final StampRepository stampRepository;
     private final UserSignatureRepository userSignatureRepository;
     private final DocumentStampService documentStampService;
+    private final com.sonar.workflow.service.validation.FieldValidationEngine fieldValidationEngine;
+    private final com.sonar.workflow.service.validation.FieldTransformationEngine fieldTransformationEngine;
 
     @Transactional(readOnly = true)
     public Page<WorkflowInstanceDTO> getWorkflowInstances(UUID workflowId, Pageable pageable) {
@@ -118,6 +121,7 @@ public class WorkflowInstanceService {
     public WorkflowInstanceDTO getInstanceById(UUID id) {
         WorkflowInstance instance = workflowInstanceRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
+        assertCanAccessInstance(instance);
         return toFullDTO(instance);
     }
 
@@ -125,7 +129,25 @@ public class WorkflowInstanceService {
     public WorkflowInstanceDTO getInstanceByReferenceNumber(String referenceNumber) {
         WorkflowInstance instance = workflowInstanceRepository.findByReferenceNumber(referenceNumber)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
+        assertCanAccessInstance(instance);
         return toFullDTO(instance);
+    }
+
+    private void assertCanAccessInstance(WorkflowInstance instance) {
+        try {
+            com.sonar.workflow.entity.User currentUser = accessScopeService.getCurrentUser();
+            // Super user (no DB entity) and admins are allowed
+            if (currentUser == null) return;
+            if (accessScopeService.isAdmin(currentUser)) return;
+            if (!accessScopeService.canAccessInstance(instance, currentUser)) {
+                throw new BusinessException("Access denied to this workflow instance");
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            // If anything goes wrong resolving user, deny to be safe
+            throw new BusinessException("Access denied to this workflow instance");
+        }
     }
 
     @Transactional
@@ -174,6 +196,7 @@ public class WorkflowInstanceService {
     public WorkflowInstanceDTO updateInstance(UUID id, Map<String, Object> fieldValues) {
         WorkflowInstance instance = workflowInstanceRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
+        assertCanAccessInstance(instance);
 
         boolean isApprovedEditable = instance.getStatus() == WorkflowInstance.Status.APPROVED &&
                 !Boolean.TRUE.equals(instance.getWorkflow().getLockApproved());
@@ -849,6 +872,7 @@ public class WorkflowInstanceService {
     public void cancelInstance(UUID id, String reason) {
         WorkflowInstance instance = workflowInstanceRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
+        assertCanAccessInstance(instance);
 
         if (instance.getStatus() == WorkflowInstance.Status.APPROVED ||
             instance.getStatus() == WorkflowInstance.Status.REJECTED) {
@@ -880,6 +904,7 @@ public class WorkflowInstanceService {
     public void deleteInstance(UUID id, boolean permanent) {
         WorkflowInstance instance = workflowInstanceRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
+        assertCanAccessInstance(instance);
 
         // Only allow deletion of draft or cancelled instances, or by admin
         CustomUserDetails currentUser = getCurrentUser();
@@ -913,6 +938,7 @@ public class WorkflowInstanceService {
     public WorkflowInstanceDTO cloneInstance(UUID id) {
         WorkflowInstance original = workflowInstanceRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow instance not found"));
+        assertCanAccessInstance(original);
 
         CustomUserDetails currentUser = getCurrentUser();
         User user = userRepository.findById(currentUser.getId())
@@ -1010,6 +1036,29 @@ public class WorkflowInstanceService {
         Map<String, WorkflowField> fieldMap = fields.stream()
                 .collect(Collectors.toMap(WorkflowField::getName, f -> f, (existing, replacement) -> replacement));
 
+        // Apply transformations BEFORE validation and save, so validations see the transformed value
+        for (Map.Entry<String, Object> entry : fieldValues.entrySet()) {
+            WorkflowField field = fieldMap.get(entry.getKey());
+            if (field != null && field.getCustomValidationRule() != null && !field.getCustomValidationRule().isBlank()) {
+                Object transformed = fieldTransformationEngine.apply(field.getCustomValidationRule(), entry.getValue());
+                entry.setValue(transformed);
+            }
+        }
+
+        // Server-side validation (Required, MinLength, Pattern, Email, ValidWhen, etc.)
+        // Only run on non-draft submissions — drafts are allowed to be incomplete.
+        boolean isDraft = instance.getStatus() == WorkflowInstance.Status.DRAFT;
+        if (!isDraft) {
+            List<String> validationErrors = new ArrayList<>();
+            for (WorkflowField field : fields) {
+                String err = fieldValidationEngine.validate(field, fieldValues.get(field.getName()), fieldValues);
+                if (err != null) validationErrors.add(err);
+            }
+            if (!validationErrors.isEmpty()) {
+                throw new BusinessException(String.join("; ", validationErrors));
+            }
+        }
+
         // First, validate unique constraints before saving any values
         validateUniqueFields(instance, fieldValues, fieldMap);
 
@@ -1045,7 +1094,18 @@ public class WorkflowInstanceService {
     }
 
     private void generateTitleFromFields(WorkflowInstance instance, Map<String, Object> fieldValues, List<WorkflowField> fields) {
-        // Get all fields marked as isTitle, sorted by displayOrder
+        // Preferred: use workflow's title template if defined
+        Workflow workflow = instance.getWorkflow();
+        String template = workflow != null ? workflow.getTitleTemplate() : null;
+        if (template != null && !template.isBlank()) {
+            String title = buildTitleFromTemplate(template, instance, fieldValues);
+            if (title != null && !title.isBlank()) {
+                instance.setTitle(truncateTitle(title));
+                return;
+            }
+        }
+
+        // Fallback: fields marked as isTitle, joined with "_"
         List<WorkflowField> titleFields = fields.stream()
                 .filter(f -> Boolean.TRUE.equals(f.getIsTitle()))
                 .sorted(Comparator.comparingInt(WorkflowField::getDisplayOrder))
@@ -1055,7 +1115,6 @@ public class WorkflowInstanceService {
             return;
         }
 
-        // Build title by concatenating values with "_"
         List<String> titleParts = new ArrayList<>();
         for (WorkflowField field : titleFields) {
             Object value = fieldValues.get(field.getName());
@@ -1065,9 +1124,79 @@ public class WorkflowInstanceService {
         }
 
         if (!titleParts.isEmpty()) {
-            String title = String.join("_", titleParts);
-            instance.setTitle(title);
+            instance.setTitle(truncateTitle(String.join("_", titleParts)));
         }
+    }
+
+    private String buildTitleFromTemplate(String template, WorkflowInstance instance, Map<String, Object> fieldValues) {
+        // Parse the template into alternating text/token segments, resolve tokens,
+        // then emit only the text surrounding non-empty tokens.
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("@\\{([^}]+)\\}");
+        java.util.regex.Matcher matcher = pattern.matcher(template);
+
+        List<String> texts = new ArrayList<>();   // text between tokens (texts[i] precedes tokens[i])
+        List<String> values = new ArrayList<>();  // resolved token values
+        int lastEnd = 0;
+        while (matcher.find()) {
+            texts.add(template.substring(lastEnd, matcher.start()));
+            values.add(resolvePlaceholderValue(matcher.group(1).trim(), instance, fieldValues));
+            lastEnd = matcher.end();
+        }
+        String trailing = template.substring(lastEnd);
+
+        // If no tokens at all, return template as-is
+        if (values.isEmpty()) {
+            return template.trim();
+        }
+
+        StringBuilder sb = new StringBuilder();
+        boolean anyEmitted = false;
+        for (int i = 0; i < values.size(); i++) {
+            String v = values.get(i);
+            if (v == null || v.isEmpty()) continue;
+            // Emit the preceding text only if we have already emitted a value OR this text is not just a connector
+            if (anyEmitted) {
+                sb.append(texts.get(i));
+            } else if (i == 0) {
+                // Keep the prefix text only on the very first token
+                sb.append(texts.get(i));
+            }
+            sb.append(v);
+            anyEmitted = true;
+        }
+        if (anyEmitted) {
+            sb.append(trailing);
+        }
+
+        return sb.toString().trim();
+    }
+
+    private String resolvePlaceholderValue(String key, WorkflowInstance instance, Map<String, Object> fieldValues) {
+        // Workflow-level placeholders
+        Workflow workflow = instance.getWorkflow();
+        switch (key) {
+            case "workflowName": return workflow != null && workflow.getName() != null ? workflow.getName() : "";
+            case "workflowCode": return workflow != null && workflow.getCode() != null ? workflow.getCode() : "";
+            case "referenceNumber": return instance.getReferenceNumber() != null ? instance.getReferenceNumber() : "";
+            case "status": return instance.getStatus() != null ? instance.getStatus().name() : "";
+            case "submitterName": return instance.getInitiator() != null ? instance.getInitiator().getFullName() : "";
+            case "submitterEmail": return instance.getInitiator() != null && instance.getInitiator().getEmail() != null ? instance.getInitiator().getEmail() : "";
+            case "submitterDepartment": return instance.getInitiator() != null && instance.getInitiator().getDepartment() != null ? instance.getInitiator().getDepartment() : "";
+            case "submittedDate": return instance.getSubmittedAt() != null ? instance.getSubmittedAt().toLocalDate().toString() : "";
+            case "submittedTime": return instance.getSubmittedAt() != null ? instance.getSubmittedAt().toLocalTime().withNano(0).toString() : "";
+            case "submittedDateTime": return instance.getSubmittedAt() != null ? instance.getSubmittedAt().withNano(0).toString().replace("T", " ") : "";
+            case "amount": return instance.getAmount() != null ? instance.getAmount().toPlainString() : "";
+            case "sbuName": return instance.getSbu() != null ? instance.getSbu().getName() : "";
+        }
+
+        // Form field value
+        Object value = fieldValues != null ? fieldValues.get(key) : null;
+        return value != null ? value.toString() : "";
+    }
+
+    private String truncateTitle(String title) {
+        if (title == null) return null;
+        return title.length() > 255 ? title.substring(0, 255) : title;
     }
 
     private void validateUniqueFields(WorkflowInstance instance, Map<String, Object> fieldValues, Map<String, WorkflowField> fieldMap) {

@@ -81,6 +81,7 @@ public class SuperUserProvider {
         public Set<UUID> getCorporateIds() { return Collections.emptySet(); }
         public Set<UUID> getSbuIds() { return Collections.emptySet(); }
         public Set<UUID> getBranchIds() { return Collections.emptySet(); }
+        public Set<UUID> getDepartmentIds() { return Collections.emptySet(); }
 
         public com.sonar.workflow.entity.User.UserType getUserType() {
             return com.sonar.workflow.entity.User.UserType.SYSTEM;

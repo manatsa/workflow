@@ -76,8 +76,13 @@ public class WorkflowService {
         }
     }
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
+    private final OrphanFieldDeleteService orphanFieldDeleteService;
     private final WorkflowRepository workflowRepository;
     private final WorkflowTypeRepository workflowTypeRepository;
+    private final CategoryRepository categoryRepository;
     private final WorkflowFormRepository workflowFormRepository;
     private final WorkflowFieldRepository workflowFieldRepository;
     private final WorkflowFieldValueRepository workflowFieldValueRepository;
@@ -333,6 +338,7 @@ public class WorkflowService {
                 .lockApproved(dto.getLockApproved() != null ? dto.getLockApproved() : false)
                 .lockChildOnParentApproval(dto.getLockChildOnParentApproval() != null ? dto.getLockChildOnParentApproval() : false)
                 .workflowCategory(dto.getWorkflowCategory() != null ? dto.getWorkflowCategory() : Workflow.WorkflowCategory.NON_FINANCIAL)
+                .titleTemplate(dto.getTitleTemplate())
                 .reminderEnabled(dto.getReminderEnabled() != null ? dto.getReminderEnabled() : false)
                 .reminderFrequencyHours(dto.getReminderFrequencyHours() != null ? dto.getReminderFrequencyHours() : 24)
                 .reminderMaxCount(dto.getReminderMaxCount() != null ? dto.getReminderMaxCount() : 3)
@@ -357,49 +363,62 @@ public class WorkflowService {
             WorkflowType type = workflowTypeRepository.findById(dto.getWorkflowTypeId())
                     .orElseThrow(() -> new BusinessException("Workflow type not found"));
             workflow.setWorkflowType(type);
+        } else if (dto.getWorkflowTypeCode() != null && !dto.getWorkflowTypeCode().isBlank()) {
+            workflowTypeRepository.findByCode(dto.getWorkflowTypeCode().trim())
+                    .ifPresent(workflow::setWorkflowType);
         }
+
+        resolveIndustry(workflow, dto);
 
         if (dto.getParentWorkflowId() != null) {
             Workflow parent = workflowRepository.findById(dto.getParentWorkflowId())
                     .orElseThrow(() -> new BusinessException("Parent workflow not found"));
             workflow.setParentWorkflow(parent);
+
+            // Inherit access from parent if setting is enabled
+            if (settingService.getBooleanValue("workflow.child.inherit.access", true)) {
+                copyAccessFromParent(workflow, parent);
+            }
         }
 
-        if (dto.getSbuIds() != null && !dto.getSbuIds().isEmpty()) {
-            Set<SBU> sbus = new HashSet<>(sbuRepository.findAllById(dto.getSbuIds()));
-            workflow.setSbus(sbus);
-        }
+        // Only set access from DTO if not inheriting from parent
+        if (workflow.getParentWorkflow() == null || !settingService.getBooleanValue("workflow.child.inherit.access", true)) {
+            if (dto.getSbuIds() != null && !dto.getSbuIds().isEmpty()) {
+                Set<SBU> sbus = new HashSet<>(sbuRepository.findAllById(dto.getSbuIds()));
+                workflow.setSbus(sbus);
+            }
 
-        if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
-            Set<Department> departments = new HashSet<>(departmentRepository.findAllById(dto.getDepartmentIds()));
-            workflow.setDepartments(departments);
-        }
+            if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
+                Set<Department> departments = new HashSet<>(departmentRepository.findAllById(dto.getDepartmentIds()));
+                workflow.setDepartments(departments);
+            }
 
-        if (dto.getCorporateIds() != null && !dto.getCorporateIds().isEmpty()) {
-            Set<Corporate> corporates = new HashSet<>(corporateRepository.findAllById(dto.getCorporateIds()));
-            workflow.setCorporates(corporates);
-        }
+            if (dto.getCorporateIds() != null && !dto.getCorporateIds().isEmpty()) {
+                Set<Corporate> corporates = new HashSet<>(corporateRepository.findAllById(dto.getCorporateIds()));
+                workflow.setCorporates(corporates);
+            }
 
-        if (dto.getBranchIds() != null && !dto.getBranchIds().isEmpty()) {
-            Set<Branch> branches = new HashSet<>(branchRepository.findAllById(dto.getBranchIds()));
-            workflow.setBranches(branches);
-        }
+            if (dto.getBranchIds() != null && !dto.getBranchIds().isEmpty()) {
+                Set<Branch> branches = new HashSet<>(branchRepository.findAllById(dto.getBranchIds()));
+                workflow.setBranches(branches);
+            }
 
-        if (dto.getRoleIds() != null && !dto.getRoleIds().isEmpty()) {
-            Set<Role> roles = new HashSet<>(roleRepository.findAllById(dto.getRoleIds()));
-            workflow.setRoles(roles);
-        }
+            if (dto.getRoleIds() != null && !dto.getRoleIds().isEmpty()) {
+                Set<Role> roles = new HashSet<>(roleRepository.findAllById(dto.getRoleIds()));
+                workflow.setRoles(roles);
+            }
 
-        if (dto.getPrivilegeIds() != null && !dto.getPrivilegeIds().isEmpty()) {
-            Set<Privilege> privileges = new HashSet<>(privilegeRepository.findAllById(dto.getPrivilegeIds()));
-            workflow.setPrivileges(privileges);
+            if (dto.getPrivilegeIds() != null && !dto.getPrivilegeIds().isEmpty()) {
+                Set<Privilege> privileges = new HashSet<>(privilegeRepository.findAllById(dto.getPrivilegeIds()));
+                workflow.setPrivileges(privileges);
+            }
         }
 
         Workflow saved = workflowRepository.save(workflow);
 
         // Process forms, fields, groups from DTO
         if (dto.getForms() != null && !dto.getForms().isEmpty()) {
-            processFormsForWorkflow(saved, dto.getForms());
+            saved = processFormsForWorkflow(saved, dto.getForms());
         } else {
             // Create default main form if no forms provided
             WorkflowForm mainForm = WorkflowForm.builder()
@@ -447,6 +466,7 @@ public class WorkflowService {
         workflow.setShowApprovalMatrix(dto.getShowApprovalMatrix() != null ? dto.getShowApprovalMatrix() : false);
         workflow.setLockApproved(dto.getLockApproved() != null ? dto.getLockApproved() : false);
         workflow.setLockChildOnParentApproval(dto.getLockChildOnParentApproval() != null ? dto.getLockChildOnParentApproval() : false);
+        workflow.setTitleTemplate(dto.getTitleTemplate());
         if (dto.getWorkflowCategory() != null) {
             workflow.setWorkflowCategory(dto.getWorkflowCategory());
         }
@@ -474,7 +494,12 @@ public class WorkflowService {
             WorkflowType type = workflowTypeRepository.findById(dto.getWorkflowTypeId())
                     .orElseThrow(() -> new BusinessException("Workflow type not found"));
             workflow.setWorkflowType(type);
+        } else if (dto.getWorkflowTypeCode() != null && !dto.getWorkflowTypeCode().isBlank()) {
+            workflowTypeRepository.findByCode(dto.getWorkflowTypeCode().trim())
+                    .ifPresent(workflow::setWorkflowType);
         }
+
+        resolveIndustry(workflow, dto);
 
         // Handle parent workflow
         if (dto.getParentWorkflowId() != null) {
@@ -518,9 +543,14 @@ public class WorkflowService {
 
         Workflow saved = workflowRepository.save(workflow);
 
+        // Propagate access to child workflows if setting is enabled
+        if (settingService.getBooleanValue("workflow.child.inherit.access", true)) {
+            propagateAccessToChildren(saved);
+        }
+
         // Process forms, fields, groups from DTO
         if (dto.getForms() != null && !dto.getForms().isEmpty()) {
-            processFormsForWorkflow(saved, dto.getForms());
+            saved = processFormsForWorkflow(saved, dto.getForms());
         }
 
         // Process approvers from DTO (including empty list to allow deletion of all approvers)
@@ -535,6 +565,22 @@ public class WorkflowService {
                 saved.getName(), "Workflow updated: " + saved.getName(), oldValues, toDTO(saved));
 
         return toFullDTO(saved);
+    }
+
+    @Transactional
+    public WorkflowDTO setWorkflowActive(UUID id, boolean active) {
+        Workflow workflow = workflowRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Workflow not found"));
+
+        workflow.setIsActive(active);
+        Workflow saved = workflowRepository.save(workflow);
+
+        auditService.log(AuditLog.AuditAction.UPDATE, "Workflow", saved.getId(),
+                saved.getName(),
+                "Workflow " + (active ? "activated" : "deactivated") + ": " + saved.getName(),
+                null, null);
+
+        return toDTO(saved);
     }
 
     @Transactional
@@ -717,6 +763,7 @@ public class WorkflowService {
         field.setApiParams(dto.getApiParams());
         field.setApiBody(dto.getApiBody());
         field.setApiResponsePath(dto.getApiResponsePath());
+        field.setApiOnResponse(dto.getApiOnResponse());
         field.setApiShowInForm(dto.getApiShowInForm() != null ? dto.getApiShowInForm() : true);
         field.setApiDataSourceField(dto.getApiDataSourceField());
         field.setApiDisplayField(dto.getApiDisplayField());
@@ -845,17 +892,87 @@ public class WorkflowService {
         Workflow workflow = workflowRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Workflow not found"));
 
-        auditService.log(AuditLog.AuditAction.DELETE, "Workflow", workflow.getId(),
-                workflow.getName(), "Workflow deleted: " + workflow.getName(), toDTO(workflow), null);
+        String name = workflow.getName();
+        WorkflowDTO snapshot = toDTO(workflow);
 
-        workflowRepository.delete(workflow);
+        // Log the delete BEFORE actually removing rows (audit trail preserved).
+        auditService.log(AuditLog.AuditAction.DELETE, "Workflow", id,
+                name, "Workflow deleted: " + name, snapshot, null);
+
+        // Cascade clean-up in FK-safe order. These all need to succeed — no try/catch
+        // here since PostgreSQL aborts the whole transaction on any single error.
+        // Step 1: Preserve audit history by NULLing out workflow_instance_id on any
+        //         audit_logs row referencing this workflow's instances.
+        entityManager.createNativeQuery(
+            "UPDATE audit_logs SET workflow_instance_id = NULL " +
+            "WHERE workflow_instance_id IN (SELECT id FROM workflow_instances WHERE workflow_id = ?1)")
+            .setParameter(1, id).executeUpdate();
+
+        // Step 2: Delete all dependent instance data (field values, history, attachments).
+        entityManager.createNativeQuery(
+            "DELETE FROM workflow_field_values WHERE workflow_instance_id IN " +
+            "(SELECT id FROM workflow_instances WHERE workflow_id = ?1)")
+            .setParameter(1, id).executeUpdate();
+        entityManager.createNativeQuery(
+            "DELETE FROM approval_history WHERE workflow_instance_id IN " +
+            "(SELECT id FROM workflow_instances WHERE workflow_id = ?1)")
+            .setParameter(1, id).executeUpdate();
+        entityManager.createNativeQuery(
+            "DELETE FROM attachments WHERE workflow_instance_id IN " +
+            "(SELECT id FROM workflow_instances WHERE workflow_id = ?1)")
+            .setParameter(1, id).executeUpdate();
+        // Email approval tokens reference instances
+        try {
+            entityManager.createNativeQuery(
+                "DELETE FROM email_approval_tokens WHERE workflow_instance_id IN " +
+                "(SELECT id FROM workflow_instances WHERE workflow_id = ?1)")
+                .setParameter(1, id).executeUpdate();
+        } catch (Exception ignore) {
+            // Table may not exist on all schemas; swallow silently
+        }
+
+        // Step 3: Delete the instances themselves.
+        entityManager.createNativeQuery(
+            "DELETE FROM workflow_instances WHERE workflow_id = ?1")
+            .setParameter(1, id).executeUpdate();
+
+        // Step 4: Safety net — any field_values that reference fields directly.
+        entityManager.createNativeQuery(
+            "DELETE FROM workflow_field_values WHERE field_id IN " +
+            "(SELECT wf.id FROM workflow_fields wf JOIN workflow_forms wfm ON wf.form_id = wfm.id " +
+            " WHERE wfm.workflow_id = ?1)")
+            .setParameter(1, id).executeUpdate();
+
+        // Step 5: NULL out parent_workflow_id on any child workflows so the delete
+        //         doesn't fail with a self-referencing FK.
+        entityManager.createNativeQuery(
+            "UPDATE workflows SET parent_workflow_id = NULL WHERE parent_workflow_id = ?1")
+            .setParameter(1, id).executeUpdate();
+
+        entityManager.flush();
+
+        // Step 6: Clear PC and let JPA cascade delete the definition side
+        //         (workflow → forms → fields → options, approvers, etc.).
+        entityManager.clear();
+        workflowRepository.deleteById(id);
     }
 
     /**
      * Process forms, field groups, screens, and fields for a workflow from DTOs.
      * Handles both create and update scenarios with temp IDs.
      */
-    private void processFormsForWorkflow(Workflow workflow, List<WorkflowFormDTO> formDtos) {
+    private Workflow processFormsForWorkflow(Workflow workflow, List<WorkflowFormDTO> formDtos) {
+        // PRE-PASS: Delete orphan fields in a SEPARATE transaction so the deletes
+        // commit before any subsequent entity reads. Only refresh/clear the PC if
+        // orphans were actually deleted — otherwise for CREATE scenarios the
+        // workflow isn't yet committed and a clear+refetch would lose it.
+        boolean anyDeleted = orphanFieldDeleteService.deleteOrphans(workflow.getId(), formDtos);
+        if (anyDeleted) {
+            try { entityManager.clear(); } catch (Exception ignore) {}
+            Workflow fresh = workflowRepository.findById(workflow.getId()).orElse(null);
+            if (fresh != null) workflow = fresh;
+        }
+
         // Map to track temp IDs to real IDs for field groups and screens
         Map<String, UUID> groupIdMap = new HashMap<>();
         Map<String, UUID> screenIdMap = new HashMap<>();
@@ -1177,7 +1294,12 @@ public class WorkflowService {
                     field.setApiParams(fieldDto.getApiParams());
                     field.setApiBody(fieldDto.getApiBody());
                     field.setApiResponsePath(fieldDto.getApiResponsePath());
+                    field.setApiOnResponse(fieldDto.getApiOnResponse());
                     field.setApiShowInForm(fieldDto.getApiShowInForm() != null ? fieldDto.getApiShowInForm() : true);
+                    field.setApiTriggerMode(fieldDto.getApiTriggerMode() != null ? fieldDto.getApiTriggerMode() : "AUTO");
+                    field.setApiDataSourceField(fieldDto.getApiDataSourceField());
+                    field.setApiDisplayField(fieldDto.getApiDisplayField());
+                    field.setApiValueField(fieldDto.getApiValueField());
                     field.setTableDataSource(fieldDto.getTableDataSource());
                     field.setSqlQuery(fieldDto.getSqlQuery());
                     field.setSqlTableColumns(fieldDto.getSqlTableColumns());
@@ -1256,37 +1378,8 @@ public class WorkflowService {
             WorkflowForm form = workflowFormRepository.findById(formId).orElse(null);
             if (form == null) continue;
 
-            // Delete orphan fields
-            Set<UUID> fieldIdsToKeep = fieldIdsToKeepByForm.getOrDefault(formId, new HashSet<>());
-            List<WorkflowField> allFields = workflowFieldRepository.findByFormId(formId);
-            log.info("Form {} has {} total fields, keeping {} fields", formId, allFields.size(), fieldIdsToKeep.size());
-            List<WorkflowField> fieldsToDelete = new ArrayList<>();
-            for (WorkflowField field : allFields) {
-                if (!fieldIdsToKeep.contains(field.getId())) {
-                    fieldsToDelete.add(field);
-                }
-            }
-            // Delete orphan fields - must delete in proper order to avoid FK constraint issues
-            for (WorkflowField field : fieldsToDelete) {
-                log.info("Deleting orphan field: {} (ID: {})", field.getName(), field.getId());
-                try {
-                    UUID fieldId = field.getId();
-
-                    // 1. First delete field values (from workflow instances)
-                    workflowFieldValueRepository.deleteByFieldId(fieldId);
-
-                    // 2. Delete field options directly
-                    fieldOptionRepository.deleteByFieldId(fieldId);
-
-                    // 3. Delete the field using direct JPQL query to bypass entity state issues
-                    workflowFieldRepository.deleteFieldById(fieldId);
-
-                    log.info("Successfully deleted field: {} (ID: {})", field.getName(), fieldId);
-                } catch (Exception e) {
-                    log.error("Error deleting field {} (ID: {}): {}", field.getName(), field.getId(), e.getMessage(), e);
-                    throw new BusinessException("Failed to delete field '" + field.getName() + "': " + e.getMessage());
-                }
-            }
+            // Orphan fields were already deleted in preDeleteOrphanFields() at the
+            // start of processFormsForWorkflow(). No action needed here.
 
             // Delete orphan field groups
             Set<UUID> groupIdsToKeep = groupIdsToKeepByForm.getOrDefault(formId, new HashSet<>());
@@ -1321,6 +1414,7 @@ public class WorkflowService {
                 workflowFormRepository.delete(existingForm);
             }
         }
+        return workflow;
     }
 
     /**
@@ -1430,6 +1524,10 @@ public class WorkflowService {
                 .description(workflow.getDescription())
                 .workflowTypeId(workflow.getWorkflowType() != null ? workflow.getWorkflowType().getId() : null)
                 .workflowTypeName(workflow.getWorkflowType() != null ? workflow.getWorkflowType().getName() : null)
+                .workflowTypeCode(workflow.getWorkflowType() != null ? workflow.getWorkflowType().getCode() : null)
+                .industryId(workflow.getIndustry() != null ? workflow.getIndustry().getId() : null)
+                .industryName(workflow.getIndustry() != null ? workflow.getIndustry().getName() : null)
+                .industryCode(workflow.getIndustry() != null ? workflow.getIndustry().getCode() : null)
                 .icon(workflow.getIcon())
                 .displayOrder(workflow.getDisplayOrder())
                 .requiresApproval(workflow.getRequiresApproval())
@@ -1444,6 +1542,7 @@ public class WorkflowService {
                 .lockApproved(workflow.getLockApproved())
                 .lockChildOnParentApproval(workflow.getLockChildOnParentApproval())
                 .workflowCategory(workflow.getWorkflowCategory())
+                .titleTemplate(workflow.getTitleTemplate())
                 .stampId(workflow.getStamp() != null ? workflow.getStamp().getId() : null)
                 .stampName(workflow.getStamp() != null ? workflow.getStamp().getName() : null)
                 .parentWorkflowId(workflow.getParentWorkflow() != null ? workflow.getParentWorkflow().getId() : null)
@@ -1466,6 +1565,17 @@ public class WorkflowService {
                 .reminderEmailSubject(workflow.getReminderEmailSubject())
                 .reminderEmailBody(workflow.getReminderEmailBody())
                 .build();
+    }
+
+    private void resolveIndustry(Workflow workflow, WorkflowDTO dto) {
+        if (dto.getIndustryId() != null) {
+            Category industry = categoryRepository.findById(dto.getIndustryId())
+                    .orElseThrow(() -> new BusinessException("Industry (category) not found"));
+            workflow.setIndustry(industry);
+        } else if (dto.getIndustryCode() != null && !dto.getIndustryCode().isBlank()) {
+            categoryRepository.findByCode(dto.getIndustryCode().trim())
+                    .ifPresent(workflow::setIndustry);
+        }
     }
 
     private WorkflowDTO toFullDTO(Workflow workflow) {
@@ -1520,6 +1630,140 @@ public class WorkflowService {
                 break;
             }
             currentId = current.getParentWorkflow().getId();
+        }
+    }
+
+    /**
+     * Delete orphan fields from the DB BEFORE the save loop processes incoming DTOs.
+     * Uses native SQL and surgically detaches ONLY the deleted field entities and
+     * their parent collection references — leaving the rest of the PC intact so
+     * downstream operations (save, approvers, etc.) can still use the managed graph.
+     */
+    private void preDeleteOrphanFields(UUID workflowId, List<WorkflowFormDTO> formDtos) {
+        // Collect field IDs being KEPT according to the incoming DTOs
+        Set<UUID> incomingFieldIds = new HashSet<>();
+        for (WorkflowFormDTO formDto : formDtos) {
+            if (formDto.getFields() != null) {
+                for (WorkflowFieldDTO f : formDto.getFields()) {
+                    UUID id = parseUuid(f.getId());
+                    if (id != null) incomingFieldIds.add(id);
+                }
+            }
+        }
+
+        // Find existing fields and their orphans
+        List<WorkflowField> existingFields = workflowFieldRepository.findByWorkflowId(workflowId);
+        List<WorkflowField> orphans = new ArrayList<>();
+        List<String> orphanNames = new ArrayList<>();
+        for (WorkflowField f : existingFields) {
+            if (!incomingFieldIds.contains(f.getId())) {
+                orphans.add(f);
+                orphanNames.add(f.getName());
+            }
+        }
+
+        if (orphans.isEmpty()) {
+            log.info("No orphan fields to delete for workflow {}", workflowId);
+            return;
+        }
+
+        log.info("Pre-deleting {} orphan field(s) for workflow {}: {}", orphans.size(), workflowId, orphanNames);
+
+        Set<UUID> orphanIds = new HashSet<>();
+        for (WorkflowField f : orphans) orphanIds.add(f.getId());
+
+        // STEP 1: Delete workflow_field_values first via native SQL (no cascade from field side).
+        // These are instance data, not definition data, so native SQL is safe.
+        try {
+            for (UUID fieldId : orphanIds) {
+                entityManager.createNativeQuery("DELETE FROM workflow_field_values WHERE field_id = ?1")
+                        .setParameter(1, fieldId).executeUpdate();
+            }
+            entityManager.flush();
+        } catch (Exception e) {
+            log.error("Failed to delete field values for orphans: {}", e.getMessage(), e);
+            throw new BusinessException("Failed to delete field values: " + e.getMessage());
+        }
+
+        // STEP 2: Use JPA orphanRemoval cascade — remove fields from their parent
+        // collections, then flush. Hibernate will issue the DELETE on the field
+        // row (and cascade to field_options via the WorkflowField→FieldOption
+        // relationship which also has cascade=ALL, orphanRemoval=true).
+        Workflow managedWorkflow = workflowRepository.findById(workflowId).orElse(null);
+        if (managedWorkflow != null && managedWorkflow.getForms() != null) {
+            for (WorkflowForm form : managedWorkflow.getForms()) {
+                if (form.getFields() != null) {
+                    form.getFields().removeIf(f -> f.getId() != null && orphanIds.contains(f.getId()));
+                }
+                if (form.getFieldGroups() != null) {
+                    for (FieldGroup g : form.getFieldGroups()) {
+                        if (g.getFields() != null) {
+                            g.getFields().removeIf(f -> f.getId() != null && orphanIds.contains(f.getId()));
+                        }
+                    }
+                }
+            }
+        }
+
+        try {
+            entityManager.flush();
+            log.info("Pre-deleted {} orphan field(s) via JPA orphanRemoval cascade", orphanIds.size());
+        } catch (Exception e) {
+            log.error("JPA orphanRemoval failed, falling back to native DELETE: {}", e.getMessage());
+            // FALLBACK: native DELETE if JPA cascade fails
+            try {
+                for (UUID fieldId : orphanIds) {
+                    entityManager.createNativeQuery("DELETE FROM field_options WHERE field_id = ?1")
+                            .setParameter(1, fieldId).executeUpdate();
+                    int d = entityManager.createNativeQuery("DELETE FROM workflow_fields WHERE id = ?1")
+                            .setParameter(1, fieldId).executeUpdate();
+                    log.info("Native-deleted orphan field {} (rows: {})", fieldId, d);
+                }
+                entityManager.flush();
+            } catch (Exception ex) {
+                log.error("Native delete fallback also failed: {}", ex.getMessage(), ex);
+                throw new BusinessException("Failed to delete orphan fields: " + ex.getMessage());
+            }
+        }
+
+        // CRITICAL: The `workflow` parameter passed to this service method was loaded
+        // BEFORE this delete happened. Its in-memory forms.fields collection still
+        // references the now-deleted field entities. If we leave this stale state in
+        // the PC, a subsequent saveAndFlush(workflow) (e.g. in processApproversForWorkflow)
+        // will try to merge/update those deleted fields → StaleObjectStateException.
+        //
+        // Fix: explicitly refresh the workflow and its forms from the DB, so their
+        // collections reflect post-delete state.
+        if (managedWorkflow != null) {
+            try {
+                entityManager.refresh(managedWorkflow);
+                if (managedWorkflow.getForms() != null) {
+                    for (WorkflowForm form : managedWorkflow.getForms()) {
+                        try { entityManager.refresh(form); } catch (Exception ignore) {}
+                    }
+                }
+            } catch (Exception ignore) {
+                log.debug("Could not refresh workflow/forms after orphan delete (non-fatal)");
+            }
+        }
+    }
+
+    private void copyAccessFromParent(Workflow child, Workflow parent) {
+        child.setCorporates(new HashSet<>(parent.getCorporates()));
+        child.setSbus(new HashSet<>(parent.getSbus()));
+        child.setBranches(new HashSet<>(parent.getBranches()));
+        child.setDepartments(new HashSet<>(parent.getDepartments()));
+        child.setRoles(new HashSet<>(parent.getRoles()));
+        child.setPrivileges(new HashSet<>(parent.getPrivileges()));
+    }
+
+    private void propagateAccessToChildren(Workflow parent) {
+        List<Workflow> children = workflowRepository.findChildWorkflows(parent.getId());
+        for (Workflow child : children) {
+            copyAccessFromParent(child, parent);
+            workflowRepository.save(child);
+            // Recursively propagate to grandchildren
+            propagateAccessToChildren(child);
         }
     }
 
@@ -1751,7 +1995,9 @@ public class WorkflowService {
                 .apiParams(field.getApiParams())
                 .apiBody(field.getApiBody())
                 .apiResponsePath(field.getApiResponsePath())
+                .apiOnResponse(field.getApiOnResponse())
                 .apiShowInForm(field.getApiShowInForm())
+                .apiTriggerMode(field.getApiTriggerMode())
                 .apiDataSourceField(field.getApiDataSourceField())
                 .apiDisplayField(field.getApiDisplayField())
                 .apiValueField(field.getApiValueField())
@@ -1885,7 +2131,10 @@ public class WorkflowService {
                 .lockApproved(workflow.getLockApproved())
                 .lockChildOnParentApproval(workflow.getLockChildOnParentApproval())
                 .workflowCategory(workflow.getWorkflowCategory())
+                .titleTemplate(workflow.getTitleTemplate())
                 .stampId(workflow.getStampId())
+                .industryCode(workflow.getIndustryCode())
+                .workflowTypeCode(workflow.getWorkflowTypeCode())
                 .build();
 
         // Export forms without IDs
