@@ -81,6 +81,7 @@ export interface AuthResponse {
   corporateIds: string[];
   sbuIds: string[];
   branchIds: string[];
+  departmentIds: string[];
   mustChangePassword: boolean;
   lastLogin?: string;
   createdAt?: string;

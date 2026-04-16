@@ -79,7 +79,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
         </div>
       </div>
 
-      <mat-tab-group>
+      <mat-tab-group class="workflow-tabs" dynamicHeight>
         <!-- Basic Info Tab -->
         <mat-tab label="Basic Info">
           <div class="tab-content">
@@ -110,13 +110,24 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="form-field">
                       <mat-label>Icon</mat-label>
-                      <mat-select formControlName="icon">
-                        @for (icon of icons; track icon) {
+                      @if (basicForm.get('icon')?.value) {
+                        <mat-icon matPrefix style="margin-right: 8px;">{{ basicForm.get('icon')?.value }}</mat-icon>
+                      }
+                      <input type="text" matInput formControlName="icon" [matAutocomplete]="iconAuto" placeholder="Type to search icons...">
+                      <mat-icon matSuffix>search</mat-icon>
+                      <mat-autocomplete #iconAuto="matAutocomplete">
+                        @for (icon of getFilteredIcons(); track icon) {
                           <mat-option [value]="icon">
                             <mat-icon>{{ icon }}</mat-icon> {{ icon }}
                           </mat-option>
                         }
-                      </mat-select>
+                        @if (getFilteredIcons().length === 0) {
+                          <mat-option disabled>
+                            <span style="color: #999;">No icons match your search</span>
+                          </mat-option>
+                        }
+                      </mat-autocomplete>
+                      <mat-hint>Type to filter — over 100 Material Icons available</mat-hint>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="form-field">
@@ -126,6 +137,30 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                         <mat-option value="FINANCIAL">Financial</mat-option>
                       </mat-select>
                       <mat-hint>Financial workflows enable amount-based approval limits</mat-hint>
+                    </mat-form-field>
+                  </div>
+
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Industry</mat-label>
+                      <mat-select formControlName="industryId">
+                        <mat-option [value]="null">— Not specified —</mat-option>
+                        @for (ind of industries; track ind.id) {
+                          <mat-option [value]="ind.id">{{ ind.name }}</mat-option>
+                        }
+                      </mat-select>
+                      <mat-hint>Industry this workflow belongs to (managed under Admin &rarr; Categories)</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Workflow Type</mat-label>
+                      <mat-select formControlName="workflowTypeId">
+                        <mat-option [value]="null">— General —</mat-option>
+                        @for (t of workflowTypes; track t.id) {
+                          <mat-option [value]="t.id">{{ t.name }}</mat-option>
+                        }
+                      </mat-select>
+                      <mat-hint>Managed under Admin &rarr; Workflow Types</mat-hint>
                     </mat-form-field>
                   </div>
 
@@ -166,6 +201,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                     <mat-checkbox formControlName="lockApproved">No Editing Approved Submissions</mat-checkbox>
                     <mat-checkbox formControlName="lockChildOnParentApproval">Lock Editing When Parent Approved</mat-checkbox>
                   </div>
+
                 </form>
               </mat-card-content>
             </mat-card>
@@ -608,6 +644,25 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 </div>
                               </mat-expansion-panel>
 
+                              <mat-expansion-panel [expanded]="expandedCategories['conditional']" (opened)="expandedCategories['conditional']=true" (closed)="expandedCategories['conditional']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>call_split</mat-icon> Conditional Functions ({{ conditionalFunctions.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  @for (fn of conditionalFunctions; track fn.name) {
+                                    <div class="function-item" (click)="insertFunction(fn)">
+                                      <div class="function-main">
+                                        <div class="function-name">{{ fn.name }}</div>
+                                        <div class="function-desc">{{ fn.description }}</div>
+                                      </div>
+                                      <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
+                                        <mat-icon>help_outline</mat-icon>
+                                      </button>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
+
                               <mat-expansion-panel [expanded]="expandedCategories['boolean']" (opened)="expandedCategories['boolean']=true" (closed)="expandedCategories['boolean']=false">
                                 <mat-expansion-panel-header>
                                   <mat-panel-title><mat-icon>toggle_on</mat-icon> Boolean/Logic Functions ({{ booleanFunctions.length }})</mat-panel-title>
@@ -698,6 +753,24 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                       <button mat-icon-button class="function-help-btn" (click)="showFunctionHelp(fn, $event)" matTooltip="View function help">
                                         <mat-icon>help_outline</mat-icon>
                                       </button>
+                                    </div>
+                                  }
+                                </div>
+                              </mat-expansion-panel>
+
+                              <mat-expansion-panel [expanded]="expandedCategories['placeholders']" (opened)="expandedCategories['placeholders']=true" (closed)="expandedCategories['placeholders']=false">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title><mat-icon>data_object</mat-icon> Placeholders ({{ placeholderItems.length }})</mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div class="function-list">
+                                  <div class="placeholder-guide">Use in Value, Visibility, Email Templates, API URLs, and more</div>
+                                  @for (ph of placeholderItems; track ph.name) {
+                                    <div class="function-item" (click)="copyToClipboard(ph.syntax)" matTooltip="Click to copy">
+                                      <div class="function-main">
+                                        <div class="function-name">{{ ph.name }}</div>
+                                        <div class="function-desc">{{ ph.description }}</div>
+                                      </div>
+                                      <mat-icon class="copy-icon">content_copy</mat-icon>
                                     </div>
                                   }
                                 </div>
@@ -802,7 +875,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 <mat-label>Value</mat-label>
                                 <textarea matInput [(ngModel)]="field.value" rows="1"
                                           placeholder="Static value or function: TODAY(), NOW(), CURRENT_USER(), CONCAT(), SUM(), UUID(), etc."></textarea>
-                                <mat-hint>Supports all functions from the Functions tab: text (CONCAT, UPPER, LOWER, TRIM), math (SUM, MULTIPLY, ROUND), date (TODAY, NOW, DATE_ADD), user (CURRENT_USER, CURRENT_USER_EMAIL), and more</mat-hint>
+                                <mat-hint>Static value or function expression. See Functions tab for full list.</mat-hint>
                               </mat-form-field>
                             }
 
@@ -812,7 +885,6 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 <mat-select [(ngModel)]="field.optionsSource" (selectionChange)="onOptionsSourceChange(field)">
                                   <mat-option value="STATIC">Static Options</mat-option>
                                   <mat-option value="SQL">SQL Object</mat-option>
-                                  <mat-option value="API">API Data Source</mat-option>
                                 </mat-select>
                                 <mat-hint>Choose where to get options from</mat-hint>
                               </mat-form-field>
@@ -846,45 +918,6 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                 }
                               }
 
-                              @if (field.optionsSource === 'API') {
-                                <div class="api-datasource-config">
-                                  <mat-form-field appearance="outline" class="form-field full-width">
-                                    <mat-label>API Data Source Field</mat-label>
-                                    <mat-select [(ngModel)]="field.apiDataSourceField">
-                                      <mat-option [value]="''">-- Select API Field --</mat-option>
-                                      @for (apiField of getApiArrayFields(); track apiField.name) {
-                                        <mat-option [value]="apiField.name">
-                                          <mat-icon>{{ apiField.type === 'API_OBJECT_ARRAY' ? 'data_object' : 'api' }}</mat-icon>
-                                          {{ apiField.label || apiField.name }} ({{ apiField.type === 'API_OBJECT_ARRAY' ? 'Object Array' : 'Array' }})
-                                        </mat-option>
-                                      }
-                                    </mat-select>
-                                    <mat-hint>Select an API Array or API Object Array field as the data source</mat-hint>
-                                  </mat-form-field>
-
-                                  @if (field.apiDataSourceField) {
-                                    <div class="form-row">
-                                      <mat-form-field appearance="outline" class="form-field">
-                                        <mat-label>Value Field</mat-label>
-                                        <input matInput [(ngModel)]="field.apiValueField" placeholder="e.g. id, ability.name">
-                                        <mat-hint>Dot-notation path for the option value (leave empty for simple arrays)</mat-hint>
-                                      </mat-form-field>
-                                      <mat-form-field appearance="outline" class="form-field">
-                                        <mat-label>Display Field</mat-label>
-                                        <input matInput [(ngModel)]="field.apiDisplayField" placeholder="e.g. name, ability.name">
-                                        <mat-hint>Dot-notation path for the display label (leave empty for simple arrays)</mat-hint>
-                                      </mat-form-field>
-                                    </div>
-                                  }
-
-                                  @if (getApiArrayFields().length === 0) {
-                                    <p class="sql-hint warning">
-                                      <mat-icon>warning</mat-icon>
-                                      No API Array or API Object Array fields found. Add one first.
-                                    </p>
-                                  }
-                                </div>
-                              }
                             }
 
                             @if (field.type === 'RADIO' || field.type === 'CHECKBOX_GROUP') {
@@ -940,11 +973,15 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
 
                             @if (field.type !== 'ACCORDION' && field.type !== 'COLLAPSIBLE') {
                               <div class="checkbox-row">
-                                <mat-checkbox [(ngModel)]="field.required">Required</mat-checkbox>
+                                @if (field.type !== 'SQL_TABLE') {
+                                  <mat-checkbox [(ngModel)]="field.required">Required</mat-checkbox>
+                                }
                                 <mat-checkbox [(ngModel)]="field.readOnly" (change)="onTableReadOnlyChange(field)">Read Only</mat-checkbox>
                                 <mat-checkbox [(ngModel)]="field.hidden">Hidden</mat-checkbox>
-                                <mat-checkbox [(ngModel)]="field.isUnique">Unique</mat-checkbox>
-                                <mat-checkbox [(ngModel)]="field.isTitle">Make Title</mat-checkbox>
+                                @if (field.type !== 'SQL_TABLE') {
+                                  <mat-checkbox [(ngModel)]="field.isUnique">Unique</mat-checkbox>
+                                  <mat-checkbox [(ngModel)]="field.isTitle" (change)="onIsTitleChange(field)" matTooltip="Makes this field available in the Title tab for building the submission title">Contributes to Title</mat-checkbox>
+                                }
                                 <mat-checkbox [(ngModel)]="field.inSummary" matTooltip="Include this field in approval email summary">Summary</mat-checkbox>
                                 @if (isFinancialWorkflow() && isAmountField(field.type)) {
                                   <mat-checkbox [(ngModel)]="field.isLimited"
@@ -1074,11 +1111,30 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                   SQL Table Configuration
                                 </h4>
 
+                                <div class="api-show-toggle">
+                                  <mat-slide-toggle color="primary"
+                                    [checked]="field.apiTriggerMode === 'MANUAL'"
+                                    (change)="field.apiTriggerMode = $event.checked ? 'MANUAL' : 'AUTO'">
+                                    Manual trigger
+                                  </mat-slide-toggle>
+                                  <span class="toggle-hint">
+                                    @if (field.apiTriggerMode === 'MANUAL') {
+                                      User must click 'Populate' to load data
+                                    } @else {
+                                      Data is loaded automatically when the form loads
+                                    }
+                                  </span>
+                                </div>
+
                                 <mat-form-field appearance="outline" class="full-width">
                                   <mat-label>SQL Query</mat-label>
-                                  <textarea matInput [(ngModel)]="field.sqlQuery" rows="4"
+                                  <textarea matInput [(ngModel)]="field.sqlQuery" rows="4" required
                                             placeholder="SELECT id, name, email FROM users WHERE active = true"></textarea>
-                                  <mat-hint>Only SELECT queries allowed. The results will be displayed as a read-only table.</mat-hint>
+                                  @if (!field.sqlQuery || !field.sqlQuery.trim()) {
+                                    <mat-error>SQL Query is required</mat-error>
+                                  } @else {
+                                    <mat-hint>Only SELECT queries allowed. The results will be displayed as a read-only table.</mat-hint>
+                                  }
                                 </mat-form-field>
 
                                 <h4 class="config-section-title" style="margin-top: 16px;">
@@ -1142,33 +1198,33 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                             }
 
                             <!-- API field types config -->
-                            @if (field.type === 'API_ARRAY' || field.type === 'API_OBJECT_ARRAY' || field.type === 'API_VALUE' || field.type === 'API_OBJECT' || field.type === 'API_LIST' || field.type === 'OBJECT_VIEWER') {
+                            @if (field.type === 'API_VALUE' || field.type === 'OBJECT_VIEWER') {
                               <div class="api-config">
                                 <h4 class="config-section-title">
                                   <mat-icon>api</mat-icon>
                                   API Configuration
                                 </h4>
 
-                                @if (field.type === 'API_ARRAY' || field.type === 'API_OBJECT_ARRAY') {
-                                  <div class="api-show-toggle">
-                                    <mat-slide-toggle [(ngModel)]="field.apiShowInForm" color="primary">
-                                      Show in form
-                                    </mat-slide-toggle>
-                                    <span class="toggle-hint">
-                                      @if (field.apiShowInForm) {
-                                        Displays its own control in the form
-                                      } @else {
-                                        Hidden — acts as a data source for other fields (e.g. Table)
-                                      }
-                                    </span>
-                                  </div>
-                                }
+                                <div class="api-show-toggle">
+                                  <mat-slide-toggle color="primary"
+                                    [checked]="field.apiTriggerMode === 'MANUAL'"
+                                    (change)="field.apiTriggerMode = $event.checked ? 'MANUAL' : 'AUTO'">
+                                    Manual trigger
+                                  </mat-slide-toggle>
+                                  <span class="toggle-hint">
+                                    @if (field.apiTriggerMode === 'MANUAL') {
+                                      User must click 'Go' to fetch data
+                                    } @else {
+                                      Data is fetched automatically when the form loads
+                                    }
+                                  </span>
+                                </div>
 
                                 <div class="form-row">
                                   <mat-form-field appearance="outline" class="form-field" style="flex: 2">
                                     <mat-label>API URL</mat-label>
-                                    <input matInput [(ngModel)]="field.apiUrl" placeholder="https://api.example.com/data" required>
-                                    <mat-hint>The endpoint URL to fetch data from</mat-hint>
+                                    <input matInput [(ngModel)]="field.apiUrl" [placeholder]="'https://api.example.com/data/@\u007Bid\u007D'" required>
+                                    <mat-hint>Endpoint URL. Use <code>{{ '@{fieldName}' }}</code> to insert form field values</mat-hint>
                                   </mat-form-field>
 
                                   <mat-form-field appearance="outline" class="form-field">
@@ -1220,11 +1276,18 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                   <mat-hint>Dot notation path to extract data (e.g. data.items, response.results)</mat-hint>
                                 </mat-form-field>
 
+                                <mat-form-field appearance="outline" class="form-field full-width">
+                                  <mat-label>On Response</mat-label>
+                                  <textarea matInput [(ngModel)]="field.apiOnResponse" rows="2"
+                                            placeholder="e.g. APIResponse.user.name or CONCAT(APIResponse.firstName, ' ', APIResponse.lastName)"></textarea>
+                                  <mat-hint>Expression evaluated when the API response arrives. The response is accessible as <code>APIResponse</code>. Use dot notation (<code>APIResponse.user.email</code>) or any function (<code>CONCAT</code>, <code>IF</code>, etc.). Overrides Response Path when set.</mat-hint>
+                                </mat-form-field>
+
                                 @if (field.apiMethod === 'POST' || field.apiMethod === 'PUT') {
                                   <mat-form-field appearance="outline" class="form-field full-width">
                                     <mat-label>Request Body (JSON)</mat-label>
-                                    <textarea matInput [(ngModel)]="field.apiBody" rows="3" placeholder='{"key": "value"}'></textarea>
-                                    <mat-hint>JSON body to send with the request</mat-hint>
+                                    <textarea matInput [(ngModel)]="field.apiBody" rows="3" [placeholder]="'{&quot;key&quot;: &quot;@\u007BfieldName\u007D&quot;}'"></textarea>
+                                    <mat-hint>JSON body. Use <code>{{ '@{fieldName}' }}</code> to insert form field values</mat-hint>
                                   </mat-form-field>
                                 }
 
@@ -1261,7 +1324,8 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                       </mat-form-field>
                                       <mat-form-field appearance="outline" class="col-label-field">
                                         <mat-label>Value</mat-label>
-                                        <input matInput [(ngModel)]="param.value" [placeholder]="param.type === 'PATH' ? 'e.g. 123' : 'e.g. 1, active'">
+                                        <input matInput [(ngModel)]="param.value" [placeholder]="param.type === 'PATH' ? 'e.g. 123 or @\u007BfieldName\u007D' : 'e.g. 1, @\u007BfieldName\u007D'">
+                                        <mat-hint>Use <code>{{ '@{fieldName}' }}</code> to reference a form field value</mat-hint>
                                       </mat-form-field>
                                       <button mat-icon-button matTooltip="Remove" color="warn" (click)="removeApiParam(field, i)">
                                         <mat-icon>delete</mat-icon>
@@ -1292,7 +1356,8 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                       </mat-form-field>
                                       <mat-form-field appearance="outline" class="col-label-field">
                                         <mat-label>Header Value</mat-label>
-                                        <input matInput [(ngModel)]="header.value" placeholder="application/json">
+                                        <input matInput [(ngModel)]="header.value" [placeholder]="'application/json or @\u007BfieldName\u007D'">
+                                        <mat-hint>Use <code>{{ '@{fieldName}' }}</code> to reference a form field value</mat-hint>
                                       </mat-form-field>
                                       <button mat-icon-button matTooltip="Remove" color="warn" (click)="removeApiHeader(field, i)">
                                         <mat-icon>delete</mat-icon>
@@ -1310,23 +1375,6 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                                   <mat-icon>table_chart</mat-icon>
                                   Table Configuration
                                 </h4>
-
-                                <!-- Data Source -->
-                                <div class="form-row">
-                                  <mat-form-field appearance="outline" class="form-field full-width">
-                                    <mat-label>Data Source</mat-label>
-                                    <mat-select [(ngModel)]="field.tableDataSource">
-                                      <mat-option [value]="''">Manual Entry (no data source)</mat-option>
-                                      @for (apiField of getApiArrayFields(); track apiField.name) {
-                                        <mat-option [value]="apiField.name">
-                                          <mat-icon>{{ apiField.type === 'API_OBJECT_ARRAY' ? 'data_object' : 'api' }}</mat-icon>
-                                          {{ apiField.label || apiField.name }} ({{ apiField.type === 'API_OBJECT_ARRAY' ? 'Object Array' : 'Array' }})
-                                        </mat-option>
-                                      }
-                                    </mat-select>
-                                    <mat-hint>Optionally populate this table from an API Object Array field</mat-hint>
-                                  </mat-form-field>
-                                </div>
 
                                 <!-- Column definitions -->
                                 <div class="columns-section">
@@ -1686,6 +1734,97 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
           </div>
         </mat-tab>
 
+        <!-- Title Tab -->
+        <mat-tab label="Title">
+          <div class="tab-content">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>title</mat-icon>
+                  Title Advanced Settings
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p class="title-help">
+                  Build the submission title by picking fields (or workflow placeholders) in order and defining connector text between them.
+                  Only fields marked as <strong>"Contributes to Title"</strong> in the Form Builder appear in the Field dropdown.
+                  Titles regenerate on every save/submit. When a field is deleted, its reference is removed automatically.
+                </p>
+
+                @if (getTitleContributingFields().length === 0 && titleTemplateParts.length === 0) {
+                  <div class="access-info" style="background: #fff3e0; border-left: 4px solid #ff9800;">
+                    <mat-icon style="color: #ff9800;">info</mat-icon>
+                    <p>No fields are marked as <strong>"Contributes to Title"</strong> yet. Go to the Form Builder tab, open a field, and enable <em>"Contributes to Title"</em> to make it available here. Workflow placeholders are always available.</p>
+                  </div>
+                }
+
+                @if (titleTemplateParts.length === 0) {
+                  <p class="empty-parts">No parts added. Click "Add Field" below to start building the title.</p>
+                }
+
+                <div class="title-parts-list">
+                  @for (part of titleTemplateParts; track $index; let i = $index; let isLast = $last) {
+                    <div class="title-part-row">
+                      <mat-form-field appearance="outline" class="title-part-field">
+                        <mat-label>Field</mat-label>
+                        <mat-select [(ngModel)]="part.field" [ngModelOptions]="{standalone: true}" (selectionChange)="updateTitleTemplate()">
+                          @if (getTitleContributingFields().length > 0) {
+                            <mat-optgroup label="Form Fields (marked as Contributes to Title)">
+                              @for (f of getTitleContributingFields(); track f.name) {
+                                <mat-option [value]="f.name">{{ f.label || f.name }}</mat-option>
+                              }
+                            </mat-optgroup>
+                          }
+                          <mat-optgroup label="Workflow Placeholders">
+                            @for (p of titleWorkflowPlaceholders; track p.key) {
+                              <mat-option [value]="p.key">{{ p.label }}</mat-option>
+                            }
+                          </mat-optgroup>
+                        </mat-select>
+                      </mat-form-field>
+
+                      @if (!isLast) {
+                        <mat-form-field appearance="outline" class="title-connector-field">
+                          <mat-label>Connector</mat-label>
+                          <input matInput [(ngModel)]="part.connector" [ngModelOptions]="{standalone: true}" (input)="updateTitleTemplate()" placeholder=" - ">
+                        </mat-form-field>
+                      }
+
+                      <button mat-icon-button type="button" matTooltip="Move up" [disabled]="i === 0" (click)="moveTitlePart(i, -1)">
+                        <mat-icon>arrow_upward</mat-icon>
+                      </button>
+                      <button mat-icon-button type="button" matTooltip="Move down" [disabled]="isLast" (click)="moveTitlePart(i, 1)">
+                        <mat-icon>arrow_downward</mat-icon>
+                      </button>
+                      <button mat-icon-button type="button" matTooltip="Remove" color="warn" (click)="removeTitlePart(i)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
+
+                <button mat-stroked-button type="button" color="primary" (click)="addTitlePart()" style="margin-top: 0.5rem;">
+                  <mat-icon>add</mat-icon>
+                  Add Field
+                </button>
+
+                <div class="title-preview" style="margin-top: 1rem;">
+                  <strong>Preview:</strong>
+                  <code class="title-preview-code">{{ getTitlePreview() }}</code>
+                </div>
+
+                <form [formGroup]="basicForm">
+                  <mat-form-field appearance="outline" class="full-width" style="margin-top: 1rem;">
+                    <mat-label>Template (raw)</mat-label>
+                    <input matInput formControlName="titleTemplate" readonly>
+                    <mat-hint>Auto-generated from the builder above</mat-hint>
+                  </mat-form-field>
+                </form>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
         <!-- Approvers Tab -->
         <mat-tab label="Approvers">
           <div class="tab-content">
@@ -1785,16 +1924,23 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                 </mat-card-title>
               </mat-card-header>
               <mat-card-content>
-                <div class="access-info">
-                  <mat-icon>info</mat-icon>
-                  <p>Leave all fields empty to make this workflow visible to all users. Select specific corporates, SBUs, branches, or departments to restrict access.</p>
-                </div>
+                @if (childInheritAccess && basicForm.get('parentWorkflowId')?.value) {
+                  <div class="access-info" style="background: var(--warn-bg, #fff3e0); border-left: 4px solid var(--warn-color, #ff9800);">
+                    <mat-icon style="color: var(--warn-color, #ff9800);">sync</mat-icon>
+                    <p>This child workflow inherits access from its parent workflow. Access is automatically kept in sync when the parent's access changes. To manage access independently, disable <strong>"Child Workflows Inherit Parent Access"</strong> in Settings &gt; Workflow.</p>
+                  </div>
+                } @else {
+                  <div class="access-info">
+                    <mat-icon>info</mat-icon>
+                    <p>Leave all fields empty to make this workflow visible to all users. Select specific corporates, SBUs, branches, or departments to restrict access.</p>
+                  </div>
+                }
 
                 <form [formGroup]="basicForm">
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="form-field">
                       <mat-label>Corporates</mat-label>
-                      <mat-select formControlName="corporateIds" multiple (selectionChange)="onCorporateChange()">
+                      <mat-select formControlName="corporateIds" multiple (selectionChange)="onCorporateChange()" [disabled]="childInheritAccess && basicForm.get('parentWorkflowId')?.value">
                         @for (corp of corporates; track corp.id) {
                           <mat-option [value]="corp.id">{{ corp.name }}</mat-option>
                         }
@@ -1804,7 +1950,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
 
                     <mat-form-field appearance="outline" class="form-field">
                       <mat-label>SBUs</mat-label>
-                      <mat-select formControlName="sbuIds" multiple (selectionChange)="onSbuChange()">
+                      <mat-select formControlName="sbuIds" multiple (selectionChange)="onSbuChange()" [disabled]="childInheritAccess && basicForm.get('parentWorkflowId')?.value">
                         @for (sbu of filteredSbus; track sbu.id) {
                           <mat-option [value]="sbu.id">{{ sbu.name }} @if (sbu.corporateName) { ({{ sbu.corporateName }}) }</mat-option>
                         }
@@ -1816,7 +1962,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="form-field">
                       <mat-label>Branches</mat-label>
-                      <mat-select formControlName="branchIds" multiple>
+                      <mat-select formControlName="branchIds" multiple [disabled]="childInheritAccess && basicForm.get('parentWorkflowId')?.value">
                         @for (branch of filteredBranches; track branch.id) {
                           <mat-option [value]="branch.id">{{ branch.name }} @if (branch.sbuName) { ({{ branch.sbuName }}) }</mat-option>
                         }
@@ -1826,7 +1972,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
 
                     <mat-form-field appearance="outline" class="form-field">
                       <mat-label>Departments</mat-label>
-                      <mat-select formControlName="departmentIds" multiple>
+                      <mat-select formControlName="departmentIds" multiple [disabled]="childInheritAccess && basicForm.get('parentWorkflowId')?.value">
                         @for (dept of filteredDepartments; track dept.id) {
                           <mat-option [value]="dept.id">{{ dept.name }} @if (dept.corporateName) { ({{ dept.corporateName }}) }</mat-option>
                         }
@@ -1839,7 +1985,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                   <div class="form-row" style="margin-top: 20px;">
                     <mat-form-field appearance="outline" class="form-field">
                       <mat-label>Roles</mat-label>
-                      <mat-select formControlName="roleIds" multiple (selectionChange)="onWorkflowRolesChange()">
+                      <mat-select formControlName="roleIds" multiple (selectionChange)="onWorkflowRolesChange()" [disabled]="childInheritAccess && basicForm.get('parentWorkflowId')?.value">
                         @for (role of roles; track role.id) {
                           <mat-option [value]="role.id">{{ role.name }}</mat-option>
                         }
@@ -1849,7 +1995,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
 
                     <mat-form-field appearance="outline" class="form-field">
                       <mat-label>Privileges</mat-label>
-                      <mat-select formControlName="privilegeIds" multiple [disabled]="filteredPrivilegesForWorkflow.length === 0">
+                      <mat-select formControlName="privilegeIds" multiple [disabled]="(childInheritAccess && basicForm.get('parentWorkflowId')?.value) || filteredPrivilegesForWorkflow.length === 0">
                         @for (privilege of filteredPrivilegesForWorkflow; track privilege.id) {
                           <mat-option [value]="privilege.id">
                             {{ privilege.name }} @if (privilege.category) { ({{ privilege.category }}) }
@@ -1976,12 +2122,43 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
                     <h4>Custom Email Template (Optional)</h4>
                     <div class="access-info">
                       <mat-icon>info</mat-icon>
-                      <p>Customize the reminder email. Leave blank to use the default template. Use placeholders: {{'{'+'{'}}approverName{{'}'+'}'}} {{'{'+'{'}}workflowName{{'}'+'}'}} {{'{'+'{'}}submitterName{{'}'+'}'}} {{'{'+'{'}}referenceNumber{{'}'+'}'}} {{'{'+'{'}}submittedDate{{'}'+'}'}} </p>
+                      <p>Customize the reminder email. Leave blank to use the default template.</p>
                     </div>
+
+                    <details class="vt-help" style="margin-bottom: 1rem;">
+                      <summary>Available placeholders</summary>
+                      <div class="vt-help-content" style="display: block;">
+                        <strong>Workflow:</strong>
+                        <code [innerText]="'@{workflowName}'"></code>
+                        <code [innerText]="'@{workflowCode}'"></code>
+                        <br><strong>Submission:</strong>
+                        <code [innerText]="'@{referenceNumber}'"></code>
+                        <code [innerText]="'@{submissionTitle}'"></code>
+                        <code [innerText]="'@{status}'"></code>
+                        <code [innerText]="'@{amount}'"></code>
+                        <code [innerText]="'@{sbuName}'"></code>
+                        <br><strong>Approver:</strong>
+                        <code [innerText]="'@{approverName}'"></code>
+                        <code [innerText]="'@{approverEmail}'"></code>
+                        <code [innerText]="'@{approvalLevel}'"></code>
+                        <br><strong>Submitter:</strong>
+                        <code [innerText]="'@{submitterName}'"></code>
+                        <code [innerText]="'@{submitterEmail}'"></code>
+                        <code [innerText]="'@{submitterDepartment}'"></code>
+                        <br><strong>Dates:</strong>
+                        <code [innerText]="'@{submittedDate}'"></code>
+                        <code [innerText]="'@{submittedTime}'"></code>
+                        <code [innerText]="'@{submittedDateTime}'"></code>
+                        <code [innerText]="'@{daysPending}'"></code>
+                        <br><strong>Reminder:</strong>
+                        <code [innerText]="'@{reminderNumber}'"></code>
+                        <code [innerText]="'@{reminderMax}'"></code>
+                      </div>
+                    </details>
 
                     <mat-form-field appearance="outline" class="full-width">
                       <mat-label>Email Subject</mat-label>
-                      <input matInput formControlName="reminderEmailSubject" [placeholder]="'Reminder: Pending approval for ' + '{'+'{' + 'workflowName' + '}' + '}'">
+                      <input matInput formControlName="reminderEmailSubject" [placeholder]="reminderSubjectPlaceholder">
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="full-width">
@@ -2001,6 +2178,10 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
   styles: [`
     .workflow-builder-container { padding: 1rem; }
 
+    @media (max-width: 600px) {
+      .workflow-builder-container { padding: 0.5rem; }
+    }
+
     .header {
       display: flex;
       align-items: center;
@@ -2008,11 +2189,23 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       margin-bottom: 1rem;
     }
 
-    .header h1 { flex: 1; margin: 0; }
+    .header h1 { flex: 1; margin: 0; font-size: 1.5rem; }
 
     .header-actions {
       display: flex;
       gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-wrap: wrap;
+      }
+      .header h1 { font-size: 1.2rem; width: 100%; }
+      .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
     }
 
     .tab-content { padding: 1rem 0; }
@@ -2021,6 +2214,126 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       min-width: 0 !important;
       padding: 0 12px !important;
       font-size: 13px;
+    }
+
+    /* Responsive workflow tabs — always stretch to fill the available width.
+       Each tab gets an equal share; padding and font shrink on narrower screens
+       so labels keep fitting without needing horizontal scrolling. */
+    .workflow-tabs {
+      width: 100%;
+    }
+
+    ::ng-deep .workflow-tabs .mat-mdc-tab-header {
+      border-bottom: 1px solid rgba(0,0,0,0.12);
+    }
+
+    ::ng-deep .workflow-tabs .mat-mdc-tab-labels {
+      flex-wrap: nowrap;
+      width: 100%;
+    }
+
+    ::ng-deep .workflow-tabs .mat-mdc-tab {
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
+    }
+
+    ::ng-deep .workflow-tabs .mdc-tab__text-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    @media (max-width: 1024px) {
+      ::ng-deep .workflow-tabs .mat-mdc-tab {
+        padding: 0 8px !important;
+        font-size: 12px;
+        min-height: 44px !important;
+        letter-spacing: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      ::ng-deep .workflow-tabs .mat-mdc-tab {
+        padding: 0 4px !important;
+        font-size: 11px;
+        min-height: 40px !important;
+      }
+    }
+
+    @media (max-width: 600px) {
+      ::ng-deep .workflow-tabs .mat-mdc-tab {
+        padding: 0 2px !important;
+        font-size: 10px;
+        min-height: 36px !important;
+      }
+      .tab-content { padding: 0.5rem 0; }
+    }
+
+    /* Increase vertical spacing between fields on tablet and mobile so
+       the mat-hint text (which is absolutely positioned by Material) does
+       not spill into the next field below when labels wrap to 2+ lines. */
+    @media (max-width: 1024px) {
+      .tab-content .form-row {
+        margin-bottom: 1.5rem;
+      }
+      .tab-content mat-form-field,
+      .tab-content .mat-mdc-form-field {
+        margin-bottom: 1.5rem;
+      }
+      .tab-content .checkbox-row {
+        gap: 1rem;
+        row-gap: 0.75rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .tab-content .form-row {
+        flex-direction: column;
+        gap: 0;
+        margin-bottom: 2rem;
+      }
+      .tab-content mat-form-field,
+      .tab-content .mat-mdc-form-field {
+        margin-bottom: 2rem;
+        width: 100%;
+      }
+      .tab-content .checkbox-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      /* Field config inside Form Builder */
+      .field-config .form-row,
+      .field-config .form-field,
+      .field-config .full-width {
+        margin-bottom: 2rem;
+      }
+      /* Validation & Transformation sections */
+      .vt-section .form-field {
+        margin-bottom: 2.5rem;
+      }
+      /* Title template rows should stack vertically */
+      .title-part-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px dashed #e0e0e0;
+      }
+      .title-part-field,
+      .title-connector-field {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .tab-content .form-row,
+      .tab-content mat-form-field,
+      .tab-content .mat-mdc-form-field {
+        margin-bottom: 2.25rem;
+      }
     }
 
     .sql-col-row {
@@ -2066,6 +2379,24 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       display: grid;
       grid-template-columns: 300px 1fr;
       gap: 1rem;
+    }
+
+    @media (max-width: 1024px) {
+      .builder-layout {
+        grid-template-columns: 260px 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .builder-layout {
+        grid-template-columns: 1fr;
+      }
+      .field-palette {
+        position: static !important;
+        height: auto !important;
+        min-height: 300px !important;
+        max-height: 400px;
+      }
     }
 
     .field-palette {
@@ -2286,6 +2617,77 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       margin-top: 0.125rem;
     }
 
+    .placeholder-guide {
+      font-size: 0.75rem;
+      color: #666;
+      padding: 0.5rem 0.75rem;
+      background: #f0f4ff;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .title-template-panel {
+      background: #fafafa;
+    }
+
+    .title-template-content {
+      padding: 0.5rem 0;
+    }
+
+    .title-help {
+      font-size: 0.85rem;
+      color: #666;
+      margin: 0 0 1rem 0;
+    }
+
+    .empty-parts {
+      font-size: 0.85rem;
+      color: #888;
+      font-style: italic;
+      padding: 0.75rem;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+
+    .title-parts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .title-part-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .title-part-field {
+      flex: 2;
+    }
+
+    .title-connector-field {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .title-preview-code {
+      display: inline-block;
+      margin-left: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .copy-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #999;
+    }
+
     .function-search {
       margin-bottom: 0.75rem;
     }
@@ -2475,6 +2877,10 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
       padding: 1rem;
     }
 
+    .field-config ::ng-deep .mat-mdc-form-field {
+      margin-bottom: 1rem;
+    }
+
     .validation-panel {
       margin-top: 1rem;
       margin-bottom: 1rem;
@@ -2494,7 +2900,7 @@ import { FunctionHelpDialogComponent } from '@shared/components/function-help-di
     }
 
     .vt-section .form-field {
-      margin-bottom: 0.25rem;
+      margin-bottom: 1.25rem;
     }
 
     .expr-error .mdc-text-field--outlined .mdc-notched-outline__leading,
@@ -3243,7 +3649,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   loading = false;
   workflowId: string | null = null;
   workflowName: string = '';  // Store workflow name for header display
-  reminderBodyPlaceholder = 'Dear {{approverName}}, you have a pending approval for {{workflowName}} (Ref: {{referenceNumber}}) submitted by {{submitterName}} on {{submittedDate}}.';
+  reminderBodyPlaceholder = 'Dear @{approverName}, you have a pending approval for @{workflowName} (Ref: @{referenceNumber}) submitted by @{submitterName} on @{submittedDate}.';
+  reminderPlaceholderHint = '@{approverName}, @{approverEmail}, @{workflowName}, @{workflowCode}, @{referenceNumber}, @{submissionTitle}, @{status}, @{amount}, @{sbuName}, @{submitterName}, @{submitterEmail}, @{submitterDepartment}, @{submittedDate}, @{submittedTime}, @{submittedDateTime}, @{daysPending}, @{approvalLevel}, @{reminderNumber}, @{reminderMax}';
+  reminderSubjectPlaceholder = 'Reminder: Pending approval for @{workflowName}';
   formId: string | null = null;  // Track the main form ID
   private destroy$ = new Subject<void>();
 
@@ -3254,8 +3662,25 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   approvers: any[] = [];
 
   workflowTypes: any[] = [];
+  industries: any[] = [];
   availableParentWorkflows: Workflow[] = [];
   selectedStampName: string = '';
+  childInheritAccess: boolean = true;
+  titleTemplateParts: { field: string; connector: string }[] = [];
+  titleWorkflowPlaceholders = [
+    { key: 'workflowName', label: 'Workflow Name' },
+    { key: 'workflowCode', label: 'Workflow Code' },
+    { key: 'referenceNumber', label: 'Reference Number' },
+    { key: 'status', label: 'Status' },
+    { key: 'submitterName', label: 'Submitter Name' },
+    { key: 'submitterEmail', label: 'Submitter Email' },
+    { key: 'submitterDepartment', label: 'Submitter Department' },
+    { key: 'submittedDate', label: 'Submitted Date' },
+    { key: 'submittedTime', label: 'Submitted Time' },
+    { key: 'submittedDateTime', label: 'Submitted Date & Time' },
+    { key: 'amount', label: 'Amount' },
+    { key: 'sbuName', label: 'SBU Name' }
+  ];
   users: User[] = [];
   roles: Role[] = [];
   privileges: Privilege[] = [];
@@ -3274,9 +3699,46 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   showUsageGuide = false;
 
   icons = [
-    'description', 'assignment', 'receipt', 'request_quote', 'shopping_cart',
-    'account_balance', 'attach_money', 'credit_card', 'flight', 'hotel',
-    'directions_car', 'inventory', 'local_shipping', 'build', 'engineering'
+    // General / Documents
+    'description', 'article', 'assignment', 'task', 'fact_check', 'rule',
+    'receipt', 'receipt_long', 'request_quote', 'summarize', 'folder', 'topic',
+    // Finance / Commerce
+    'shopping_cart', 'account_balance', 'account_balance_wallet',
+    'attach_money', 'payments', 'credit_card', 'savings', 'price_change',
+    'point_of_sale', 'trending_up',
+    // HR / People
+    'person_add', 'person_remove', 'badge', 'people', 'groups',
+    'supervisor_account', 'manage_accounts', 'contact_mail', 'card_membership',
+    // Leave / Time
+    'event_available', 'event_busy', 'event', 'calendar_today', 'today',
+    'date_range', 'access_time', 'schedule', 'beach_access', 'flight_takeoff',
+    // Travel / Logistics
+    'flight', 'hotel', 'directions_car', 'local_taxi', 'train', 'bus_alert',
+    'local_shipping', 'two_wheeler', 'location_on', 'map',
+    // IT / Equipment
+    'devices', 'computer', 'laptop', 'smartphone', 'tablet',
+    'dns', 'cloud', 'storage', 'vpn_key', 'lock', 'shield', 'security',
+    'support_agent', 'bug_report', 'build', 'engineering', 'construction',
+    // Inventory / Assets
+    'inventory', 'inventory_2', 'widgets', 'category', 'warehouse', 'store',
+    'storefront', 'local_mall', 'shopping_bag',
+    // Approval / Flow
+    'approval', 'verified', 'verified_user', 'check_circle', 'done_all',
+    'pending_actions', 'hourglass_empty', 'gavel', 'how_to_reg',
+    // Communication
+    'email', 'mail', 'message', 'chat', 'notifications', 'campaign', 'send',
+    // Alerts / Risk
+    'warning', 'error', 'report', 'priority_high', 'flag', 'policy',
+    // Operations / Facilities
+    'factory', 'precision_manufacturing', 'business', 'apartment',
+    'corporate_fare', 'meeting_room', 'room_service',
+    // Analytics / Reports
+    'assessment', 'analytics', 'insights', 'pie_chart', 'bar_chart',
+    'query_stats', 'monitoring',
+    // Misc
+    'school', 'science', 'settings', 'tune', 'star', 'bookmark',
+    'bookmark_add', 'workspace_premium', 'emoji_events', 'lightbulb',
+    'help_outline', 'handshake'
   ];
 
   fieldTypes = [
@@ -3317,11 +3779,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { value: 'HIDDEN', label: 'Hidden Field', icon: 'visibility_off' },
     { value: 'LABEL', label: 'Label/Text', icon: 'label' },
     { value: 'DIVIDER', label: 'Divider', icon: 'horizontal_rule' },
-    { value: 'API_ARRAY', label: 'API Array', icon: 'api', description: 'Fetch an array of values from an API' },
-    { value: 'API_OBJECT_ARRAY', label: 'API Object Array', icon: 'data_object', description: 'Fetch an array of objects from an API' },
     { value: 'API_VALUE', label: 'API Value', icon: 'output', description: 'Fetch a single value from an API' },
-    { value: 'API_OBJECT', label: 'API Object', icon: 'dataset', description: 'Fetch an object from an API' },
-    { value: 'API_LIST', label: 'API List', icon: 'list_alt', description: 'Fetch a list of values/objects from an API' },
     { value: 'OBJECT_VIEWER', label: 'Object Viewer', icon: 'account_tree', description: 'View nested JSON objects with expand/collapse' }
   ];
 
@@ -3405,7 +3863,10 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { name: 'AVERAGE(a, b, ...)', description: 'Calculate average', syntax: 'AVERAGE(field1, field2, field3)' },
     { name: 'MEDIAN(a, b, ...)', description: 'Calculate median', syntax: 'MEDIAN(field1, field2, field3)' },
     { name: 'COUNT(a, b, ...)', description: 'Count non-empty values', syntax: 'COUNT(field1, field2, field3)' },
-    { name: 'PERCENTAGE(value, total)', description: 'Calculate percentage', syntax: 'PERCENTAGE(part, total)' },
+    { name: 'PERCENTAGE(value, total)', description: 'Calculate percentage (value/total × 100)', syntax: 'PERCENTAGE(part, total)' },
+    { name: 'PERCENT_OF(amount, percent)', description: 'Calculate N percent of amount (e.g. tax)', syntax: 'PERCENT_OF(@{subtotal}, 15)' },
+    { name: 'PERCENT_CHANGE(old, new)', description: 'Percentage change from old to new value', syntax: 'PERCENT_CHANGE(@{lastYear}, @{thisYear})' },
+    { name: 'FORMAT_PERCENT(n, decimals)', description: 'Format a number as percentage string', syntax: 'FORMAT_PERCENT(0.15, 1)' },
     { name: 'MOD(a, b)', description: 'Get remainder of division', syntax: 'MOD(field1, field2)' },
     { name: 'POWER(base, exp)', description: 'Raise to power', syntax: 'POWER(fieldName, 2)' },
     { name: 'SQRT(field)', description: 'Square root', syntax: 'SQRT(fieldName)' },
@@ -3445,15 +3906,38 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { name: 'IS_WORKDAY(field)', description: 'Check if date is workday', syntax: 'IS_WORKDAY(fieldName)' },
     { name: 'IS_PAST(field)', description: 'Check if date is in past', syntax: 'IS_PAST(fieldName)' },
     { name: 'IS_FUTURE(field)', description: 'Check if date is in future', syntax: 'IS_FUTURE(fieldName)' },
+    { name: 'IS_TODAY(field)', description: 'Check if date is today', syntax: 'IS_TODAY(fieldName)' },
+    { name: 'IS_YESTERDAY(field)', description: 'Check if date is yesterday', syntax: 'IS_YESTERDAY(fieldName)' },
+    { name: 'IS_TOMORROW(field)', description: 'Check if date is tomorrow', syntax: 'IS_TOMORROW(fieldName)' },
+    { name: 'IS_BEFORE(a, b)', description: 'Check if date a is before date b', syntax: 'IS_BEFORE(@{start}, @{end})' },
+    { name: 'IS_AFTER(a, b)', description: 'Check if date a is after date b', syntax: 'IS_AFTER(@{end}, @{start})' },
+    { name: 'IS_SAME_DAY(a, b)', description: 'Check if two dates fall on the same day', syntax: 'IS_SAME_DAY(@{a}, @{b})' },
+    { name: 'IS_BETWEEN_DATES(d, s, e)', description: 'Check if date falls within a range (inclusive)', syntax: 'IS_BETWEEN_DATES(@{d}, @{start}, @{end})' },
+    { name: 'DATE_BEFORE(field, target)', description: 'Validator: date must be before target (or "today")', syntax: 'DATE_BEFORE(@{d}, "2026-01-01")' },
+    { name: 'DATE_AFTER(field, target)', description: 'Validator: date must be after target (or "today")', syntax: 'DATE_AFTER(@{d}, "today")' },
     { name: 'BUSINESS_DAYS(a, b)', description: 'Count business days between dates', syntax: 'BUSINESS_DAYS(startDate, endDate)' },
     { name: 'ADD_BUSINESS_DAYS(field, n)', description: 'Add business days', syntax: 'ADD_BUSINESS_DAYS(fieldName, 5)' },
     { name: 'AGE(birthDate)', description: 'Calculate age in years', syntax: 'AGE(birthDateField)' }
   ];
 
+  // Conditional Functions
+  conditionalFunctions = [
+    { name: 'IF(cond, then, else?)', description: 'If condition is true return then, otherwise else. Nestable.', syntax: 'IF(amount > 100, "High", "Low")' },
+    { name: 'IF_ELSE(cond, then, else)', description: 'Explicit if-else — alias of IF with required else branch', syntax: 'IF_ELSE(status == "Active", "Yes", "No")' },
+    { name: 'IF_EMPTY(value, fallback)', description: 'Return fallback if value is empty or null', syntax: 'IF_EMPTY(nickname, firstName)' },
+    { name: 'IF_NOT_EMPTY(value, result, else?)', description: 'Return result only when value is not empty', syntax: 'IF_NOT_EMPTY(phone, CONCAT("+", phone), "N/A")' },
+    { name: 'IF_EQUALS(a, b, then, else?)', description: 'Compare two values and return result', syntax: 'IF_EQUALS(status, "Approved", "Done", "Pending")' },
+    { name: 'IF_GREATER(a, b, then, else?)', description: 'Return result when a > b', syntax: 'IF_GREATER(score, 50, "Pass", "Fail")' },
+    { name: 'IF_LESS(a, b, then, else?)', description: 'Return result when a < b', syntax: 'IF_LESS(stock, 10, "Low Stock", "OK")' },
+    { name: 'IF_CONTAINS(text, search, then, else?)', description: 'Return result when text contains search string', syntax: 'IF_CONTAINS(email, "@company.com", "Internal", "External")' },
+    { name: 'IF_BETWEEN(val, min, max, then, else?)', description: 'Return result when value is within range', syntax: 'IF_BETWEEN(age, 18, 65, "Eligible", "Not Eligible")' },
+    { name: 'IFS(c1, v1, c2, v2, ..., default)', description: 'Multi-branch conditional — first matching condition wins', syntax: 'IFS(score > 90, "A", score > 80, "B", score > 70, "C", "F")' },
+    { name: 'SWITCH(val, m1, r1, ..., default)', description: 'Match value against cases and return corresponding result', syntax: 'SWITCH(status, "A", "Active", "I", "Inactive", "Unknown")' },
+    { name: 'CHOOSE(index, v1, v2, ...)', description: 'Return the value at the given 1-based index position', syntax: 'CHOOSE(quarter, "Q1", "Q2", "Q3", "Q4")' }
+  ];
+
   // Boolean/Logic Functions
   booleanFunctions = [
-    { name: 'IF(condition, then, else)', description: 'Conditional logic', syntax: 'IF(field > 100, "High", "Low")' },
-    { name: 'IFS(cond1, val1, ...)', description: 'Multiple conditions', syntax: 'IFS(field > 100, "High", field > 50, "Medium", true, "Low")' },
     { name: 'AND(a, b, ...)', description: 'All conditions must be true', syntax: 'AND(condition1, condition2)' },
     { name: 'OR(a, b, ...)', description: 'Any condition must be true', syntax: 'OR(condition1, condition2)' },
     { name: 'XOR(a, b)', description: 'Exclusive OR', syntax: 'XOR(condition1, condition2)' },
@@ -3475,7 +3959,30 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { name: 'NOT_IN(field, list)', description: 'Check if value not in list', syntax: 'NOT_IN(fieldName, ["X", "Y", "Z"])' },
     { name: 'IS_VALID_EMAIL(field)', description: 'Validate email format', syntax: 'IS_VALID_EMAIL(emailField)' },
     { name: 'IS_VALID_PHONE(field)', description: 'Validate phone format', syntax: 'IS_VALID_PHONE(phoneField)' },
-    { name: 'IS_VALID_URL(field)', description: 'Validate URL format', syntax: 'IS_VALID_URL(urlField)' }
+    { name: 'IS_VALID_URL(field)', description: 'Validate URL format', syntax: 'IS_VALID_URL(urlField)' },
+    { name: 'IS_EMAIL(field)', description: 'Alias for IS_VALID_EMAIL — check if value is a valid email', syntax: 'IS_EMAIL(@{emailField})' },
+    { name: 'IS_URL(field)', description: 'Alias for IS_VALID_URL — check if value is a valid URL', syntax: 'IS_URL(@{urlField})' },
+    { name: 'IS_PHONE(field)', description: 'Alias for IS_VALID_PHONE — check if value is a valid phone number', syntax: 'IS_PHONE(@{phoneField})' },
+    { name: 'IS_TRUE(field)', description: 'Check if boolean value is true (handles "true"/1/true)', syntax: 'IS_TRUE(@{agreeField})' },
+    { name: 'IS_FALSE(field)', description: 'Check if boolean value is false/empty/0', syntax: 'IS_FALSE(@{cancelledField})' },
+    { name: 'IS_NUMBER(field)', description: 'Check if value is numeric', syntax: 'IS_NUMBER(@{amount})' },
+    { name: 'IS_INTEGER(field)', description: 'Check if value is a whole number', syntax: 'IS_INTEGER(@{count})' },
+    { name: 'IS_POSITIVE(field)', description: 'Check if number > 0', syntax: 'IS_POSITIVE(@{amount})' },
+    { name: 'IS_NEGATIVE(field)', description: 'Check if number < 0', syntax: 'IS_NEGATIVE(@{adjustment})' },
+    { name: 'IS_ZERO(field)', description: 'Check if number equals 0', syntax: 'IS_ZERO(@{balance})' },
+    { name: 'IS_EVEN(field)', description: 'Check if number is even', syntax: 'IS_EVEN(@{count})' },
+    { name: 'IS_ODD(field)', description: 'Check if number is odd', syntax: 'IS_ODD(@{count})' },
+    { name: 'IS_DATE(field)', description: 'Check if value is a parseable date', syntax: 'IS_DATE(@{myDate})' },
+    { name: 'IS_UUID(field)', description: 'Check if value is a valid UUID', syntax: 'IS_UUID(@{id})' },
+    { name: 'IS_UPPERCASE(field)', description: 'Check if string is all uppercase', syntax: 'IS_UPPERCASE(@{code})' },
+    { name: 'IS_LOWERCASE(field)', description: 'Check if string is all lowercase', syntax: 'IS_LOWERCASE(@{slug})' },
+    { name: 'IS_ALPHA(field)', description: 'Check if string contains only letters', syntax: 'IS_ALPHA(@{name})' },
+    { name: 'IS_ALPHANUMERIC(field)', description: 'Check if string is letters and digits only', syntax: 'IS_ALPHANUMERIC(@{code})' },
+    { name: 'IS_NUMERIC(field)', description: 'Check if string contains only digits', syntax: 'IS_NUMERIC(@{zip})' },
+    { name: 'HAS_LENGTH(field, n)', description: 'Check if string length equals n', syntax: 'HAS_LENGTH(@{code}, 6)' },
+    { name: 'HAS_MIN_LENGTH(field, n)', description: 'Check if string length is at least n', syntax: 'HAS_MIN_LENGTH(@{password}, 8)' },
+    { name: 'HAS_MAX_LENGTH(field, n)', description: 'Check if string length is at most n', syntax: 'HAS_MAX_LENGTH(@{title}, 100)' },
+    { name: 'MATCHES_PATTERN(field, regex)', description: 'Check if value matches regex pattern', syntax: 'MATCHES_PATTERN(@{code}, "^[A-Z]{3}\\\\d+$")' }
   ];
 
   // Table Functions
@@ -3509,6 +4016,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
 
   // Utility Functions
   utilityFunctions = [
+    { name: 'SETVALUE(field, value)', description: 'Set another field\'s value. Use in Validation & Transformation to update fields dynamically.', syntax: 'SETVALUE(targetField, "new value")' },
     { name: 'COALESCE(a, b, ...)', description: 'Return first non-empty value', syntax: 'COALESCE(field1, field2, "default")' },
     { name: 'DEFAULT(field, value)', description: 'Set default if empty', syntax: 'DEFAULT(fieldName, "N/A")' },
     { name: 'FORMAT_CURRENCY(field, currency)', description: 'Format as currency', syntax: 'FORMAT_CURRENCY(amount, "USD")' },
@@ -3563,6 +4071,37 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     { name: 'TEMPLATE(str, vars)', description: 'String template with variables', syntax: 'TEMPLATE("Hello {name}", {"name": fieldName})' }
   ];
 
+  // Placeholders - available in Value, Visibility, Email Templates, API URLs
+  placeholderItems = [
+    // Field references
+    { name: '@{fieldName}', description: 'Reference another field\'s value (replace fieldName with actual name)', syntax: '@{fieldName}', category: 'Field Reference' },
+    // Workflow info
+    { name: '@{workflowName}', description: 'Name of the workflow', syntax: '@{workflowName}', category: 'Workflow' },
+    { name: '@{workflowCode}', description: 'Code of the workflow', syntax: '@{workflowCode}', category: 'Workflow' },
+    // Submission info
+    { name: '@{referenceNumber}', description: 'Submission reference number', syntax: '@{referenceNumber}', category: 'Submission' },
+    { name: '@{submissionTitle}', description: 'Submission title', syntax: '@{submissionTitle}', category: 'Submission' },
+    { name: '@{status}', description: 'Current submission status', syntax: '@{status}', category: 'Submission' },
+    { name: '@{amount}', description: 'Financial amount on submission', syntax: '@{amount}', category: 'Submission' },
+    { name: '@{sbuName}', description: 'SBU associated with submission', syntax: '@{sbuName}', category: 'Submission' },
+    // Approver info
+    { name: '@{approverName}', description: 'Current approver\'s name', syntax: '@{approverName}', category: 'Approver' },
+    { name: '@{approverEmail}', description: 'Current approver\'s email', syntax: '@{approverEmail}', category: 'Approver' },
+    { name: '@{approvalLevel}', description: 'Current approval level number', syntax: '@{approvalLevel}', category: 'Approver' },
+    // Submitter info
+    { name: '@{submitterName}', description: 'Submitter\'s full name', syntax: '@{submitterName}', category: 'Submitter' },
+    { name: '@{submitterEmail}', description: 'Submitter\'s email address', syntax: '@{submitterEmail}', category: 'Submitter' },
+    { name: '@{submitterDepartment}', description: 'Submitter\'s department', syntax: '@{submitterDepartment}', category: 'Submitter' },
+    // Date/time
+    { name: '@{submittedDate}', description: 'Date submitted (YYYY-MM-DD)', syntax: '@{submittedDate}', category: 'Date/Time' },
+    { name: '@{submittedTime}', description: 'Time submitted (HH:mm:ss)', syntax: '@{submittedTime}', category: 'Date/Time' },
+    { name: '@{submittedDateTime}', description: 'Full date and time submitted', syntax: '@{submittedDateTime}', category: 'Date/Time' },
+    { name: '@{daysPending}', description: 'Number of days since submission', syntax: '@{daysPending}', category: 'Date/Time' },
+    // Reminder
+    { name: '@{reminderNumber}', description: 'Current reminder count (e.g. 2 of 3)', syntax: '@{reminderNumber}', category: 'Reminder' },
+    { name: '@{reminderMax}', description: 'Maximum reminders configured', syntax: '@{reminderMax}', category: 'Reminder' },
+  ];
+
   constructor(
     private fb: FormBuilder,
     private workflowService: WorkflowService,
@@ -3581,6 +4120,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       description: [''],
       icon: ['description'],
       workflowTypeId: [null],
+      industryId: [null],
       workflowCategory: ['NON_FINANCIAL'],
       parentWorkflowId: [null],
       stampId: [null],
@@ -3607,7 +4147,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       escalationAction: ['NOTIFY_ADMIN'],
       reminderIncludeSubmitter: [false],
       reminderEmailSubject: [''],
-      reminderEmailBody: ['']
+      reminderEmailBody: [''],
+      titleTemplate: ['']
     });
   }
 
@@ -3622,6 +4163,9 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     this.loadDepartments();
     this.loadSqlObjects();
     this.loadAvailableParentWorkflows();
+    this.settingService.getSettingValue('workflow.child.inherit.access').subscribe(res => {
+      if (res?.success) this.childInheritAccess = res.data === 'true';
+    });
 
     // Subscribe to route params to detect navigation changes (same pattern as workflow-instances)
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -3674,6 +4218,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       description: '',
       icon: 'description',
       workflowTypeId: '',
+      industryId: null,
       workflowCategory: 'NON_FINANCIAL',
       isActive: true,
       commentsMandatory: false,
@@ -3684,8 +4229,10 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       branchIds: [],
       departmentIds: [],
       roleIds: [],
-      privilegeIds: []
+      privilegeIds: [],
+      titleTemplate: ''
     });
+    this.titleTemplateParts = [];
     this.filteredSbus = [...this.sbus];
     this.filteredBranches = [...this.branches];
     this.filteredDepartments = [...this.departments];
@@ -3695,6 +4242,15 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     this.workflowService.getWorkflowTypes().subscribe(res => {
       if (res.success) {
         this.workflowTypes = res.data;
+      }
+    });
+    this.loadIndustries();
+  }
+
+  loadIndustries() {
+    this.userService.getCategories().subscribe(res => {
+      if (res.success) {
+        this.industries = (res.data || []).filter((c: any) => c.isActive !== false);
       }
     });
   }
@@ -3951,6 +4507,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           description: workflow.description,
           icon: workflow.icon,
           workflowTypeId: workflow.workflowTypeId || workflow.workflowType?.id,
+          industryId: workflow.industryId || null,
           isActive: workflow.active ?? workflow.isActive ?? true,
           showSummary: workflow.showSummary ?? false,
           showApprovalMatrix: workflow.showApprovalMatrix ?? false,
@@ -3975,9 +4532,11 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
           escalationAction: workflow.escalationAction ?? 'NOTIFY_ADMIN',
           reminderIncludeSubmitter: workflow.reminderIncludeSubmitter ?? false,
           reminderEmailSubject: workflow.reminderEmailSubject || '',
-          reminderEmailBody: workflow.reminderEmailBody || ''
+          reminderEmailBody: workflow.reminderEmailBody || '',
+          titleTemplate: workflow.titleTemplate || ''
         });
         this.selectedStampName = workflow.stampName || '';
+        this.deserializeTitleTemplate(workflow.titleTemplate || '');
 
         // Apply cascading filters after loading workflow data
         setTimeout(() => {
@@ -4005,6 +4564,8 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
             tableColumns: f.tableColumns ? (typeof f.tableColumns === 'string' ? JSON.parse(f.tableColumns) : f.tableColumns) : [],
             // Default apiShowInForm to true for existing API_ARRAY/API_OBJECT_ARRAY fields
             apiShowInForm: f.apiShowInForm ?? true,
+            // Default apiTriggerMode to AUTO for existing fields
+            apiTriggerMode: f.apiTriggerMode || 'AUTO',
             // Parse sqlTableColumns JSON string back to array for SQL_TABLE fields
             sqlTableColumnsDef: f.sqlTableColumns ? (typeof f.sqlTableColumns === 'string' ? (() => { try { return JSON.parse(f.sqlTableColumns); } catch(e) { return null; } })() : f.sqlTableColumns) : null
           })) || [];
@@ -4046,7 +4607,7 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       this.knownFunctions = new Set<string>();
       const allFnArrays = [
         this.validationFunctions, this.stringFunctions, this.numberFunctions,
-        this.dateFunctions, this.booleanFunctions, this.tableFunctions, this.utilityFunctions,
+        this.dateFunctions, this.conditionalFunctions, this.booleanFunctions, this.tableFunctions, this.utilityFunctions,
         this.sqlFunctions
       ];
       for (const arr of allFnArrays) {
@@ -4208,16 +4769,19 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       collapsibleIcon: type === 'COLLAPSIBLE' ? '' : undefined,
       collapsibleDefaultExpanded: type === 'COLLAPSIBLE' ? false : undefined,
       parentFieldId: type === 'COLLAPSIBLE' ? null : undefined,
+      // API trigger mode default (applies to API fields and SQL_TABLE)
+      apiTriggerMode: ['API_VALUE','OBJECT_VIEWER','SQL_TABLE'].includes(type) ? 'AUTO' : undefined,
       // API field type defaults
-      apiShowInForm: ['API_ARRAY','API_OBJECT_ARRAY'].includes(type) ? true : undefined,
-      apiUrl: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? '' : undefined,
-      apiMethod: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? 'GET' : undefined,
-      apiAuthType: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? 'NONE' : undefined,
-      apiAuthValue: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? '' : undefined,
-      apiHeaders: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? [] : undefined,
-      apiParams: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? [] : undefined,
-      apiBody: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? '' : undefined,
-      apiResponsePath: ['API_ARRAY','API_OBJECT_ARRAY','API_VALUE','API_OBJECT','API_LIST','OBJECT_VIEWER'].includes(type) ? '' : undefined
+      apiShowInForm: ['API_VALUE'].includes(type) ? true : undefined,
+      apiUrl: ['API_VALUE','OBJECT_VIEWER'].includes(type) ? '' : undefined,
+      apiMethod: ['API_VALUE','OBJECT_VIEWER'].includes(type) ? 'GET' : undefined,
+      apiAuthType: ['API_VALUE','OBJECT_VIEWER'].includes(type) ? 'NONE' : undefined,
+      apiAuthValue: ['API_VALUE','OBJECT_VIEWER'].includes(type) ? '' : undefined,
+      apiHeaders: ['API_VALUE','OBJECT_VIEWER'].includes(type) ? [] : undefined,
+      apiParams: ['API_VALUE','OBJECT_VIEWER'].includes(type) ? [] : undefined,
+      apiBody: ['API_VALUE','OBJECT_VIEWER'].includes(type) ? '' : undefined,
+      apiResponsePath: ['API_VALUE','OBJECT_VIEWER'].includes(type) ? '' : undefined,
+      apiOnResponse: ['API_VALUE','OBJECT_VIEWER'].includes(type) ? '' : undefined
     };
     this.fields.push(field);
   }
@@ -4242,12 +4806,45 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
         if (index >= 0) {
           this.fields.splice(index, 1);
         }
+        // Remove any references to this field from the title template
+        this.purgeFieldFromTitleTemplate(field.name);
+        this.purgeFieldFromReferences(field.name, field.id);
         this.snackBar.open(`Field "${fieldName}" has been removed. Save the workflow to apply changes.`, 'Close', {
           duration: 4000,
           panelClass: ['info-snackbar']
         });
       }
     });
+  }
+
+  /**
+   * Remove all references to a deleted field from other fields' configuration.
+   * Prevents "unexpected error when saving" due to stale references.
+   */
+  private purgeFieldFromReferences(deletedFieldName: string, deletedFieldId: string | undefined) {
+    if (!deletedFieldName && !deletedFieldId) return;
+    const nameToken = deletedFieldName ? `@{${deletedFieldName}}` : '';
+    const nameRegex = deletedFieldName ? new RegExp(`@\\{\\s*${deletedFieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\}`, 'g') : null;
+
+    for (const f of this.fields) {
+      if (!f || f === null) continue;
+      // Clear tableDataSource / apiDataSourceField / apiValueField / apiDisplayField if they reference the deleted field
+      if (f.tableDataSource === deletedFieldName) f.tableDataSource = '';
+      if (f.apiDataSourceField === deletedFieldName) f.apiDataSourceField = '';
+      if (f.apiValueField === deletedFieldName) f.apiValueField = '';
+      if (f.apiDisplayField === deletedFieldName) f.apiDisplayField = '';
+      // Clear parentFieldId if it points to the deleted field
+      if (f.parentFieldId && (f.parentFieldId === deletedFieldId || f.parentFieldId === deletedFieldName)) {
+        f.parentFieldId = null;
+      }
+      // Strip @{deletedField} tokens from validation / transform / visibility / value expressions
+      if (nameRegex) {
+        if (typeof f.validation === 'string' && f.validation) f.validation = f.validation.replace(nameRegex, '""');
+        if (typeof f.customValidationRule === 'string' && f.customValidationRule) f.customValidationRule = f.customValidationRule.replace(nameRegex, '""');
+        if (typeof f.visibilityExpression === 'string' && f.visibilityExpression) f.visibilityExpression = f.visibilityExpression.replace(nameRegex, '""');
+        if (typeof f.value === 'string' && f.value) f.value = f.value.replace(nameRegex, '""');
+      }
+    }
   }
 
   // TABLE field column management
@@ -4629,6 +5226,123 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
     });
   }
 
+  getFilteredIcons(): string[] {
+    const search = (this.basicForm.get('icon')?.value || '').toLowerCase().trim();
+    if (!search) return this.icons;
+    // If the user typed an exact icon name, show all matches (helpful when they want to confirm)
+    return this.icons.filter(icon => icon.toLowerCase().includes(search));
+  }
+
+  copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      this.snackBar.open(`Copied: ${text}`, 'Close', { duration: 3000 });
+    }).catch(() => {
+      this.snackBar.open(`Placeholder: ${text}`, 'Close', { duration: 5000 });
+    });
+  }
+
+  // ---- Title Template Builder ----
+  addTitlePart() {
+    this.titleTemplateParts.push({ field: '', connector: ' - ' });
+    this.updateTitleTemplate();
+  }
+
+  removeTitlePart(index: number) {
+    this.titleTemplateParts.splice(index, 1);
+    this.updateTitleTemplate();
+  }
+
+  moveTitlePart(index: number, delta: number) {
+    const newIndex = index + delta;
+    if (newIndex < 0 || newIndex >= this.titleTemplateParts.length) return;
+    const [item] = this.titleTemplateParts.splice(index, 1);
+    this.titleTemplateParts.splice(newIndex, 0, item);
+    this.updateTitleTemplate();
+  }
+
+  updateTitleTemplate() {
+    const template = this.serializeTitleTemplate();
+    this.basicForm.patchValue({ titleTemplate: template });
+  }
+
+  private serializeTitleTemplate(): string {
+    let result = '';
+    this.titleTemplateParts.forEach((part, i) => {
+      if (!part.field) return;
+      result += '@{' + part.field + '}';
+      if (i < this.titleTemplateParts.length - 1) {
+        result += part.connector || '';
+      }
+    });
+    return result;
+  }
+
+  private deserializeTitleTemplate(template: string) {
+    this.titleTemplateParts = [];
+    if (!template) return;
+    const regex = /@\{([^}]+)\}/g;
+    const tokens: { field: string; start: number; end: number }[] = [];
+    let m;
+    while ((m = regex.exec(template)) !== null) {
+      tokens.push({ field: m[1].trim(), start: m.index, end: m.index + m[0].length });
+    }
+    for (let i = 0; i < tokens.length; i++) {
+      const tok = tokens[i];
+      const connector = i < tokens.length - 1 ? template.substring(tok.end, tokens[i + 1].start) : '';
+      this.titleTemplateParts.push({ field: tok.field, connector });
+    }
+  }
+
+  getAllFormFields(): { name: string; label: string }[] {
+    // Flatten all form fields from all screens/forms
+    return (this.fields || [])
+      .filter((f: any) => f && f.name)
+      .map((f: any) => ({ name: f.name, label: f.label || f.name }));
+  }
+
+  getTitleContributingFields(): { name: string; label: string }[] {
+    // Only fields explicitly marked as contributing to title
+    return (this.fields || [])
+      .filter((f: any) => f && f.name && f.isTitle === true)
+      .map((f: any) => ({ name: f.name, label: f.label || f.name }));
+  }
+
+  getTitlePreview(): string {
+    if (this.titleTemplateParts.length === 0) return '(empty)';
+    // Use all form fields so previously-selected fields still display correctly even if they're
+    // no longer marked as title contributors (they'll still resolve at runtime).
+    const fieldMap = new Map(this.getAllFormFields().map(f => [f.name, f.label]));
+    const phMap = new Map(this.titleWorkflowPlaceholders.map(p => [p.key, p.label]));
+    let result = '';
+    this.titleTemplateParts.forEach((part, i) => {
+      if (!part.field) return;
+      const label = fieldMap.get(part.field) || phMap.get(part.field) || part.field;
+      result += '[' + label + ']';
+      if (i < this.titleTemplateParts.length - 1) {
+        result += part.connector || '';
+      }
+    });
+    return result || '(empty)';
+  }
+
+  // Called when a form field is removed so the title template stays clean
+  purgeFieldFromTitleTemplate(fieldName: string) {
+    if (!fieldName) return;
+    const before = this.titleTemplateParts.length;
+    this.titleTemplateParts = this.titleTemplateParts.filter(p => p.field !== fieldName);
+    if (this.titleTemplateParts.length !== before) {
+      this.updateTitleTemplate();
+    }
+  }
+
+  // Called when a field's "Contributes to Title" flag is toggled.
+  // If unchecked, remove any title-template references to this field.
+  onIsTitleChange(field: any) {
+    if (!field.isTitle) {
+      this.purgeFieldFromTitleTemplate(field.name);
+    }
+  }
+
   getFilteredFunctions(): { name: string; description: string; syntax: string; category: string }[] {
     if (!this.functionSearch) return [];
 
@@ -4638,11 +5352,13 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
       ...this.stringFunctions.map(f => ({ ...f, category: 'String' })),
       ...this.numberFunctions.map(f => ({ ...f, category: 'Number' })),
       ...this.dateFunctions.map(f => ({ ...f, category: 'Date' })),
+      ...this.conditionalFunctions.map(f => ({ ...f, category: 'Conditional' })),
       ...this.booleanFunctions.map(f => ({ ...f, category: 'Boolean/Logic' })),
       ...this.utilityFunctions.map(f => ({ ...f, category: 'Utility' })),
       ...this.tableFunctions.map(f => ({ ...f, category: 'Table' })),
       ...this.sqlFunctions.map(f => ({ ...f, category: 'SQL' })),
-      ...this.otherFunctions.map(f => ({ ...f, category: 'Other' }))
+      ...this.otherFunctions.map(f => ({ ...f, category: 'Other' })),
+      ...this.placeholderItems.map(f => ({ ...f, category: f.category || 'Placeholder' }))
     ];
 
     return allFunctions.filter(fn =>
@@ -4892,6 +5608,14 @@ export class WorkflowBuilderComponent implements OnInit, OnDestroy {
   saveWorkflow() {
     if (this.basicForm.invalid) {
       this.snackBar.open('Please fill in all required fields', 'Close', { duration: 3000 });
+      return;
+    }
+
+    // Validate SQL_TABLE fields have a query
+    const sqlTableFields = this.fields.filter(f => f.type === 'SQL_TABLE');
+    const missingSqlQuery = sqlTableFields.find(f => !f.sqlQuery || !f.sqlQuery.trim());
+    if (missingSqlQuery) {
+      this.snackBar.open(`SQL Table field "${missingSqlQuery.label || missingSqlQuery.name}" requires a SQL query`, 'Close', { duration: 4000 });
       return;
     }
 

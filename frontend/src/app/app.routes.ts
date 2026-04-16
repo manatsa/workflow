@@ -67,6 +67,11 @@ export const routes: Routes = [
         path: 'categories',
         loadComponent: () => import('./features/categories/category-list/category-list.component').then(m => m.CategoryListComponent)
       },
+      // Workflow Types
+      {
+        path: 'workflow-types',
+        loadComponent: () => import('./features/workflow-types/workflow-type-list/workflow-type-list.component').then(m => m.WorkflowTypeListComponent)
+      },
       // Corporates
       {
         path: 'corporates',

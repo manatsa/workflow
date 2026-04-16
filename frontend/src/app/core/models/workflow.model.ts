@@ -6,6 +6,9 @@ export interface Workflow {
   workflowTypeId?: string;
   workflowType?: WorkflowType;
   workflowTypeName?: string;
+  industryId?: string;
+  industryName?: string;
+  industryCode?: string;
   icon?: string;
   displayOrder: number;
   requiresApproval: boolean;
@@ -17,6 +20,7 @@ export interface Workflow {
   commentsMandatoryOnReject: boolean;
   commentsMandatoryOnEscalate: boolean;
   workflowCategory?: WorkflowCategory;
+  titleTemplate?: string;
   requireAttachments: boolean;
   requireComments: boolean;
   showSummary: boolean;
@@ -205,12 +209,10 @@ export interface WorkflowField {
   apiParams?: string; // JSON array of {key, value} - query parameters
   apiBody?: string;
   apiResponsePath?: string; // dot notation to extract data from response
-  // Whether API_ARRAY/API_OBJECT_ARRAY fields show their own control in the form
+  // Whether API field shows its own control in the form
   apiShowInForm?: boolean;
-  // API data source for SELECT/RADIO/CHECKBOX_GROUP/MULTISELECT options
-  apiDataSourceField?: string; // name of API_ARRAY or API_OBJECT_ARRAY field
-  apiDisplayField?: string; // dot-notation path for display label (for object arrays)
-  apiValueField?: string; // dot-notation path for value (for object arrays)
+  // API trigger mode: 'AUTO' = fetch on form load, 'MANUAL' = fetch on button click
+  apiTriggerMode?: string;
   // TABLE data source - name of an API_OBJECT_ARRAY field to populate from
   tableDataSource?: string;
   // SQL_TABLE field
@@ -276,11 +278,7 @@ export enum FieldType {
   ACCORDION = 'ACCORDION',
   COLLAPSIBLE = 'COLLAPSIBLE',
   // API field types - fetch data from external APIs
-  API_ARRAY = 'API_ARRAY',
-  API_OBJECT_ARRAY = 'API_OBJECT_ARRAY',
   API_VALUE = 'API_VALUE',
-  API_OBJECT = 'API_OBJECT',
-  API_LIST = 'API_LIST',
   OBJECT_VIEWER = 'OBJECT_VIEWER',
   SQL_TABLE = 'SQL_TABLE'
 }

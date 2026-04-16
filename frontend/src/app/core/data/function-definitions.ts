@@ -1639,51 +1639,261 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
     relatedFunctions: ['BUSINESS_DAYS', 'DATE_ADD', 'IS_WORKDAY']
   },
 
-  // ==================== BOOLEAN FUNCTIONS ====================
+  // ==================== CONDITIONAL FUNCTIONS ====================
   'IF': {
     name: 'IF',
-    syntax: 'IF(condition, then, else)',
-    category: 'Boolean',
-    description: 'Conditional logic',
-    explanation: 'The IF function returns one value if a condition is true and another value if it\'s false. This is the core conditional function for computed fields.',
+    syntax: 'IF(condition, thenValue, elseValue?)',
+    category: 'Conditional',
+    description: 'If-then-else conditional — nestable',
+    explanation: 'The IF function evaluates a condition and returns the thenValue when true, or the elseValue when false. The else branch is optional and defaults to empty string. IF calls can be nested inside each other for complex branching logic.',
     parameters: [
-      { name: 'condition', type: 'boolean', description: 'Condition to evaluate', required: true },
-      { name: 'then', type: 'any', description: 'Value if condition is true', required: true },
-      { name: 'else', type: 'any', description: 'Value if condition is false', required: true }
+      { name: 'condition', type: 'boolean', description: 'Condition to evaluate (supports comparison operators, field references, and boolean functions)', required: true },
+      { name: 'thenValue', type: 'any', description: 'Value returned when condition is true — can be a literal, field, or nested function', required: true },
+      { name: 'elseValue', type: 'any', description: 'Value returned when condition is false — can be omitted (defaults to "")', required: false }
     ],
     examples: [
-      { usage: 'IF(@{amount} > 100, "High", "Low")', result: '"High" or "Low"', description: 'Text based on amount' },
-      { usage: 'IF(@{isApproved}, @{price}, @{price} * 1.2)', result: 'Price with markup', description: 'Conditional calculation' },
-      { usage: 'IF(IS_EMPTY(@{discount}), 0, @{discount})', result: 'Default to 0', description: 'Handle empty values' }
+      { usage: 'IF(amount > 100, "High", "Low")', result: '"High" or "Low"', description: 'Simple conditional' },
+      { usage: 'IF(IS_EMPTY(discount), 0, discount)', result: 'Default to 0', description: 'Handle empty values' },
+      { usage: 'IF(score > 90, "A", IF(score > 80, "B", IF(score > 70, "C", "F")))', result: 'Nested grading', description: 'Nested IF for multiple branches' },
+      { usage: 'IF(status == "Active", CONCAT("Active: ", name), "Inactive")', result: 'Conditional with function', description: 'Nested function in result' }
     ],
     tips: [
-      'Can be nested for multiple conditions',
-      'Use IFS for many conditions to avoid deep nesting'
+      'Fully nestable — use IF inside IF for multi-level branching',
+      'Else is optional: IF(cond, val) returns "" when false',
+      'Prefer IFS over deeply nested IFs for readability',
+      'Works in Value fields, Validation & Transformation, and all function contexts'
     ],
-    relatedFunctions: ['IFS', 'SWITCH', 'COALESCE']
+    relatedFunctions: ['IF_ELSE', 'IFS', 'SWITCH', 'IF_EMPTY', 'COALESCE']
   },
-
+  'IF_ELSE': {
+    name: 'IF_ELSE',
+    syntax: 'IF_ELSE(condition, thenValue, elseValue)',
+    category: 'Conditional',
+    description: 'Explicit if-else with required both branches — nestable',
+    explanation: 'The IF_ELSE function is an alias of IF that makes both branches explicit and required. Use it when you want to clearly communicate that both outcomes are handled. Fully nestable.',
+    parameters: [
+      { name: 'condition', type: 'boolean', description: 'Condition to evaluate', required: true },
+      { name: 'thenValue', type: 'any', description: 'Value when condition is true', required: true },
+      { name: 'elseValue', type: 'any', description: 'Value when condition is false', required: true }
+    ],
+    examples: [
+      { usage: 'IF_ELSE(status == "Approved", "Done", "Pending")', result: '"Done" or "Pending"', description: 'Two-branch decision' },
+      { usage: 'IF_ELSE(age >= 18, IF_ELSE(age >= 65, "Senior", "Adult"), "Minor")', result: 'Nested age groups', description: 'Nested IF_ELSE' }
+    ],
+    tips: [
+      'Both branches are required — use IF if you want an optional else',
+      'Alias: IFELSE (no underscore) also works',
+      'Fully nestable like IF'
+    ],
+    relatedFunctions: ['IF', 'IFS', 'SWITCH']
+  },
+  'IF_EMPTY': {
+    name: 'IF_EMPTY',
+    syntax: 'IF_EMPTY(value, fallback)',
+    category: 'Conditional',
+    description: 'Return fallback when value is empty or null',
+    explanation: 'The IF_EMPTY function checks if a value is empty, null, or blank, and returns the fallback value if so. Otherwise it returns the original value. A concise alternative to IF(IS_EMPTY(...)).',
+    parameters: [
+      { name: 'value', type: 'any', description: 'Value to check', required: true },
+      { name: 'fallback', type: 'any', description: 'Value to return if empty', required: true }
+    ],
+    examples: [
+      { usage: 'IF_EMPTY(nickname, firstName)', result: 'Nickname or first name', description: 'Display name fallback' },
+      { usage: 'IF_EMPTY(department, "Unassigned")', result: 'Department or default', description: 'Default text' },
+      { usage: 'IF_EMPTY(notes, IF_EMPTY(comments, "No info"))', result: 'Chained fallbacks', description: 'Nested IF_EMPTY' }
+    ],
+    tips: [
+      'Shorter than IF(IS_EMPTY(val), fallback, val)',
+      'Checks for null, undefined, empty string, and whitespace-only',
+      'Nestable for cascading fallbacks'
+    ],
+    relatedFunctions: ['IF_NOT_EMPTY', 'COALESCE', 'DEFAULT', 'IS_EMPTY']
+  },
+  'IF_NOT_EMPTY': {
+    name: 'IF_NOT_EMPTY',
+    syntax: 'IF_NOT_EMPTY(value, result, elseValue?)',
+    category: 'Conditional',
+    description: 'Return result only when value is not empty',
+    explanation: 'The IF_NOT_EMPTY function returns the result only if the value is not empty. If the value is empty, it returns the optional elseValue (or "" if omitted). Useful for conditional formatting.',
+    parameters: [
+      { name: 'value', type: 'any', description: 'Value to check for emptiness', required: true },
+      { name: 'result', type: 'any', description: 'Value to return when not empty', required: true },
+      { name: 'elseValue', type: 'any', description: 'Value to return when empty (optional, defaults to "")', required: false }
+    ],
+    examples: [
+      { usage: 'IF_NOT_EMPTY(phone, CONCAT("+", phone), "N/A")', result: 'Formatted phone or N/A', description: 'Conditional formatting' },
+      { usage: 'IF_NOT_EMPTY(middleName, CONCAT(" ", middleName))', result: 'Space + middle name or ""', description: 'Optional middle name' }
+    ],
+    tips: [
+      'Great for conditional formatting — add prefixes/suffixes only when value exists',
+      'The else branch is optional'
+    ],
+    relatedFunctions: ['IF_EMPTY', 'IS_NOT_EMPTY', 'IF']
+  },
+  'IF_EQUALS': {
+    name: 'IF_EQUALS',
+    syntax: 'IF_EQUALS(a, b, thenValue, elseValue?)',
+    category: 'Conditional',
+    description: 'Compare two values and return result — nestable',
+    explanation: 'The IF_EQUALS function compares two values for equality and returns the thenValue if they match, or the elseValue if they don\'t. A concise shortcut for IF(a == b, ...).',
+    parameters: [
+      { name: 'a', type: 'any', description: 'First value to compare', required: true },
+      { name: 'b', type: 'any', description: 'Second value to compare', required: true },
+      { name: 'thenValue', type: 'any', description: 'Value when equal', required: true },
+      { name: 'elseValue', type: 'any', description: 'Value when not equal (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'IF_EQUALS(status, "Approved", "Done", "Pending")', result: '"Done" or "Pending"', description: 'Status check' },
+      { usage: 'IF_EQUALS(country, "US", "Domestic", IF_EQUALS(country, "CA", "Canada", "International"))', result: 'Nested country check', description: 'Nested IF_EQUALS' }
+    ],
+    tips: [
+      'String comparison is case-sensitive',
+      'Nestable for multi-value matching — but prefer SWITCH for many cases'
+    ],
+    relatedFunctions: ['IF', 'SWITCH', 'EQUALS']
+  },
+  'IF_GREATER': {
+    name: 'IF_GREATER',
+    syntax: 'IF_GREATER(a, b, thenValue, elseValue?)',
+    category: 'Conditional',
+    description: 'Return result when a is greater than b',
+    explanation: 'The IF_GREATER function compares two numeric values and returns the thenValue if a > b, or the elseValue otherwise.',
+    parameters: [
+      { name: 'a', type: 'number', description: 'Value to check', required: true },
+      { name: 'b', type: 'number', description: 'Threshold value', required: true },
+      { name: 'thenValue', type: 'any', description: 'Value when a > b', required: true },
+      { name: 'elseValue', type: 'any', description: 'Value when a <= b (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'IF_GREATER(score, 50, "Pass", "Fail")', result: '"Pass" or "Fail"', description: 'Pass/fail check' },
+      { usage: 'IF_GREATER(balance, 0, balance, 0)', result: 'Non-negative balance', description: 'Floor at zero' }
+    ],
+    tips: ['Numeric comparison — values are converted to numbers'],
+    relatedFunctions: ['IF_LESS', 'IF_BETWEEN', 'IF', 'GREATER_THAN']
+  },
+  'IF_LESS': {
+    name: 'IF_LESS',
+    syntax: 'IF_LESS(a, b, thenValue, elseValue?)',
+    category: 'Conditional',
+    description: 'Return result when a is less than b',
+    explanation: 'The IF_LESS function compares two numeric values and returns the thenValue if a < b, or the elseValue otherwise.',
+    parameters: [
+      { name: 'a', type: 'number', description: 'Value to check', required: true },
+      { name: 'b', type: 'number', description: 'Threshold value', required: true },
+      { name: 'thenValue', type: 'any', description: 'Value when a < b', required: true },
+      { name: 'elseValue', type: 'any', description: 'Value when a >= b (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'IF_LESS(stock, 10, "Low Stock", "OK")', result: '"Low Stock" or "OK"', description: 'Inventory alert' },
+      { usage: 'IF_LESS(daysLeft, 0, "Overdue", IF_LESS(daysLeft, 7, "Due Soon", "On Track"))', result: 'Nested deadline check', description: 'Nested IF_LESS' }
+    ],
+    tips: ['Numeric comparison — values are converted to numbers'],
+    relatedFunctions: ['IF_GREATER', 'IF_BETWEEN', 'IF', 'LESS_THAN']
+  },
+  'IF_CONTAINS': {
+    name: 'IF_CONTAINS',
+    syntax: 'IF_CONTAINS(text, search, thenValue, elseValue?)',
+    category: 'Conditional',
+    description: 'Return result when text contains search string',
+    explanation: 'The IF_CONTAINS function checks if a text value contains a search string (case-insensitive) and returns the thenValue if found, or the elseValue otherwise.',
+    parameters: [
+      { name: 'text', type: 'string', description: 'Text to search in', required: true },
+      { name: 'search', type: 'string', description: 'Text to search for', required: true },
+      { name: 'thenValue', type: 'any', description: 'Value when found', required: true },
+      { name: 'elseValue', type: 'any', description: 'Value when not found (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'IF_CONTAINS(email, "@company.com", "Internal", "External")', result: '"Internal" or "External"', description: 'Email domain check' },
+      { usage: 'IF_CONTAINS(notes, "urgent", "Priority", "Normal")', result: '"Priority" or "Normal"', description: 'Keyword detection' }
+    ],
+    tips: ['Case-insensitive search', 'Works with any text value'],
+    relatedFunctions: ['IF', 'CONTAINS', 'IF_EQUALS']
+  },
+  'IF_BETWEEN': {
+    name: 'IF_BETWEEN',
+    syntax: 'IF_BETWEEN(value, min, max, thenValue, elseValue?)',
+    category: 'Conditional',
+    description: 'Return result when value is within a numeric range',
+    explanation: 'The IF_BETWEEN function checks if a numeric value falls within a range (inclusive on both ends) and returns the thenValue if so, or the elseValue otherwise.',
+    parameters: [
+      { name: 'value', type: 'number', description: 'Value to check', required: true },
+      { name: 'min', type: 'number', description: 'Minimum of range (inclusive)', required: true },
+      { name: 'max', type: 'number', description: 'Maximum of range (inclusive)', required: true },
+      { name: 'thenValue', type: 'any', description: 'Value when in range', required: true },
+      { name: 'elseValue', type: 'any', description: 'Value when out of range (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'IF_BETWEEN(age, 18, 65, "Eligible", "Not Eligible")', result: '"Eligible" or not', description: 'Age eligibility' },
+      { usage: 'IF_BETWEEN(temperature, 36, 38, "Normal", "Abnormal")', result: 'Temperature check', description: 'Health check' }
+    ],
+    tips: ['Both min and max are inclusive', 'Values are converted to numbers'],
+    relatedFunctions: ['IF_GREATER', 'IF_LESS', 'BETWEEN']
+  },
   'IFS': {
     name: 'IFS',
     syntax: 'IFS(cond1, val1, cond2, val2, ..., default)',
-    category: 'Boolean',
-    description: 'Multiple conditions',
-    explanation: 'The IFS function evaluates multiple conditions in order and returns the value for the first true condition. Use "true" as the last condition for a default value.',
+    category: 'Conditional',
+    description: 'Multi-branch conditional — first matching condition wins',
+    explanation: 'The IFS function evaluates multiple conditions in order and returns the value for the first true condition. An optional default value at the end is returned when no condition matches. Cleaner than deeply nested IF calls.',
     parameters: [
-      { name: 'conditions', type: 'pairs', description: 'Condition/value pairs, evaluated in order', required: true }
+      { name: 'conditions', type: 'pairs', description: 'Condition/value pairs, evaluated in order. Add a final unpaired value as the default.', required: true }
     ],
     examples: [
-      { usage: 'IFS(@{score} >= 90, "A", @{score} >= 80, "B", @{score} >= 70, "C", true, "F")', result: 'Letter grade', description: 'Grade calculation' },
-      { usage: 'IFS(@{status} == "URGENT", "red", @{status} == "HIGH", "orange", true, "green")', result: 'Status color', description: 'Color coding' }
+      { usage: 'IFS(score > 90, "A", score > 80, "B", score > 70, "C", "F")', result: 'Letter grade', description: 'Grade calculation' },
+      { usage: 'IFS(status == "URGENT", "red", status == "HIGH", "orange", "green")', result: 'Status color', description: 'Color coding' }
     ],
     tips: [
-      'Conditions are evaluated in order - first true wins',
-      'Use "true" as last condition for default',
-      'Cleaner than nested IF statements'
+      'Conditions evaluated in order — first true wins',
+      'Last unpaired argument is the default when no condition matches',
+      'Cleaner than nested IF for many branches'
     ],
-    relatedFunctions: ['IF', 'SWITCH']
+    relatedFunctions: ['IF', 'SWITCH', 'CHOOSE']
+  },
+  'SWITCH': {
+    name: 'SWITCH',
+    syntax: 'SWITCH(value, match1, result1, match2, result2, ..., default)',
+    category: 'Conditional',
+    description: 'Match value against cases and return corresponding result',
+    explanation: 'The SWITCH function compares a value against a series of match/result pairs and returns the result for the first match. An optional default value at the end handles unmatched cases.',
+    parameters: [
+      { name: 'value', type: 'any', description: 'Value to match against', required: true },
+      { name: 'pairs', type: 'pairs', description: 'Match/result pairs', required: true },
+      { name: 'default', type: 'any', description: 'Default value if no match (optional)', required: false }
+    ],
+    examples: [
+      { usage: 'SWITCH(status, "A", "Active", "I", "Inactive", "D", "Deleted", "Unknown")', result: 'Status label', description: 'Status code lookup' },
+      { usage: 'SWITCH(priority, "1", "Critical", "2", "High", "3", "Medium", "Low")', result: 'Priority label', description: 'Priority mapping' }
+    ],
+    tips: [
+      'Exact match comparison (case-sensitive for strings)',
+      'Last unpaired argument is the default',
+      'Cleaner than IF_EQUALS chains for exact-value matching'
+    ],
+    relatedFunctions: ['IFS', 'IF_EQUALS', 'CHOOSE']
+  },
+  'CHOOSE': {
+    name: 'CHOOSE',
+    syntax: 'CHOOSE(index, value1, value2, value3, ...)',
+    category: 'Conditional',
+    description: 'Return value at the given 1-based index position',
+    explanation: 'The CHOOSE function returns the value at the specified 1-based index from a list of values. Index 1 returns the first value, 2 returns the second, etc.',
+    parameters: [
+      { name: 'index', type: 'number', description: '1-based index of the value to return', required: true },
+      { name: 'values', type: 'any[]', description: 'List of values to choose from', required: true }
+    ],
+    examples: [
+      { usage: 'CHOOSE(quarter, "Q1", "Q2", "Q3", "Q4")', result: 'Quarter label', description: 'Quarter from number' },
+      { usage: 'CHOOSE(dayOfWeek, "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")', result: 'Day name', description: 'Day from number' }
+    ],
+    tips: [
+      'Index is 1-based (1 = first value)',
+      'Returns empty string for out-of-range index',
+      'Good for positional lookups from numeric fields'
+    ],
+    relatedFunctions: ['SWITCH', 'IFS', 'IF']
   },
 
+  // ==================== BOOLEAN FUNCTIONS ====================
   'AND': {
     name: 'AND',
     syntax: 'AND(a, b, ...)',
@@ -2293,6 +2503,33 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
   },
 
   // ==================== UTILITY FUNCTIONS ====================
+  'SETVALUE': {
+    name: 'SETVALUE',
+    syntax: 'SETVALUE(fieldName, value)',
+    category: 'Utility',
+    description: 'Set another field\'s value programmatically',
+    explanation: 'The SETVALUE function sets the value of another field by name. The first argument is the target field name (unquoted), and the second argument is the value to assign. The value can be a literal, another field reference, or a nested function call. This is especially useful in the Validation & Transformation section to dynamically update fields based on conditions or calculations.',
+    parameters: [
+      { name: 'fieldName', type: 'string', description: 'The name of the target field to set (unquoted)', required: true },
+      { name: 'value', type: 'any', description: 'The value to assign — can be a literal, field name, or function expression', required: true }
+    ],
+    examples: [
+      { usage: 'SETVALUE(status, "Approved")', result: 'Sets status to "Approved"', description: 'Set a literal string value' },
+      { usage: 'SETVALUE(total, SUM(price, tax))', result: 'Sets total to price + tax', description: 'Set from a calculated expression' },
+      { usage: 'SETVALUE(fullName, CONCAT(firstName, " ", lastName))', result: 'Sets fullName to combined name', description: 'Set from concatenated fields' },
+      { usage: 'SETVALUE(approvedBy, CURRENT_USER())', result: 'Sets approvedBy to logged-in user', description: 'Set from system function' },
+      { usage: 'SETVALUE(discount, 0)', result: 'Sets discount to 0', description: 'Set a numeric value' },
+      { usage: 'SETVALUE(notes, remarks)', result: 'Copies remarks value into notes', description: 'Copy value from another field' }
+    ],
+    tips: [
+      'First argument is always the target field name — do NOT quote it',
+      'Second argument can be a literal ("text", 123), a field name, or a function like SUM(), CONCAT(), TODAY()',
+      'Works in Value fields, Validation & Transformation rules, and any function context',
+      'Returns the value that was set, so it can be used inside other expressions',
+      'Use in validation rules to auto-fill fields when conditions change'
+    ],
+    relatedFunctions: ['FIELD_VALUE', 'CONCAT', 'IF']
+  },
   'COALESCE': {
     name: 'COALESCE',
     syntax: 'COALESCE(a, b, ...)',
@@ -2972,28 +3209,6 @@ export const FUNCTION_DEFINITIONS: Record<string, FunctionDefinition> = {
     relatedFunctions: ['RANDOM', 'UUID']
   },
 
-  // ==================== CONDITIONAL FUNCTIONS ====================
-  'SWITCH': {
-    name: 'SWITCH',
-    syntax: 'SWITCH(field, case1, val1, case2, val2, ..., default)',
-    category: 'Boolean',
-    description: 'Multi-case conditional',
-    explanation: 'The SWITCH function compares a value against multiple cases and returns the corresponding result. Like a switch statement in programming.',
-    parameters: [
-      { name: 'field', type: 'any', description: 'Value to compare', required: true },
-      { name: 'cases', type: 'pairs', description: 'Case/value pairs', required: true },
-      { name: 'default', type: 'any', description: 'Default value if no match', required: false }
-    ],
-    examples: [
-      { usage: 'SWITCH(@{status}, "A", "Active", "I", "Inactive", "Unknown")', result: 'Status text', description: 'Status lookup' },
-      { usage: 'SWITCH(@{grade}, "A", 4, "B", 3, "C", 2, 0)', result: 'Grade points', description: 'Grade to points' }
-    ],
-    tips: [
-      'More readable than nested IFs for value matching',
-      'Last argument without a pair is the default'
-    ],
-    relatedFunctions: ['IF', 'IFS', 'COALESCE']
-  },
 
   'TEMPLATE': {
     name: 'TEMPLATE',

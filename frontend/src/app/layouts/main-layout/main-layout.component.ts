@@ -110,6 +110,10 @@ interface ReportCategory {
                   <mat-icon>category</mat-icon>
                   <span>Categories</span>
                 </a>
+                <a class="menu-item" routerLink="/workflow-types" routerLinkActive="active">
+                  <mat-icon>schema</mat-icon>
+                  <span>Workflow Types</span>
+                </a>
                 <a class="menu-item" routerLink="/corporates" routerLinkActive="active">
                   <mat-icon>corporate_fare</mat-icon>
                   <span>Corporates</span>

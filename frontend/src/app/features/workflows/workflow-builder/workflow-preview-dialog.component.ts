@@ -737,34 +737,10 @@ export interface PreviewDialogData {
             </mat-expansion-panel>
           }
         }
-        @case ('API_ARRAY') {
-          <div class="api-preview-field">
-            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
-            <div class="api-preview-hint"><mat-icon>api</mat-icon> API Array — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
-          </div>
-        }
-        @case ('API_OBJECT_ARRAY') {
-          <div class="api-preview-field">
-            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
-            <div class="api-preview-hint"><mat-icon>data_object</mat-icon> API Object Array — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
-          </div>
-        }
         @case ('API_VALUE') {
           <div class="api-preview-field">
             <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
             <div class="api-preview-hint"><mat-icon>output</mat-icon> API Value — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
-          </div>
-        }
-        @case ('API_OBJECT') {
-          <div class="api-preview-field">
-            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
-            <div class="api-preview-hint"><mat-icon>dataset</mat-icon> API Object — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
-          </div>
-        }
-        @case ('API_LIST') {
-          <div class="api-preview-field">
-            <label class="field-label">{{ field.label }} @if (field.isMandatory) { * }</label>
-            <div class="api-preview-hint"><mat-icon>list_alt</mat-icon> API List — data loaded at runtime from: {{ field.apiUrl || 'Not configured' }}</div>
           </div>
         }
         @case ('OBJECT_VIEWER') {

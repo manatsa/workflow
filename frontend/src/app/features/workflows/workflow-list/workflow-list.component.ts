@@ -107,6 +107,13 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/co
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="industry">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Industry</th>
+              <td mat-cell *matCellDef="let workflow">
+                <mat-chip>{{ workflow.industryName || 'General' }}</mat-chip>
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="approvers">
               <th mat-header-cell *matHeaderCellDef>Approvers</th>
               <td mat-cell *matCellDef="let workflow">
@@ -229,7 +236,7 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/co
   `]
 })
 export class WorkflowListComponent implements OnInit {
-  displayedColumns = ['icon', 'name', 'description', 'type', 'approvers', 'published', 'active', 'actions'];
+  displayedColumns = ['icon', 'name', 'description', 'type', 'industry', 'approvers', 'published', 'active', 'actions'];
   dataSource = new MatTableDataSource<Workflow>([]);
   searchTerm = '';
 

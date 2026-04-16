@@ -890,9 +890,24 @@ import { User } from '@core/models/user.model';
                             @if (sqlTableData[field.name]?.loading) {
                               <div style="text-align: center; padding: 24px;"><mat-spinner diameter="30"></mat-spinner></div>
                             } @else if (sqlTableData[field.name]?.error) {
-                              <div style="color: #f44336; padding: 12px;">{{ sqlTableData[field.name].error }}</div>
+                              <div class="api-error">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>{{ sqlTableData[field.name].error }}</span>
+                                <button mat-stroked-button (click)="loadSqlTableData(field)"><mat-icon>refresh</mat-icon> Retry</button>
+                              </div>
+                            } @else if (field.apiTriggerMode === 'MANUAL' && !sqlTableData[field.name]?.data) {
+                              <div class="api-manual-trigger">
+                                <button mat-flat-button color="primary" (click)="loadSqlTableData(field)">
+                                  <mat-icon>play_arrow</mat-icon> Populate
+                                </button>
+                              </div>
                             } @else if (sqlTableData[field.name]?.data) {
                               <div class="sql-table-wrapper">
+                                @if (field.apiTriggerMode === 'MANUAL') {
+                                  <button mat-stroked-button class="api-refresh-btn" (click)="loadSqlTableData(field)" style="margin-bottom: 8px;">
+                                    <mat-icon>play_arrow</mat-icon> Populate
+                                  </button>
+                                }
                                 @if (field.tableSearchable) {
                                   <div class="sql-table-search">
                                     <mat-icon>search</mat-icon>
@@ -1153,173 +1168,18 @@ import { User } from '@core/models/user.model';
                             </mat-expansion-panel>
                           </div>
                         }
-                        @case ('API_ARRAY') {
-                          @if (field.apiShowInForm !== false) {
-                          <div class="field-container api-field-container">
-                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            @if (apiFieldLoading[field.name]) {
-                              <div class="api-loading-overlay">
-                                <mat-spinner diameter="24"></mat-spinner>
-                                <span>Getting Data</span>
-                              </div>
-                            } @else if (apiFieldErrors[field.name]) {
-                              <div class="api-error">
-                                <mat-icon>error_outline</mat-icon>
-                                <span>{{ apiFieldErrors[field.name] }}</span>
-                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
-                              </div>
-                            } @else {
-                              <div class="api-data-display api-array">
-                                @if (apiFieldData[field.name]?.length > 0) {
-                                  <mat-chip-set>
-                                    @for (item of apiFieldData[field.name]; track $index) {
-                                      <mat-chip>{{ item }}</mat-chip>
-                                    }
-                                  </mat-chip-set>
-                                } @else {
-                                  <p class="no-data-hint">No data returned</p>
-                                }
-                              </div>
-                            }
-                          </div>
-                          }
-                        }
-                        @case ('API_OBJECT_ARRAY') {
-                          @if (field.apiShowInForm !== false) {
-                          <div class="field-container api-field-container">
-                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            @if (apiFieldLoading[field.name]) {
-                              <div class="api-loading-overlay">
-                                <mat-spinner diameter="24"></mat-spinner>
-                                <span>Getting Data</span>
-                              </div>
-                            } @else if (apiFieldErrors[field.name]) {
-                              <div class="api-error">
-                                <mat-icon>error_outline</mat-icon>
-                                <span>{{ apiFieldErrors[field.name] }}</span>
-                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
-                              </div>
-                            } @else {
-                              <div class="api-data-display api-object-array">
-                                @if (apiFieldData[field.name]?.length > 0) {
-                                  <div class="api-table-wrapper">
-                                    <table class="api-table">
-                                      <thead>
-                                        <tr>
-                                          @for (key of getObjectKeys(apiFieldData[field.name][0]); track key) {
-                                            <th>{{ key }}</th>
-                                          }
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        @for (item of apiFieldData[field.name]; track $index) {
-                                          <tr>
-                                            @for (key of getObjectKeys(item); track key) {
-                                              <td>{{ item[key] }}</td>
-                                            }
-                                          </tr>
-                                        }
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                } @else {
-                                  <p class="no-data-hint">No data returned</p>
-                                }
-                              </div>
-                            }
-                          </div>
-                          }
-                        }
                         @case ('API_VALUE') {
                           <div class="field-container api-field-container">
-                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            @if (apiFieldLoading[field.name]) {
-                              <div class="api-loading-overlay">
-                                <mat-spinner diameter="24"></mat-spinner>
-                                <span>Getting Data</span>
-                              </div>
-                            } @else if (apiFieldErrors[field.name]) {
-                              <div class="api-error">
-                                <mat-icon>error_outline</mat-icon>
-                                <span>{{ apiFieldErrors[field.name] }}</span>
-                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
-                              </div>
-                            } @else {
-                              <div class="api-data-display api-value">
-                                <span class="api-value-text">{{ apiFieldData[field.name] ?? 'No data returned' }}</span>
-                              </div>
-                            }
-                          </div>
-                        }
-                        @case ('API_OBJECT') {
-                          <div class="field-container api-field-container">
-                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            @if (apiFieldLoading[field.name]) {
-                              <div class="api-loading-overlay">
-                                <mat-spinner diameter="24"></mat-spinner>
-                                <span>Getting Data</span>
-                              </div>
-                            } @else if (apiFieldErrors[field.name]) {
-                              <div class="api-error">
-                                <mat-icon>error_outline</mat-icon>
-                                <span>{{ apiFieldErrors[field.name] }}</span>
-                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
-                              </div>
-                            } @else {
-                              <div class="api-data-display api-object">
-                                @if (apiFieldData[field.name]) {
-                                  <div class="api-object-props">
-                                    @for (key of getObjectKeys(apiFieldData[field.name]); track key) {
-                                      <div class="api-prop-row">
-                                        <span class="api-prop-key">{{ key }}:</span>
-                                        <span class="api-prop-value">{{ apiFieldData[field.name][key] }}</span>
-                                      </div>
-                                    }
-                                  </div>
-                                } @else {
-                                  <p class="no-data-hint">No data returned</p>
-                                }
-                              </div>
-                            }
-                          </div>
-                        }
-                        @case ('API_LIST') {
-                          <div class="field-container api-field-container">
-                            <label class="field-label">{{ field.label }} @if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</label>
-                            @if (apiFieldLoading[field.name]) {
-                              <div class="api-loading-overlay">
-                                <mat-spinner diameter="24"></mat-spinner>
-                                <span>Getting Data</span>
-                              </div>
-                            } @else if (apiFieldErrors[field.name]) {
-                              <div class="api-error">
-                                <mat-icon>error_outline</mat-icon>
-                                <span>{{ apiFieldErrors[field.name] }}</span>
-                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
-                              </div>
-                            } @else {
-                              <div class="api-data-display api-list">
-                                @if (apiFieldData[field.name]?.length > 0) {
-                                  <ol class="api-list-items">
-                                    @for (item of apiFieldData[field.name]; track $index) {
-                                      <li>
-                                        @if (isObject(item)) {
-                                          <div class="api-list-object">
-                                            @for (key of getObjectKeys(item); track key) {
-                                              <span class="api-prop-key">{{ key }}:</span> <span class="api-prop-value">{{ item[key] }}</span>@if (!$last) { , }
-                                            }
-                                          </div>
-                                        } @else {
-                                          {{ item }}
-                                        }
-                                      </li>
-                                    }
-                                  </ol>
-                                } @else {
-                                  <p class="no-data-hint">No data returned</p>
-                                }
-                              </div>
-                            }
+                            <div class="api-input-row">
+                              <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                                <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                                <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
+                                @if (apiFieldLoading[field.name]) { <div matSuffix class="api-input-spinner"><mat-spinner diameter="20"></mat-spinner></div> }
+                                @if (apiFieldErrors[field.name]) { <mat-hint class="api-input-error">{{ apiFieldErrors[field.name] }}</mat-hint> }
+                              </mat-form-field>
+                              @if (field.apiTriggerMode === 'MANUAL') { <button mat-flat-button color="primary" class="api-go-btn" (click)="fetchApiFieldData(field)" [disabled]="apiFieldLoading[field.name]"><mat-icon>play_arrow</mat-icon> Go</button> }
+                            </div>
+                            @if (hasFieldError(field)) { <div class="validation-error">{{ getFieldErrorMessage(field) }}</div> }
                           </div>
                         }
                         @case ('OBJECT_VIEWER') {
@@ -1337,6 +1197,13 @@ import { User } from '@core/models/user.model';
                                 <span>{{ apiFieldErrors[field.name] }}</span>
                                 <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
                               </div>
+                            } @else if (field.apiTriggerMode === 'MANUAL' && apiFieldData[field.name] == null) {
+                              <label class="field-label">{{ field.label }}</label>
+                              <div class="api-manual-trigger">
+                                <button mat-flat-button color="primary" (click)="fetchApiFieldData(field)">
+                                  <mat-icon>play_arrow</mat-icon> Go
+                                </button>
+                              </div>
                             } @else if (apiFieldData[field.name] != null) {
                               <mat-expansion-panel class="ov-panel">
                                 <mat-expansion-panel-header>
@@ -1350,6 +1217,9 @@ import { User } from '@core/models/user.model';
                                 </mat-expansion-panel-header>
                                 <div class="object-viewer">
                                   <div class="ov-toolbar">
+                                    @if (field.apiTriggerMode === 'MANUAL') {
+                                      <button mat-stroked-button (click)="fetchApiFieldData(field); $event.stopPropagation()" matTooltip="Re-fetch data"><mat-icon>play_arrow</mat-icon> Go</button>
+                                    }
                                     <button mat-stroked-button (click)="expandAllObjectViewer(field.name); $event.stopPropagation()" matTooltip="Expand All"><mat-icon>unfold_more</mat-icon></button>
                                     <button mat-stroked-button (click)="collapseAllObjectViewer(field.name); $event.stopPropagation()" matTooltip="Collapse All"><mat-icon>unfold_less</mat-icon></button>
                                   </div>
@@ -2106,9 +1976,24 @@ import { User } from '@core/models/user.model';
                             @if (sqlTableData[field.name]?.loading) {
                               <div style="text-align: center; padding: 24px;"><mat-spinner diameter="30"></mat-spinner></div>
                             } @else if (sqlTableData[field.name]?.error) {
-                              <div style="color: #f44336; padding: 12px;">{{ sqlTableData[field.name].error }}</div>
+                              <div class="api-error">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>{{ sqlTableData[field.name].error }}</span>
+                                <button mat-stroked-button (click)="loadSqlTableData(field)"><mat-icon>refresh</mat-icon> Retry</button>
+                              </div>
+                            } @else if (field.apiTriggerMode === 'MANUAL' && !sqlTableData[field.name]?.data) {
+                              <div class="api-manual-trigger">
+                                <button mat-flat-button color="primary" (click)="loadSqlTableData(field)">
+                                  <mat-icon>play_arrow</mat-icon> Populate
+                                </button>
+                              </div>
                             } @else if (sqlTableData[field.name]?.data) {
                               <div class="sql-table-wrapper">
+                                @if (field.apiTriggerMode === 'MANUAL') {
+                                  <button mat-stroked-button class="api-refresh-btn" (click)="loadSqlTableData(field)" style="margin-bottom: 8px;">
+                                    <mat-icon>play_arrow</mat-icon> Populate
+                                  </button>
+                                }
                                 @if (field.tableSearchable) {
                                   <div class="sql-table-search">
                                     <mat-icon>search</mat-icon>
@@ -2343,6 +2228,86 @@ import { User } from '@core/models/user.model';
                             </mat-expansion-panel>
                           </div>
                         }
+                        @case ('API_VALUE') {
+                          <div class="field-container api-field-container">
+                            <div class="api-input-row">
+                              <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
+                                <mat-label>{{ field.label }}@if (isFieldRequired(field)) { <span class="required-asterisk">*</span> }</mat-label>
+                                <input matInput [formControlName]="field.name" [placeholder]="field.placeholder || ''" [readonly]="isFieldReadonly(field)">
+                                @if (apiFieldLoading[field.name]) { <div matSuffix class="api-input-spinner"><mat-spinner diameter="20"></mat-spinner></div> }
+                                @if (apiFieldErrors[field.name]) { <mat-hint class="api-input-error">{{ apiFieldErrors[field.name] }}</mat-hint> }
+                              </mat-form-field>
+                              @if (field.apiTriggerMode === 'MANUAL') { <button mat-flat-button color="primary" class="api-go-btn" (click)="fetchApiFieldData(field)" [disabled]="apiFieldLoading[field.name]"><mat-icon>play_arrow</mat-icon> Go</button> }
+                            </div>
+                            @if (hasFieldError(field)) { <div class="validation-error">{{ getFieldErrorMessage(field) }}</div> }
+                          </div>
+                        }
+                        @case ('OBJECT_VIEWER') {
+                          <div class="field-container api-field-container object-viewer-container">
+                            @if (apiFieldLoading[field.name]) {
+                              <label class="field-label">{{ field.label }}</label>
+                              <div class="api-loading-overlay">
+                                <mat-spinner diameter="24"></mat-spinner>
+                                <span>Getting Data</span>
+                              </div>
+                            } @else if (apiFieldErrors[field.name]) {
+                              <label class="field-label">{{ field.label }}</label>
+                              <div class="api-error">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>{{ apiFieldErrors[field.name] }}</span>
+                                <button mat-stroked-button (click)="fetchApiFieldData(field)"><mat-icon>refresh</mat-icon> Retry</button>
+                              </div>
+                            } @else if (field.apiTriggerMode === 'MANUAL' && apiFieldData[field.name] == null) {
+                              <label class="field-label">{{ field.label }}</label>
+                              <div class="api-manual-trigger">
+                                <button mat-flat-button color="primary" (click)="fetchApiFieldData(field)">
+                                  <mat-icon>play_arrow</mat-icon> Go
+                                </button>
+                              </div>
+                            } @else if (apiFieldData[field.name] != null) {
+                              <mat-expansion-panel class="ov-panel">
+                                <mat-expansion-panel-header>
+                                  <mat-panel-title>
+                                    <mat-icon class="ov-panel-icon">account_tree</mat-icon>
+                                    {{ field.label }}
+                                  </mat-panel-title>
+                                  <mat-panel-description>
+                                    {{ getOvTypeBadge(apiFieldData[field.name]) }}
+                                  </mat-panel-description>
+                                </mat-expansion-panel-header>
+                                <div class="object-viewer">
+                                  <div class="ov-toolbar">
+                                    @if (field.apiTriggerMode === 'MANUAL') {
+                                      <button mat-stroked-button (click)="fetchApiFieldData(field); $event.stopPropagation()" matTooltip="Re-fetch data"><mat-icon>play_arrow</mat-icon> Go</button>
+                                    }
+                                    <button mat-stroked-button (click)="expandAllObjectViewer(field.name); $event.stopPropagation()" matTooltip="Expand All"><mat-icon>unfold_more</mat-icon></button>
+                                    <button mat-stroked-button (click)="collapseAllObjectViewer(field.name); $event.stopPropagation()" matTooltip="Collapse All"><mat-icon>unfold_less</mat-icon></button>
+                                  </div>
+                                  <div class="ov-tree" (click)="onOvTreeClick($event, field.name)">
+                                    @for (node of getOvNodes(apiFieldData[field.name], field.name, 0); track node.path) {
+                                      @if (node.expandable) {
+                                        <div class="ov-key-row ov-expandable" [style.padding-left]="(node.depth * 16) + 'px'" [attr.data-path]="node.path">
+                                          <mat-icon class="ov-toggle">{{ node.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                                          <span class="ov-key">{{ node.key }}</span>
+                                          <span class="ov-type-badge">{{ node.badge }}</span>
+                                        </div>
+                                      } @else {
+                                        <div class="ov-key-row ov-leaf" [style.padding-left]="(node.depth * 16) + 'px'">
+                                          <span class="ov-dot"></span>
+                                          <span class="ov-key">{{ node.key }}:</span>
+                                          <span class="ov-value" [class]="'ov-val-' + node.valueType">{{ node.value }}</span>
+                                        </div>
+                                      }
+                                    }
+                                  </div>
+                                </div>
+                              </mat-expansion-panel>
+                            } @else {
+                              <label class="field-label">{{ field.label }}</label>
+                              <div class="api-data-display"><p class="no-data-hint">No data returned</p></div>
+                            }
+                          </div>
+                        }
                         @default {
                           <div class="field-container">
                             <mat-form-field appearance="outline" class="full-width" [class.field-invalid]="hasFieldError(field)">
@@ -2514,6 +2479,7 @@ import { User } from '@core/models/user.model';
           }
         </form>
       }
+
     </div>
   `,
   styles: [`
@@ -3963,6 +3929,53 @@ import { User } from '@core/models/user.model';
       color: #ef9a9a;
     }
 
+    .api-input-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .api-input-row .full-width {
+      flex: 1;
+    }
+
+    .api-go-btn {
+      height: 56px;
+      min-width: 80px;
+    }
+
+    .api-input-spinner {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .api-input-error {
+      color: #f44336 !important;
+    }
+
+    :host-context(.dark-mode) .api-input-error {
+      color: #ef9a9a !important;
+    }
+
+    .api-manual-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #f5f5f5;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+    }
+
+    :host-context(.dark-mode) .api-manual-trigger {
+      background: #2d2d2d;
+      border-color: #555;
+    }
+
+    .api-refresh-btn {
+      margin-bottom: 8px;
+    }
+
     .api-data-display {
       padding: 12px 16px;
       background: #fafafa;
@@ -4746,8 +4759,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
 
     this.form = this.fb.group(formControls);
 
-    // Load SQL_TABLE field data
-    this.fields.filter(f => (f.type === 'SQL_TABLE' || f.fieldType === 'SQL_TABLE') && f.sqlQuery)
+    // Load SQL_TABLE field data (skip manual trigger fields)
+    this.fields.filter(f => (f.type === 'SQL_TABLE' || f.fieldType === 'SQL_TABLE') && f.sqlQuery && f.apiTriggerMode !== 'MANUAL')
       .forEach(field => this.loadSqlTableData(field));
 
     // Safety net: explicitly patch existing field values after form creation
@@ -4856,7 +4869,7 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     this.sqlTableState[fieldName].page = Math.max(0, (this.sqlTableState[fieldName].page || 0) + delta);
   }
 
-  private loadSqlTableData(field: any) {
+  loadSqlTableData(field: any) {
     this.sqlTableData[field.name] = { loading: true, error: null, columns: [], data: [] };
     this.sqlTableState[field.name] = { search: '', sortField: '', sortDir: 'asc', page: 0 };
     this.http.post<any>(`${environment.apiUrl}/sql-objects/execute-query`, {
@@ -4910,11 +4923,12 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   }
 
   private parseArgsRaw(argsStr: string): string[] {
-    // Parse arguments without resolving field values
+    // Parse arguments without resolving field values, respecting nested parentheses
     const args: string[] = [];
     let current = '';
     let inQuotes = false;
     let quoteChar = '';
+    let parenDepth = 0;
 
     for (const char of argsStr) {
       if ((char === '"' || char === "'") && !inQuotes) {
@@ -4925,7 +4939,13 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         inQuotes = false;
         current += char;
         quoteChar = '';
-      } else if (char === ',' && !inQuotes) {
+      } else if (!inQuotes && char === '(') {
+        parenDepth++;
+        current += char;
+      } else if (!inQuotes && char === ')') {
+        parenDepth--;
+        current += char;
+      } else if (char === ',' && !inQuotes && parenDepth === 0) {
         args.push(current.trim());
         current = '';
       } else {
@@ -6686,8 +6706,8 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
    * Returns true by default if no expression or expression is empty/true
    */
   isFieldVisible(field: WorkflowField): boolean {
-    // API_ARRAY/API_OBJECT_ARRAY fields with apiShowInForm=false are hidden (data source only)
-    if ((field.type === 'API_ARRAY' || field.type === 'API_OBJECT_ARRAY') && (field as any).apiShowInForm === false) {
+    // API fields with apiShowInForm=false are hidden
+    if ((field as any).apiShowInForm === false) {
       return false;
     }
 
@@ -6717,6 +6737,24 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
    * Supports: @{fieldName} references, comparison operators, logical operators
    */
   private evaluateVisibilityExpression(expression: string): boolean {
+    // If the expression is a function call (e.g. IF_EMPTY(@{x}), AND(...), IS_NOT_EMPTY(@{y})),
+    // delegate to the full function evaluator so all 180+ functions work in visibility too.
+    const trimmed = expression.trim();
+    if (this.isFunctionExpression(trimmed)) {
+      try {
+        const result = this.evaluateFunction(trimmed, 'TEXT');
+        if (typeof result === 'boolean') return result;
+        if (typeof result === 'string') {
+          const s = result.toLowerCase();
+          return !(s === 'false' || s === '' || s === '0' || s === 'null' || s === 'undefined');
+        }
+        if (typeof result === 'number') return result !== 0;
+        return !!result;
+      } catch (e) {
+        // Fall through to the simple evaluator below
+      }
+    }
+
     // Replace field references @{fieldName} with actual values
     let evaluatedExpression = expression.replace(/@\{([^}]+)\}/g, (match, fieldName) => {
       const value = this.form.get(fieldName.trim())?.value;
@@ -7589,22 +7627,57 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       case 'CURRENT_MONTH':
         return (new Date().getMonth() + 1).toString();
 
-      // ==================== BOOLEAN/LOGIC FUNCTIONS ====================
+      // ==================== CONDITIONAL FUNCTIONS ====================
       case 'IF':
-        return this.evaluateCondition(args[0]) ? args[1] : args[2];
+        // IF(condition, trueValue, falseValue) — ternary; falseValue is optional (defaults to "")
+        return this.evaluateCondition(args[0]) ? (args[1] ?? '') : (args[2] ?? '');
+      case 'IF_ELSE':
+      case 'IFELSE':
+        // IF_ELSE(condition, trueValue, falseValue) — explicit if-else, same as IF but requires both branches
+        return this.evaluateCondition(args[0]) ? (args[1] ?? '') : (args[2] ?? '');
+      case 'IF_EMPTY':
+        // IF_EMPTY(value, fallback) — return fallback if value is empty/null
+        return (!args[0] || toStr(args[0]).trim() === '') ? (args[1] ?? '') : args[0];
+      case 'IF_NOT_EMPTY':
+        // IF_NOT_EMPTY(value, result) — return result only if value is not empty, else ""
+        return (args[0] && toStr(args[0]).trim() !== '') ? (args[1] ?? '') : (args[2] ?? '');
+      case 'IF_EQUALS':
+        // IF_EQUALS(a, b, trueValue, falseValue) — compare and return
+        return (toStr(args[0]) === toStr(args[1])) ? (args[2] ?? '') : (args[3] ?? '');
+      case 'IF_GREATER':
+        // IF_GREATER(a, b, trueValue, falseValue)
+        return (toNum(args[0]) > toNum(args[1])) ? (args[2] ?? '') : (args[3] ?? '');
+      case 'IF_LESS':
+        // IF_LESS(a, b, trueValue, falseValue)
+        return (toNum(args[0]) < toNum(args[1])) ? (args[2] ?? '') : (args[3] ?? '');
+      case 'IF_CONTAINS':
+        // IF_CONTAINS(text, search, trueValue, falseValue)
+        return toStr(args[0]).toLowerCase().includes(toStr(args[1]).toLowerCase()) ? (args[2] ?? '') : (args[3] ?? '');
+      case 'IF_BETWEEN':
+        // IF_BETWEEN(value, min, max, trueValue, falseValue)
+        { const v = toNum(args[0]); return (v >= toNum(args[1]) && v <= toNum(args[2])) ? (args[3] ?? '') : (args[4] ?? ''); }
       case 'IFS': {
+        // IFS(cond1, val1, cond2, val2, ..., default) — multi-branch conditional
         for (let i = 0; i < args.length - 1; i += 2) {
           if (this.evaluateCondition(args[i])) return args[i + 1];
         }
         return args.length % 2 === 1 ? args[args.length - 1] : '';
       }
       case 'SWITCH': {
+        // SWITCH(value, match1, result1, match2, result2, ..., default)
         const val = args[0];
         for (let i = 1; i < args.length - 1; i += 2) {
           if (val === args[i]) return args[i + 1];
         }
         return args.length % 2 === 0 ? args[args.length - 1] : '';
       }
+      case 'CHOOSE': {
+        // CHOOSE(index, val1, val2, val3, ...) — 1-based index selection
+        const idx = toInt(args[0]);
+        return (idx >= 1 && idx < args.length) ? args[idx] : '';
+      }
+
+      // ==================== BOOLEAN/LOGIC FUNCTIONS ====================
       case 'AND':
         return args.every(a => toBool(a) || this.evaluateCondition(a)).toString();
       case 'OR':
@@ -7931,6 +8004,34 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         for (let i = 0; i < len; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
         return result;
       }
+      case 'SETVALUE': {
+        // SETVALUE(fieldName, value) — set another field's value
+        // First arg must be an unquoted field name (not resolved to its value)
+        const rawArgs = this.parseArgsRaw(argsStr);
+        const targetFieldName = rawArgs[0]?.trim();
+        if (!targetFieldName) return '';
+        // Resolve the value (second arg) — could be a literal, field ref, or function
+        const rawValueArg = rawArgs.slice(1).join(',').trim();
+        let resolvedValue: any;
+        if (rawValueArg.startsWith('"') && rawValueArg.endsWith('"')) {
+          resolvedValue = rawValueArg.slice(1, -1);
+        } else if (rawValueArg.startsWith("'") && rawValueArg.endsWith("'")) {
+          resolvedValue = rawValueArg.slice(1, -1);
+        } else if (this.isFunctionExpression(rawValueArg)) {
+          resolvedValue = this.evaluateFunction(rawValueArg, fieldType);
+        } else {
+          // Try as field reference first, then literal
+          const fieldVal = this.getFieldValue(rawValueArg);
+          resolvedValue = fieldVal !== null ? String(fieldVal) : rawValueArg;
+        }
+        const targetControl = this.form?.get(targetFieldName);
+        if (targetControl) {
+          targetControl.setValue(String(resolvedValue ?? ''));
+          targetControl.markAsTouched();
+        }
+        return resolvedValue ?? '';
+      }
+
       // ==================== TABLE FUNCTIONS ====================
       case 'ROW':
         // Returns 1-based row number for table context
@@ -8925,11 +9026,12 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   }
 
   private parseArgs(argsStr: string, resolveFields: boolean = true): string[] {
-    // Simple argument parser - splits by comma, handling quoted strings
+    // Argument parser - splits by comma, respecting quoted strings and nested parentheses
     const args: string[] = [];
     let current = '';
     let inQuotes = false;
     let quoteChar = '';
+    let parenDepth = 0;
 
     for (const char of argsStr) {
       if ((char === '"' || char === "'") && !inQuotes) {
@@ -8940,7 +9042,13 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         inQuotes = false;
         current += char;
         quoteChar = '';
-      } else if (char === ',' && !inQuotes) {
+      } else if (!inQuotes && char === '(') {
+        parenDepth++;
+        current += char;
+      } else if (!inQuotes && char === ')') {
+        parenDepth--;
+        current += char;
+      } else if (char === ',' && !inQuotes && parenDepth === 0) {
         args.push(this.resolveArgValue(current.trim(), resolveFields));
         current = '';
       } else {
@@ -8960,6 +9068,12 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     }
     if (arg.startsWith("'") && arg.endsWith("'")) {
       return arg.slice(1, -1);
+    }
+
+    // If it's a nested function expression, evaluate it
+    if (this.isFunctionExpression(arg)) {
+      const result = this.evaluateFunction(arg, 'TEXT');
+      return result != null ? String(result) : '';
     }
 
     // If resolveFields is true, try to get field value
@@ -10144,11 +10258,20 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
   // --- API Field Methods ---
 
   isApiFieldType(type: string): boolean {
-    return ['API_ARRAY', 'API_OBJECT_ARRAY', 'API_VALUE', 'API_OBJECT', 'API_LIST', 'OBJECT_VIEWER'].includes(type);
+    return ['API_VALUE', 'OBJECT_VIEWER'].includes(type);
   }
 
   isAnyApiFieldLoading(): boolean {
     return Object.values(this.apiFieldLoading).some(v => v);
+  }
+
+  /** Replace @{fieldName} placeholders in a string with current form field values */
+  private resolveFieldPlaceholders(text: string): string {
+    if (!text) return text;
+    return text.replace(/@\{([^}]+)\}/g, (_match, fieldName) => {
+      const control = this.form?.get(fieldName.trim());
+      return control ? (control.value ?? '') : '';
+    });
   }
 
   fetchApiFieldData(field: any): void {
@@ -10176,15 +10299,23 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
       }
     }
 
+    // Resolve {{fieldName}} placeholders in URL, params, headers, auth, and body
+    const resolvedHeaders = headers
+      .filter((h: any) => h.key && h.key.trim())
+      .map((h: any) => ({ key: h.key, value: this.resolveFieldPlaceholders(h.value) }));
+    const resolvedParams = params
+      .filter((p: any) => p.key && p.key.trim())
+      .map((p: any) => ({ ...p, value: this.resolveFieldPlaceholders(p.value) }));
+
     const payload: any = {
-      url: field.apiUrl,
+      url: this.resolveFieldPlaceholders(field.apiUrl),
       method: field.apiMethod || 'GET',
       authType: field.apiAuthType || 'NONE',
-      authValue: field.apiAuthValue || '',
-      headers: headers.filter((h: any) => h.key && h.key.trim()),
-      params: params.filter((p: any) => p.key && p.key.trim()),
+      authValue: this.resolveFieldPlaceholders(field.apiAuthValue || ''),
+      headers: resolvedHeaders,
+      params: resolvedParams,
       responsePath: field.apiResponsePath || '',
-      body: field.apiBody || null
+      body: field.apiBody ? this.resolveFieldPlaceholders(field.apiBody) : null
     };
 
     this.http.post<any>(`${environment.apiUrl}/proxy/call`, payload).subscribe({
@@ -10192,19 +10323,25 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
         this.apiFieldLoading[field.name] = false;
         if (res.success) {
           this.apiFieldData[field.name] = res.data;
-          // Store the stringified data in the form control
+
+          // If an onResponse expression is defined, evaluate it with APIResponse injected
+          let finalValue: any = res.data;
+          if (field.apiOnResponse && field.apiOnResponse.trim()) {
+            try {
+              finalValue = this.evaluateOnResponse(field.apiOnResponse, res.data);
+            } catch (e) {
+              console.warn('[onResponse] Failed to evaluate expression', e);
+              finalValue = res.data;
+            }
+          }
+
+          // Store the value in the form control
           if (this.form.controls[field.name]) {
             this.form.controls[field.name].setValue(
-              typeof res.data === 'object' ? JSON.stringify(res.data) : String(res.data ?? '')
+              typeof finalValue === 'object' && finalValue !== null
+                ? JSON.stringify(finalValue)
+                : String(finalValue ?? '')
             );
-          }
-          // Populate any TABLE fields that use this API field as data source
-          if ((field.type === 'API_OBJECT_ARRAY' || field.type === 'API_ARRAY') && Array.isArray(res.data)) {
-            this.populateLinkedTables(field.name, res.data);
-          }
-          // Populate any SELECT/RADIO/etc fields that use this API field as options source
-          if ((field.type === 'API_ARRAY' || field.type === 'API_OBJECT_ARRAY') && Array.isArray(res.data)) {
-            this.populateLinkedOptionFields(field.name, res.data);
           }
         } else {
           this.apiFieldErrors[field.name] = res.message || 'API call failed';
@@ -10219,10 +10356,70 @@ export class WorkflowFormComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Evaluate an "onResponse" expression with APIResponse injected.
+   * Supports:
+   *   - Dot/bracket paths: APIResponse.user.name, APIResponse.items[0].title
+   *   - Function calls: CONCAT(APIResponse.firstName, ' ', APIResponse.lastName)
+   *   - Any function from evaluateFunction can be used; nested APIResponse references are resolved first.
+   */
+  private evaluateOnResponse(expression: string, apiResponse: any): any {
+    if (!expression) return apiResponse;
+    const expr = expression.trim();
+
+    // Shortcut: the whole expression is just APIResponse or APIResponse.path
+    const pathMatch = expr.match(/^APIResponse(\.[\w.\[\]]+|\[[\d'"\w]+\])*$/);
+    if (pathMatch) {
+      return this.resolveApiResponsePath(expr, apiResponse);
+    }
+
+    // Otherwise: replace every APIResponse(.xxx)* occurrence with a JSON literal of its resolved value,
+    // then feed to the existing evaluateFunction pipeline.
+    const resolved = expr.replace(/APIResponse(?:\[[^\]]*\]|\.[\w]+)*/g, (match) => {
+      const v = this.resolveApiResponsePath(match, apiResponse);
+      if (v === null || v === undefined) return '""';
+      if (typeof v === 'string') return JSON.stringify(v);
+      if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+      return JSON.stringify(JSON.stringify(v)); // nested object -> quoted JSON string
+    });
+
+    if (this.isFunctionExpression(resolved)) {
+      return this.evaluateFunction(resolved, 'TEXT');
+    }
+    return resolved;
+  }
+
+  /**
+   * Walk a path like "APIResponse.user.name" or "APIResponse[0].title" against the given object.
+   */
+  private resolveApiResponsePath(path: string, root: any): any {
+    if (!path.startsWith('APIResponse')) return undefined;
+    let rest = path.substring('APIResponse'.length);
+    let current: any = root;
+    const tokenRegex = /\.([a-zA-Z_$][\w$]*)|\[\s*(\d+|'([^']*)'|"([^"]*)")\s*\]/g;
+    let m: RegExpExecArray | null;
+    let lastIndex = 0;
+    while ((m = tokenRegex.exec(rest)) !== null) {
+      if (m.index !== lastIndex) return undefined; // non-contiguous path
+      lastIndex = m.index + m[0].length;
+      if (current === null || current === undefined) return undefined;
+      if (m[1] !== undefined) {
+        // .property
+        current = current[m[1]];
+      } else if (m[2] !== undefined) {
+        // [index] or ['key']
+        const idx = m[3] !== undefined ? m[3] : (m[4] !== undefined ? m[4] : m[2]);
+        current = Array.isArray(current) ? current[parseInt(m[2], 10)] : current[idx];
+      }
+    }
+    if (lastIndex !== rest.length) return undefined;
+    return current;
+  }
+
   initApiFields(): void {
     const apiFields = this.fields.filter(f => this.isApiFieldType(f.type || f.fieldType as string));
     for (const field of apiFields) {
-      if (field.apiUrl) {
+      if (field.apiUrl && field.apiTriggerMode !== 'MANUAL') {
         this.fetchApiFieldData(field);
       }
     }

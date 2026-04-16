@@ -208,8 +208,12 @@ interface LookupItem {
             <div class="filter-field">
               <mat-form-field appearance="outline">
                 <mat-label>Corporate</mat-label>
-                <input type="text" matInput [formControl]="corporateControl" [matAutocomplete]="corporateAuto">
-                <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                <input type="text" matInput [formControl]="corporateControl" [matAutocomplete]="corporateAuto" [readonly]="corporateControl.disabled">
+                @if (corporateControl.disabled) {
+                  <mat-icon matSuffix matTooltip="Restricted to your assigned corporate">lock</mat-icon>
+                } @else {
+                  <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                }
                 <mat-autocomplete #corporateAuto="matAutocomplete" [displayWith]="displayLookup" (optionSelected)="onCorporateSelected($event)">
                   @for (item of getFilteredCorporates(); track item.id) {
                     <mat-option [value]="item">{{ item.name }}</mat-option>
@@ -222,8 +226,12 @@ interface LookupItem {
             <div class="filter-field">
               <mat-form-field appearance="outline">
                 <mat-label>SBU</mat-label>
-                <input type="text" matInput [formControl]="sbuControl" [matAutocomplete]="sbuAuto">
-                <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                <input type="text" matInput [formControl]="sbuControl" [matAutocomplete]="sbuAuto" [readonly]="sbuControl.disabled">
+                @if (sbuControl.disabled) {
+                  <mat-icon matSuffix matTooltip="Restricted to your assigned SBU">lock</mat-icon>
+                } @else {
+                  <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                }
                 <mat-autocomplete #sbuAuto="matAutocomplete" [displayWith]="displayLookup" (optionSelected)="onSbuSelected($event)">
                   @for (item of getFilteredSbuOptions(); track item.id) {
                     <mat-option [value]="item">{{ item.name }}</mat-option>
@@ -236,8 +244,12 @@ interface LookupItem {
             <div class="filter-field">
               <mat-form-field appearance="outline">
                 <mat-label>Branch</mat-label>
-                <input type="text" matInput [formControl]="branchControl" [matAutocomplete]="branchAuto">
-                <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                <input type="text" matInput [formControl]="branchControl" [matAutocomplete]="branchAuto" [readonly]="branchControl.disabled">
+                @if (branchControl.disabled) {
+                  <mat-icon matSuffix matTooltip="Restricted to your assigned branch">lock</mat-icon>
+                } @else {
+                  <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                }
                 <mat-autocomplete #branchAuto="matAutocomplete" [displayWith]="displayLookup" (optionSelected)="onBranchSelected($event)">
                   @for (item of getFilteredBranchOptions(); track item.id) {
                     <mat-option [value]="item">{{ item.name }}</mat-option>
@@ -250,8 +262,12 @@ interface LookupItem {
             <div class="filter-field">
               <mat-form-field appearance="outline">
                 <mat-label>Department</mat-label>
-                <input type="text" matInput [formControl]="departmentControl" [matAutocomplete]="departmentAuto">
-                <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                <input type="text" matInput [formControl]="departmentControl" [matAutocomplete]="departmentAuto" [readonly]="departmentControl.disabled">
+                @if (departmentControl.disabled) {
+                  <mat-icon matSuffix matTooltip="Restricted to your assigned department">lock</mat-icon>
+                } @else {
+                  <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                }
                 <mat-autocomplete #departmentAuto="matAutocomplete" [displayWith]="displayLookup" (optionSelected)="onDepartmentSelected($event)">
                   @for (item of getFilteredDepartments(); track item.id) {
                     <mat-option [value]="item">{{ item.name }}</mat-option>
@@ -753,14 +769,14 @@ export class ReportViewerComponent implements OnInit {
   }
 
   // Form controls for searchable dropdowns
-  statusControl = new FormControl('');
-  workflowControl = new FormControl('');
-  userControl = new FormControl('');
-  corporateControl = new FormControl('');
-  sbuControl = new FormControl('');
-  branchControl = new FormControl('');
-  departmentControl = new FormControl('');
-  groupByControl = new FormControl('');
+  statusControl = new FormControl<any>('');
+  workflowControl = new FormControl<any>('');
+  userControl = new FormControl<any>('');
+  corporateControl = new FormControl<any>('');
+  sbuControl = new FormControl<any>('');
+  branchControl = new FormControl<any>('');
+  departmentControl = new FormControl<any>('');
+  groupByControl = new FormControl<any>('');
 
   // Static options
   statuses: LookupItem[] = [
@@ -787,6 +803,10 @@ export class ReportViewerComponent implements OnInit {
   // Filtered observables for autocomplete (static options)
   filteredStatuses!: Observable<LookupItem[]>;
   filteredGroupByOptions!: Observable<LookupItem[]>;
+
+  // User scope restrictions
+  userScope: { corporateIds: any[], sbuIds: any[], branchIds: any[], departmentIds: any[], isAdmin: boolean, isUnrestricted: boolean } | null = null;
+  scopeRestricted = false;
 
   // Lookup data
   workflows: LookupItem[] = [];
@@ -818,9 +838,70 @@ export class ReportViewerComponent implements OnInit {
       this.reportId = params['reportId'];
       this.loadReportDefinition();
     });
+    this.loadUserScope();
     this.loadLookupData();
     this.loadReportSettings();
     this.setupAutocompleteFilters();
+  }
+
+  loadUserScope() {
+    this.http.get<any>(`${this.apiUrl}/reports/user-scope`).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.userScope = res.data;
+          const isRestricted = !res.data.isAdmin && !res.data.isUnrestricted;
+          this.scopeRestricted = isRestricted;
+
+          if (isRestricted) {
+            // Pre-select user's scope values
+            if (res.data.corporateIds?.length === 1) {
+              const corp = res.data.corporateIds[0];
+              this.parameters.corporateId = corp.id;
+              this.corporateControl.setValue({ id: corp.id, name: corp.name });
+              this.corporateControl.disable();
+            } else if (res.data.corporateIds?.length > 1) {
+              // Multiple corporates — restrict dropdown to only user's corporates
+              this.corporateControl.disable();
+              this.parameters.corporateId = res.data.corporateIds[0].id;
+              this.corporateControl.setValue({ id: res.data.corporateIds[0].id, name: res.data.corporateIds[0].name });
+            }
+
+            if (res.data.sbuIds?.length === 1) {
+              const sbu = res.data.sbuIds[0];
+              this.parameters.sbuId = sbu.id;
+              this.sbuControl.setValue({ id: sbu.id, name: sbu.name });
+              this.sbuControl.disable();
+            } else if (res.data.sbuIds?.length > 1) {
+              this.sbuControl.disable();
+              this.parameters.sbuId = res.data.sbuIds[0].id;
+              this.sbuControl.setValue({ id: res.data.sbuIds[0].id, name: res.data.sbuIds[0].name });
+            }
+
+            if (res.data.branchIds?.length === 1) {
+              const branch = res.data.branchIds[0];
+              this.parameters.branchId = branch.id;
+              this.branchControl.setValue({ id: branch.id, name: branch.name });
+              this.branchControl.disable();
+            } else if (res.data.branchIds?.length > 1) {
+              this.branchControl.disable();
+              this.parameters.branchId = res.data.branchIds[0].id;
+              this.branchControl.setValue({ id: res.data.branchIds[0].id, name: res.data.branchIds[0].name });
+            }
+
+            if (res.data.departmentIds?.length === 1) {
+              const dept = res.data.departmentIds[0];
+              this.parameters.departmentId = dept.id;
+              this.departmentControl.setValue({ id: dept.id, name: dept.name });
+              this.departmentControl.disable();
+            } else if (res.data.departmentIds?.length > 1) {
+              this.departmentControl.disable();
+              this.parameters.departmentId = res.data.departmentIds[0].id;
+              this.departmentControl.setValue({ id: res.data.departmentIds[0].id, name: res.data.departmentIds[0].name });
+            }
+          }
+        }
+      }
+    });
   }
 
   setupAutocompleteFilters() {
@@ -937,26 +1018,20 @@ export class ReportViewerComponent implements OnInit {
   }
 
   loadLookupData() {
-    // Load workflows
-    this.http.get<any>(`${this.apiUrl}/workflows`).subscribe({
+    // Load accessible workflows (filtered by user's role access)
+    this.http.get<any>(`${this.apiUrl}/reports/accessible-workflows`).subscribe({
       next: (res) => {
         if (res.success && res.data) {
-          const data = res.data.content || res.data;
-          if (Array.isArray(data)) {
-            this.workflows = data.map((w: any) => ({ id: w.id, name: w.name }));
-          }
+          this.workflows = res.data.map((w: any) => ({ id: w.id, name: w.name }));
         }
       }
     });
 
-    // Load users
-    this.http.get<any>(`${this.apiUrl}/users`).subscribe({
+    // Load accessible users (filtered by scope)
+    this.http.get<any>(`${this.apiUrl}/reports/accessible-users`).subscribe({
       next: (res) => {
         if (res.success && res.data) {
-          const data = res.data.content || res.data;
-          if (Array.isArray(data)) {
-            this.users = data.map((u: any) => ({ id: u.id, name: u.fullName || u.username }));
-          }
+          this.users = res.data.map((u: any) => ({ id: u.id, name: u.name }));
         }
       }
     });
@@ -980,8 +1055,8 @@ export class ReportViewerComponent implements OnInit {
       }
     });
 
-    // Load branches
-    this.http.get<any>(`${this.apiUrl}/branches`).subscribe({
+    // Load accessible branches (filtered by scope)
+    this.http.get<any>(`${this.apiUrl}/reports/accessible-branches`).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           this.branches = res.data.map((b: any) => ({ id: b.id, name: b.name, sbuId: b.sbuId }));
@@ -1061,13 +1136,42 @@ export class ReportViewerComponent implements OnInit {
     this.statusControl.setValue('');
     this.workflowControl.setValue('');
     this.userControl.setValue('');
-    this.corporateControl.setValue('');
-    this.sbuControl.setValue('');
-    this.branchControl.setValue('');
-    this.departmentControl.setValue('');
     this.groupByControl.setValue('');
     this.filteredSbus = [...this.sbus];
     this.filteredBranches = [...this.branches];
+
+    // Re-apply scope restrictions if user is restricted
+    if (this.scopeRestricted && this.userScope) {
+      if (this.userScope.corporateIds?.length > 0) {
+        this.parameters.corporateId = this.userScope.corporateIds[0].id;
+        this.corporateControl.setValue({ id: this.userScope.corporateIds[0].id, name: this.userScope.corporateIds[0].name });
+      } else {
+        this.corporateControl.setValue('');
+      }
+      if (this.userScope.sbuIds?.length > 0) {
+        this.parameters.sbuId = this.userScope.sbuIds[0].id;
+        this.sbuControl.setValue({ id: this.userScope.sbuIds[0].id, name: this.userScope.sbuIds[0].name });
+      } else {
+        this.sbuControl.setValue('');
+      }
+      if (this.userScope.branchIds?.length > 0) {
+        this.parameters.branchId = this.userScope.branchIds[0].id;
+        this.branchControl.setValue({ id: this.userScope.branchIds[0].id, name: this.userScope.branchIds[0].name });
+      } else {
+        this.branchControl.setValue('');
+      }
+      if (this.userScope.departmentIds?.length > 0) {
+        this.parameters.departmentId = this.userScope.departmentIds[0].id;
+        this.departmentControl.setValue({ id: this.userScope.departmentIds[0].id, name: this.userScope.departmentIds[0].name });
+      } else {
+        this.departmentControl.setValue('');
+      }
+    } else {
+      this.corporateControl.setValue('');
+      this.sbuControl.setValue('');
+      this.branchControl.setValue('');
+      this.departmentControl.setValue('');
+    }
   }
 
   loadReportDefinition() {
