@@ -1,0 +1,59 @@
+{
+  "_comment": "Veterinary Treatment Plan — approve a treatment plan for an animal patient.",
+  "name": "Veterinary Treatment Plan",
+  "code": "VTP",
+  "description": "Approve a proposed treatment plan including diagnosis, procedures, medications, and estimated cost.",
+  "icon": "healing",
+  "displayOrder": 192,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "VETERINARY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{treatmentRef} - @{animalName} (@{diagnosis})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Patient & Diagnosis", "displayOrder": 0, "icon": "pets" },
+      { "id": "temp_screen_2", "title": "Treatment", "displayOrder": 1, "icon": "healing" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Patient", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Diagnosis", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Procedures", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Cost Estimate", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "treatmentRef", "label": "Treatment Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"VTP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "consultDate", "label": "Consultation Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "veterinarian", "label": "Attending Veterinarian", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "animalName", "label": "Animal Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "species", "label": "Species", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "ownerName", "label": "Owner Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "ownerPhone", "label": "Owner Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "diagnosis", "label": "Diagnosis", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "severity", "label": "Severity", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "MILD", "label": "Mild", "displayOrder": 0 }, { "value": "MODERATE", "label": "Moderate", "displayOrder": 1 }, { "value": "SEVERE", "label": "Severe", "displayOrder": 2 }, { "value": "CRITICAL", "label": "Critical", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "clinicalFindings", "label": "Clinical Findings", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(20)" },
+      { "name": "procedureType", "label": "Procedure Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "MEDICATION", "label": "Medication Only", "displayOrder": 0 }, { "value": "MINOR_SURGERY", "label": "Minor Surgery", "displayOrder": 1 }, { "value": "MAJOR_SURGERY", "label": "Major Surgery", "displayOrder": 2 }, { "value": "DENTAL", "label": "Dental Procedure", "displayOrder": 3 }, { "value": "IMAGING", "label": "Imaging / Diagnostics", "displayOrder": 4 }, { "value": "THERAPY", "label": "Therapy / Rehab", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "anaesthesiaRequired", "label": "Anaesthesia Required", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "procedureDescription", "label": "Procedure Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 32, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(20)" },
+      { "name": "medications", "label": "Medications Prescribed", "fieldType": "TEXTAREA", "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "hospitalisationDays", "label": "Est. Hospitalisation (days)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "estimatedCost", "label": "Estimated Cost", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "depositRequired", "label": "Deposit Required", "fieldType": "NUMBER", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "ownerConsent", "label": "Owner Consent Obtained", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{ownerConsent} == true, \"Owner consent is required\")" },
+      { "name": "prognosis", "label": "Prognosis", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "GOOD", "label": "Good", "displayOrder": 0 }, { "value": "FAIR", "label": "Fair", "displayOrder": 1 }, { "value": "GUARDED", "label": "Guarded", "displayOrder": 2 }, { "value": "POOR", "label": "Poor", "displayOrder": 3 } ], "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Senior Veterinarian", "approverType": "ROLE", "roleName": "SENIOR_VET", "amountLimit": 5000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Practice Manager", "approverType": "ROLE", "roleName": "PRACTICE_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

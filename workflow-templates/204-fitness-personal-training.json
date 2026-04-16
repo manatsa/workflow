@@ -1,0 +1,59 @@
+{
+  "_comment": "Personal Training Program — approve a personal training program for a member.",
+  "name": "Personal Training Program",
+  "code": "FPT",
+  "description": "Approve a personalised training program with session schedule, goals, and trainer assignment.",
+  "icon": "sports_gymnastics",
+  "displayOrder": 204,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FITNESS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{programRef} - @{memberName} (@{goal})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Member & Goals", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Program", "displayOrder": 1, "icon": "fitness_center" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Member", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Assessment", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Program Details", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Fees", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "programRef", "label": "Program Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FPT-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "createdDate", "label": "Created Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "trainer", "label": "Personal Trainer", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "memberName", "label": "Member Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "membershipNo", "label": "Membership Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "age", "label": "Age", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(16)" },
+      { "name": "goal", "label": "Primary Goal", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "WEIGHT_LOSS", "label": "Weight Loss", "displayOrder": 0 }, { "value": "MUSCLE_GAIN", "label": "Muscle Gain", "displayOrder": 1 }, { "value": "ENDURANCE", "label": "Endurance / Cardio", "displayOrder": 2 }, { "value": "FLEXIBILITY", "label": "Flexibility / Mobility", "displayOrder": 3 }, { "value": "REHABILITATION", "label": "Rehabilitation", "displayOrder": 4 }, { "value": "SPORTS_SPECIFIC", "label": "Sports-Specific", "displayOrder": 5 }, { "value": "GENERAL_FITNESS", "label": "General Fitness", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "currentWeight", "label": "Current Weight (kg)", "fieldType": "NUMBER", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Min(20)" },
+      { "name": "targetWeight", "label": "Target Weight (kg)", "fieldType": "NUMBER", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Min(20)" },
+      { "name": "fitnessLevel", "label": "Current Fitness Level", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "BEGINNER", "label": "Beginner", "displayOrder": 0 }, { "value": "INTERMEDIATE", "label": "Intermediate", "displayOrder": 1 }, { "value": "ADVANCED", "label": "Advanced", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "injuries", "label": "Known Injuries / Limitations", "fieldType": "TEXTAREA", "displayOrder": 24, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "sessionsPerWeek", "label": "Sessions Per Week", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1) AND Max(7)" },
+      { "name": "sessionDuration", "label": "Session Duration (min)", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "30", "label": "30 minutes", "displayOrder": 0 }, { "value": "45", "label": "45 minutes", "displayOrder": 1 }, { "value": "60", "label": "60 minutes", "displayOrder": 2 }, { "value": "90", "label": "90 minutes", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "programDurationWeeks", "label": "Program Duration (weeks)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(4)" },
+      { "name": "startDate", "label": "Start Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Must be future\")" },
+      { "name": "programOutline", "label": "Program Outline", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND MinLength(30)" },
+      { "name": "perSessionRate", "label": "Per Session Rate", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "totalPackageCost", "label": "Total Package Cost", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "memberConsent", "label": "Member Consent Signed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{memberConsent} == true, \"Member consent required\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Fitness Manager", "approverType": "ROLE", "roleName": "FITNESS_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Club Manager", "approverType": "ROLE", "roleName": "CLUB_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

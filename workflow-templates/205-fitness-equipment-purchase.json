@@ -1,0 +1,59 @@
+{
+  "_comment": "Fitness Equipment Purchase — request to purchase new gym or fitness equipment.",
+  "name": "Fitness Equipment Purchase Request",
+  "code": "FEP",
+  "description": "Request and approve the purchase of new gym, fitness, or wellness equipment.",
+  "icon": "shopping_cart",
+  "displayOrder": 205,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FITNESS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{purchaseRef} - @{equipmentName} (@{brand})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Equipment", "displayOrder": 0, "icon": "fitness_center" },
+      { "id": "temp_screen_2", "title": "Budget & Delivery", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Equipment Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Justification", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Cost & Budget", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Delivery", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "purchaseRef", "label": "Purchase Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FEP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestedBy", "label": "Requested By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "equipmentName", "label": "Equipment Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "category", "label": "Category", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "CARDIO", "label": "Cardio (Treadmill, Bike, etc.)", "displayOrder": 0 }, { "value": "STRENGTH", "label": "Strength / Resistance", "displayOrder": 1 }, { "value": "FREE_WEIGHTS", "label": "Free Weights", "displayOrder": 2 }, { "value": "FUNCTIONAL", "label": "Functional / CrossFit", "displayOrder": 3 }, { "value": "YOGA_PILATES", "label": "Yoga / Pilates", "displayOrder": 4 }, { "value": "SWIMMING", "label": "Swimming / Aqua", "displayOrder": 5 }, { "value": "OTHER", "label": "Other", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "brand", "label": "Brand / Manufacturer", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "model", "label": "Model Number", "fieldType": "TEXT", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "quantity", "label": "Quantity", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(1)" },
+      { "name": "reason", "label": "Reason for Purchase", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "NEW", "label": "New Addition", "displayOrder": 0 }, { "value": "REPLACEMENT", "label": "Replacement (End of Life)", "displayOrder": 1 }, { "value": "EXPANSION", "label": "Facility Expansion", "displayOrder": 2 }, { "value": "UPGRADE", "label": "Upgrade", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "justification", "label": "Business Justification", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND MinLength(20)" },
+      { "name": "location", "label": "Destination Branch / Floor", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "unitPrice", "label": "Unit Price", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "totalCost", "label": "Total Cost", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "budgetCode", "label": "Budget Code", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "withinBudget", "label": "Within Approved Budget", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "supplier", "label": "Preferred Supplier", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "deliveryDate", "label": "Required Delivery Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Must be future date\")" },
+      { "name": "warrantyMonths", "label": "Warranty (months)", "fieldType": "NUMBER", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "installationRequired", "label": "Professional Installation Required", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Club Manager", "approverType": "ROLE", "roleName": "CLUB_MANAGER", "amountLimit": 10000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Regional Manager", "approverType": "ROLE", "roleName": "REGIONAL_MANAGER", "amountLimit": 50000, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "Finance Director", "approverType": "ROLE", "roleName": "FINANCE_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

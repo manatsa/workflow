@@ -1,0 +1,55 @@
+{
+  "_comment": "Recycling Output Report — report on recycling volumes and recovery rates.",
+  "name": "Recycling Output Report",
+  "code": "WRR",
+  "description": "Submit and approve a recycling output report covering volumes processed and recovery rates.",
+  "icon": "recycling",
+  "displayOrder": 196,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "WASTE_MGMT",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{reportRef} - @{facility} (@{reportPeriod})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Report", "displayOrder": 0, "icon": "recycling" },
+      { "id": "temp_screen_2", "title": "Volumes", "displayOrder": 1, "icon": "bar_chart" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Facility & Period", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Input Volumes", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Output & Recovery", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "reportRef", "label": "Report Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"WRR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submittedDate", "label": "Submitted Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "submittedBy", "label": "Submitted By", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "facility", "label": "Recycling Facility", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "reportPeriod", "label": "Report Period", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "WEEKLY", "label": "Weekly", "displayOrder": 0 }, { "value": "MONTHLY", "label": "Monthly", "displayOrder": 1 }, { "value": "QUARTERLY", "label": "Quarterly", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "periodStart", "label": "Period Start", "fieldType": "DATE", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "periodEnd", "label": "Period End", "fieldType": "DATE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "totalInputTonnes", "label": "Total Input (tonnes)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "paperCardboard", "label": "Paper & Cardboard (tonnes)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "plastics", "label": "Plastics (tonnes)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "glass", "label": "Glass (tonnes)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "metals", "label": "Metals (tonnes)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "organic", "label": "Organic / Compost (tonnes)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 25, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "totalRecoveredTonnes", "label": "Total Recovered (tonnes)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "residualToLandfill", "label": "Residual to Landfill (tonnes)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0)" },
+      { "name": "recoveryRatePercent", "label": "Recovery Rate (%)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(0) AND Max(100)" },
+      { "name": "contaminationRate", "label": "Contamination Rate (%)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0) AND Max(100)" },
+      { "name": "remarks", "label": "Remarks", "fieldType": "TEXTAREA", "displayOrder": 34, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Plant Supervisor", "approverType": "ROLE", "roleName": "PLANT_SUPERVISOR", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Environmental Manager", "approverType": "ROLE", "roleName": "ENV_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

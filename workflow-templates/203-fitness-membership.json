@@ -1,0 +1,60 @@
+{
+  "_comment": "Gym / Wellness Membership — application for a new fitness or wellness membership.",
+  "name": "Fitness Membership Application",
+  "code": "FMA",
+  "description": "Apply for a new gym, fitness, or wellness centre membership with plan selection and payment setup.",
+  "icon": "fitness_center",
+  "displayOrder": 203,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FITNESS",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{memberRef} - @{memberName} (@{membershipType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Member", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Plan & Payment", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Personal Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Health", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Membership Plan", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Payment", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "memberRef", "label": "Member Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FMA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "memberName", "label": "Full Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "dateOfBirth", "label": "Date of Birth", "fieldType": "DATE", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "gender", "label": "Gender", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "MALE", "label": "Male", "displayOrder": 0 }, { "value": "FEMALE", "label": "Female", "displayOrder": 1 }, { "value": "OTHER", "label": "Other", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "phone", "label": "Phone", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "email", "label": "Email", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "emergencyContact", "label": "Emergency Contact", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "medicalConditions", "label": "Medical Conditions", "fieldType": "TEXTAREA", "displayOrder": 20, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "parqCompleted", "label": "PAR-Q Completed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{parqCompleted} == true, \"PAR-Q questionnaire must be completed\")" },
+      { "name": "doctorClearance", "label": "Doctor Clearance (if required)", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "membershipType", "label": "Membership Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "BASIC", "label": "Basic (Gym Only)", "displayOrder": 0 }, { "value": "STANDARD", "label": "Standard (Gym + Classes)", "displayOrder": 1 }, { "value": "PREMIUM", "label": "Premium (All Access)", "displayOrder": 2 }, { "value": "CORPORATE", "label": "Corporate", "displayOrder": 3 }, { "value": "STUDENT", "label": "Student", "displayOrder": 4 }, { "value": "FAMILY", "label": "Family", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "contractLength", "label": "Contract Length (months)", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "1", "label": "Month-to-Month", "displayOrder": 0 }, { "value": "6", "label": "6 Months", "displayOrder": 1 }, { "value": "12", "label": "12 Months", "displayOrder": 2 }, { "value": "24", "label": "24 Months", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "startDate", "label": "Start Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Must be future date\")" },
+      { "name": "homeBranch", "label": "Home Branch / Location", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "monthlyFee", "label": "Monthly Fee", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(1)" },
+      { "name": "joiningFee", "label": "Joining Fee", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" },
+      { "name": "paymentMethod", "label": "Payment Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "DEBIT_ORDER", "label": "Debit Order", "displayOrder": 0 }, { "value": "CARD", "label": "Card Payment", "displayOrder": 1 }, { "value": "EFT", "label": "EFT / Bank Transfer", "displayOrder": 2 }, { "value": "CASH", "label": "Cash", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "termsAccepted", "label": "Terms & Conditions Accepted", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "ValidWhen(@{termsAccepted} == true, \"Terms must be accepted\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Front Desk Manager", "approverType": "ROLE", "roleName": "FRONT_DESK_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Club Manager", "approverType": "ROLE", "roleName": "CLUB_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "_comment": "Veterinary Prescription — approve controlled or scheduled medication for an animal.",
+  "name": "Veterinary Prescription",
+  "code": "VRX",
+  "description": "Approve prescription of controlled or scheduled veterinary medication for an animal patient.",
+  "icon": "medication",
+  "displayOrder": 193,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "VETERINARY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{rxRef} - @{animalName} (@{drugName})",
+  "reminderEnabled": true, "reminderFrequencyHours": 8, "reminderMaxCount": 3, "reminderStartAfterHours": 8,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Prescription", "displayOrder": 0, "icon": "medication" },
+      { "id": "temp_screen_2", "title": "Dispensing", "displayOrder": 1, "icon": "local_pharmacy" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Patient", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Medication", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Dispensing Details", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "rxRef", "label": "Prescription Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"VRX-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "prescriptionDate", "label": "Prescription Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "prescribingVet", "label": "Prescribing Veterinarian", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "inSummary": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "animalName", "label": "Animal Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "species", "label": "Species", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "weight", "label": "Current Weight (kg)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0.1)" },
+      { "name": "ownerName", "label": "Owner Name", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "drugName", "label": "Drug Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "drugSchedule", "label": "Drug Schedule", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "UNSCHEDULED", "label": "Unscheduled", "displayOrder": 0 }, { "value": "S2", "label": "Schedule 2", "displayOrder": 1 }, { "value": "S3", "label": "Schedule 3", "displayOrder": 2 }, { "value": "S4", "label": "Schedule 4", "displayOrder": 3 }, { "value": "S5", "label": "Schedule 5 (Controlled)", "displayOrder": 4 }, { "value": "S6", "label": "Schedule 6 (Controlled)", "displayOrder": 5 } ], "validation": "Required()" },
+      { "name": "dosage", "label": "Dosage", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "frequency", "label": "Frequency", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "ONCE_DAILY", "label": "Once Daily", "displayOrder": 0 }, { "value": "TWICE_DAILY", "label": "Twice Daily", "displayOrder": 1 }, { "value": "THREE_DAILY", "label": "Three Times Daily", "displayOrder": 2 }, { "value": "AS_NEEDED", "label": "As Needed (PRN)", "displayOrder": 3 }, { "value": "SINGLE_DOSE", "label": "Single Dose", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "durationDays", "label": "Duration (days)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1)" },
+      { "name": "indication", "label": "Indication / Reason", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 25, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "quantity", "label": "Quantity to Dispense", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "refills", "label": "Refills Authorised", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "withdrawalPeriod", "label": "Withdrawal Period (days)", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "helpText": "For food-producing animals" },
+      { "name": "clientWarnings", "label": "Client Warnings / Instructions", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 33, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Senior Veterinarian", "approverType": "ROLE", "roleName": "SENIOR_VET", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Practice Manager", "approverType": "ROLE", "roleName": "PRACTICE_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

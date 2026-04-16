@@ -1,0 +1,61 @@
+{
+  "_comment": "Veterinary Patient Registration — register a new animal patient with owner and medical details.",
+  "name": "Veterinary Patient Registration",
+  "code": "VPR",
+  "description": "Register a new animal patient with owner details, species, breed, and initial medical history.",
+  "icon": "pets",
+  "displayOrder": 191,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "VETERINARY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{patientRef} - @{animalName} (@{species})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Patient", "displayOrder": 0, "icon": "pets" },
+      { "id": "temp_screen_2", "title": "Owner", "displayOrder": 1, "icon": "person" },
+      { "id": "temp_screen_3", "title": "Medical", "displayOrder": 2, "icon": "medical_services" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Animal Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Owner Information", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Medical History", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" },
+      { "id": "temp_grp_5", "title": "Vaccinations", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "patientRef", "label": "Patient Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"VPR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "registrationDate", "label": "Registration Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "animalName", "label": "Animal Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "species", "label": "Species", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "DOG", "label": "Dog", "displayOrder": 0 }, { "value": "CAT", "label": "Cat", "displayOrder": 1 }, { "value": "HORSE", "label": "Horse", "displayOrder": 2 }, { "value": "CATTLE", "label": "Cattle", "displayOrder": 3 }, { "value": "BIRD", "label": "Bird", "displayOrder": 4 }, { "value": "REPTILE", "label": "Reptile", "displayOrder": 5 }, { "value": "OTHER", "label": "Other", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "breed", "label": "Breed", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "gender", "label": "Gender", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "MALE", "label": "Male", "displayOrder": 0 }, { "value": "FEMALE", "label": "Female", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "dateOfBirth", "label": "Date of Birth (approx.)", "fieldType": "DATE", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "weight", "label": "Weight (kg)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0.1)" },
+      { "name": "colour", "label": "Colour / Markings", "fieldType": "TEXT", "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "microchipNo", "label": "Microchip Number", "fieldType": "TEXT", "displayOrder": 17, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "ownerName", "label": "Owner Full Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "ownerPhone", "label": "Phone Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "ownerEmail", "label": "Email", "fieldType": "TEXT", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3" },
+      { "name": "ownerAddress", "label": "Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "allergies", "label": "Known Allergies", "fieldType": "TEXTAREA", "displayOrder": 30, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "existingConditions", "label": "Existing Conditions", "fieldType": "TEXTAREA", "displayOrder": 31, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "neutered", "label": "Spayed / Neutered", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_4" },
+      { "name": "rabiesVaccine", "label": "Rabies Vaccine Current", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "dhppVaccine", "label": "DHPP / Core Vaccine Current", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "lastVaccinationDate", "label": "Last Vaccination Date", "fieldType": "DATE", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" },
+      { "name": "notes", "label": "Additional Notes", "fieldType": "TEXTAREA", "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Veterinary Nurse", "approverType": "ROLE", "roleName": "VET_NURSE", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Veterinarian", "approverType": "ROLE", "roleName": "VETERINARIAN", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

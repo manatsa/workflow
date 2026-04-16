@@ -1,0 +1,56 @@
+{
+  "_comment": "Prepaid Funeral Plan — register a prepaid funeral plan subscription.",
+  "name": "Prepaid Funeral Plan Registration",
+  "code": "FPP",
+  "description": "Register and approve a new prepaid funeral plan subscription with cover details and beneficiaries.",
+  "icon": "savings",
+  "displayOrder": 201,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FUNERAL",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{planRef} - @{memberName} (@{planType})",
+  "reminderEnabled": true, "reminderFrequencyHours": 48, "reminderMaxCount": 3, "reminderStartAfterHours": 48,
+  "escalationEnabled": true, "escalationAfterHours": 168, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Member", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Plan & Payment", "displayOrder": 1, "icon": "payments" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Member Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Plan Selection", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Payment", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "planRef", "label": "Plan Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FPP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "memberName", "label": "Member Full Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "idNumber", "label": "ID Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "dateOfBirth", "label": "Date of Birth", "fieldType": "DATE", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "phone", "label": "Phone Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "address", "label": "Residential Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "beneficiaryName", "label": "Primary Beneficiary", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 15, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "beneficiaryRelation", "label": "Beneficiary Relationship", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 16, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "planType", "label": "Plan Type", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "INDIVIDUAL", "label": "Individual", "displayOrder": 0 }, { "value": "COUPLE", "label": "Couple", "displayOrder": 1 }, { "value": "FAMILY", "label": "Family", "displayOrder": 2 }, { "value": "EXTENDED", "label": "Extended Family", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "coverLevel", "label": "Cover Level", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3",
+        "options": [ { "value": "BASIC", "label": "Basic", "displayOrder": 0 }, { "value": "STANDARD", "label": "Standard", "displayOrder": 1 }, { "value": "PREMIUM", "label": "Premium", "displayOrder": 2 }, { "value": "PLATINUM", "label": "Platinum", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "coverAmount", "label": "Cover Amount", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(1000)" },
+      { "name": "dependants", "label": "Number of Dependants", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "monthlyPremium", "label": "Monthly Premium", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND Min(1)" },
+      { "name": "paymentMethod", "label": "Payment Method", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "DEBIT_ORDER", "label": "Debit Order", "displayOrder": 0 }, { "value": "STOP_ORDER", "label": "Stop Order", "displayOrder": 1 }, { "value": "CASH", "label": "Cash", "displayOrder": 2 }, { "value": "MOBILE_MONEY", "label": "Mobile Money", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "debitDay", "label": "Debit Day of Month", "fieldType": "NUMBER", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(1) AND Max(31)" },
+      { "name": "waitingPeriodMonths", "label": "Waiting Period (months)", "fieldType": "NUMBER", "defaultValue": "6", "isReadonly": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Sales Consultant", "approverType": "ROLE", "roleName": "SALES_CONSULTANT", "amountLimit": null, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Branch Manager", "approverType": "ROLE", "roleName": "BRANCH_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

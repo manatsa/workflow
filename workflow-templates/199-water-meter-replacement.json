@@ -1,0 +1,57 @@
+{
+  "_comment": "Water Meter Replacement — request to replace a faulty or expired water meter.",
+  "name": "Water Meter Replacement",
+  "code": "WMR",
+  "description": "Request and approve replacement of a faulty, expired, or damaged water meter.",
+  "icon": "speed",
+  "displayOrder": 199,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "WATER_UTILITY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{requestRef} - @{meterNumber} (@{accountHolder})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Meter Details", "displayOrder": 0, "icon": "speed" },
+      { "id": "temp_screen_2", "title": "Replacement", "displayOrder": 1, "icon": "swap_horiz" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Existing Meter", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Account Holder", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "New Meter", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Cost & Scheduling", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "requestRef", "label": "Request Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"WMR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "meterNumber", "label": "Current Meter Number", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "meterSize", "label": "Meter Size (mm)", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "currentReading", "label": "Current Reading", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0)" },
+      { "name": "reason", "label": "Reason for Replacement", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FAULTY", "label": "Faulty / Not Registering", "displayOrder": 0 }, { "value": "EXPIRED", "label": "Expired (end of life)", "displayOrder": 1 }, { "value": "DAMAGED", "label": "Physically Damaged", "displayOrder": 2 }, { "value": "UPGRADE", "label": "Upgrade / Upsizing", "displayOrder": 3 }, { "value": "SMART_METER", "label": "Smart Meter Conversion", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "installDate", "label": "Original Install Date", "fieldType": "DATE", "displayOrder": 14, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "accountHolder", "label": "Account Holder", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "accountNumber", "label": "Account Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "propertyAddress", "label": "Property Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 22, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "newMeterNumber", "label": "New Meter Serial Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "newMeterType", "label": "New Meter Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "MECHANICAL", "label": "Mechanical", "displayOrder": 0 }, { "value": "SMART", "label": "Smart / AMI", "displayOrder": 1 }, { "value": "ULTRASONIC", "label": "Ultrasonic", "displayOrder": 2 }, { "value": "ELECTROMAGNETIC", "label": "Electromagnetic", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "newMeterReading", "label": "New Meter Start Reading", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "meterTested", "label": "Old Meter Bench-Tested", "fieldType": "YES_NO", "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "materialCost", "label": "Material Cost", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "labourCost", "label": "Labour Cost", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "scheduledDate", "label": "Scheduled Replacement Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Must be future date\")" },
+      { "name": "technician", "label": "Assigned Technician", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Meter Supervisor", "approverType": "ROLE", "roleName": "METER_SUPERVISOR", "amountLimit": 2000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Technical Manager", "approverType": "ROLE", "roleName": "TECHNICAL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

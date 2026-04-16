@@ -1,0 +1,64 @@
+{
+  "_comment": "Funeral Service Arrangement — plan and approve a funeral service package.",
+  "name": "Funeral Service Arrangement",
+  "code": "FSA",
+  "description": "Plan and approve a complete funeral service arrangement including venue, transport, and burial or cremation.",
+  "icon": "church",
+  "displayOrder": 200,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FUNERAL",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{arrangementRef} - @{deceasedName}",
+  "reminderEnabled": true, "reminderFrequencyHours": 4, "reminderMaxCount": 3, "reminderStartAfterHours": 4,
+  "escalationEnabled": true, "escalationAfterHours": 12, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Deceased & Family", "displayOrder": 0, "icon": "person" },
+      { "id": "temp_screen_2", "title": "Service Plan", "displayOrder": 1, "icon": "event" },
+      { "id": "temp_screen_3", "title": "Financials", "displayOrder": 2, "icon": "payments" },
+      { "id": "temp_screen_4", "title": "Review", "displayOrder": 3, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Deceased Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Next of Kin", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Service Details", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Burial / Cremation", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_6", "title": "Cost Summary", "displayOrder": 5, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_3" }
+    ],
+    "fields": [
+      { "name": "arrangementRef", "label": "Arrangement Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FSA-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "arrangementDate", "label": "Arrangement Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "consultant", "label": "Funeral Consultant", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "deceasedName", "label": "Deceased Full Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "dateOfDeath", "label": "Date of Death", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "deathCertNo", "label": "Death Certificate Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "idNumber", "label": "ID Number of Deceased", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "nokName", "label": "Next of Kin Name", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "nokRelation", "label": "Relationship", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "nokPhone", "label": "Phone Number", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "nokAddress", "label": "Address", "fieldType": "TEXTAREA", "displayOrder": 23, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3" },
+      { "name": "serviceDate", "label": "Service Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required() AND DateAfter(\"today\", \"Must be future date\")" },
+      { "name": "serviceVenue", "label": "Service Venue", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "expectedAttendees", "label": "Expected Attendees", "fieldType": "NUMBER", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(1)" },
+      { "name": "casketType", "label": "Casket / Coffin Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "BASIC", "label": "Basic", "displayOrder": 0 }, { "value": "STANDARD", "label": "Standard", "displayOrder": 1 }, { "value": "PREMIUM", "label": "Premium", "displayOrder": 2 }, { "value": "LUXURY", "label": "Luxury", "displayOrder": 3 } ], "validation": "Required()" },
+      { "name": "hearseRequired", "label": "Hearse Required", "fieldType": "YES_NO", "defaultValue": "true", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4" },
+      { "name": "disposalMethod", "label": "Burial or Cremation", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "BURIAL", "label": "Burial", "displayOrder": 0 }, { "value": "CREMATION", "label": "Cremation", "displayOrder": 1 } ], "validation": "Required()" },
+      { "name": "cemeteryOrCrematorium", "label": "Cemetery / Crematorium", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "graveSite", "label": "Grave Site / Plot Number", "fieldType": "TEXT", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "totalCost", "label": "Total Package Cost", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 50, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Required() AND Min(0)" },
+      { "name": "depositPaid", "label": "Deposit Paid", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 51, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6", "validation": "Min(0)" },
+      { "name": "insuranceClaim", "label": "Insurance Claim", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 52, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" },
+      { "name": "policyNumber", "label": "Insurance Policy Number", "fieldType": "TEXT", "displayOrder": 53, "columnSpan": 1, "screenId": "temp_screen_3", "fieldGroupId": "temp_grp_6" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Funeral Coordinator", "approverType": "ROLE", "roleName": "FUNERAL_COORDINATOR", "amountLimit": 20000, "canEscalate": true, "requireComment": false, "emailNotification": true },
+    { "level": 2, "name": "Branch Manager", "approverType": "ROLE", "roleName": "BRANCH_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

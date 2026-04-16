@@ -1,0 +1,59 @@
+{
+  "_comment": "Hazardous Waste Disposal Permit — permit for handling and disposing of hazardous waste.",
+  "name": "Hazardous Waste Disposal Permit",
+  "code": "WDP",
+  "description": "Apply for a permit to handle, transport, and dispose of hazardous or special waste.",
+  "icon": "warning",
+  "displayOrder": 195,
+  "requiresApproval": true, "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "WASTE_MGMT",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{permitRef} - @{wasteClass} (@{generatorName})",
+  "reminderEnabled": true, "reminderFrequencyHours": 24, "reminderMaxCount": 3, "reminderStartAfterHours": 24,
+  "escalationEnabled": true, "escalationAfterHours": 72, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Waste Details", "displayOrder": 0, "icon": "warning" },
+      { "id": "temp_screen_2", "title": "Safety & Compliance", "displayOrder": 1, "icon": "gpp_good" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Waste Classification", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Generator & Transport", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Safety Controls", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Disposal Method", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "permitRef", "label": "Permit Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"WDP-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicationDate", "label": "Application Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "applicant", "label": "Applicant", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "wasteClass", "label": "Waste Classification", "fieldType": "SELECT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "FLAMMABLE", "label": "Flammable", "displayOrder": 0 }, { "value": "CORROSIVE", "label": "Corrosive", "displayOrder": 1 }, { "value": "TOXIC", "label": "Toxic", "displayOrder": 2 }, { "value": "REACTIVE", "label": "Reactive", "displayOrder": 3 }, { "value": "RADIOACTIVE", "label": "Radioactive", "displayOrder": 4 }, { "value": "INFECTIOUS", "label": "Infectious / Biohazard", "displayOrder": 5 }, { "value": "ASBESTOS", "label": "Asbestos", "displayOrder": 6 } ], "validation": "Required()" },
+      { "name": "wasteDescription", "label": "Waste Description", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 11, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND MinLength(20)" },
+      { "name": "quantity", "label": "Quantity (tonnes)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required() AND Min(0.01)" },
+      { "name": "unNumber", "label": "UN Number (if applicable)", "fieldType": "TEXT", "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "generatorName", "label": "Waste Generator", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "generatorAddress", "label": "Generator Address", "fieldType": "TEXTAREA", "isMandatory": true, "displayOrder": 21, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "transporter", "label": "Licensed Transporter", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "transportLicenceNo", "label": "Transport Licence #", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "Required()" },
+      { "name": "msdsAvailable", "label": "MSDS Available", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{msdsAvailable} == true, \"MSDS must be available\")" },
+      { "name": "spillKitReady", "label": "Spill Kit Available", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{spillKitReady} == true, \"Spill kit required\")" },
+      { "name": "ppeProvided", "label": "PPE Provided to Handlers", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{ppeProvided} == true, \"PPE must be provided\")" },
+      { "name": "emergencyPlan", "label": "Emergency Response Plan Filed", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "ValidWhen(@{emergencyPlan} == true, \"Emergency plan required\")" },
+      { "name": "disposalMethod", "label": "Disposal Method", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5",
+        "options": [ { "value": "INCINERATION", "label": "Incineration", "displayOrder": 0 }, { "value": "LANDFILL", "label": "Secured Landfill", "displayOrder": 1 }, { "value": "CHEMICAL_TREATMENT", "label": "Chemical Treatment", "displayOrder": 2 }, { "value": "ENCAPSULATION", "label": "Encapsulation", "displayOrder": 3 }, { "value": "DEEP_WELL", "label": "Deep Well Injection", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "disposalFacility", "label": "Disposal Facility", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "facilityLicenceNo", "label": "Facility Licence #", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required()" },
+      { "name": "plannedDisposalDate", "label": "Planned Disposal Date", "fieldType": "DATE", "isMandatory": true, "displayOrder": 43, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND DateAfter(\"today\", \"Must be future date\")" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Environmental Officer", "approverType": "ROLE", "roleName": "ENV_OFFICER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Compliance Manager", "approverType": "ROLE", "roleName": "COMPLIANCE_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 3, "name": "General Manager", "approverType": "ROLE", "roleName": "GENERAL_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

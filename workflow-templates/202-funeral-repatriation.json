@@ -1,0 +1,57 @@
+{
+  "_comment": "Body Repatriation Request — arrange repatriation of remains across borders.",
+  "name": "Body Repatriation Request",
+  "code": "FBR",
+  "description": "Request and approve repatriation of human remains across provincial or international borders.",
+  "icon": "flight",
+  "displayOrder": 202,
+  "requiresApproval": true, "commentsMandatoryOnReject": true, "commentsMandatoryOnEscalate": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "FINANCIAL",
+  "industryCode": "FUNERAL",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{repatRef} - @{deceasedName} (@{destination})",
+  "reminderEnabled": true, "reminderFrequencyHours": 8, "reminderMaxCount": 3, "reminderStartAfterHours": 4,
+  "escalationEnabled": true, "escalationAfterHours": 24, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Deceased & Documents", "displayOrder": 0, "icon": "description" },
+      { "id": "temp_screen_2", "title": "Logistics", "displayOrder": 1, "icon": "flight" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Deceased Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Required Documents", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_4", "title": "Transport & Destination", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Cost", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "repatRef", "label": "Repatriation Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"FBR-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "requestDate", "label": "Request Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "deceasedName", "label": "Deceased Full Name", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "nationality", "label": "Nationality", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "passportNumber", "label": "Passport Number", "fieldType": "TEXT", "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2" },
+      { "name": "dateOfDeath", "label": "Date of Death", "fieldType": "DATE", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "causeOfDeath", "label": "Cause of Death", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 14, "columnSpan": 2, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "deathCertificate", "label": "Death Certificate Obtained", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{deathCertificate} == true, \"Death certificate required\")" },
+      { "name": "embalmingCert", "label": "Embalming Certificate", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{embalmingCert} == true, \"Embalming certificate required\")" },
+      { "name": "consulateClearance", "label": "Consulate / Embassy Clearance", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{consulateClearance} == true, \"Consulate clearance required\")" },
+      { "name": "zincLinedCasket", "label": "Zinc-Lined Casket Prepared", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_3", "validation": "ValidWhen(@{zincLinedCasket} == true, \"Zinc-lined casket required for air transport\")" },
+      { "name": "transportMode", "label": "Transport Mode", "fieldType": "SELECT", "isMandatory": true, "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4",
+        "options": [ { "value": "AIR", "label": "Air Freight", "displayOrder": 0 }, { "value": "ROAD", "label": "Road Transport", "displayOrder": 1 }, { "value": "RAIL", "label": "Rail", "displayOrder": 2 } ], "validation": "Required()" },
+      { "name": "origin", "label": "Origin City / Country", "fieldType": "TEXT", "isMandatory": true, "inSummary": true, "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "destination", "label": "Destination City / Country", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "receivingFuneralHome", "label": "Receiving Funeral Home", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "plannedDepartureDate", "label": "Planned Departure Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Required()" },
+      { "name": "totalCost", "label": "Total Repatriation Cost", "fieldType": "NUMBER", "isMandatory": true, "isLimited": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "coveredByInsurance", "label": "Covered by Insurance", "fieldType": "YES_NO", "defaultValue": "false", "inSummary": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "familyContribution", "label": "Family Contribution", "fieldType": "NUMBER", "defaultValue": "0", "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Min(0)" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Repatriation Coordinator", "approverType": "ROLE", "roleName": "REPAT_COORDINATOR", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Operations Director", "approverType": "ROLE", "roleName": "OPS_DIRECTOR", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}

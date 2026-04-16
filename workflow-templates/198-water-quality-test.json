@@ -1,0 +1,59 @@
+{
+  "_comment": "Water Quality Test Report — submit and approve water quality laboratory results.",
+  "name": "Water Quality Test Report",
+  "code": "WQT",
+  "description": "Submit water quality laboratory test results for compliance verification and approval.",
+  "icon": "science",
+  "displayOrder": 198,
+  "requiresApproval": true, "commentsMandatoryOnReject": true,
+  "showSummary": true, "showApprovalMatrix": true, "lockApproved": true,
+  "workflowCategory": "NON_FINANCIAL",
+  "industryCode": "WATER_UTILITY",
+  "workflowTypeCode": "APPROVAL",
+  "titleTemplate": "@{testRef} - @{samplingPoint} (@{sampleDate})",
+  "reminderEnabled": true, "reminderFrequencyHours": 12, "reminderMaxCount": 3, "reminderStartAfterHours": 12,
+  "escalationEnabled": true, "escalationAfterHours": 48, "escalationAction": "NOTIFY_ADMIN",
+
+  "forms": [{ "name": "Main Form", "displayOrder": 0,
+    "screens": [
+      { "id": "temp_screen_1", "title": "Sample", "displayOrder": 0, "icon": "water_drop" },
+      { "id": "temp_screen_2", "title": "Results", "displayOrder": 1, "icon": "science" },
+      { "id": "temp_screen_3", "title": "Review", "displayOrder": 2, "icon": "fact_check", "isSummaryScreen": true }
+    ],
+    "fieldGroups": [
+      { "id": "temp_grp_1", "title": "Reference", "displayOrder": 0, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_2", "title": "Sample Details", "displayOrder": 1, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_1" },
+      { "id": "temp_grp_3", "title": "Physical Parameters", "displayOrder": 2, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_4", "title": "Chemical Parameters", "displayOrder": 3, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" },
+      { "id": "temp_grp_5", "title": "Microbiology", "displayOrder": 4, "columns": 2, "isCollapsible": false, "screenId": "temp_screen_2" }
+    ],
+    "fields": [
+      { "name": "testRef", "label": "Test Reference", "fieldType": "TEXT", "defaultValue": "SEQUENCE(\"WQT-\")", "isReadonly": true, "isTitle": true, "inSummary": true, "displayOrder": 0, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "reportDate", "label": "Report Date", "fieldType": "DATE", "defaultValue": "TODAY()", "isReadonly": true, "inSummary": true, "displayOrder": 1, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "analyst", "label": "Analyst", "fieldType": "TEXT", "defaultValue": "CURRENT_USER()", "isReadonly": true, "displayOrder": 2, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_1" },
+      { "name": "samplingPoint", "label": "Sampling Point", "fieldType": "TEXT", "isMandatory": true, "isTitle": true, "inSummary": true, "displayOrder": 10, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "sampleDate", "label": "Sample Date", "fieldType": "DATE", "isMandatory": true, "inSummary": true, "displayOrder": 11, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "sampleType", "label": "Sample Type", "fieldType": "SELECT", "isMandatory": true, "displayOrder": 12, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2",
+        "options": [ { "value": "RAW", "label": "Raw / Source Water", "displayOrder": 0 }, { "value": "TREATED", "label": "Treated Water", "displayOrder": 1 }, { "value": "DISTRIBUTION", "label": "Distribution Network", "displayOrder": 2 }, { "value": "CONSUMER", "label": "Consumer Tap", "displayOrder": 3 }, { "value": "WASTEWATER", "label": "Wastewater Effluent", "displayOrder": 4 } ], "validation": "Required()" },
+      { "name": "labName", "label": "Laboratory", "fieldType": "TEXT", "isMandatory": true, "displayOrder": 13, "columnSpan": 1, "screenId": "temp_screen_1", "fieldGroupId": "temp_grp_2", "validation": "Required()" },
+      { "name": "pH", "label": "pH", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 20, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0) AND Max(14)" },
+      { "name": "turbidity", "label": "Turbidity (NTU)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 21, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Required() AND Min(0)" },
+      { "name": "colour", "label": "Colour (mg/L Pt-Co)", "fieldType": "NUMBER", "displayOrder": 22, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "conductivity", "label": "Conductivity (mS/m)", "fieldType": "NUMBER", "displayOrder": 23, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "tds", "label": "TDS (mg/L)", "fieldType": "NUMBER", "displayOrder": 24, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_3", "validation": "Min(0)" },
+      { "name": "freeChlorine", "label": "Free Chlorine (mg/L)", "fieldType": "NUMBER", "inSummary": true, "displayOrder": 30, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "nitrate", "label": "Nitrate (mg/L)", "fieldType": "NUMBER", "displayOrder": 31, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "fluoride", "label": "Fluoride (mg/L)", "fieldType": "NUMBER", "displayOrder": 32, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "iron", "label": "Iron (mg/L)", "fieldType": "NUMBER", "displayOrder": 33, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "manganese", "label": "Manganese (mg/L)", "fieldType": "NUMBER", "displayOrder": 34, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_4", "validation": "Min(0)" },
+      { "name": "eColi", "label": "E. coli (CFU/100mL)", "fieldType": "NUMBER", "isMandatory": true, "inSummary": true, "displayOrder": 40, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "totalColiform", "label": "Total Coliform (CFU/100mL)", "fieldType": "NUMBER", "isMandatory": true, "displayOrder": 41, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5", "validation": "Required() AND Min(0)" },
+      { "name": "compliant", "label": "Meets Drinking Water Standard", "fieldType": "YES_NO", "isMandatory": true, "defaultValue": "false", "inSummary": true, "displayOrder": 42, "columnSpan": 1, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" },
+      { "name": "remarks", "label": "Remarks / Non-Compliance Notes", "fieldType": "TEXTAREA", "displayOrder": 43, "columnSpan": 2, "screenId": "temp_screen_2", "fieldGroupId": "temp_grp_5" }
+    ]
+  }],
+  "approvers": [
+    { "level": 1, "name": "Lab Manager", "approverType": "ROLE", "roleName": "LAB_MANAGER", "amountLimit": null, "canEscalate": true, "requireComment": true, "emailNotification": true },
+    { "level": 2, "name": "Water Quality Manager", "approverType": "ROLE", "roleName": "QUALITY_MANAGER", "amountLimit": null, "canEscalate": false, "requireComment": true, "emailNotification": true }
+  ]
+}
