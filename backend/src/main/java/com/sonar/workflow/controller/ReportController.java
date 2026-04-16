@@ -2,15 +2,16 @@ package com.sonar.workflow.controller;
 
 import com.sonar.workflow.dto.ApiResponse;
 import com.sonar.workflow.dto.ReportResultDTO;
+import com.sonar.workflow.service.AccessScopeService;
 import com.sonar.workflow.service.ReportService;
+import com.sonar.workflow.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -19,6 +20,58 @@ import java.util.Map;
 public class ReportController {
 
     private final ReportService reportService;
+    private final AccessScopeService accessScopeService;
+
+    @GetMapping("/user-scope")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getUserScope() {
+        User user = accessScopeService.getCurrentUser();
+        Map<String, Object> scope = new HashMap<>();
+
+        if (user != null) {
+            scope.put("corporateIds", (user.getCorporates() == null ? java.util.Collections.<com.sonar.workflow.entity.Corporate>emptySet() : user.getCorporates()).stream()
+                    .map(c -> Map.of("id", c.getId().toString(), "name", c.getName()))
+                    .collect(Collectors.toList()));
+            scope.put("sbuIds", (user.getSbus() == null ? java.util.Collections.<com.sonar.workflow.entity.SBU>emptySet() : user.getSbus()).stream()
+                    .map(s -> Map.of("id", s.getId().toString(), "name", s.getName()))
+                    .collect(Collectors.toList()));
+            scope.put("branchIds", (user.getBranches() == null ? java.util.Collections.<com.sonar.workflow.entity.Branch>emptySet() : user.getBranches()).stream()
+                    .map(b -> Map.of("id", b.getId().toString(), "name", b.getName()))
+                    .collect(Collectors.toList()));
+            scope.put("departmentIds", (user.getDepartments() == null ? java.util.Collections.<com.sonar.workflow.entity.Department>emptySet() : user.getDepartments()).stream()
+                    .map(d -> Map.of("id", d.getId().toString(), "name", d.getName()))
+                    .collect(Collectors.toList()));
+            scope.put("isAdmin", accessScopeService.isAdmin(user));
+            scope.put("isUnrestricted", accessScopeService.isUnrestricted(user));
+        } else {
+            // Super user or unknown — unrestricted
+            scope.put("corporateIds", Collections.emptyList());
+            scope.put("sbuIds", Collections.emptyList());
+            scope.put("branchIds", Collections.emptyList());
+            scope.put("departmentIds", Collections.emptyList());
+            scope.put("isAdmin", true);
+            scope.put("isUnrestricted", true);
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(scope));
+    }
+
+    @GetMapping("/accessible-workflows")
+    public ResponseEntity<ApiResponse<List<Map<String, String>>>> getAccessibleWorkflows() {
+        List<Map<String, String>> workflows = reportService.getAccessibleWorkflows();
+        return ResponseEntity.ok(ApiResponse.success(workflows));
+    }
+
+    @GetMapping("/accessible-users")
+    public ResponseEntity<ApiResponse<List<Map<String, String>>>> getAccessibleUsers() {
+        List<Map<String, String>> users = reportService.getAccessibleUsers();
+        return ResponseEntity.ok(ApiResponse.success(users));
+    }
+
+    @GetMapping("/accessible-branches")
+    public ResponseEntity<ApiResponse<List<Map<String, String>>>> getAccessibleBranches() {
+        List<Map<String, String>> branches = reportService.getAccessibleBranches();
+        return ResponseEntity.ok(ApiResponse.success(branches));
+    }
 
     @GetMapping("/definitions")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getReportDefinitions() {

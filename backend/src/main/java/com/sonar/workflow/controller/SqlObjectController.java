@@ -103,9 +103,13 @@ public class SqlObjectController {
     // SQL Table query execution endpoint
     @PostMapping("/execute-query")
     public ResponseEntity<ApiResponse<Map<String, Object>>> executeSqlTableQuery(@RequestBody Map<String, String> body) {
-        String query = body.get("query");
-        String columnsJson = body.get("columns");
-        return ResponseEntity.ok(ApiResponse.success(sqlObjectService.executeSqlTableQuery(query, columnsJson)));
+        try {
+            String query = body.get("query");
+            String columnsJson = body.get("columns");
+            return ResponseEntity.ok(ApiResponse.success(sqlObjectService.executeSqlTableQuery(query, columnsJson)));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.error(e.getMessage() != null ? e.getMessage() : "Query execution failed"));
+        }
     }
 
     // SQL Function query endpoint - used by library SQL functions (SQL_LOOKUP, SQL_QUERY, SQL_COUNT, SQL_SUM, etc.)

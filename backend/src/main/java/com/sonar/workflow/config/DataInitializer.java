@@ -7,6 +7,8 @@ import com.sonar.workflow.leave.repository.LeaveTypeRepository;
 import com.sonar.workflow.leave.repository.LeavePolicyRepository;
 import com.sonar.workflow.projects.entity.ProjectCategory;
 import com.sonar.workflow.projects.entity.RiskIssueCategory;
+import com.sonar.workflow.entity.Category;
+import com.sonar.workflow.repository.CategoryRepository;
 import com.sonar.workflow.projects.repository.ProjectCategoryRepository;
 import com.sonar.workflow.projects.repository.RiskIssueCategoryRepository;
 import com.sonar.workflow.projects.service.ProjectSettingsService;
@@ -43,6 +45,7 @@ public class DataInitializer implements CommandLineRunner {
     private final SBURepository sbuRepository;
     private final ProjectCategoryRepository projectCategoryRepository;
     private final RiskIssueCategoryRepository riskIssueCategoryRepository;
+    private final CategoryRepository categoryRepository;
     private final ProjectSettingsService projectSettingsService;
     private final StampRepository stampRepository;
     private final LeaveTypeRepository leaveTypeRepository;
@@ -64,6 +67,8 @@ public class DataInitializer implements CommandLineRunner {
         initializeSystemState();
         // SBUs are no longer seeded - users create them via import or manually
         initializeWorkflowTypes();
+        initializeIndustryCategories();
+        backfillWorkflowIndustryAndType();
         // Workflows start empty - users create them via the UI, import, or template
         // SQL Objects start empty - users create them via the UI
         initializeProjectCategories();
@@ -485,6 +490,7 @@ public class DataInitializer implements CommandLineRunner {
         createSettingIfNotExists("workflow.allow.email.approvals", "true", "Allow Approvals From Email", "Email Approvals", "Workflow", Setting.SettingType.BOOLEAN);
         createSettingIfNotExists("workflow.email.token.expiry.hours", "48", "Email Approval Token Expiry Hours", "Email Approvals", "Workflow", Setting.SettingType.NUMBER);
         createSettingIfNotExists("workflow.email.show.approval.matrix", "true", "Show Approval Matrix in Emails", "Email Approvals", "Workflow", Setting.SettingType.BOOLEAN);
+        createSettingIfNotExists("workflow.child.inherit.access", "true", "Child Workflows Inherit Parent Access", "Parent/Child", "Workflow", Setting.SettingType.BOOLEAN);
 
         // Reporting Settings
         createSettingIfNotExists("reporting.font.size", "14", "Reporting Font Size (px)", "Display", "Reporting", Setting.SettingType.NUMBER);
@@ -646,6 +652,196 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     // SBU initialization removed - users create SBUs via import or manually
+
+    private void initializeIndustryCategories() {
+        // Cross-cutting / internal
+        createIndustryIfNotExists("GENERAL",               "General",                         "Cross-industry generic workflows");
+        createIndustryIfNotExists("HR",                    "Human Resources",                 "HR and people-management workflows");
+        createIndustryIfNotExists("IT",                    "Information Technology",          "IT service and access workflows");
+        createIndustryIfNotExists("ADMIN",                 "Administration",                  "Facilities, visitors, bookings and general admin");
+
+        // Financial services
+        createIndustryIfNotExists("BANKING",               "Banking",                         "Retail, corporate and operations banking workflows");
+        createIndustryIfNotExists("INSURANCE",             "Insurance",                       "General, life and short-term insurance workflows");
+        createIndustryIfNotExists("FUNERAL",               "Funeral Assurance",               "Policy, claim and service delivery workflows for funeral assurance");
+        createIndustryIfNotExists("MICROFINANCE",          "Microfinance",                    "Microfinance and SACCO workflows");
+        createIndustryIfNotExists("FINTECH",               "Fintech",                         "Digital financial services and payment platforms");
+        createIndustryIfNotExists("CAPITAL_MARKETS",       "Capital Markets",                 "Securities, asset management and trading");
+
+        // Public sector / non-profit
+        createIndustryIfNotExists("GOVERNMENT",            "Government & Public Sector",      "Government departments, agencies and public services");
+        createIndustryIfNotExists("NGO",                   "Non-Profit & NGO",                "Non-profit organisations, charities and NGOs");
+        createIndustryIfNotExists("DEFENCE",               "Defence & Security",              "Defence, military and national security");
+
+        // Healthcare & life sciences
+        createIndustryIfNotExists("HEALTHCARE",            "Healthcare",                      "Clinical, administrative and claims workflows for healthcare");
+        createIndustryIfNotExists("PHARMA",                "Pharmaceuticals",                 "Pharmaceutical manufacturing and distribution");
+        createIndustryIfNotExists("BIOTECH",               "Biotechnology",                   "Biotechnology research and product development");
+
+        // Industrial / goods production
+        createIndustryIfNotExists("MANUFACTURING",         "Manufacturing",                   "Engineering, production and quality workflows");
+        createIndustryIfNotExists("AUTOMOTIVE",            "Automotive",                      "Vehicle manufacturing, dealerships and service");
+        createIndustryIfNotExists("AEROSPACE",             "Aerospace",                       "Aerospace manufacturing and MRO");
+        createIndustryIfNotExists("CHEMICALS",             "Chemicals",                       "Chemical production and distribution");
+        createIndustryIfNotExists("TEXTILES",              "Textiles",                        "Textile manufacturing");
+        createIndustryIfNotExists("CLOTHING",              "Clothing & Apparel",              "Garment manufacturing, retail and fashion");
+        createIndustryIfNotExists("FURNITURE",             "Furniture",                       "Furniture design, manufacturing and retail");
+        createIndustryIfNotExists("PRINTING",              "Printing & Packaging",            "Commercial printing and packaging");
+
+        // Primary / extractive
+        createIndustryIfNotExists("AGRICULTURE",           "Agriculture & Agribusiness",      "Crop, livestock and agribusiness workflows");
+        createIndustryIfNotExists("MINING",                "Mining & Metals",                 "Mining operations and metals processing");
+        createIndustryIfNotExists("OIL_GAS",               "Oil & Gas",                       "Upstream, midstream and downstream oil & gas");
+        createIndustryIfNotExists("FORESTRY",              "Forestry",                        "Forestry and timber operations");
+        createIndustryIfNotExists("FISHING",               "Fishing & Aquaculture",           "Commercial fishing and aquaculture");
+
+        // Energy & utilities
+        createIndustryIfNotExists("ENERGY",                "Energy & Utilities",              "Power generation, transmission and distribution");
+        createIndustryIfNotExists("RENEWABLES",            "Renewable Energy",                "Solar, wind, hydro and other renewables");
+        createIndustryIfNotExists("WATER",                 "Water & Sanitation",              "Water utilities and sanitation services");
+        createIndustryIfNotExists("WASTE",                 "Waste Management",                "Waste collection, recycling and disposal");
+
+        // Construction & real estate
+        createIndustryIfNotExists("CONSTRUCTION",          "Construction",                    "Building construction and civil engineering");
+        createIndustryIfNotExists("REAL_ESTATE",           "Real Estate",                     "Property development, sales and management");
+        createIndustryIfNotExists("PROPERTY_MGMT",         "Property Management",             "Facilities and property management");
+
+        // Commerce
+        createIndustryIfNotExists("RETAIL",                "Retail",                          "Retail store operations and merchandising");
+        createIndustryIfNotExists("WHOLESALE",             "Wholesale & Distribution",        "Wholesale distribution and cash & carry");
+        createIndustryIfNotExists("ECOMMERCE",             "E-Commerce",                      "Online retail and marketplaces");
+        createIndustryIfNotExists("FMCG",                  "FMCG",                            "Fast-moving consumer goods");
+
+        // Food & drink
+        createIndustryIfNotExists("FOOD",                  "Food & Beverage",                 "Food and beverage production and service");
+        createIndustryIfNotExists("RESTAURANT",            "Restaurants & Catering",          "Restaurants, cafes and catering");
+
+        // Transport & logistics
+        createIndustryIfNotExists("TRANSPORT_LOGISTICS",   "Transport & Logistics",           "Freight, logistics and supply chain");
+        createIndustryIfNotExists("SHIPPING",              "Shipping & Maritime",             "Shipping, ports and maritime services");
+        createIndustryIfNotExists("AVIATION",              "Aviation",                        "Airlines, airports and aviation services");
+        createIndustryIfNotExists("RAIL",                  "Rail",                            "Passenger and freight rail operations");
+        createIndustryIfNotExists("COURIER",               "Courier & Postal",                "Courier, express and postal services");
+
+        // Hospitality & services
+        createIndustryIfNotExists("TOURISM",               "Tourism & Hospitality",           "Hotels, travel agencies and tourism operators");
+        createIndustryIfNotExists("EVENTS",                "Events & Entertainment Venues",   "Events management and entertainment venues");
+        createIndustryIfNotExists("SPORTS",                "Sports & Recreation",             "Sports clubs, recreation and leisure");
+        createIndustryIfNotExists("GAMING",                "Gaming & Betting",                "Gaming, casinos and sports betting");
+
+        // Education & research
+        createIndustryIfNotExists("EDUCATION",             "Education",                       "Schools, universities and training institutions");
+        createIndustryIfNotExists("RESEARCH",              "Research & Development",          "Research institutes and R&D labs");
+
+        // Professional / business services
+        createIndustryIfNotExists("LEGAL",                 "Legal Services",                  "Law firms and corporate legal services");
+        createIndustryIfNotExists("ACCOUNTING",            "Accounting & Audit",              "Accounting, audit and tax advisory");
+        createIndustryIfNotExists("CONSULTING",            "Consulting",                      "Management, strategy and technical consulting");
+        createIndustryIfNotExists("PROFESSIONAL_SERVICES", "Professional Services",           "General professional services firms");
+        createIndustryIfNotExists("ADVERTISING",           "Advertising & Marketing",         "Advertising, PR and marketing agencies");
+        createIndustryIfNotExists("ARCHITECTURE",          "Architecture & Engineering",      "Architecture, design and engineering consultancies");
+        createIndustryIfNotExists("HR_SERVICES",           "HR & Recruitment Services",       "Recruitment agencies and HR outsourcing");
+        createIndustryIfNotExists("SECURITY_SERVICES",     "Security Services",               "Private security, guarding and surveillance");
+        createIndustryIfNotExists("CLEANING",              "Cleaning & Facilities Services",  "Contract cleaning and facilities services");
+
+        // ICT & media
+        createIndustryIfNotExists("TELECOMS",              "Telecommunications",              "Telecom operators and infrastructure");
+        createIndustryIfNotExists("MEDIA",                 "Media & Broadcasting",            "Broadcasting, film and journalism");
+        createIndustryIfNotExists("PUBLISHING",            "Publishing",                      "Book, journal and digital publishing");
+        createIndustryIfNotExists("SOFTWARE",              "Software & SaaS",                 "Software products and SaaS platforms");
+
+        // Religious / membership
+        createIndustryIfNotExists("RELIGIOUS",             "Religious Organisations",         "Churches, mosques, temples and faith-based organisations");
+        createIndustryIfNotExists("ASSOCIATIONS",          "Associations & Membership Bodies","Trade associations, professional bodies and unions");
+    }
+
+    private void createIndustryIfNotExists(String code, String name, String description) {
+        if (!categoryRepository.existsByCode(code)) {
+            Category category = Category.builder()
+                    .code(code)
+                    .name(name)
+                    .description(description)
+                    .build();
+            category.setIsActive(true);
+            categoryRepository.save(category);
+            log.info("Created industry category: {}", name);
+        }
+    }
+
+    private void backfillWorkflowIndustryAndType() {
+        java.util.Map<String, String[]> templateMap = new java.util.LinkedHashMap<>();
+        // name -> [industryCode, workflowTypeCode]
+        templateMap.put("Purchase Requisition",               new String[]{"GENERAL",       "REQUISITION"});
+        templateMap.put("Leave Request",                      new String[]{"HR",            "LEAVE"});
+        templateMap.put("Expense Claim",                      new String[]{"GENERAL",       "EXPENSE"});
+        templateMap.put("Travel Request",                     new String[]{"GENERAL",       "TRAVEL"});
+        templateMap.put("Employee Onboarding",                new String[]{"HR",            "HR"});
+        templateMap.put("IT Access Request",                  new String[]{"IT",            "IT"});
+        templateMap.put("IT Support Ticket",                  new String[]{"IT",            "IT"});
+        templateMap.put("Vendor Onboarding",                  new String[]{"GENERAL",       "APPROVAL"});
+        templateMap.put("Document Approval",                  new String[]{"GENERAL",       "APPROVAL"});
+        templateMap.put("Training Request",                   new String[]{"HR",            "HR"});
+        templateMap.put("Equipment Request",                  new String[]{"ADMIN",         "REQUISITION"});
+        templateMap.put("Incident Report",                    new String[]{"GENERAL",       "APPROVAL"});
+        templateMap.put("Meeting Room Booking",               new String[]{"ADMIN",         "APPROVAL"});
+        templateMap.put("Visitor Access Request",             new String[]{"ADMIN",         "APPROVAL"});
+        templateMap.put("Performance Review",                 new String[]{"HR",            "HR"});
+        templateMap.put("Engineering Change Request",         new String[]{"MANUFACTURING", "APPROVAL"});
+        templateMap.put("Non-Conformance Report",             new String[]{"MANUFACTURING", "APPROVAL"});
+        templateMap.put("Material Requisition",               new String[]{"MANUFACTURING", "REQUISITION"});
+        templateMap.put("Machine Downtime Report",            new String[]{"MANUFACTURING", "APPROVAL"});
+        templateMap.put("First Article Inspection",           new String[]{"MANUFACTURING", "APPROVAL"});
+        templateMap.put("Batch Release",                      new String[]{"MANUFACTURING", "APPROVAL"});
+        templateMap.put("Account Opening (Retail KYC)",       new String[]{"BANKING",       "APPROVAL"});
+        templateMap.put("Personal Loan Application",          new String[]{"BANKING",       "FINANCE"});
+        templateMap.put("Wire Transfer Authorization",        new String[]{"BANKING",       "FINANCE"});
+        templateMap.put("Customer Complaint & Dispute",       new String[]{"BANKING",       "APPROVAL"});
+        templateMap.put("Customer Limit Increase Request",    new String[]{"BANKING",       "FINANCE"});
+        templateMap.put("KYC Refresh / Periodic Review",      new String[]{"BANKING",       "APPROVAL"});
+        templateMap.put("Suspicious Transaction Report (STR)",new String[]{"BANKING",       "APPROVAL"});
+        templateMap.put("Loan Restructure / Reschedule",      new String[]{"BANKING",       "FINANCE"});
+        templateMap.put("Account Closure Request",            new String[]{"BANKING",       "APPROVAL"});
+        templateMap.put("Cheque Stop Payment Request",        new String[]{"BANKING",       "APPROVAL"});
+        templateMap.put("Funeral Policy Application",         new String[]{"FUNERAL",       "APPROVAL"});
+        templateMap.put("Funeral Death Claim",                new String[]{"FUNERAL",       "FINANCE"});
+        templateMap.put("Policy Cancellation / Surrender",    new String[]{"FUNERAL",       "FINANCE"});
+        templateMap.put("Beneficiary / Policy Amendment",     new String[]{"FUNERAL",       "APPROVAL"});
+        templateMap.put("Policy Reinstatement",               new String[]{"FUNERAL",       "FINANCE"});
+        templateMap.put("Funeral Service Delivery",           new String[]{"FUNERAL",       "FINANCE"});
+        templateMap.put("Premium Refund Request",             new String[]{"FUNERAL",       "FINANCE"});
+
+        int updated = 0;
+        for (com.sonar.workflow.entity.Workflow wf : workflowRepository.findAll()) {
+            if (wf.getIndustry() != null && wf.getWorkflowType() != null) continue;
+
+            String baseName = wf.getName() == null ? "" : wf.getName();
+            // Strip common import suffixes: " (Imported)", " (1)", " (2)" ...
+            baseName = baseName.replaceAll("\\s*\\(Imported\\)\\s*", " ")
+                               .replaceAll("\\s*\\(\\d+\\)\\s*$", "")
+                               .trim();
+
+            String[] codes = templateMap.get(baseName);
+            if (codes == null) continue;
+
+            boolean changed = false;
+            if (wf.getIndustry() == null) {
+                java.util.Optional<com.sonar.workflow.entity.Category> ind = categoryRepository.findByCode(codes[0]);
+                if (ind.isPresent()) { wf.setIndustry(ind.get()); changed = true; }
+            }
+            if (wf.getWorkflowType() == null) {
+                java.util.Optional<com.sonar.workflow.entity.WorkflowType> t = workflowTypeRepository.findByCode(codes[1]);
+                if (t.isPresent()) { wf.setWorkflowType(t.get()); changed = true; }
+            }
+            if (changed) {
+                workflowRepository.save(wf);
+                updated++;
+                log.info("Backfilled workflow '{}' -> industry={}, type={}", wf.getName(), codes[0], codes[1]);
+            }
+        }
+        if (updated > 0) {
+            log.info("Workflow industry/type backfill complete: {} workflow(s) updated", updated);
+        }
+    }
 
     private void initializeWorkflowTypes() {
         createWorkflowTypeIfNotExists("APPROVAL", "Approval", "General approval workflows", "approval", "#4CAF50", 1);

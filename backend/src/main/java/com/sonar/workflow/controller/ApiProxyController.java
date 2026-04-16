@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.*;
 
 @RestController
@@ -126,8 +127,9 @@ public class ApiProxyController {
             RestTemplate restTemplate = new RestTemplate();
             HttpEntity<String> entity = new HttpEntity<>(finalBody, headers);
 
+            // Use URI object to prevent RestTemplate from interpreting {..} as template variables
             ResponseEntity<Object> response = restTemplate.exchange(
-                    url,
+                    URI.create(url),
                     HttpMethod.valueOf(method.toUpperCase()),
                     entity,
                     Object.class

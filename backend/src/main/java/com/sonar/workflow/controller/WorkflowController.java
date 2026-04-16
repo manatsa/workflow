@@ -65,6 +65,17 @@ public class WorkflowController {
         return ResponseEntity.ok(ApiResponse.success("Workflow updated", workflowService.updateWorkflow(id, dto)));
     }
 
+    @PutMapping("/{id}/active")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('WORKFLOW_BUILDER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<WorkflowDTO>> toggleActive(
+            @PathVariable UUID id,
+            @RequestBody java.util.Map<String, Boolean> body) {
+        Boolean active = body.get("active");
+        if (active == null) active = true;
+        WorkflowDTO updated = workflowService.setWorkflowActive(id, active);
+        return ResponseEntity.ok(ApiResponse.success(active ? "Workflow activated" : "Workflow deactivated", updated));
+    }
+
     @PostMapping("/{id}/publish")
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('WORKFLOW_BUILDER') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> publishWorkflow(@PathVariable UUID id) {
